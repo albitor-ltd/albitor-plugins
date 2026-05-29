@@ -12,7 +12,7 @@
       "source": {
         "source": "github",
         "repo": "albitor-ltd/albitor-plugin-gds",
-        "ref": "v0.1.0"
+        "ref": "v0.1.1"
       },
       "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
       "category": "development",
