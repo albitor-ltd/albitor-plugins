@@ -1,0 +1,33 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "albitor-plugins",
+  "description": "Albitor's catalogue of Claude Code plugins.",
+  "owner": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "plugins": [
+    {
+      "name": "gds",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-gds",
+        "ref": "v0.1.0"
+      },
+      "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
+      "category": "development",
+      "keywords": [
+        "gds",
+        "gov.uk",
+        "govuk",
+        "design-system",
+        "accessibility",
+        "wcag",
+        "a11y",
+        "public-sector",
+        "government"
+      ],
+      "license": "MIT"
+    }
+  ]
+}
