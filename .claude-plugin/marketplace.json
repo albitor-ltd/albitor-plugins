@@ -12,7 +12,7 @@
       "source": {
         "source": "github",
         "repo": "albitor-ltd/albitor-plugin-gds",
-        "ref": "v0.1.1"
+        "ref": "v0.1.2"
       },
       "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
       "category": "development",
@@ -21,6 +21,7 @@
         "gov.uk",
         "govuk",
         "design-system",
+        "preview-page",
         "accessibility",
         "wcag",
         "a11y",
@@ -28,6 +29,69 @@
         "government"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "shadcn",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-shadcn",
+        "ref": "v0.1.0"
+      },
+      "description": "Build, audit, and preview modern web apps with shadcn/ui components on Radix UI primitives and Tailwind CSS, meeting WCAG 2.2 AA accessibility. The default design system for net-new SME and startup web apps.",
+      "category": "development",
+      "keywords": [
+        "shadcn",
+        "radix",
+        "tailwind",
+        "design-system",
+        "preview-page",
+        "accessibility",
+        "wcag",
+        "a11y"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "mui",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-mui",
+        "ref": "v0.1.0"
+      },
+      "description": "Build, audit, and preview Material UI (MUI) interfaces: the MUI component library and Material Design foundations (colour, type, spacing, elevation, theming), plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
+      "category": "development",
+      "keywords": [
+        "mui",
+        "material-ui",
+        "material-design",
+        "design-system",
+        "preview-page",
+        "accessibility",
+        "wcag",
+        "a11y"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "carbon",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-carbon",
+        "ref": "v0.1.0"
+      },
+      "description": "Build and audit enterprise, data-heavy B2B interfaces with the IBM Carbon Design System: Carbon components (React and Web Components), patterns, IBM Design Language styles and tokens, plus WCAG 2.2 AA accessibility and an axe-based conformance baseline.",
+      "category": "development",
+      "keywords": [
+        "carbon",
+        "ibm",
+        "enterprise",
+        "design-system",
+        "preview-page",
+        "accessibility",
+        "wcag",
+        "a11y"
+      ],
+      "license": "Apache-2.0"
     }
   ]
 }
