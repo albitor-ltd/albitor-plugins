@@ -114,6 +114,28 @@
         "user-pool"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "docs",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-docs",
+        "ref": "v0.1.0"
+      },
+      "description": "Author an app's documentation to a consistent standard with three authoritative frameworks: Diátaxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
+      "category": "development",
+      "keywords": [
+        "required-documentation",
+        "documentation",
+        "diataxis",
+        "c4",
+        "arc42",
+        "docs",
+        "architecture",
+        "adr",
+        "technical-writing"
+      ],
+      "license": "MIT"
     }
   ]
 }
