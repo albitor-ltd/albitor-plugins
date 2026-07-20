@@ -56,9 +56,9 @@
       "source": {
         "source": "github",
         "repo": "albitor-ltd/albitor-plugin-mui",
-        "ref": "v0.1.4"
+        "ref": "v0.2.0"
       },
-      "description": "Build, audit, and preview Material UI (MUI) interfaces: the MUI component library and Material Design foundations (colour, type, spacing, elevation, theming), plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
+      "description": "Build, audit, and preview Material Design interfaces across frameworks: the shared Material foundations (colour, type, spacing, elevation, theming) with a framework-appropriate component layer — SMUI on SvelteKit, @mui/material on React — plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
       "category": "development",
       "keywords": [
         "mui",
