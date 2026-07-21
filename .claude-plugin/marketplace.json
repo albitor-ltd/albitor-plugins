@@ -56,7 +56,7 @@
       "source": {
         "source": "github",
         "repo": "albitor-ltd/albitor-plugin-mui",
-        "ref": "v0.2.0"
+        "ref": "v0.2.1"
       },
       "description": "Build, audit, and preview Material Design interfaces across frameworks: the shared Material foundations (colour, type, spacing, elevation, theming) with a framework-appropriate component layer — SMUI on SvelteKit, @mui/material on React — plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
       "category": "development",
@@ -98,7 +98,7 @@
       "source": {
         "source": "github",
         "repo": "albitor-ltd/albitor-plugin-auth",
-        "ref": "v0.2.0"
+        "ref": "v0.2.1"
       },
       "description": "The default auth pack: end-user sign-up and login for a delivered app, backed by an Amazon Cognito user pool with a public app client, in-app UI (styled by the app's chosen design system, not the Cognito Hosted UI), and JWT-validated API middleware. Self-sign-up is on by default.",
       "category": "development",
