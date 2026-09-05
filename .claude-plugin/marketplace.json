@@ -136,6 +136,102 @@
         "technical-writing"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "visual-editorial",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-visual-editorial",
+        "ref": "v0.1.0"
+      },
+      "description": "A type-led, art-directed visual language for delivered web apps: warm paper and ink with one rust accent, serif display type over a clean sans UI, asymmetric generous margins, hairlines and no shadows. Applied as a pure CSS/token layer over the app's chosen design system — best for marketing, portfolio, publishing, and premium services.",
+      "category": "general",
+      "keywords": [
+        "visual-language",
+        "editorial",
+        "style",
+        "typography",
+        "magazine",
+        "css-tokens"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "visual-glass",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-visual-glass",
+        "ref": "v0.1.0"
+      },
+      "description": "Frosted — airy, premium, layered. A glassmorphic visual language for delivered web apps: a vibrant gradient field with drifting orbs behind frosted panels, 1px translucent borders, 16–20px radii and white text on glass. Applied as a pure CSS/token layer over the app's chosen design system — best for AI, media, music, crypto, and dashboards.",
+      "category": "general",
+      "keywords": [
+        "visual-language",
+        "glassmorphism",
+        "glass",
+        "style",
+        "premium",
+        "css-tokens"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "visual-minimal",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-visual-minimal",
+        "ref": "v0.1.0"
+      },
+      "description": "Barely-there restraint — precise, calm, engineered. A minimal visual language for delivered web apps in the Linear/Stripe school: near-white and ink with one indigo accent, a tight system-sans scale, hairline borders, generous whitespace, 8px radii and quick quiet motion. Applied as a pure CSS/token layer over the app's chosen design system — best for SaaS, dev tools, productivity, and fintech.",
+      "category": "general",
+      "keywords": [
+        "visual-language",
+        "minimal",
+        "style",
+        "saas",
+        "typography",
+        "css-tokens"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "visual-neubrutal",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-visual-neubrutal",
+        "ref": "v0.1.0"
+      },
+      "description": "The loud one — playful, raw, memorable. An unapologetic visual language for delivered web apps: saturated primaries on cream with black everywhere, chunky uppercase grotesk type with tight tracking, blocky offset layouts, 3px borders with 4–6px hard offset shadows and zero radius. Applied as a pure CSS/token layer over the app's chosen design system — best for creative studios, youth brands, dev tools, and games.",
+      "category": "general",
+      "keywords": [
+        "visual-language",
+        "neubrutal",
+        "brutalism",
+        "style",
+        "typography",
+        "css-tokens"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "visual-swiss",
+      "source": {
+        "source": "github",
+        "repo": "albitor-ltd/albitor-plugin-visual-swiss",
+        "ref": "v0.1.0"
+      },
+      "description": "The grid — objective, precise, graphic. A systematic typographic visual language for delivered web apps: black and white with one vermilion accent, grotesque type with heavy weights and uppercase labels, a strict left-aligned grid with numbered sections and 2–3px rules, sharp corners and no shadows. Applied as a pure CSS/token layer over the app's chosen design system — best for corporate, finance, B2B, engineering, and data docs.",
+      "category": "general",
+      "keywords": [
+        "visual-language",
+        "swiss",
+        "international-style",
+        "style",
+        "typography",
+        "grid",
+        "css-tokens"
+      ],
+      "license": "MIT"
     }
   ]
 }

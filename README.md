@@ -23,6 +23,16 @@ claude plugin enable gds@albitor-plugins
 | Plugin | What it does | Source |
 | --- | --- | --- |
 | `gds` | GOV.UK Design System + WCAG 2.2 AA accessibility — skills, commands (`/gds:component`, `/gds:audit`, `/gds:accessibility-statement`, `/gds:review`), an accessibility-audit agent, and an advisory frontend hook. Needs `jq` for the hook. | [`albitor-plugin-gds`](https://github.com/albitor-ltd/albitor-plugin-gds) |
+| `shadcn` | shadcn/ui on Radix UI primitives and Tailwind CSS, meeting WCAG 2.2 AA — the default design system for net-new SME and startup web apps. | [`albitor-plugin-shadcn`](https://github.com/albitor-ltd/albitor-plugin-shadcn) |
+| `mui` | Material Design across frameworks — SMUI on SvelteKit, `@mui/material` on React — plus WCAG 2.2 AA, for consumer and general-purpose web apps. | [`albitor-plugin-mui`](https://github.com/albitor-ltd/albitor-plugin-mui) |
+| `carbon` | IBM Carbon Design System (React and Web Components) for enterprise, data-heavy B2B interfaces, plus WCAG 2.2 AA and an axe-based conformance baseline. | [`albitor-plugin-carbon`](https://github.com/albitor-ltd/albitor-plugin-carbon) |
+| `auth` | The default auth pack: Cognito-backed end-user sign-up and login with in-app UI and JWT-validated API middleware. | [`albitor-plugin-auth`](https://github.com/albitor-ltd/albitor-plugin-auth) |
+| `docs` | Author an app's documentation with Diátaxis, C4, and arc42 — the first-party required-documentation capability skills. | [`albitor-plugin-docs`](https://github.com/albitor-ltd/albitor-plugin-docs) |
+| `visual-editorial` | Editorial visual language — warm paper and ink, serif display type, asymmetric margins. Best for marketing, portfolio, publishing, and premium services. | [`albitor-plugin-visual-editorial`](https://github.com/albitor-ltd/albitor-plugin-visual-editorial) |
+| `visual-glass` | Glassmorphic visual language — gradient field, frosted panels, translucent borders. Best for AI, media, music, crypto, and dashboards. | [`albitor-plugin-visual-glass`](https://github.com/albitor-ltd/albitor-plugin-visual-glass) |
+| `visual-minimal` | Minimal visual language in the Linear/Stripe school — near-white and ink, one accent, hairline borders. Best for SaaS, dev tools, productivity, and fintech. | [`albitor-plugin-visual-minimal`](https://github.com/albitor-ltd/albitor-plugin-visual-minimal) |
+| `visual-neubrutal` | Neubrutalist visual language — saturated primaries, chunky uppercase type, hard offset shadows. Best for creative studios, youth brands, dev tools, and games. | [`albitor-plugin-visual-neubrutal`](https://github.com/albitor-ltd/albitor-plugin-visual-neubrutal) |
+| `visual-swiss` | Swiss/International Style visual language — black and white, one accent, strict grid. Best for corporate, finance, B2B, engineering, and data docs. | [`albitor-plugin-visual-swiss`](https://github.com/albitor-ltd/albitor-plugin-visual-swiss) |
 
 ## How versions work
 
