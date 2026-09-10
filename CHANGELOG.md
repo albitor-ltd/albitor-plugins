@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `mui` plugin pinned at `v0.2.1` — Material Design across frameworks.
 - `carbon` plugin pinned at `v0.1.4` — IBM Carbon Design System.
 - `auth` plugin pinned at `v0.4.0` — Cognito-backed sign-up and login.
+
+### Changed
+
+- `auth` plugin re-pinned to `v0.5.0` (2026-09-10) — optional SES-backed email sending for the
+  user pool (`cognito_email_from`, `cognito_email_ses_identity_arn`); the default Cognito sender
+  is capped at 50 emails a day per account.
 - `docs` plugin pinned at `v0.2.0` — Diátaxis, C4, and arc42 documentation.
 - `visual-editorial`, `visual-glass`, `visual-minimal`, `visual-neubrutal`, and `visual-swiss`
   plugins each pinned at `v0.1.0` — the five visual-language design layers.
