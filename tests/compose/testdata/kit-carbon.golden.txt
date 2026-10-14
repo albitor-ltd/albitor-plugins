@@ -20,6 +20,7 @@
 === web/src/lib/kit/dialog.test.ts ===
 === web/src/lib/kit/index.ts ===
 === web/src/lib/kit/kit.test.ts ===
+=== web/src/lib/kit/shell.test.ts ===
 === web/src/lib/kit/theme.ts ===
 === web/src/lib/kit/toast.svelte.ts ===
 === web/src/lib/shell/OfflineBanner.svelte ===

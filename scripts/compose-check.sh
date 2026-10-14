@@ -104,5 +104,10 @@ if [[ $build -eq 1 ]]; then
   npm test
   npm run build
   test -f build/index.html
+  # The shell must ship Carbon's themes (AppShell imports the stylesheet) and the pinned telemetry
+  # package must be the one installed, not whatever carbon-components-svelte's range floats to.
+  grep -rlq -e '--cds-text-primary' build/_app || { echo "kit-carbon: Carbon's CSS is not in the build" >&2; exit 1; }
+  grep -rlq -e '\[theme=g100\]' build/_app || { echo "kit-carbon: Carbon's g100 theme is not in the build" >&2; exit 1; }
+  npm ls @ibm/telemetry-js | grep -q '@ibm/telemetry-js@1.11.0' || { echo "kit-carbon: @ibm/telemetry-js is not the pinned version" >&2; exit 1; }
   echo "composed web tree with kit-carbon builds, and its axe and contrast audits pass"
 fi

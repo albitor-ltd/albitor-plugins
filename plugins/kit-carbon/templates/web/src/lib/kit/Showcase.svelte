@@ -56,6 +56,8 @@
 		<Field label="Notes" multiline aria-describedby="notes-help" />
 		<p id="notes-help">Notes are visible to your team.</p>
 		<Button type="submit" icon={Send}>Send report</Button>
+		<Button variant="secondary">Save draft</Button>
+		<Button variant="ghost">Reset</Button>
 		<Button variant="destructive" onclick={() => (open = true)}>Delete report</Button>
 	</form>
 

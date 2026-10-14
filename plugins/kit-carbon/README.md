@@ -20,9 +20,10 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
   stylesheet and computes WCAG 2.2 AA ratios for every foreground and background pair the
   components use, in both themes (axe cannot judge contrast without layout).
 - Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and
-  runs axe over them, plus behaviour checks (current page, label wiring, live regions, text not
-  markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus (trap, Escape, return) and
-  the Close button.
+  runs axe over them, plus behaviour checks (current page, label wiring, live regions, button types
+  and variants, text not markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus (trap,
+  Escape, return) and the Close button; `shell.test.ts` mounts the shell and checks the theme
+  follows the colour-scheme preference and `data-theme`, including when either changes.
 - The `kit-carbon` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG 2.2
   content belongs to `test-playwright`, so it is not carried here.
 
@@ -42,7 +43,10 @@ pairing today.
 ## Ownership
 
 The components and `theme.ts` are `example` files: seeded once, then the app's. The contrast test,
-the Showcase, the two test files and `web/vitest.config.ts` are `managed`. The vitest config extends
+the Showcase, the three test files and `web/vitest.config.ts` are `managed`. No managed file imports
+an `example` file by name except the Showcase (which renders the components); the theme tests check
+the `theme` attribute Carbon puts on `<html>` through the mounted shell, so an app may rewrite
+`theme.ts` and keep the gate as long as the page still follows the preference and `data-theme`. The vitest config extends
 web-svelte's `vite.config.ts` and inlines `carbon-components-svelte` so its `.svelte` files compile,
 and resolves `mount` to the client build.
 
@@ -57,10 +61,20 @@ and resolves `mount` to the client build.
   the tests) but does not write them into the app-owned `web/package.json`.
   `scripts/compose-check.sh` installs the declared set before it builds; an app composed by the
   platform needs them added until the composer does it.
-- **IBM telemetry.** `carbon-components-svelte` declares a `postinstall` (`ibmtelemetry`, from
-  `@ibm/telemetry-js`) that sends anonymous usage data to IBM. Set `IBM_TELEMETRY_DISABLED=true` for
-  the install; `scripts/compose-check.sh` does. Whether the platform's build environment should set
-  it is for albitor to decide.
+- **IBM telemetry runs at install.** `carbon-components-svelte` depends on `@ibm/telemetry-js`
+  (`^1.5.0`, a range, so it floats) and runs it as a `postinstall` (`ibmtelemetry`), which sends
+  anonymous usage data to IBM. Install-time code that floats is younger than this repository's
+  14-day pin rule would allow (1.12.0 was published 2026-10-08). The manifest therefore also pins
+  `@ibm/telemetry-js@1.11.0` (2026-01-24) as a direct dependency, the only pin mechanism a plugin
+  has; it holds only once the dependency is written into the app (composer gap, albitor-ltd/albitor#3235),
+  and until then the app's lockfile decides. Set `IBM_TELEMETRY_DISABLED=true` for the install:
+  `scripts/compose-check.sh` does, and it fails if the pinned version is not the one installed. No
+  other environment sets it today. The platform's build and certification environments, and the
+  developer's own machine, must, and that is for albitor to decide.
+- **Dark first paint.** The theme is chosen when the shell mounts, so a visitor who prefers dark sees
+  a white frame for an instant first. Fixing it needs a script in `app.html` (web-svelte's file).
+- **Table names its region and its caption**, so a screen reader may say the caption twice. The
+  scroll region needs a name to be reachable; naming it by the caption is the least wrong choice.
 - **Svelte 4 components.** carbon-components-svelte is written in the Svelte 4 style (slots,
   `on:` events) and runs in a Svelte 5 app through its compatibility layer. The kit's wrappers hide
   that behind runes-style props.

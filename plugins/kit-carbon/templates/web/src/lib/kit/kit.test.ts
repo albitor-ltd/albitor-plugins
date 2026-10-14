@@ -79,6 +79,35 @@ describe('AppShell', () => {
 	});
 });
 
+describe('main landmark', () => {
+	it('can take focus when the skip link jumps to it', async () => {
+		const root = await mount();
+		expect(root.querySelector('main')!.getAttribute('tabindex')).toBe('-1');
+	});
+});
+
+describe('Button', () => {
+	it('is type=button unless told otherwise, so it never submits a form by accident', async () => {
+		const root = await mount();
+		const byText = (t: string) =>
+			[...root.querySelectorAll('form button')].find((b) => b.textContent?.includes(t))!;
+		expect(byText('Send report').getAttribute('type')).toBe('submit');
+		for (const t of ['Save draft', 'Reset', 'Delete report']) {
+			expect(byText(t).getAttribute('type'), t).toBe('button');
+		}
+	});
+
+	it('maps each variant onto its Carbon kind', async () => {
+		const root = await mount();
+		const cls = (t: string) =>
+			[...root.querySelectorAll('form button')].find((b) => b.textContent?.includes(t))!.className;
+		expect(cls('Send report')).toContain('bx--btn--primary');
+		expect(cls('Save draft')).toContain('bx--btn--secondary');
+		expect(cls('Reset')).toContain('bx--btn--ghost');
+		expect(cls('Delete report')).toContain('bx--btn--danger');
+	});
+});
+
 describe('Field', () => {
 	it('ties the label, hint and error to the control', async () => {
 		const root = await mount();
@@ -133,6 +162,18 @@ describe('Toaster', () => {
 		const root = await mount();
 		expect(root.querySelector('.toaster [role="status"]')?.textContent).toContain('Saved');
 		expect(root.querySelector('.toaster [role="alert"]')?.textContent).toContain('Could not save');
+	});
+
+	it('puts an error only in the assertive region and a message only in the polite one', async () => {
+		toast.push({ message: 'Saved', tone: 'success' });
+		toast.push({ message: 'Could not save', tone: 'error' });
+		const root = await mount();
+		const polite = root.querySelector('.toaster [role="status"]')!.textContent;
+		const urgent = root.querySelector('.toaster [role="alert"]')!.textContent;
+		expect(polite).toContain('Saved');
+		expect(polite).not.toContain('Could not save');
+		expect(urgent).toContain('Could not save');
+		expect(urgent).not.toContain('Saved');
 	});
 
 	it('keeps the live regions in the page when nothing is queued', async () => {

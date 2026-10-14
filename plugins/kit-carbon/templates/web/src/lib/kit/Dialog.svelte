@@ -25,7 +25,7 @@
 	const descriptionId = `${uid}-description`;
 	let wrapper: HTMLDivElement | null = $state(null);
 
-	// Carbon only describes an alert dialog, and names it from `modalAriaLabel`. Point the dialog
+	// Carbon names the dialog from its heading but only describes an alert dialog. Point the dialog
 	// at the description so it is announced with the title.
 	$effect(() => {
 		wrapper?.querySelector('[role="dialog"]')?.setAttribute('aria-describedby', descriptionId);
@@ -37,7 +37,6 @@
 	bind:ref={wrapper}
 	passiveModal
 	modalHeading={title}
-	modalAriaLabel={title}
 	iconDescription="Close"
 >
 	<p id={descriptionId} class="description">{description}</p>

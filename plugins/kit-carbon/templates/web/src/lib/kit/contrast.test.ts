@@ -3,10 +3,10 @@
 // judge contrast without a layout engine, so this is the check that stands in for it: every
 // foreground and background pair the kit's components use must meet WCAG 2.2 AA in the light theme
 // (`white`) and the dark theme (`g100`). Carbon is not themeable by a visual-language plugin, so
-// the shipped values are the effective values.
+// the shipped values are the effective values. Which theme the page wears is tested through the
+// app shell (shell.test.ts), not by importing the app-owned theme.ts.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { pickTheme } from './theme';
 
 const css = readFileSync(
 	new URL('../../../node_modules/carbon-components-svelte/css/all.css', import.meta.url),
@@ -28,6 +28,24 @@ function theme(selector: string): Record<string, string> {
 
 const light = theme(':root');
 const dark = theme('[theme=g100]');
+
+// Carbon's Gray 100 theme paints a low-contrast toast with the layer colour, not a notification
+// token (only the light theme defines those). Read the rule from the g100 stylesheet and check it
+// says that, then audit the toast text against the layer.
+const g100 = readFileSync(
+	new URL('../../../node_modules/carbon-components-svelte/css/g100.css', import.meta.url),
+	'utf8'
+);
+for (const tone of ['info', 'success', 'error']) {
+	const m = new RegExp(
+		`\\.bx--toast-notification--low-contrast\\.bx--toast-notification--${tone}(?:,[^{]*)?\\{background:(#[0-9a-f]{3,6});`
+	).exec(g100);
+	if (!m) throw new Error(`g100.css has no low-contrast ${tone} toast rule`);
+	if (full(m[1]) !== full(dark['--cds-layer'])) {
+		throw new Error(`g100 ${tone} toast is ${m[1]}, no longer the layer colour`);
+	}
+	dark[`--cds-notification-background-${tone}`] = dark['--cds-layer'];
+}
 
 /** #rgb or #rrggbb to #rrggbb. */
 function full(hex: string): string {
@@ -66,13 +84,20 @@ const pairs: Array<[string, string, number]> = [
 	['--cds-text-helper', '--cds-layer', 4.5],
 	['--cds-text-error', '--cds-background', 4.5],
 	['--cds-link-primary', '--cds-background', 4.5],
+	['--cds-link-primary', '--cds-layer', 4.5],
+	['--cds-text-error', '--cds-layer', 4.5],
+	// The toast text on each tone's background (the Toaster uses Carbon's low-contrast toasts).
+	['--cds-text-primary', '--cds-notification-background-info', 4.5],
+	['--cds-text-primary', '--cds-notification-background-success', 4.5],
+	['--cds-text-primary', '--cds-notification-background-error', 4.5],
 	['--cds-text-on-color', '--cds-button-primary', 4.5],
 	['--cds-text-on-color', '--cds-button-secondary', 4.5],
 	['--cds-text-on-color', '--cds-button-danger-primary', 4.5],
 	// A control's edge, the focus outline and the primary fill against the page.
 	['--cds-border-strong', '--cds-background', 3],
 	['--cds-focus', '--cds-background', 3],
-	['--cds-button-primary', '--cds-background', 3]
+	['--cds-button-primary', '--cds-background', 3],
+	['--cds-button-danger-primary', '--cds-background', 3]
 ];
 
 describe.each([
@@ -96,22 +121,6 @@ describe('the two themes', () => {
 	it('are the light and dark ends: dark text on light, light text on dark', () => {
 		expect(luminance(light['--cds-background'])).toBeGreaterThan(luminance(light['--cds-text-primary']));
 		expect(luminance(dark['--cds-background'])).toBeLessThan(luminance(dark['--cds-text-primary']));
-	});
-});
-
-describe('pickTheme', () => {
-	it('follows the visitor preference', () => {
-		expect(pickTheme(undefined, false)).toBe('white');
-		expect(pickTheme(undefined, true)).toBe('g100');
-		expect(pickTheme(null, true)).toBe('g100');
-	});
-	it('lets data-theme force a scheme either way', () => {
-		expect(pickTheme('light', true)).toBe('white');
-		expect(pickTheme('dark', false)).toBe('g100');
-	});
-	it('ignores a data-theme it does not know', () => {
-		expect(pickTheme('sepia', true)).toBe('g100');
-		expect(pickTheme('sepia', false)).toBe('white');
 	});
 });
 

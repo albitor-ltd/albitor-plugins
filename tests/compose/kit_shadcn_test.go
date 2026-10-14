@@ -281,7 +281,7 @@ func kitDependenciesAreExact(t *testing.T, kit string) map[string]bool {
 		if !exact.MatchString(d) {
 			t.Errorf("dependency %q is not an exact name@x.y.z (no range, tag or URL)", d)
 		}
-		names[strings.Split(strings.TrimPrefix(d, "@"), "@")[0]] = true
+		names[d[:strings.LastIndex(d, "@")]] = true
 	}
 	return names
 }

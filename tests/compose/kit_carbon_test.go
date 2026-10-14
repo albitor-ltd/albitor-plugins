@@ -91,6 +91,7 @@ func TestKitCarbonFileModes(t *testing.T) {
 		"web/src/lib/kit/contrast.test.ts":  "managed",
 		"web/src/lib/kit/kit.test.ts":       "managed",
 		"web/src/lib/kit/dialog.test.ts":    "managed",
+		"web/src/lib/kit/shell.test.ts":     "managed",
 		"web/src/lib/kit/Showcase.svelte":   "managed",
 		"web/src/lib/kit/AppShell.svelte":   "example",
 		"web/src/lib/kit/Button.svelte":     "example",
@@ -112,7 +113,9 @@ func TestKitCarbonShipsExactlyWhatItDeclares(t *testing.T) { kitShipsExactly(t, 
 
 func TestKitCarbonDependenciesAreExact(t *testing.T) {
 	names := kitDependenciesAreExact(t, carbon)
-	for _, want := range []string{"carbon-components-svelte", "carbon-icons-svelte"} {
+	// @ibm/telemetry-js is carbon-components-svelte's postinstall; it is pinned here so code that
+	// runs at install does not float to whatever is newest.
+	for _, want := range []string{"carbon-components-svelte", "carbon-icons-svelte", "@ibm/telemetry-js"} {
 		if !names[want] {
 			t.Errorf("the kit depends on %s", want)
 		}
