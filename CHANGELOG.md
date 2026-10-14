@@ -57,6 +57,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   seam with one fixed owner and no screens. `auth` itself is unchanged and stays at `auth/v0.7.0`.
   Neither is in the catalogue until it is tagged `<name>/v0.1.0` and the catalogue is regenerated.
 - `scripts/verify-auth.sh` and its CI job build, vet and test each auth plugin's Go over `api-go`.
+- `kit-carbon` plugin (albitor-ltd/albitor#3167): the `component-kit@1` plugin for Svelte in the IBM
+  Carbon style, a rewrite of `carbon`, schema 2, with the same shell pieces and props as
+  `kit-shadcn`. Carbon's UI shell, forms, tables, `Modal` dialog and toasts as app-owned example
+  files over carbon-components-svelte and carbon-icons-svelte, in Carbon's white and Gray 100
+  themes, with axe and contrast tests (read from the installed stylesheet) that ship with the app,
+  preview tokens and a Svelte-first skill. Not themeable by a visual-language plugin; the kit says
+  so in its README, skill and a test, since `component-kit@1` has no manifest marker yet
+  (albitor-ltd/albitor#3236). Not in the catalogue until it is tagged `kit-carbon/v0.1.0` and the
+  catalogue is regenerated. Note: `carbon-components-svelte` runs an IBM telemetry `postinstall`
+  from `@ibm/telemetry-js`, a transitive dependency declared as a range (`^1.5.0`) that floats
+  past this repository's 14-day rule. The manifest pins `@ibm/telemetry-js@1.11.0` as a direct
+  dependency (effective once the composer writes dependencies, albitor-ltd/albitor#3235), and
+  `scripts/compose-check.sh` sets `IBM_TELEMETRY_DISABLED=true` and checks the pin. Albitor's build
+  and certification environments need to set it too.
 
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.

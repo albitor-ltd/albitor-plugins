@@ -197,5 +197,17 @@
       "fixed-owner"
     ],
     "license": "MIT"
+  },
+  "kit-carbon": {
+    "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
+    "category": "development",
+    "keywords": [
+      "component-kit",
+      "carbon",
+      "carbon-components-svelte",
+      "svelte",
+      "accessibility"
+    ],
+    "license": "MIT"
   }
 }

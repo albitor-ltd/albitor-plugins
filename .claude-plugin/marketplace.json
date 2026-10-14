@@ -192,6 +192,28 @@
       "license": "MIT"
     },
     {
+      "name": "test-playwright",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/test-playwright",
+        "ref": "test-playwright/v0.1.0",
+        "sha": "cc5522ba3c4f7b17059f2440be7bd81e9ff21946"
+      },
+      "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
+      "category": "development",
+      "keywords": [
+        "test-harness",
+        "playwright",
+        "journeys",
+        "e2e",
+        "accessibility",
+        "axe",
+        "wcag"
+      ],
+      "license": "MIT"
+    },
+    {
       "name": "data-dynamodb",
       "source": {
         "source": "git-subdir",
