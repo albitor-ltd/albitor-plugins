@@ -24,13 +24,16 @@
 		multiline = false,
 		rows = 4,
 		type = 'text',
+		'aria-describedby': extraDescribedBy,
 		...rest
 	}: Props = $props();
 
 	const uid = $props.id();
 	const hintId = `${uid}-hint`;
 	const errorId = `${uid}-error`;
-	const describedBy = $derived([hint ? hintId : '', error ? errorId : ''].filter(Boolean).join(' '));
+	const describedBy = $derived([hint ? hintId : '', error ? errorId : '', extraDescribedBy ?? '']
+			.filter(Boolean)
+			.join(' '));
 </script>
 
 <div class="field">
@@ -39,21 +42,21 @@
 	{#if error}<p class="error" id={errorId}><span class="sr">Error: </span>{error}</p>{/if}
 	{#if multiline}
 		<textarea
+			{...rest as object}
 			id={uid}
 			{rows}
 			bind:value
 			aria-invalid={error ? 'true' : undefined}
 			aria-describedby={describedBy || undefined}
-			{...rest as object}
 		></textarea>
 	{:else}
 		<input
+			{...rest}
 			id={uid}
 			{type}
 			bind:value
 			aria-invalid={error ? 'true' : undefined}
 			aria-describedby={describedBy || undefined}
-			{...rest}
 		/>
 	{/if}
 </div>

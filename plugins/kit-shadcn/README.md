@@ -16,7 +16,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - Colour contrast that passes out of the box: `contrast.test.ts` computes WCAG 2.2 AA ratios for
   every foreground and background pair the components use, in both schemes, from the shipped
   tokens (axe cannot judge contrast without layout).
-- Tests that ship with the app: `kit.test.ts` renders the shell pieces on the server and runs axe
+- Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and runs axe
   over them, plus behaviour checks (current page, label wiring, live regions, text not markup);
   `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
 - The `kit-shadcn` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG

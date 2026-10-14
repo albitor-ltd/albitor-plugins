@@ -61,6 +61,26 @@ describe('Dialog', () => {
 		await tick();
 		await tick();
 		expect(dialog()).toBeNull();
+		// Focus goes back to the control that opened it.
+		await vi.waitFor(() => expect(document.activeElement).toBe(opener));
+	});
+
+	it('traps focus: focus moved to the page behind is pulled back inside', async () => {
+		await show();
+		const opener = [...document.querySelectorAll('button')].find((b) =>
+			b.textContent?.includes('Delete report')
+		)!;
+		opener.focus();
+		opener.click();
+		await tick();
+		await tick();
+		const d = dialog()!;
+		await vi.waitFor(() => expect(d.contains(document.activeElement)).toBe(true));
+
+		// Focus moved to something behind the dialog is pulled back in.
+		const outside = document.querySelector<HTMLInputElement>('input[type="email"]')!;
+		outside.focus();
+		await vi.waitFor(() => expect(d.contains(document.activeElement)).toBe(true));
 	});
 
 	it('closes from its Close button', async () => {

@@ -92,6 +92,15 @@ describe('Field', () => {
 		expect(root.querySelector(`#${described[1]}`)!.textContent).toContain('Enter an email address');
 	});
 
+	it('keeps a caller\'s aria-describedby and adds the hint and error ids to it', async () => {
+		const root = await mount();
+		const notes = root.querySelector('textarea')!;
+		expect(notes.getAttribute('aria-describedby')).toBe('notes-help');
+		const email = root.querySelector('input[type="email"]')!;
+		// The field's own wiring comes first and is never replaced by a caller's attribute.
+		expect(email.getAttribute('aria-describedby')!.split(' ')).toHaveLength(2);
+	});
+
 	it('gives two fields different ids', async () => {
 		const root = await mount();
 		const ids = [...root.querySelectorAll('input, textarea, select')].map((e) => e.id);

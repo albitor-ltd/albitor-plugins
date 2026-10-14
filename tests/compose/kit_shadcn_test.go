@@ -189,10 +189,13 @@ func TestKitShadcnFileModes(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	// Tokens and the contrast audit are platform-owned; the components are the app's to edit.
+	// Tokens and the accessibility gate (contrast, axe, and the Showcase they render) are platform-owned; the components are the app's to edit.
 	for p, want := range map[string]string{
 		"web/src/lib/kit/tokens.css":        "managed",
 		"web/src/lib/kit/contrast.test.ts":  "managed",
+		"web/src/lib/kit/kit.test.ts":       "managed",
+		"web/src/lib/kit/dialog.test.ts":    "managed",
+		"web/src/lib/kit/Showcase.svelte":   "managed",
 		"web/src/lib/kit/AppShell.svelte":   "example",
 		"web/src/lib/kit/Dialog.svelte":     "example",
 		"web/src/lib/kit/Field.svelte":      "example",
@@ -245,14 +248,14 @@ func TestKitShadcnShipsExactlyWhatItDeclares(t *testing.T) {
 	}
 }
 
-var caret = regexp.MustCompile(`^(@?[a-z0-9][a-z0-9._/-]*)@\^\d+\.\d+\.\d+$`)
+var exact = regexp.MustCompile(`^(@?[a-z0-9][a-z0-9._/-]*)@\d+\.\d+\.\d+$`)
 
-func TestKitShadcnDependenciesArePinnedToARange(t *testing.T) {
+func TestKitShadcnDependenciesAreExact(t *testing.T) {
 	m := loadDir(t, kitDir(t)).Manifest
 	names := map[string]bool{}
 	for _, d := range m.Contributes.Dependencies.NPM {
-		if !caret.MatchString(d) {
-			t.Errorf("dependency %q is not name@^x.y.z", d)
+		if !exact.MatchString(d) {
+			t.Errorf("dependency %q is not an exact name@x.y.z (no range, tag or URL)", d)
 		}
 		names[strings.Split(strings.TrimPrefix(d, "@"), "@")[0]] = true
 	}

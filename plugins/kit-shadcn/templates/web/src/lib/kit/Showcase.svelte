@@ -1,6 +1,6 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: every shell piece on one page, and what kit.test.ts
-     audits with axe. Copy from it when building a page; delete it when you no longer need it
-     (and kit.test.ts with it). Not routed: nothing links here. -->
+<!-- Managed by Albitor (kit-shadcn): every shell piece on one page, and what kit.test.ts
+     audits with axe. Copy from it when building a page. It is managed so the audits cannot be
+     deleted by editing it; it is not routed and nothing links here. -->
 <script lang="ts">
 	import AppShell from './AppShell.svelte';
 	import Button from './Button.svelte';
@@ -52,7 +52,8 @@
 			hint="We only use it to send the report."
 			error="Enter an email address, like name@example.com"
 		/>
-		<Field label="Notes" multiline />
+		<Field label="Notes" multiline aria-describedby="notes-help" />
+		<p id="notes-help">Notes are visible to your team.</p>
 		<Button type="submit">Send report</Button>
 		<Button variant="destructive" onclick={() => (open = true)}>Delete report</Button>
 	</form>

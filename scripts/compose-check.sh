@@ -42,7 +42,7 @@ if [[ $build -eq 1 ]]; then
   cd "$tmp/online/web"
   mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-online/.claude-plugin/plugin.json")
   npm ci
-  npm install --save-dev --no-audit --no-fund "${deps[@]}"
+  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
   npm run check
   npm test
   npm run build
@@ -57,7 +57,7 @@ if [[ $build -eq 1 ]]; then
   cd "$tmp/kit/web"
   mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/kit-shadcn/.claude-plugin/plugin.json")
   npm ci
-  npm install --save-dev --no-audit --no-fund "${deps[@]}"
+  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
   npm run check
   npm test
   npm run build
