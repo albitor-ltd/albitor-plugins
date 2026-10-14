@@ -190,6 +190,48 @@
         "openapi"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "data-dynamodb",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/data-dynamodb",
+        "ref": "data-dynamodb/v0.1.0",
+        "sha": "b60d6f86d8fc7a0433062b19d58ab1c5b98071a0"
+      },
+      "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
+      "category": "development",
+      "keywords": [
+        "data-store",
+        "dynamodb",
+        "go",
+        "store",
+        "pagination",
+        "conformance"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "client-online",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/client-online",
+        "ref": "client-online/v0.1.0",
+        "sha": "834a1743f4c5ff65c177837b15dad97bca598ee2"
+      },
+      "description": "The client-data plugin for online-only apps: TanStack Query for Svelte behind the web.providers slot, one shared query client with a sane retry policy, API query helpers, and loading, offline, error and empty states.",
+      "category": "development",
+      "keywords": [
+        "client-data",
+        "tanstack-query",
+        "svelte",
+        "data-fetching",
+        "cache",
+        "online"
+      ],
+      "license": "MIT"
     }
   ]
 }
