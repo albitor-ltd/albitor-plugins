@@ -67,6 +67,16 @@ for f in metadata legacy-pins; do
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/$f.json")
 done
 
+# A kit's tokens.css is read by text (certification and the kit's own contrast test take the first
+# root rule), so its header, everything before the `albitor-kit` layer, must not mention the root
+# selector or carry a brace.
+while IFS= read -r css; do
+  header="$(sed '/@layer albitor-kit/q' "$css" | sed '$d')"
+  if grep -q -e ':root' -e '[{}]' <<<"$header"; then
+    err "${css#"$root"/}: header before '@layer albitor-kit' must contain neither ':root' nor a brace"
+  fi
+done < <(grep -rl --include=tokens.css '@layer albitor-kit' "$root/plugins" || true)
+
 if [[ $fail -ne 0 ]]; then
   exit 1
 fi

@@ -10,6 +10,7 @@
   },
   "license": "MIT",
   "keywords": ["component-kit", "carbon", "carbon-components-svelte", "svelte", "accessibility"],
+  "themeable": false,
   "kind": "socket",
   "provides": ["component-kit@1"],
   "requires": ["web-framework@1"],

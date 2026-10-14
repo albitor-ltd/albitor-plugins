@@ -1,8 +1,11 @@
 /* kit-shadcn tokens: the colour roles, radius and type the kit's components read.
 
-   Every value is declared in the `albitor-kit` cascade layer, which loses to any unlayered rule.
-   To theme the app (a visual-language plugin does exactly this), declare the same custom
-   properties unlayered in src/lib/app/app.css. Do not edit the components to change a colour.
+   The `albitor-kit` cascade layer is this kit's theming contract (plugin.json says
+   "themeable": true). Every token is declared on the root element inside that layer, and an
+   unlayered rule beats a layered one whatever its specificity or order. To theme the app (a
+   visual-language plugin does exactly this), redeclare the same custom properties unlayered, for
+   example in src/lib/app/app.css. Do not edit the components to change a colour. The tests read
+   the first root rule in this file, so keep this comment free of that selector and a brace.
 
    Every foreground and background pair here is audited by contrast.test.ts, in both schemes:
    4.5:1 for text, 3:1 for the control border, the focus ring and the primary fill. If you

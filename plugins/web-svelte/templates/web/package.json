@@ -12,14 +12,14 @@
     "local": "vite build && node scripts/local-serve.mjs"
   },
   "devDependencies": {
-    "@sveltejs/adapter-static": "^4.0.0",
-    "@types/node": "^22.0.0",
-    "@sveltejs/kit": "^3.0.1",
-    "@sveltejs/vite-plugin-svelte": "^7.3.1",
-    "svelte": "^5.57.1",
-    "svelte-check": "^4.7.6",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.12",
-    "vitest": "^5.0.4"
+    "@sveltejs/adapter-static": "4.0.0",
+    "@types/node": "22.20.4",
+    "@sveltejs/kit": "3.0.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "svelte": "5.57.1",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
   }
 }

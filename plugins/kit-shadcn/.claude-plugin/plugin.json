@@ -10,6 +10,7 @@
   },
   "license": "MIT",
   "keywords": ["component-kit", "shadcn", "shadcn-svelte", "bits-ui", "svelte", "accessibility"],
+  "themeable": true,
   "kind": "socket",
   "provides": ["component-kit@1"],
   "requires": ["web-framework@1"],

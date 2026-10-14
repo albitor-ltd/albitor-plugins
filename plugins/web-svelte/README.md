@@ -25,6 +25,13 @@ dedicated shell, composed into a new app's `web/` by the platform's composer.
 | `web.nav` | A route adds a sibling `nav.ts` exporting `nav = { label, order, group }`; the managed `nav.generated.ts` collects them with `import.meta.glob('/src/routes/**/nav.ts')` and merges plugin entries. A plugin entry has no target: its link is the label slug (`Sign in` is `/sign-in`) |
 | `web.providers`, `web.route-guard` | A plugin ships a module in `web/src/lib/shell/scope.d/` exporting the identifier it declared; the managed `providers.generated.ts` resolves it |
 
+## Dependency pins
+
+`contributes.dependencies.npm` and the seeded `web/package.json` are exact pins, at least 14 days
+old. `@sveltejs/kit` 3.0.1 (2026-10-06) and `@sveltejs/adapter-static` 4.0.0 (2026-10-01) are the
+exception: no older release of their major exists. Transitives in the seeded lockfile are not
+subject to the rule (current practice).
+
 ## What it needs from other plugins
 
 - `component-kit@1`: a `web/src/lib/kit/AppShell.svelte` taking `nav: NavGroup[]`,

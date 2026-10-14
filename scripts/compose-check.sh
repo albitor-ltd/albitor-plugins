@@ -6,7 +6,8 @@
 #
 # The parser and composer live in albitor-ltd/albitor (app/core), so a checkout is required. A
 # throwaway go.work joins it to tests/compose; nothing in either repository changes.
-# --build also runs npm ci, check, test and build in the composed web/ (needs node >= 22.17).
+# --build also runs npm ci (falling back to npm install where the composer merged dependencies, see
+# install_web), check, test and build in the composed web/ (needs node >= 22.17).
 # --journeys (with --build) then runs the test-playwright harness over the composed default shell:
 # the api-go tree is added, the harness's own unit tests run, and the journeys run against the
 # locally booted app in Chromium (needs go; PLAYWRIGHT_INSTALL_FLAGS="--with-deps" in CI).
@@ -36,9 +37,34 @@ mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/auth" "$tmp/of
 
 (cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_OUT_AUTH="$tmp/auth" go test -count=1 ./...)
 
+# install_web installs the composed web/ in the current directory. `npm ci` is the reproducible
+# install and is tried first. The composer merges every plugin's contributes.dependencies.npm into
+# web/package.json (ADR-0090 amendment, albitor#3235), but the seeded web-svelte lockfile is not
+# regenerated, so wherever deps were merged `npm ci` fails with a lockfile-out-of-sync error: the
+# shipped web-svelte build (`npm ci`) fails there until the compose step regenerates the lockfile,
+# tracked in albitor-ltd/albitor#3178. That one failure is an expected failure (xfail): it is
+# reported, then `npm install` stands in. Any other `npm ci` failure fails the check, and a tree
+# whose lockfile is in sync keeps the strict `npm ci`.
+install_web() {
+  local log
+  log="$(mktemp)"
+  if npm ci --no-audit --no-fund >"$log" 2>&1; then
+    echo "npm ci ok (lockfile in sync)"
+  elif grep -q 'package.json and package-lock.json .*in sync' "$log"; then
+    echo "xfail: npm ci fails, the lockfile lacks the merged dependencies" \
+      "(albitor-ltd/albitor#3178); using npm install"
+    npm install --no-audit --no-fund
+  else
+    cat "$log" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
+}
+
 if [[ $build -eq 1 ]]; then
   cd "$tmp/app/web"
-  npm ci
+  install_web
   npm run check
   npm test
   npm run build
@@ -63,14 +89,10 @@ if [[ $journeys -eq 1 ]]; then
   echo "journeys pass against the composed default shell"
 fi
 
-# The composer records a plugin's npm dependencies but does not yet write them into the app's
-# package.json (the web-svelte one is app-owned), so install what client-online declares before
-# building its composed tree.
+# Each tree below is installed with install_web before it is built. client-online:
 if [[ $build -eq 1 ]]; then
   cd "$tmp/online/web"
-  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-online/.claude-plugin/plugin.json")
-  npm ci
-  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  install_web
   npm run check
   npm test
   npm run build
@@ -83,9 +105,7 @@ fi
 # caches is asserted by shell.test.ts in the app's own tests.
 if [[ $build -eq 1 ]]; then
   cd "$tmp/offline/web"
-  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-offline/.claude-plugin/plugin.json")
-  npm ci
-  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  install_web
   npm run check
   npm test
   npm run build
@@ -99,9 +119,7 @@ fi
 # here is the kit's accessibility gate.
 if [[ $build -eq 1 ]]; then
   cd "$tmp/kit/web"
-  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/kit-shadcn/.claude-plugin/plugin.json")
-  npm ci
-  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  install_web
   npm run check
   npm test
   npm run build
@@ -116,9 +134,7 @@ fi
 if [[ $build -eq 1 ]]; then
   cd "$tmp/kit-carbon/web"
   export IBM_TELEMETRY_DISABLED=true
-  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/kit-carbon/.claude-plugin/plugin.json")
-  npm ci
-  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  install_web
   npm run check
   npm test
   npm run build
@@ -138,9 +154,7 @@ fi
 if [[ $build -eq 1 ]]; then
   (cd "$tmp/auth/api" && GOWORK=off go vet ./... && GOWORK=off go test ./... -count=1)
   cd "$tmp/auth/web"
-  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-online/.claude-plugin/plugin.json" "$root/plugins/kit-shadcn/.claude-plugin/plugin.json")
-  npm ci
-  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  install_web
   npm run check
   npm test
   npm run build
