@@ -1,0 +1,71 @@
+# The API contract. The web-framework plugin's client generation reads this file, so it is the one
+# place an endpoint is described: add each route here in the same change as the handler.
+openapi: 3.1.0
+info:
+  title: API
+  version: 0.1.0
+servers:
+  - url: /
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Liveness. Open to unauthenticated callers.
+      responses:
+        "200":
+          description: The server is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+# A list endpoint answers the Page envelope, never a bare array, takes `limit` and `cursor`, and
+# is served with apikit.ServeList:
+#
+#   /api/widgets:
+#     get:
+#       operationId: listWidgets
+#       parameters:
+#         - $ref: "#/components/parameters/Limit"
+#         - $ref: "#/components/parameters/Cursor"
+#       responses:
+#         "200":
+#           description: One page of widgets.
+#           content:
+#             application/json:
+#               schema:
+#                 allOf:
+#                   - $ref: "#/components/schemas/Page"
+#                   - properties:
+#                       items:
+#                         items: { $ref: "#/components/schemas/Widget" }
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Page size, 1 to 100. Defaults to 20. Out of range is a 400, never clamped.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Cursor:
+      name: cursor
+      in: query
+      description: The next_cursor of the previous page. Opaque; never construct or decompose one.
+      schema: { type: string }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    Page:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: {} }
+        next_cursor:
+          type: string
+          description: Absent on the last page. Present means at least one more record.

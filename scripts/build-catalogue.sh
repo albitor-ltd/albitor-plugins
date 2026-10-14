@@ -10,7 +10,8 @@
 # --check  write nothing; exit 1 if the output differs from the committed catalogue.
 #
 # Catalogue-facing metadata (description, category, keywords, license) lives in
-# catalogue/metadata.json; the key order there is the catalogue order.
+# catalogue/metadata.json; the key order there is the catalogue order. A plugin with no legacy pin
+# (a schema-2 plugin born in this repository) appears only in monorepo mode.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -65,7 +66,9 @@ render() {
       description: $desc,
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
-        [$meta[0] | to_entries[] | .key as $n | {name: $n, source: source($n)} + .value]
+        [$meta[0] | to_entries[]
+          | select($mode == "monorepo" or $pins[0][.key] != null)
+          | .key as $n | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)
       )
     }'
