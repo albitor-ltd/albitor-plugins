@@ -74,4 +74,23 @@ fresh
 edit "$work/r/catalogue/legacy-pins.json" 'del(.auth)'
 "$work/r/scripts/validate-plugins.sh" >/dev/null || { echo "FAIL: monorepo validation demanded a legacy pin" >&2; fail=1; }
 
+# 7. An unreleased plugin is left out until it is tagged, and the listing is an explicit allowlist:
+#    an unlisted plugin with no tag still fails (case 4), a listed one that is tagged must be
+#    delisted, and only plugins that exist can be listed.
+fresh
+"$work/r/scripts/build-catalogue.sh" --out "$work/cat.json" >/dev/null || { echo "FAIL: an unreleased plugin broke the generator" >&2; fail=1; }
+if jq -e '.plugins[] | select(.name == "data-dynamodb")' "$work/cat.json" >/dev/null; then
+  echo "FAIL: an unreleased plugin was pinned to a tag that does not exist" >&2
+  fail=1
+else
+  echo "ok: an unreleased plugin is left out of the catalogue"
+fi
+fresh
+edit "$work/r/catalogue/unreleased.json" '. + ["auth"]'
+expect_fail "build-catalogue.sh with a tagged plugin still listed as unreleased" \
+  "$work/r/scripts/build-catalogue.sh" --out "$work/cat.json"
+fresh
+edit "$work/r/catalogue/unreleased.json" '. + ["no-such-plugin"]'
+expect_fail "validate-plugins.sh with a nonexistent plugin listed as unreleased" "$work/r/scripts/validate-plugins.sh"
+
 exit "$fail"

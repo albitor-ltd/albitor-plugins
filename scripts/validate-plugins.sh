@@ -67,6 +67,10 @@ for f in metadata legacy-pins; do
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/$f.json")
 done
 
+while IFS= read -r key; do
+  [[ -d "$root/plugins/$key" ]] || err "catalogue/unreleased.json lists '$key' but plugins/$key does not exist"
+done < <(jq -r '.[]' "$root/catalogue/unreleased.json")
+
 if [[ $fail -ne 0 ]]; then
   exit 1
 fi

@@ -29,6 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `api-go` plugin (albitor-ltd/albitor#3168): the first schema-2 plugin, filling `api-runtime@1`,
   split from the starter's `_api`. A schema-2 plugin has no legacy pin, so it appears in the
   catalogue only in monorepo mode.
+- `data-dynamodb` plugin (albitor-ltd/albitor#3169): the `data-store@1` plugin. A `Store`
+  interface for the Go API over one DynamoDB table, the in-memory fake, the conformance suite
+  (run against DynamoDB Local in CI) and the `services.tables` fragment. Stdlib only (the adapter
+  signs its own requests). Not in the catalogue until it is tagged `data-dynamodb/v0.1.0`.
 
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.
