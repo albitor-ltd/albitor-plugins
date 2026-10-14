@@ -1,0 +1,26 @@
+{
+  "gds": {
+    "repo": "albitor-ltd/albitor-plugin-gds",
+    "ref": "v0.1.6"
+  },
+  "shadcn": {
+    "repo": "albitor-ltd/albitor-plugin-shadcn",
+    "ref": "v0.1.4"
+  },
+  "mui": {
+    "repo": "albitor-ltd/albitor-plugin-mui",
+    "ref": "v0.2.1"
+  },
+  "carbon": {
+    "repo": "albitor-ltd/albitor-plugin-carbon",
+    "ref": "v0.1.4"
+  },
+  "auth": {
+    "repo": "albitor-ltd/albitor-plugin-auth",
+    "ref": "v0.5.0"
+  },
+  "docs": {
+    "repo": "albitor-ltd/albitor-plugin-docs",
+    "ref": "v0.2.0"
+  }
+}

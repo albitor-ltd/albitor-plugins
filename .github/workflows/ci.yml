@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manifests:
+    name: manifests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate plugin manifests
+        run: scripts/validate-plugins.sh
+
+  catalogue:
+    name: catalogue
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Committed catalogue matches the generator
+        run: scripts/build-catalogue.sh --check
+      - name: Monorepo-mode catalogue generates and parses
+        run: |
+          scripts/build-catalogue.sh --mode monorepo --out "$RUNNER_TEMP/monorepo.json"
+          jq -e '.plugins | length > 0' "$RUNNER_TEMP/monorepo.json"
+
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: shellcheck
+        run: find scripts plugins -name '*.sh' -print0 | xargs -0 shellcheck
+      - name: JSON files parse
+        run: find . -name '*.json' -not -path './.git/*' -print0 | xargs -0 -n1 jq -e . >/dev/null
+
+  # Placeholder for the socket conformance and certification harness
+  # (albitor-ltd/albitor#3164). Deliberately a no-op until that lands; the job name is stable
+  # so branch protection can require it now.
+  conformance:
+    name: conformance
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "conformance harness not wired yet (albitor-ltd/albitor#3164)"

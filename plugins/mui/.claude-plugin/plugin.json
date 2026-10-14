@@ -1,0 +1,25 @@
+{
+  "name": "mui",
+  "displayName": "Material UI (MUI)",
+  "version": "0.2.2",
+  "description": "Build, audit, and preview Material Design interfaces in the app's own framework (Svelte SMUI/m3-svelte, React @mui/material): the shared Material system (colour, type, spacing, elevation, theming) and component inventory, plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "mui",
+    "material-ui",
+    "material-design",
+    "smui",
+    "svelte-material-ui",
+    "m3-svelte",
+    "svelte",
+    "design-system",
+    "preview-page",
+    "accessibility",
+    "wcag",
+    "a11y"
+  ]
+}

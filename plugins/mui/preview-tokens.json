@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "font_family": "\"Roboto\", \"Helvetica\", \"Arial\", sans-serif",
+  "heading_weight": 500,
+  "type_scale": {
+    "small": "0.875rem",
+    "body": "1rem",
+    "heading": "1.25rem",
+    "title": "2.125rem"
+  },
+  "radius": "4px",
+  "density": "comfortable",
+  "elevation": "subtle",
+  "colours": {
+    "text": "#212121",
+    "text_secondary": "#666666",
+    "border": "#e0e0e0",
+    "surface": "#f5f5f5",
+    "background": "#ffffff",
+    "accent": "#1976d2",
+    "on_accent": "#ffffff"
+  }
+}

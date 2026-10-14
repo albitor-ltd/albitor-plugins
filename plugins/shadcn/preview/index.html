@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>shadcn/ui — component preview</title>
+  <style>
+    /* ------------------------------------------------------------------
+       shadcn/ui design tokens (default "new-york" style, Zinc base).
+       Hand-authored, build-free rendering of the shadcn/ui look so this
+       page opens standalone from file:// with no Tailwind/network.
+       Values mirror shadcn/ui's CSS variables (HSL channels).
+
+       Layout follows the shared preview comparison spec (PREVIEW-SPEC.md):
+       the same screen, sample data, and copy as the other Albitor
+       design-system previews, rendered with shadcn/ui components.
+    ------------------------------------------------------------------ */
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 240 10% 3.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 240 10% 3.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 240 10% 3.9%;
+      --primary: 240 5.9% 10%;
+      --primary-foreground: 0 0% 98%;
+      --secondary: 240 4.8% 95.9%;
+      --secondary-foreground: 240 5.9% 10%;
+      --muted: 240 4.8% 95.9%;
+      --muted-foreground: 240 3.8% 46.1%;
+      --accent: 240 4.8% 95.9%;
+      --accent-foreground: 240 5.9% 10%;
+      --destructive: 0 72% 51%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 240 5.9% 90%;
+      --input: 240 5.9% 90%;
+      --ring: 240 10% 3.9%;
+      --success: 142 71% 45%;
+      --warning: 38 92% 50%;
+      --info: 217 91% 60%;
+      --radius: 0.5rem;
+    }
+    .dark {
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+      --card: 240 10% 3.9%;
+      --card-foreground: 0 0% 98%;
+      --popover: 240 10% 3.9%;
+      --popover-foreground: 0 0% 98%;
+      --primary: 0 0% 98%;
+      --primary-foreground: 240 5.9% 10%;
+      --secondary: 240 3.7% 15.9%;
+      --secondary-foreground: 0 0% 98%;
+      --muted: 240 3.7% 15.9%;
+      --muted-foreground: 240 5% 64.9%;
+      --accent: 240 3.7% 15.9%;
+      --accent-foreground: 0 0% 98%;
+      --destructive: 0 63% 45%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 240 3.7% 15.9%;
+      --input: 240 3.7% 15.9%;
+      --ring: 240 4.9% 83.9%;
+      --success: 142 65% 47%;
+      --warning: 38 90% 55%;
+      --info: 217 91% 65%;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Focus ring — the shadcn focus-visible:ring pattern */
+    :focus-visible {
+      outline: 2px solid hsl(var(--ring));
+      outline-offset: 2px;
+    }
+
+    /* Shared preview skeleton: a single 960px centred content column with a
+       consistent 24px gutter, matched across all four Albitor DS previews. */
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 24px 80px; }
+    /* Narrow surfaces (card + dialog) share one max-width across the four. */
+    .preview-narrow { max-width: 480px; }
+
+    header.top {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 14px 20px;
+      background: hsl(var(--background) / 0.8);
+      backdrop-filter: saturate(180%) blur(8px);
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    header.top .brand { display: flex; align-items: baseline; gap: 10px; }
+    header.top h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+    header.top .sub { color: hsl(var(--muted-foreground)); font-size: 13px; }
+
+    h2.section { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; margin: 40px 0 4px; }
+    p.lead { color: hsl(var(--muted-foreground)); margin: 0 0 18px; }
+    .grid { display: grid; gap: 20px; }
+    .grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .stack { display: flex; flex-direction: column; gap: 14px; }
+
+    /* --- Button --- */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      white-space: nowrap; border-radius: calc(var(--radius) - 2px);
+      font-size: 14px; font-weight: 500; height: 40px; padding: 0 16px;
+      border: 1px solid transparent; cursor: pointer; transition: background-color .15s, opacity .15s, color .15s;
+      text-decoration: none;
+    }
+    .btn:disabled, .btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+    .btn-default { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+    .btn-default:hover { background: hsl(var(--primary) / .9); }
+    .btn-secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
+    .btn-secondary:hover { background: hsl(var(--secondary) / .8); }
+    .btn-destructive { background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); }
+    .btn-destructive:hover { background: hsl(var(--destructive) / .9); }
+    .btn-outline { border-color: hsl(var(--input)); background: hsl(var(--background)); color: hsl(var(--foreground)); }
+    .btn-outline:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+    .btn-ghost { background: transparent; color: hsl(var(--foreground)); }
+    .btn-ghost:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+    .btn-sm { height: 36px; padding: 0 12px; font-size: 13px; }
+    .icon { width: 16px; height: 16px; display: inline-block; vertical-align: middle; }
+
+    /* --- Badge --- */
+    .badge {
+      display: inline-flex; align-items: center; border-radius: 9999px;
+      padding: 2px 10px; font-size: 12px; font-weight: 600; line-height: 1.4;
+      border: 1px solid transparent;
+    }
+    .badge-secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
+    .badge-destructive { background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); }
+    .badge-outline { border-color: hsl(var(--border)); color: hsl(var(--foreground)); }
+    .badge-info { background: hsl(var(--info)); color: #fff; }
+    .badge-success { background: hsl(var(--success)); color: #fff; }
+    .badge-warning { background: hsl(var(--warning)); color: #1f1400; }
+
+    /* --- Card --- */
+    .card {
+      background: hsl(var(--card)); color: hsl(var(--card-foreground));
+      border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+      box-shadow: 0 1px 2px 0 hsl(240 4% 10% / .05);
+    }
+    .card-header { padding: 20px 20px 0; }
+    .card-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+    .card-desc { color: hsl(var(--muted-foreground)); font-size: 13px; margin: 4px 0 0; }
+    .card-content { padding: 18px 20px; }
+    .card-footer { padding: 0 20px 20px; display: flex; gap: 10px; }
+
+    /* --- Form controls --- */
+    label.lbl { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .input, .textarea, select.select {
+      width: 100%; height: 40px; border-radius: calc(var(--radius) - 2px);
+      border: 1px solid hsl(var(--input)); background: hsl(var(--background));
+      color: hsl(var(--foreground)); padding: 0 12px; font-size: 14px; font-family: inherit;
+    }
+    .textarea { height: auto; min-height: 80px; padding: 8px 12px; resize: vertical; }
+    .input::placeholder, .textarea::placeholder { color: hsl(var(--muted-foreground)); }
+    .input:focus-visible, .textarea:focus-visible, select.select:focus-visible {
+      outline: 2px solid hsl(var(--ring)); outline-offset: 1px; border-color: hsl(var(--ring));
+    }
+    .field-desc { color: hsl(var(--muted-foreground)); font-size: 12px; margin-top: 6px; }
+    .field-error { color: hsl(var(--destructive)); font-size: 12px; margin-top: 6px; font-weight: 500; }
+    .input.err { border-color: hsl(var(--destructive)); }
+    fieldset.group { border: 0; padding: 0; margin: 0; }
+    fieldset.group legend { font-size: 13px; font-weight: 500; margin-bottom: 8px; padding: 0; }
+
+    /* Checkbox */
+    .check-row { display: flex; align-items: flex-start; gap: 10px; }
+    .check-row + .check-row { margin-top: 8px; }
+    input.checkbox {
+      appearance: none; -webkit-appearance: none; margin: 0; width: 16px; height: 16px;
+      border: 1px solid hsl(var(--primary)); border-radius: 4px; background: hsl(var(--background));
+      cursor: pointer; position: relative; flex: 0 0 auto; margin-top: 2px;
+    }
+    input.checkbox:checked { background: hsl(var(--primary)); }
+    input.checkbox:checked::after {
+      content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px;
+      border: solid hsl(var(--primary-foreground)); border-width: 0 2px 2px 0; transform: rotate(45deg);
+    }
+    /* Radio */
+    input.radio { appearance: none; -webkit-appearance: none; margin: 0; width: 16px; height: 16px; border-radius: 9999px; border: 1px solid hsl(var(--primary)); position: relative; cursor: pointer; flex: 0 0 auto; margin-top: 2px; }
+    input.radio:checked::after { content: ""; position: absolute; inset: 3px; border-radius: 9999px; background: hsl(var(--primary)); }
+
+    /* --- Alert --- */
+    .alert { border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 14px 16px; display: flex; gap: 12px; background: hsl(var(--background)); }
+    .alert-title { font-weight: 600; margin: 0 0 2px; font-size: 14px; }
+    .alert-desc { color: hsl(var(--muted-foreground)); margin: 0; font-size: 13px; }
+    .alert-info { border-color: hsl(var(--info) / .5); }
+    .alert-info .icon { color: hsl(var(--info)); }
+    .alert-success { border-color: hsl(var(--success) / .5); }
+    .alert-success .icon { color: hsl(var(--success)); }
+    .alert-destructive { border-color: hsl(var(--destructive) / .5); color: hsl(var(--destructive)); }
+    .alert-destructive .alert-desc { color: hsl(var(--destructive) / .9); }
+
+    /* --- Table --- */
+    table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.tbl caption { text-align: left; color: hsl(var(--muted-foreground)); font-size: 13px; padding-bottom: 10px; }
+    table.tbl th, table.tbl td { text-align: left; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); }
+    table.tbl th { color: hsl(var(--muted-foreground)); font-weight: 500; font-size: 13px; }
+    table.tbl td.num, table.tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.tbl tbody tr:hover { background: hsl(var(--muted) / .5); }
+
+    /* --- Tabs (CSS-only via radios) --- */
+    .tabs .tablist { display: inline-flex; gap: 2px; background: hsl(var(--muted)); padding: 4px; border-radius: calc(var(--radius) - 2px); }
+    .tabs label.tab { padding: 6px 14px; border-radius: calc(var(--radius) - 4px); font-size: 13px; font-weight: 500; color: hsl(var(--muted-foreground)); cursor: pointer; }
+    .tabs input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .tabs .panel { display: none; padding-top: 16px; }
+    #tab-a:checked ~ .tablist label[for="tab-a"],
+    #tab-b:checked ~ .tablist label[for="tab-b"],
+    #tab-c:checked ~ .tablist label[for="tab-c"] { background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: 0 1px 2px hsl(240 4% 10% / .1); }
+    #tab-a:checked ~ #panel-a, #tab-b:checked ~ #panel-b, #tab-c:checked ~ #panel-c { display: block; }
+
+    /* --- Dialog (static example) — left-aligned narrow surface, shared skeleton --- */
+    .dialog-frame { display: block; }
+    .dialog { background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); max-width: 480px; padding: 24px; box-shadow: 0 10px 30px hsl(240 4% 10% / .25); }
+    .dialog h3 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+    .dialog p { margin: 0 0 20px; color: hsl(var(--muted-foreground)); font-size: 14px; }
+    .dialog .actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* --- Empty state --- */
+    .empty { border: 1px dashed hsl(var(--border)); border-radius: var(--radius); padding: 44px 20px; text-align: center; }
+    .empty .glyph { width: 44px; height: 44px; border-radius: 9999px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; }
+    .empty h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+    .empty p { margin: 0 0 18px; color: hsl(var(--muted-foreground)); font-size: 13px; }
+
+    .note { color: hsl(var(--muted-foreground)); font-size: 12px; margin-top: 8px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <!-- 1. Page header / title bar -->
+  <header class="top">
+    <div class="brand">
+      <h1>Northwind</h1>
+      <span class="sub">Component preview &middot; shadcn/ui + Radix UI</span>
+    </div>
+    <button class="btn btn-outline btn-sm" id="theme-toggle" type="button" aria-pressed="false">
+      <span aria-hidden="true">◐</span> Toggle theme
+    </button>
+  </header>
+
+  <main class="container" id="main-content">
+    <p class="lead" style="margin-top:20px">
+      A static, build-free rendering of the shared preview comparison spec using shadcn/ui
+      components on Radix primitives. Same screen and sample data as the other Albitor
+      design-system previews. For real code, scaffold with <code>npx shadcn@latest add &lt;component&gt;</code>.
+    </p>
+
+    <!-- 2. Buttons -->
+    <h2 class="section">Buttons</h2>
+    <div class="row">
+      <button class="btn btn-default" type="button">Save changes</button>
+      <button class="btn btn-secondary" type="button">Cancel</button>
+      <button class="btn btn-destructive" type="button">Delete account</button>
+      <button class="btn btn-default" type="button" disabled>Submitting…</button>
+    </div>
+
+    <!-- 3. Form fields -->
+    <h2 class="section">Form fields</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Your details</h3>
+          <p class="card-desc">Inputs, select, and validation.</p>
+        </div>
+        <div class="card-content stack">
+          <div>
+            <label class="lbl" for="name">Full name</label>
+            <input class="input" id="name" type="text" placeholder="Ada Lovelace" autocomplete="name">
+          </div>
+          <div>
+            <label class="lbl" for="email">Email address</label>
+            <input class="input err" id="email" type="email" value="ada@" aria-invalid="true" aria-describedby="email-err">
+            <p class="field-error" id="email-err">Enter a valid email address, for example name@example.com</p>
+          </div>
+          <div>
+            <label class="lbl" for="country">Country</label>
+            <select class="select" id="country">
+              <option selected>United Kingdom</option>
+              <option>France</option>
+              <option>Germany</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Preferences</h3>
+          <p class="card-desc">Selection controls.</p>
+        </div>
+        <div class="card-content stack">
+          <fieldset class="group">
+            <legend>Notifications</legend>
+            <div class="check-row"><input class="checkbox" id="n-email" type="checkbox" checked><label class="lbl" for="n-email" style="margin:0">Email</label></div>
+            <div class="check-row"><input class="checkbox" id="n-sms" type="checkbox"><label class="lbl" for="n-sms" style="margin:0">SMS</label></div>
+            <div class="check-row"><input class="checkbox" id="n-push" type="checkbox"><label class="lbl" for="n-push" style="margin:0">Push</label></div>
+          </fieldset>
+          <fieldset class="group">
+            <legend>Plan</legend>
+            <div class="check-row"><input class="radio" id="p-free" name="plan" type="radio"><label class="lbl" for="p-free" style="margin:0">Free</label></div>
+            <div class="check-row"><input class="radio" id="p-pro" name="plan" type="radio" checked><label class="lbl" for="p-pro" style="margin:0">Pro</label></div>
+            <div class="check-row"><input class="radio" id="p-ent" name="plan" type="radio"><label class="lbl" for="p-ent" style="margin:0">Enterprise</label></div>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Data table -->
+    <h2 class="section">Data table</h2>
+    <div class="card"><div class="card-content" style="overflow-x:auto">
+      <table class="tbl">
+        <caption>Recent orders</caption>
+        <thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Status</th><th scope="col" class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>ORD-1001</td><td>Northwind Ltd</td><td><span class="badge badge-success">Paid</span></td><td class="num">£1,240.00</td></tr>
+          <tr><td>ORD-1002</td><td>Acme Co</td><td><span class="badge badge-warning">Pending</span></td><td class="num">£530.50</td></tr>
+          <tr><td>ORD-1003</td><td>Globex</td><td><span class="badge badge-destructive">Overdue</span></td><td class="num">£98.00</td></tr>
+        </tbody>
+      </table>
+    </div></div>
+
+    <!-- 5. Tabs -->
+    <h2 class="section">Tabs</h2>
+    <div class="tabs">
+      <input type="radio" name="tabs" id="tab-a" checked>
+      <input type="radio" name="tabs" id="tab-b">
+      <input type="radio" name="tabs" id="tab-c">
+      <div class="tablist" role="tablist" aria-label="Record view">
+        <label class="tab" for="tab-a">Overview</label>
+        <label class="tab" for="tab-b">Activity</label>
+        <label class="tab" for="tab-c">Settings</label>
+      </div>
+      <div class="panel" id="panel-a"><p class="lead" style="margin:0">Overview content. Tabs switch between equivalent views of the same screen.</p></div>
+      <div class="panel" id="panel-b"><p class="lead" style="margin:0">Activity content.</p></div>
+      <div class="panel" id="panel-c"><p class="lead" style="margin:0">Settings content.</p></div>
+    </div>
+
+    <!-- 6. Card -->
+    <h2 class="section">Card</h2>
+    <div class="preview-narrow">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Project Atlas</h3>
+        </div>
+        <div class="card-content">
+          <p class="alert-desc" style="margin:0">A short supporting description that sits inside the card content region.</p>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-outline btn-sm" type="button">View details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Dialog (static example) -->
+    <h2 class="section">Dialog</h2>
+    <div class="dialog-frame">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-desc">
+        <h3 id="dlg-title">Delete account?</h3>
+        <p id="dlg-desc">This permanently removes your account and all associated data. This action cannot be undone.</p>
+        <div class="actions">
+          <button class="btn btn-outline" type="button">Cancel</button>
+          <button class="btn btn-destructive" type="button">Delete account</button>
+        </div>
+      </div>
+    </div>
+    <p class="note">Static stand-in for the Radix <code>AlertDialog</code>: real usage adds focus trapping, <code>Esc</code>-to-close, and focus return.</p>
+
+    <!-- 8. Notification / alert set -->
+    <h2 class="section">Alerts</h2>
+    <div class="stack">
+      <div class="alert alert-info">
+        <span class="icon" aria-hidden="true">ℹ</span>
+        <div><p class="alert-title">Information</p><p class="alert-desc">A new version is available.</p></div>
+      </div>
+      <div class="alert alert-success">
+        <span class="icon" aria-hidden="true">✓</span>
+        <div><p class="alert-title">Success</p><p class="alert-desc">Your changes have been saved.</p></div>
+      </div>
+      <div class="alert alert-destructive">
+        <span class="icon" aria-hidden="true">⚠</span>
+        <div><p class="alert-title">Error</p><p class="alert-desc">Could not connect to the server.</p></div>
+      </div>
+    </div>
+
+    <!-- 9. Empty state -->
+    <h2 class="section">Empty state</h2>
+    <div class="empty">
+      <span class="glyph" aria-hidden="true">📦</span>
+      <h3>No orders yet</h3>
+      <p>When you create your first order, it will appear here.</p>
+      <button class="btn btn-default" type="button">Create order</button>
+    </div>
+
+    <!-- 10. Tags / badges -->
+    <h2 class="section">Badges</h2>
+    <div class="row">
+      <span class="badge badge-info">Active</span>
+      <span class="badge badge-success">Complete</span>
+      <span class="badge badge-warning">Pending</span>
+      <span class="badge badge-destructive">Failed</span>
+    </div>
+
+    <p class="note" style="margin-top:40px">
+      Rendered from hand-authored CSS mirroring the shadcn/ui "new-york" style with a Zinc base colour.
+      Colours are the real shadcn CSS-variable tokens; components are static representations of the Radix-backed originals.
+    </p>
+  </main>
+
+  <script>
+    // Theme toggle — swaps the .dark class, respecting the OS preference initially.
+    // No external libraries; CSP-safe; works from file://.
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById('theme-toggle');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      function apply(dark) {
+        root.classList.toggle('dark', dark);
+        btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+      }
+      apply(prefersDark);
+      btn.addEventListener('click', function () {
+        apply(!root.classList.contains('dark'));
+      });
+    })();
+  </script>
+</body>
+</html>

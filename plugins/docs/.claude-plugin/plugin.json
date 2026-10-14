@@ -1,0 +1,22 @@
+{
+  "name": "docs",
+  "displayName": "Documentation frameworks (Diátaxis, C4, arc42)",
+  "version": "0.2.0",
+  "description": "Author an app's documentation with three authoritative frameworks: Diátaxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "required-documentation",
+    "documentation",
+    "diataxis",
+    "c4",
+    "arc42",
+    "docs",
+    "architecture",
+    "adr",
+    "technical-writing"
+  ]
+}
