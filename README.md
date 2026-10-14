@@ -42,6 +42,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `client-online` | The `client-data@1` plugin for online-only apps: TanStack Query for Svelte, shared retry policy, loading, offline, error and empty states |
 | `client-offline` | The `client-data@1` plugin for offline-first apps: `@albitor/sync` outbox and sync, a local store per person, tombstones, guarded single-flight runs, sign-out that keeps unsynced work |
 | `kit-shadcn` | The `component-kit@1` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
+| `kit-carbon` | The `component-kit@1` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).
