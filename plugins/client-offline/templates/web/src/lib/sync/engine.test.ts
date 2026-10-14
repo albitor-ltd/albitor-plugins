@@ -774,3 +774,82 @@ describe('round 2: pull holds the cursor for a skipped upsert', () => {
 		expect((await a.get('todos', 'r1'))?.extra).toBe('from the other device');
 	});
 });
+
+describe('round 3: nothing is written to a store after sign-out has closed it', () => {
+	it('a pull that finishes while the store is being cleared writes nothing', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const inner = stores('alice');
+		const clearGate = deferred();
+		const pullGate = deferred();
+		const slow = { ...inner, clear: async () => { await clearGate.promise; return inner.clear(); } };
+		const transport = {
+			push: (e: Parameters<FakeServer['push']>[0], o: string) => server.push(e, o),
+			pull: async (c: string, cur: string | null, o: string) => {
+				await pullGate.promise;
+				return server.pull(c, cur, o);
+			}
+		};
+		const a = createSyncEngine({ stores: (o) => (o === 'alice' ? slow : stores(o)), transport, collections: ['todos'], lock: (_n, fn) => fn() });
+		await a.attach('alice');
+		server.seed('alice', 'todos', { id: 'r1', title: 'server data' });
+		server.removeRemote('alice', 'todos', 'gone');
+		const run = a.sync();
+		await new Promise((r) => setTimeout(r, 0));
+		const out = a.signOut({ discard: true });
+		await new Promise((r) => setTimeout(r, 0));
+		pullGate.resolve(); // the pull lands while clear() is pending
+		await new Promise((r) => setTimeout(r, 0));
+		clearGate.resolve();
+		expect(await out).toEqual({ ok: true });
+		await run;
+		expect(await inner.listRecords('todos')).toEqual([]);
+		expect(await inner.getCursor('todos')).toBeNull();
+	});
+
+	it('a push in flight neither completes nor starts the next entry once closed', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const inner = stores('alice');
+		// A clear that leaves the data in place, so the guards (not an empty store) are what stop writes.
+		const clearGate = deferred();
+		const stubborn = { ...inner, clear: async () => clearGate.promise };
+		const a = device(server, (o) => (o === 'alice' ? stubborn : stores(o)));
+		await a.attach('alice');
+		await a.create('todos', { title: 'one' });
+		await a.create('todos', { title: 'two' });
+		const gate = deferred();
+		server.gate = gate.promise;
+		const run = a.flush();
+		await new Promise((r) => setTimeout(r, 0));
+		const out = a.signOut({ discard: true });
+		await new Promise((r) => setTimeout(r, 0));
+		gate.resolve(); // the push finishes while clear() is still pending: closed, but not yet detached
+		await new Promise((r) => setTimeout(r, 5));
+		clearGate.resolve();
+		await out;
+		await run;
+		const rows = await inner.listOutbox();
+		expect(server.pushes).toHaveLength(1);
+		expect(rows.map((r) => r.state)).toEqual(['inflight', 'pending']);
+	});
+
+	it('a flush that starts while the store is being cleared sends nothing', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const inner = stores('alice');
+		const clearGate = deferred();
+		const stubborn = { ...inner, clear: async () => clearGate.promise };
+		const a = device(server, (o) => (o === 'alice' ? stubborn : stores(o)));
+		await a.attach('alice');
+		await a.create('todos', { title: 'one' });
+		const out = a.signOut({ discard: true });
+		await new Promise((r) => setTimeout(r, 0));
+		const run = a.flush(); // current is still this session, but its store is closed
+		await new Promise((r) => setTimeout(r, 0));
+		clearGate.resolve();
+		await out;
+		await run;
+		expect(server.pushes).toEqual([]);
+	});
+});

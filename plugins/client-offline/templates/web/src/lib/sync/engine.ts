@@ -235,8 +235,14 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			} catch (err) {
 				return stopFor(classify(err, 'update'));
 			}
-			if (current !== ctx) return 'detached';
+			if (current !== ctx || ctx.closed) return 'detached';
+			let skipped = false;
 			await exclusive(ctx, async () => {
+				// Sign-out may have closed the store while this pull was in flight: write nothing to it.
+				if (ctx.closed) {
+					skipped = true;
+					return;
+				}
 				// A record with queued local changes keeps them, and the cursor stays put so the server's
 				// copy (or tombstone) is fetched again until the queue for that record is resolved.
 				const touched = new Set((await ctx.store.listOutbox()).filter((e) => e.collection === collection).map((e) => e.entityId));
@@ -253,6 +259,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 				// re-downloads the delta, until the person retries or discards it.
 				if (!held) await ctx.store.setCursor(collection, page.cursor);
 			});
+			if (skipped) return 'detached';
 		}
 		return undefined;
 	}
@@ -446,6 +453,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 				if (e.op === 'create') {
 					// The server never had the record, so changes queued behind its create cannot apply.
 					for (const dep of await ctx.store.listOutbox()) {
+						// (An in-flight entry stays: its completion removes it.)
 						if (dep.collection === e.collection && dep.entityId === e.entityId && dep.state !== 'inflight') {
 							await ctx.store.deleteOutbox(dep.id);
 						}
