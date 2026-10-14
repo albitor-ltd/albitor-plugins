@@ -43,6 +43,10 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `client-offline` | The `client-data@1` plugin for offline-first apps: `@albitor/sync` outbox and sync, a local store per person, tombstones, guarded single-flight runs, sign-out that keeps unsynced work |
 | `kit-shadcn` | The `component-kit@1` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
 | `kit-carbon` | The `component-kit@1` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
+| `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-in screens per kit, `services.auth` |
+| `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
+
+`auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`).
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).

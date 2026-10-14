@@ -54,6 +54,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   as app-owned example files over one token set that passes WCAG 2.2 AA contrast in light and dark,
   with axe and contrast tests that ship with the app, preview tokens and a Svelte-first skill. Not
   in the catalogue until it is tagged `kit-shadcn/v0.1.0` and the catalogue is regenerated.
+- `auth-cognito` and `auth-none` plugins (albitor-ltd/albitor#3170): the split of `auth`, both
+  `auth@1`, schema 2. `auth-cognito`: the API's identity seam (token check, `GET /api/me`, the
+  sign-in calls, HttpOnly session cookies; stdlib only), a provider-independent session module and
+  route guard, sign-in, sign-up, confirm, reset and sign-out screens seeded per kit (`kit-shadcn`
+  first), a seeded sign-in journey, and the `services.auth` fragment. No Terraform and no SSM
+  parameter: the deploy target realises the pool from `services.auth`. `auth-none`: a stub identity
+  seam with one fixed owner and no screens. `auth` itself is unchanged and stays at `auth/v0.7.0`.
+  Neither is in the catalogue until it is tagged `<name>/v0.1.0` and the catalogue is regenerated.
+- `scripts/verify-auth.sh` and its CI job build, vet and test each auth plugin's Go over `api-go`.
 - `kit-carbon` plugin (albitor-ltd/albitor#3167): the `component-kit@1` plugin for Svelte in the IBM
   Carbon style, a rewrite of `carbon`, schema 2, with the same shell pieces and props as
   `kit-shadcn`. Carbon's UI shell, forms, tables, `Modal` dialog and toasts as app-owned example

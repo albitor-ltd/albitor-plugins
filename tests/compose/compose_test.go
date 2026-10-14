@@ -77,6 +77,27 @@ func loadDir(t *testing.T, dir string) composer.Plugin {
 			p.SlotTemplates = append(p.SlotTemplates, composer.SlotTemplate{Path: e.Path, Syntax: e.Syntax, Body: string(body)})
 		}
 	}
+	// api-go's sidecar convention (slots/slots.json); the same two conventions retire when the
+	// manifest declares slot templates as a files mode (ADR-0090 amendment of 2026-10-14, item 1).
+	if index, ok := tree["slots/slots.json"]; ok {
+		var sidecar struct {
+			SlotTemplates []struct {
+				Path   string          `json:"path"`
+				Syntax composer.Syntax `json:"syntax"`
+				Source string          `json:"source"`
+			} `json:"slot_templates"`
+		}
+		if err := json.Unmarshal(index, &sidecar); err != nil {
+			t.Fatalf("%s: slots/slots.json: %v", dir, err)
+		}
+		for _, e := range sidecar.SlotTemplates {
+			body, ok := tree["slots/"+e.Source]
+			if !ok {
+				t.Fatalf("%s: slot template body slots/%s is not in the plugin", dir, e.Source)
+			}
+			p.SlotTemplates = append(p.SlotTemplates, composer.SlotTemplate{Path: e.Path, Syntax: e.Syntax, Body: string(body)})
+		}
+	}
 	return p
 }
 

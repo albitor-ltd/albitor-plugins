@@ -186,6 +186,32 @@
     ],
     "license": "MIT"
   },
+  "auth-cognito": {
+    "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
+    "category": "development",
+    "keywords": [
+      "auth",
+      "cognito",
+      "authentication",
+      "sign-up",
+      "sign-in",
+      "session",
+      "route-guard"
+    ],
+    "license": "MIT"
+  },
+  "auth-none": {
+    "description": "The auth plugin for an app with no sign-in: a stub identity seam for the Go API in which every request acts for one fixed owner, so a handler written against it works unchanged under a real sign-in. No screens, no middleware, no routes, and no requirements, so a web-only profile composes it too.",
+    "category": "development",
+    "keywords": [
+      "auth",
+      "no-auth",
+      "stub",
+      "identity",
+      "fixed-owner"
+    ],
+    "license": "MIT"
+  },
   "kit-carbon": {
     "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
     "category": "development",
