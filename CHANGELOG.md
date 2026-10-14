@@ -37,6 +37,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   apps, schema 2. TanStack Query for Svelte behind `web.providers`, a shared retry policy, API query
   helpers and loading, offline, error and empty states. Not in the catalogue until it is tagged
   `client-online/v0.1.0` and the catalogue is regenerated.
+- `kit-shadcn` plugin (albitor-ltd/albitor#3166): the `component-kit@1` plugin for Svelte, a rewrite
+  of `shadcn`, schema 2. App shell, nav, forms, tables, dialogs (Bits UI), toasts and empty states
+  as app-owned example files over one token set that passes WCAG 2.2 AA contrast in light and dark,
+  with axe and contrast tests that ship with the app, preview tokens and a Svelte-first skill. Not
+  in the catalogue until it is tagged `kit-shadcn/v0.1.0` and the catalogue is regenerated.
 
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.
