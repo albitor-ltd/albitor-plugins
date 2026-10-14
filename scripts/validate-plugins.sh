@@ -35,7 +35,12 @@ for dir in "${dirs[@]}"; do
   jq -e --arg n "$base" 'has($n)' "$root/catalogue/metadata.json" >/dev/null ||
     err "$base: no entry in catalogue/metadata.json"
   # A schema-2 plugin was born in this repository: it has no old repository to pin in legacy mode.
-  if [[ "$(jq -r '.schema // 1' "$manifest")" != 2 ]]; then
+  # A legacy-pinned plugin is released from its old repo and must stay schema 1; flipping it to 2
+  # would drop it from the legacy catalogue without a word.
+  if [[ "$(jq -r '.schema // 1' "$manifest")" == 2 ]]; then
+    ! jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
+      err "$base: schema 2 but listed in catalogue/legacy-pins.json (a legacy plugin must stay schema 1)"
+  else
     jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
       err "$base: no entry in catalogue/legacy-pins.json"
   fi

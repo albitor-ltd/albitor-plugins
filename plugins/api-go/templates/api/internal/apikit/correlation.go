@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -49,9 +50,9 @@ func RequestLogging(next http.Handler, logger *slog.Logger) http.Handler {
 		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		start := time.Now()
 
-		next.ServeHTTP(recorder, r.WithContext(
+		serveRecovering(next, recorder, r.WithContext(
 			context.WithValue(r.Context(), correlationIDContextKey{}, correlationID),
-		))
+		), logger, correlationID)
 
 		// A 5xx is an incident, not traffic, so it is logged at a level that
 		// an alarm can filter on.
@@ -69,6 +70,37 @@ func RequestLogging(next http.Handler, logger *slog.Logger) http.Handler {
 			slog.Int64("duration_ms", time.Since(start).Milliseconds()),
 		)
 	})
+}
+
+// serveRecovering runs next and turns a panic into a logged JSON 500. The log
+// line carries the correlation id and the panic value; the client gets the
+// same {"error": ...} shape as any other failure and never a stack trace. If
+// the handler had already begun its response the status cannot change, so only
+// the log line is possible. http.ErrAbortHandler is the standard library's
+// deliberate abort and is passed on untouched.
+func serveRecovering(next http.Handler, w *statusRecorder, r *http.Request, logger *slog.Logger, correlationID string) {
+	defer func() {
+		v := recover()
+		if v == nil {
+			return
+		}
+		if v == http.ErrAbortHandler {
+			panic(v)
+		}
+		logger.ErrorContext(r.Context(), "handler panicked",
+			slog.String("correlation_id", correlationID),
+			slog.String("method", r.Method),
+			slog.String("path", r.URL.Path),
+			slog.Any("panic", v),
+			slog.String("stack", string(debug.Stack())),
+		)
+		if w.wroteHeader {
+			w.status = http.StatusInternalServerError
+			return
+		}
+		WriteError(w, http.StatusInternalServerError, "internal error")
+	}()
+	next.ServeHTTP(w, r)
 }
 
 // resolveCorrelationID propagates a usable inbound id and mints one otherwise.
@@ -134,3 +166,7 @@ func (s *statusRecorder) Write(b []byte) (int, error) {
 	s.wroteHeader = true
 	return s.ResponseWriter.Write(b)
 }
+
+// Unwrap exposes the underlying writer, so http.ResponseController (flush,
+// deadlines, hijack) reaches it through the recorder.
+func (s *statusRecorder) Unwrap() http.ResponseWriter { return s.ResponseWriter }

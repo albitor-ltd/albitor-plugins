@@ -45,6 +45,20 @@ if [[ "$mode" == monorepo ]]; then
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
 fi
 
+# Legacy mode points every plugin at its old repo: a schema-1 plugin with no pin is an error,
+# never a silent omission. Only a schema-2 plugin (born here, no old repo) may lack one.
+if [[ "$mode" == legacy ]]; then
+  while IFS= read -r name; do
+    manifest="$root/plugins/$name/.claude-plugin/plugin.json"
+    [[ -f "$manifest" ]] || { echo "missing $manifest" >&2; exit 1; }
+    [[ "$(jq -r '.schema // 1' "$manifest")" == 2 ]] && continue
+    if ! jq -e --arg n "$name" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null; then
+      echo "error: $name is a schema-1 plugin with no entry in catalogue/legacy-pins.json" >&2
+      exit 1
+    fi
+  done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
+fi
+
 render() {
   jq -a -n \
     --arg mode "$mode" \

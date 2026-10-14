@@ -77,7 +77,12 @@ func ParseLimit(query url.Values) (int, error) {
 // sort key of the last record on a page. It is opaque on purpose: clients must
 // round-trip it, never construct or decompose it, so its encoding stays a
 // server implementation detail.
+//
+// collection must not contain ':' (the separator): that is a programming error
+// in the endpoint, not bad input, so it panics rather than minting a cursor
+// the same list would then refuse.
 func EncodeCursor(collection, key string) string {
+	mustBeCollectionName(collection)
 	return base64.RawURLEncoding.EncodeToString([]byte(cursorPrefix + collection + ":" + key))
 }
 
@@ -85,8 +90,14 @@ func EncodeCursor(collection, key string) string {
 // "start at the beginning" and is not an error. A cursor minted for another
 // list is refused: its key means nothing in this one.
 func DecodeCursor(collection, cursor string) (string, error) {
+	mustBeCollectionName(collection)
 	if cursor == "" {
 		return "", nil
+	}
+	// Bound the encoded length before decoding: the longest cursor this list
+	// can mint is known, and a longer one is not one it issued.
+	if len(cursor) > base64.RawURLEncoding.EncodedLen(len(cursorPrefix)+len(collection)+1+MaxSortKeyBytes) {
+		return "", ErrInvalidCursor
 	}
 	raw, err := base64.RawURLEncoding.DecodeString(cursor)
 	if err != nil {
@@ -97,6 +108,14 @@ func DecodeCursor(collection, cursor string) (string, error) {
 		return "", ErrInvalidCursor
 	}
 	return rest, nil
+}
+
+// mustBeCollectionName panics on a collection name holding the cursor's ':'
+// separator, which would make the name and the key ambiguous when decoded.
+func mustBeCollectionName(collection string) {
+	if strings.Contains(collection, ":") {
+		panic("apikit: cursor collection name " + strconv.Quote(collection) + " must not contain ':'")
+	}
 }
 
 // ServeList answers one page of a collection. Every list endpoint goes through

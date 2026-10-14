@@ -119,3 +119,75 @@ func TestCorrelationIDIsOnTheRequestContext(t *testing.T) {
 		t.Fatalf("id outside a request = %q, want empty", got)
 	}
 }
+
+// A panicking handler is a logged JSON 500 under the request's correlation id;
+// the client sees the usual error shape and no stack.
+func TestPanicIsALoggedJSON500WithNoStackForTheClient(t *testing.T) {
+	var sink bytes.Buffer
+	h := RequestLogging(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		panic("boom: secret detail")
+	}), slog.New(slog.NewJSONHandler(&sink, nil)))
+
+	rec := logged(t, h, "caller-9")
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", rec.Code)
+	}
+	if got := rec.Header().Get(CorrelationIDHeader); got != "caller-9" {
+		t.Fatalf("%s = %q, want caller-9", CorrelationIDHeader, got)
+	}
+	if body := strings.TrimSpace(rec.Body.String()); body != `{"error":"internal error"}` {
+		t.Fatalf("body = %s, want the JSON error shape", body)
+	}
+	if strings.Contains(rec.Body.String(), "secret") || strings.Contains(rec.Body.String(), "goroutine") {
+		t.Fatalf("panic detail reached the client: %s", rec.Body.String())
+	}
+
+	var panicked, access map[string]any
+	for _, l := range strings.Split(strings.TrimSpace(sink.String()), "\n") {
+		var line map[string]any
+		if err := json.Unmarshal([]byte(l), &line); err != nil {
+			t.Fatalf("log line is not JSON: %q", l)
+		}
+		if line["msg"] == "handler panicked" {
+			panicked = line
+		} else {
+			access = line
+		}
+	}
+	if panicked == nil || panicked["correlation_id"] != "caller-9" || !strings.Contains(panicked["panic"].(string), "boom") {
+		t.Fatalf("panic log line = %v", panicked)
+	}
+	if access == nil || access["status"] != float64(500) || access["level"] != "ERROR" {
+		t.Fatalf("access log line = %v, want one ERROR line with status 500", access)
+	}
+}
+
+// A panic after the response began cannot change the status, but must not
+// crash the server or go unlogged.
+func TestPanicAfterTheResponseBeganIsLoggedAndContained(t *testing.T) {
+	var sink bytes.Buffer
+	h := RequestLogging(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("partial"))
+		panic("late")
+	}), slog.New(slog.NewJSONHandler(&sink, nil)))
+	logged(t, h, "")
+	if !strings.Contains(sink.String(), "handler panicked") {
+		t.Fatalf("panic not logged: %s", sink.String())
+	}
+}
+
+// The recorder must not hide the underlying writer's optional interfaces from
+// http.ResponseController.
+func TestRecorderUnwrapsToTheUnderlyingWriter(t *testing.T) {
+	under := httptest.NewRecorder()
+	rec := &statusRecorder{ResponseWriter: under}
+	if rec.Unwrap() != http.ResponseWriter(under) {
+		t.Fatal("Unwrap did not return the underlying writer")
+	}
+	if err := http.NewResponseController(rec).Flush(); err != nil {
+		t.Fatalf("Flush through the recorder: %v", err)
+	}
+	if !under.Flushed {
+		t.Fatal("flush did not reach the underlying writer")
+	}
+}

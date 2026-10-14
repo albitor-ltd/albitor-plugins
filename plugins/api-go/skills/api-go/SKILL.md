@@ -34,9 +34,11 @@ registered twice panics at start.
   (`{"items": [], "next_cursor": "..."}`) with `[]` for an empty page, never `null`. A bare array
   is a breaking change for every client the day you need a second page. Mint cursors with
   `apikit.EncodeCursor(collection, lastKey)` and read them with `apikit.DecodeCursor`; return its
-  `ErrInvalidCursor` unchanged so the client gets a 400.
+  `ErrInvalidCursor` unchanged so the client gets a 400. The collection name must not contain `:`
+  (both functions panic on one: it is a programming error).
 - **Errors are `{"error": "..."}`** (`apikit.WriteError`). A storage fault is an opaque 500 through
-  `apikit.WriteFailure`; the cause is logged with the correlation id and never sent to the client.
+  `apikit.WriteFailure`; the cause is logged with the correlation id and never sent to the client. A handler that panics is contained the same way: the shell logs it with
+  the correlation id and answers the JSON 500, so do not add your own recover.
 - **Log with the correlation id.** `apikit.CorrelationIDFromContext(r.Context())` on every line you
   add. The shell already logs one line per request (method, path without the query string, status,
   duration); do not log request bodies or tokens.
@@ -55,5 +57,6 @@ logging; a middleware that refuses unauthenticated requests must leave `GET /api
 ## Run it locally
 
 `ALBITOR_LOCAL=1 PORT=8080 go run .` from `api/`. Add `ALBITOR_LOCAL_AUTH=1` for the in-process
-test issuer (`alice`, `bob`, `admin`), which only issues tokens. Verify with
+test issuer (`alice`, `bob`, `admin`), which only issues tokens and, while it runs, binds `127.0.0.1` only. SIGTERM drains in-flight
+requests (20 seconds at most) before the process exits. Verify with
 `go build ./... && go vet ./... && go test ./... -count=1`.

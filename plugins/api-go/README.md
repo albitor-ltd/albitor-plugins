@@ -34,7 +34,10 @@ skills/api-go/SKILL.md       how to add an endpoint on this shell
 
 `templates/api` is a Go module on its own, but not a complete one until the router is generated.
 `scripts/verify-api-go.sh` (run by CI) renders the router with every slot empty and runs
-`go build`, `go vet` and `go test` on the result.
+`go build`, `go vet` and `go test` on the result, and fails if the rendered router (empty or
+populated slots) is not gofmt-clean. The template puts each placeholder inside a call's
+parentheses (`middlewareOf(...)`, `routesOf(...)`) so it is clean either way.
+`scripts/test-catalogue-guards.sh` proves the legacy pin audit fails closed.
 
 ## The slot contract
 

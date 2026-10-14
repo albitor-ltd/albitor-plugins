@@ -22,15 +22,25 @@ if grep -rn '{{albitor\.slot' "$work" >/dev/null; then
 fi
 
 cd "$work"
-# The generated router is not gofmt-formatted (empty slots leave padding), so format the tree
-# before the check applies to hand-written files only.
-gofmt -w internal/shell/router.go
+# The generated router must be gofmt-clean as composed, empty slots included: no formatting here.
 unformatted="$(gofmt -l .)"
 if [[ -n "$unformatted" ]]; then
   echo "error: not gofmt-clean:" >&2
   echo "$unformatted" >&2
   exit 1
 fi
+
+# The same template with populated slots (joined as the composer joins them, ", ") is clean too.
+populated="$(mktemp -d)"
+sed -e 's/{{albitor\.slot\.api\.middleware}}/mwA, mwB/' -e 's/{{albitor\.slot\.api\.routes}}/routesA/' \
+  "$plugin/slots/api/internal/shell/router.go.tmpl" >"$populated/router.go"
+if [[ -n "$(gofmt -l "$populated/router.go")" ]]; then
+  echo "error: the router template is not gofmt-clean with populated slots" >&2
+  rm -rf "$populated"
+  exit 1
+fi
+rm -rf "$populated"
+
 go build ./...
 go vet ./...
 go test ./... -count=1

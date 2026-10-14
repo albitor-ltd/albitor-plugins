@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"webapp/internal/localauth"
 )
@@ -32,4 +33,20 @@ func Boot(getenv func(string) string, logger *slog.Logger) (http.Handler, error)
 			slog.String("issuer", issuer.URL()))
 	}
 	return handler, nil
+}
+
+// ListenAddr is the address the process listens on. It is every interface,
+// except when the local issuer is running: that issuer mints a token for any
+// named identity to anyone who can reach it, so it is bound to loopback and
+// nothing else on the network can ask it for one. Boot has already refused the
+// issuer anywhere but a local run, so this only narrows the bind.
+func ListenAddr(getenv func(string) string) string {
+	port := strings.TrimSpace(getenv("PORT"))
+	if port == "" {
+		port = "8080"
+	}
+	if strings.TrimSpace(getenv(localauth.EnabledEnv)) == "1" {
+		return "127.0.0.1:" + port
+	}
+	return ":" + port
 }

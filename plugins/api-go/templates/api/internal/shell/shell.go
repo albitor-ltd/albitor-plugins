@@ -24,6 +24,14 @@ type Middleware = func(http.Handler) http.Handler
 // Route registers handlers on the mux.
 type Route = func(*http.ServeMux)
 
+// middlewareOf and routesOf collect the entries the generated router.go lists
+// in its slots. They exist so the slot placeholder can sit inside a call's
+// parentheses, which keeps the generated file gofmt-clean whether the slot is
+// empty or holds entries.
+func middlewareOf(m ...Middleware) []Middleware { return m }
+
+func routesOf(r ...Route) []Route { return r }
+
 // build assembles the handler: request logging outside everything, then the
 // middleware chain in slot order, then the mux with the health route, every
 // route registration, and a JSON 404 for anything unmatched.

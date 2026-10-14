@@ -186,3 +186,42 @@ func TestBootRefusesTheIssuerOnADeployedFunction(t *testing.T) {
 		t.Fatal("Boot started the issuer on a deployed function")
 	}
 }
+
+// Each guard refuses the issuer on its own, through Boot.
+func TestBootRefusesTheIssuerWhenAnyGateFails(t *testing.T) {
+	cases := map[string]map[string]string{
+		"ALBITOR_LOCAL unset":   {localauth.EnabledEnv: "1"},
+		"ALBITOR_LOCAL not 1":   {localauth.EnabledEnv: "1", localauth.LocalModeEnv: "true"},
+		"deployed function":     {localauth.EnabledEnv: "1", localauth.LocalModeEnv: "1", "AWS_LAMBDA_FUNCTION_NAME": "f"},
+		"AUTH_ISSUER set":       {localauth.EnabledEnv: "1", localauth.LocalModeEnv: "1", "AUTH_ISSUER": "https://x"},
+		"AUTH_USER_POOL_ID set": {localauth.EnabledEnv: "1", localauth.LocalModeEnv: "1", "AUTH_USER_POOL_ID": "p"},
+		"AUTH_CLIENT_ID set":    {localauth.EnabledEnv: "1", localauth.LocalModeEnv: "1", "AUTH_CLIENT_ID": "c"},
+	}
+	for name, vars := range cases {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Boot(env(vars), quietLogger()); err == nil {
+				t.Fatal("Boot started the issuer")
+			}
+		})
+	}
+}
+
+// The issuer mints a token for anyone who can reach it, so when it runs the
+// server binds loopback only; otherwise it listens on every interface.
+func TestListenAddrIsLoopbackOnlyWhileTheIssuerRuns(t *testing.T) {
+	cases := []struct {
+		vars map[string]string
+		want string
+	}{
+		{map[string]string{}, ":8080"},
+		{map[string]string{"PORT": "9000"}, ":9000"},
+		{map[string]string{localauth.LocalModeEnv: "1"}, ":8080"},
+		{map[string]string{localauth.LocalModeEnv: "1", localauth.EnabledEnv: "1"}, "127.0.0.1:8080"},
+		{map[string]string{localauth.LocalModeEnv: "1", localauth.EnabledEnv: "1", "PORT": "9000"}, "127.0.0.1:9000"},
+	}
+	for _, tc := range cases {
+		if got := ListenAddr(env(tc.vars)); got != tc.want {
+			t.Errorf("ListenAddr(%v) = %q, want %q", tc.vars, got, tc.want)
+		}
+	}
+}

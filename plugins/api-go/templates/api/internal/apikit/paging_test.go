@@ -189,3 +189,29 @@ func TestStorageFaultIsAnOpaque500(t *testing.T) {
 		t.Fatalf("the cause leaked into the response: %s", rec.Body.String())
 	}
 }
+
+func TestOverlongCursorIsRejectedBeforeDecoding(t *testing.T) {
+	cursor := strings.Repeat("A", 4*MaxSortKeyBytes)
+	if _, err := DecodeCursor(testCollection, cursor); !errors.Is(err, ErrInvalidCursor) {
+		t.Fatalf("err = %v, want ErrInvalidCursor", err)
+	}
+	// The longest legitimate cursor still decodes.
+	key := strings.Repeat("k", MaxSortKeyBytes)
+	if got, err := DecodeCursor(testCollection, EncodeCursor(testCollection, key)); err != nil || got != key {
+		t.Fatalf("max-length cursor: %q, %v", got, err)
+	}
+}
+
+func TestCollectionNameWithTheSeparatorIsAProgrammingError(t *testing.T) {
+	mustPanic := func(name string, f func()) {
+		t.Helper()
+		defer func() {
+			if recover() == nil {
+				t.Fatalf("%s did not panic on a collection containing ':'", name)
+			}
+		}()
+		f()
+	}
+	mustPanic("EncodeCursor", func() { EncodeCursor("a:b", "k") })
+	mustPanic("DecodeCursor", func() { _, _ = DecodeCursor("a:b", "x") })
+}
