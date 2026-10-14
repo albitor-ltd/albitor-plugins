@@ -70,8 +70,9 @@ Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` 
   A `git-subdir` source takes `url`, `path`, `ref` and an optional full 40-character `sha`, and
   checks out only the subdirectory (Claude Code plugin marketplace reference). The generator reads
   `sha` from the local tag, so a tag that moves makes `--check` fail and a missing tag fails
-  generation. A plugin with no release tag of any version yet is left out (with a note) until its
-  first tag, so a new plugin's pull request can pass `--check`. Albitor's pin audit joins entries on
+  generation. A plugin not yet in the committed catalogue and with no tag is left out (with a note)
+  until its first tag, so a new plugin's pull request can pass `--check`; one already catalogued
+  whose tag is missing is an error. Albitor's pin audit joins entries on
   repository and subdirectory.
 - `legacy`: `github` sources pointing at the old `albitor-plugin-<name>` repositories and tags
   (`catalogue/legacy-pins.json`), plus the retired `visual-*` entries. Kept only so the old shape

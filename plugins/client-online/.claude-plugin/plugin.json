@@ -15,7 +15,7 @@
   "requires": ["web-framework@1"],
   "contributes": {
     "dependencies": {
-      "npm": ["@tanstack/svelte-query@^6.3.2"]
+      "npm": ["@tanstack/svelte-query@6.3.0"]
     },
     "files": [
       { "path": "web/src/lib/data/client.ts", "mode": "managed" },
@@ -26,6 +26,7 @@
       { "path": "web/src/lib/data/state.test.ts", "mode": "managed" },
       { "path": "web/src/lib/data/QueryProvider.svelte", "mode": "managed" },
       { "path": "web/src/lib/data/DataState.svelte", "mode": "managed" },
+      { "path": "web/src/lib/data/DataState.test.ts", "mode": "managed" },
       { "path": "web/src/lib/shell/scope.d/client-online.ts", "mode": "managed" }
     ],
     "slots": {

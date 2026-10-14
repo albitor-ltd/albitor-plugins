@@ -6,7 +6,7 @@ composes into a new app's `web/` beside `web-svelte`.
 
 ## What it provides
 
-- TanStack Query for Svelte (`@tanstack/svelte-query` 6) behind the `web.providers` slot: a
+- TanStack Query for Svelte (`@tanstack/svelte-query` 6.3.0, pinned exactly) behind the `web.providers` slot: a
   `QueryProvider` the shell nests around the app, with one query client per page load.
 - A retry policy shared by every query: server errors, timeouts, throttling and an unreachable API
   retry twice with backoff; client errors never retry; an offline browser pauses the query rather

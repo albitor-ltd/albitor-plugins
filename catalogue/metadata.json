@@ -78,7 +78,7 @@
     "license": "MIT"
   },
   "docs": {
-    "description": "Author an app's documentation with three authoritative frameworks: Di\u00e1taxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
+    "description": "Author an app's documentation with three authoritative frameworks: Diátaxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
     "category": "development",
     "keywords": [
       "required-documentation",
