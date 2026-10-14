@@ -9,7 +9,7 @@
 //   GET    /items?since=C    {items, deleted, cursor}  what changed after cursor C (everything, when
 //                                              absent): changed records, ids deleted since, and the
 //                                              cursor to send next time.
-import { ApiError, del, get, post, put } from '../shell/api';
+import { ApiError, api } from '../shell/api';
 import { isRecordId } from './engine';
 import { getSyncUser } from './session';
 import type { OutboxEntry, PullResult, SyncRecord, Transport } from './types';
@@ -19,6 +19,8 @@ export interface ApiTransportOptions {
 	path?: (collection: string) => string;
 	/** Who the API's credentials belong to. Defaults to the user the auth plugin reported. */
 	whoami?: () => string | null;
+	/** A request that takes longer is abandoned (and retried later); a hung one would hold the sync lock. */
+	timeoutMs?: number;
 }
 
 /** Parses a pull response, refusing anything that is not the contract. */
@@ -46,6 +48,7 @@ export function parsePull(body: unknown): PullResult {
 export function apiTransport(options: ApiTransportOptions = {}): Transport {
 	const base = options.path ?? ((c: string) => `/${c}`);
 	const whoami = options.whoami ?? getSyncUser;
+	const signal = () => AbortSignal.timeout(options.timeoutMs ?? 30_000);
 	// The credentials belong to whoever is signed in now. If that is not the person the queue
 	// belongs to, sending would put one person's changes into another's account.
 	const check = (owner: string) => {
@@ -56,13 +59,15 @@ export function apiTransport(options: ApiTransportOptions = {}): Transport {
 			check(owner);
 			const root = base(entry.collection);
 			const one = `${root}/${encodeURIComponent(entry.entityId)}`;
-			if (entry.op === 'create') await post(root, { ...entry.payload, id: entry.entityId });
-			else if (entry.op === 'update') await put(one, entry.payload ?? {});
-			else await del(one);
+			if (entry.op === 'create') await api(root, { method: 'POST', body: { ...entry.payload, id: entry.entityId }, signal: signal() });
+			else if (entry.op === 'update') await api(one, { method: 'PUT', body: entry.payload ?? {}, signal: signal() });
+			else await api(one, { method: 'DELETE', signal: signal() });
 		},
 		async pull(collection: string, cursor: string | null, owner: string) {
 			check(owner);
-			return parsePull(await get(base(collection), cursor === null ? undefined : { since: cursor }));
+			return parsePull(
+				await api(base(collection), { query: cursor === null ? undefined : { since: cursor }, signal: signal() })
+			);
 		}
 	};
 }

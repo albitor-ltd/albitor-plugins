@@ -19,6 +19,8 @@ export class FakeServer implements Transport {
 	gate: Promise<void> | null = null;
 	/** Throws this from the next push, once. */
 	failNext: Error | null = null;
+	/** Throws what this returns for any push it names, every time. */
+	failWhen: ((entry: OutboxEntry) => Error | null) | null = null;
 	active = 0;
 	maxActive = 0;
 
@@ -51,6 +53,8 @@ export class FakeServer implements Transport {
 		try {
 			if (this.gate) await this.gate;
 			if (this.offline) throw new NetworkError(true);
+			const always = this.failWhen?.(entry);
+			if (always) throw always;
 			if (this.failNext) {
 				const err = this.failNext;
 				this.failNext = null;

@@ -3,6 +3,7 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { describe, expect, it } from 'vitest';
 import { createSyncEngine } from './engine';
+import { withFallback } from './fallback';
 import { dbName, idbStores } from './idb';
 import { memoryStores } from './memory';
 import { FakeServer } from './testing';
@@ -88,5 +89,37 @@ describe('the engine on IndexedDB', () => {
 		server.offline = false;
 		await after.sync();
 		expect(server.records('alice', 'todos')).toEqual([{ id: todo.id, title: 'written offline' }]);
+	});
+});
+
+describe('withFallback', () => {
+	it('uses the durable store when it opens', async () => {
+		const durable = memoryStores();
+		const stores = withFallback(durable, memoryStores());
+		await stores('alice').putRecord('t', { id: 'a' });
+		expect(await durable('alice').listRecords('t')).toHaveLength(1);
+	});
+
+	it('uses the memory store, and says so, when the durable one cannot open', async () => {
+		const broken: StoreFactory = () => {
+			const fail = () => Promise.reject(new Error('blocked'));
+			return { getRecord: fail, putRecord: fail, deleteRecord: fail, listRecords: fail, listOutbox: fail, putOutbox: fail, deleteOutbox: fail, getCursor: fail, setCursor: fail, clear: fail };
+		};
+		const seen: unknown[] = [];
+		const stores = withFallback(broken, memoryStores(), (e) => seen.push(e));
+		const s = stores('alice');
+		await s.putRecord('t', { id: 'a' });
+		expect(await s.listRecords('t')).toEqual([{ id: 'a' }]);
+		expect(seen).toHaveLength(1);
+	});
+
+	it('retries opening IndexedDB after a failed open instead of caching the failure', async () => {
+		let fail = true;
+		const real = new IDBFactory();
+		const factory = { open: (...a: Parameters<IDBFactory['open']>) => (fail ? (() => { throw new Error('nope'); })() : real.open(...a)) } as unknown as IDBFactory;
+		const store = idbStores('t', factory)('alice');
+		await expect(store.listRecords('t')).rejects.toThrow();
+		fail = false;
+		await expect(store.listRecords('t')).resolves.toEqual([]);
 	});
 });

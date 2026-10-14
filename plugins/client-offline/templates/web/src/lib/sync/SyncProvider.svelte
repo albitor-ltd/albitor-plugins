@@ -7,6 +7,7 @@
 	import { collections } from './collections';
 	import { SYNC_KEY } from './context';
 	import { createSyncEngine } from './engine';
+	import { withFallback } from './fallback';
 	import { idbStores } from './idb';
 	import { memoryStores } from './memory';
 	import { onSyncUser } from './session';
@@ -14,9 +15,13 @@
 
 	let { children }: { children: Snippet } = $props();
 
-	// Without IndexedDB (a private window in some browsers) the app still works, but only until reload.
+	// Without a usable IndexedDB (a private window, a blocked database) the app still works, but only
+	// until reload.
 	const engine = createSyncEngine({
-		stores: typeof indexedDB === 'undefined' ? memoryStores() : idbStores(),
+		stores:
+			typeof indexedDB === 'undefined'
+				? memoryStores()
+				: withFallback(idbStores(), memoryStores(), (err) => console.error('sync: the local database cannot be used, keeping data in memory', err)),
 		transport: apiTransport(),
 		collections
 	});
@@ -29,7 +34,7 @@
 			void engine
 				.attach(user)
 				.then(() => engine.sync())
-				.catch(() => undefined);
+				.catch((err) => console.error('sync: could not start for this person', err));
 		});
 		return () => {
 			stopUser();

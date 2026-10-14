@@ -78,6 +78,18 @@ describe('apiTransport', () => {
 	});
 });
 
+describe('apiTransport timeouts', () => {
+	it('abandons a request that hangs, as an unreachable API (so the sync lock is released)', async () => {
+		vi.stubGlobal(
+			'fetch',
+			(_url: string, init: RequestInit) =>
+				new Promise((_resolve, reject) => init.signal?.addEventListener('abort', () => reject(init.signal?.reason)))
+		);
+		setSyncUser('alice');
+		await expect(apiTransport({ timeoutMs: 20 }).push(entry({}), 'alice')).rejects.toMatchObject({ name: 'NetworkError' });
+	});
+});
+
 describe('parsePull', () => {
 	it('defaults a missing deleted list and cursor', () => {
 		expect(parsePull({ items: [] })).toEqual({ upserts: [], deleted: [], cursor: null });

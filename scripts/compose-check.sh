@@ -76,8 +76,8 @@ if [[ $build -eq 1 ]]; then
 fi
 
 # Same for client-offline (fake-indexeddb, for the store tests). Its build must also emit the service
-# worker into the deploy output with the app shell in its precache list: without it the app cannot
-# open offline at all.
+# worker into the deploy output: without it the app cannot open offline at all. What the worker
+# caches is asserted by shell.test.ts in the app's own tests.
 if [[ $build -eq 1 ]]; then
   cd "$tmp/offline/web"
   mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-offline/.claude-plugin/plugin.json")
@@ -88,7 +88,6 @@ if [[ $build -eq 1 ]]; then
   npm run build
   test -f build/index.html
   test -f build/service-worker.js
-  grep -q 'index.html' build/service-worker.js
   echo "composed web tree with client-offline builds and ships its service worker"
 fi
 

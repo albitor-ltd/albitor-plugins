@@ -22,6 +22,7 @@
       { "path": "web/src/lib/sync/engine.ts", "mode": "managed" },
       { "path": "web/src/lib/sync/engine.test.ts", "mode": "managed" },
       { "path": "web/src/lib/sync/memory.ts", "mode": "managed" },
+      { "path": "web/src/lib/sync/fallback.ts", "mode": "managed" },
       { "path": "web/src/lib/sync/idb.ts", "mode": "managed" },
       { "path": "web/src/lib/sync/store.test.ts", "mode": "managed" },
       { "path": "web/src/lib/sync/testing.ts", "mode": "managed" },

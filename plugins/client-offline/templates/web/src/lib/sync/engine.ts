@@ -58,7 +58,13 @@ interface Ctx {
 	again: boolean;
 	wantPull: boolean;
 	needsSignIn: boolean;
+	/** Set once sign-out has decided; later writes are refused, not written to a store being wiped. */
+	closed: boolean;
 }
+
+/** Server errors are retried this many times in all before the change is marked failed. */
+export const MAX_ATTEMPTS = 5;
+const backoff = (attempts: number) => Math.min(2000 * 2 ** (attempts - 1), 5 * 60_000);
 
 const webLock: Lock = (name, fn) =>
 	typeof navigator !== 'undefined' && navigator.locks ? navigator.locks.request(name, fn) : fn();
@@ -144,19 +150,24 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 
 	async function pushAll(ctx: Ctx): Promise<RunResult> {
 		const result: RunResult = { pushed: 0, failed: 0 };
+		let retried = false;
 		for (;;) {
 			if (current !== ctx) return { ...result, stoppedBy: 'detached' };
 			const entry = await exclusive(ctx, async () => {
 				const outbox = await ctx.store.listOutbox();
 				// A rejected change blocks later changes to the same record, which depend on it.
-				const blocked = new Set(outbox.filter((e) => e.state === 'failed').map(keyOf));
+				// A change backing off after a server error blocks them too, until its time comes.
+				const t = now();
+				const blocked = new Set(
+					outbox.filter((e) => e.state === 'failed' || (e.state === 'pending' && (e.retryAt ?? 0) > t)).map(keyOf)
+				);
 				const next = outbox.find((e) => e.state === 'pending' && !blocked.has(keyOf(e)));
 				if (!next) return undefined;
 				const sent = { ...next, state: 'inflight' as const };
 				await ctx.store.putOutbox(sent);
 				return sent;
 			});
-			if (!entry) return result;
+			if (!entry) return retried ? { ...result, stoppedBy: 'retry' } : result;
 
 			let outcome: Outcome = 'done';
 			try {
@@ -182,17 +193,26 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 				if (!live) return;
 				if (outcome === 'done' && live.rev === entry.rev) {
 					await ctx.store.deleteOutbox(entry.id);
+				} else if (outcome === 'retry') {
+					const attempts = live.attempts + 1;
+					await ctx.store.putOutbox(
+						attempts >= MAX_ATTEMPTS
+							? { ...live, state: 'failed', attempts, error: 'The server kept failing to take this change.' }
+							: { ...live, state: 'pending', attempts, retryAt: now() + backoff(attempts) }
+					);
 				} else {
 					// Not delivered, or amended since it was sent: it goes back to be sent again.
-					await ctx.store.putOutbox({
-						...live,
-						state: 'pending',
-						attempts: outcome === 'done' ? live.attempts : live.attempts + (outcome === 'retry' ? 1 : 0)
-					});
+					await ctx.store.putOutbox({ ...live, state: 'pending' });
 				}
 			});
 			if (outcome === 'done') {
 				result.pushed++;
+				emit();
+				continue;
+			}
+			if (outcome === 'retry') {
+				// Only this record is held back; the rest of the queue goes on.
+				retried = true;
 				emit();
 				continue;
 			}
@@ -211,15 +231,19 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			}
 			if (current !== ctx) return 'detached';
 			await exclusive(ctx, async () => {
-				// A record with unsent local changes keeps them; the server's copy lands after they upload.
+				// A record with queued local changes keeps them, and the cursor stays put so the server's
+				// copy (or tombstone) is fetched again until the queue for that record is resolved.
 				const touched = new Set((await ctx.store.listOutbox()).filter((e) => e.collection === collection).map((e) => e.entityId));
+				let held = false;
 				for (const record of page.upserts) {
-					if (!touched.has(record.id)) await ctx.store.putRecord(collection, record);
+					if (touched.has(record.id)) held = true;
+					else await ctx.store.putRecord(collection, record);
 				}
 				for (const id of page.deleted) {
-					if (!touched.has(id)) await ctx.store.deleteRecord(collection, id);
+					if (touched.has(id)) held = true;
+					else await ctx.store.deleteRecord(collection, id);
 				}
-				await ctx.store.setCursor(collection, page.cursor);
+				if (!held) await ctx.store.setCursor(collection, page.cursor);
 			});
 		}
 		return undefined;
@@ -281,7 +305,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			const gen = ++attachGen;
 			current = null;
 			const store = stores(owner);
-			const ctx: Ctx = { owner, store, chain: Promise.resolve(), running: null, again: false, wantPull: false, needsSignIn: false };
+			const ctx: Ctx = { owner, store, chain: Promise.resolve(), running: null, again: false, wantPull: false, needsSignIn: false, closed: false };
 			// Entries left in flight by a closed tab or a crash are sent again; creates are idempotent.
 			for (const e of await store.listOutbox()) {
 				if (e.state === 'inflight') await store.putOutbox({ ...e, state: 'pending' });
@@ -314,6 +338,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			if (!isRecordId(id)) throw new Error('a record id may use letters, digits, - and _ (up to 64)');
 			const record: SyncRecord = { ...rest, id };
 			await exclusive(ctx, async () => {
+				if (ctx.closed) throw new Error('signing out: this write was not saved');
 				if (await ctx.store.getRecord(collection, id)) throw new Error(`${collection}/${id} already exists`);
 				await ctx.store.putRecord(collection, record);
 				await ctx.store.putOutbox({ collection, entityId: id, op: 'create', payload: rest, rev: 1, state: 'pending', attempts: 0, createdAt: now() });
@@ -327,6 +352,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			const { id: _ignored, ...changes } = patch;
 			void _ignored;
 			const record = await exclusive(ctx, async () => {
+				if (ctx.closed) throw new Error('signing out: this write was not saved');
 				const existing = await ctx.store.getRecord(collection, id);
 				if (!existing) throw new Error(`no such record ${collection}/${id}`);
 				const next: SyncRecord = { ...existing, ...changes, id };
@@ -347,7 +373,9 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 
 		async remove(collection, id) {
 			const ctx = need(collection);
+			if (!isRecordId(id)) throw new Error('a record id may use letters, digits, - and _ (up to 64)');
 			await exclusive(ctx, async () => {
+				if (ctx.closed) throw new Error('signing out: this write was not saved');
 				const mine = (await ctx.store.listOutbox()).filter((e) => e.collection === collection && e.entityId === id);
 				// If the server never accepted a create, it has nothing to delete.
 				const neverSent = mine.some((e) => e.op === 'create' && e.state !== 'inflight');
@@ -413,18 +441,18 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 		async signOut(opts) {
 			const ctx = current;
 			if (!ctx) return { ok: true };
-			if (opts?.discard) {
-				await exclusive(ctx, () => ctx.store.clear());
-				engine.detach();
+			if (!opts?.discard) await run(ctx, false).catch(() => undefined);
+			// Counting and clearing are one step in the write queue, so no write can land between them.
+			const result = await exclusive(ctx, async (): Promise<SignOutResult> => {
+				const left = (await ctx.store.listOutbox()).length;
+				if (left > 0 && !opts?.discard) return { ok: false, pending: left };
+				// Nothing is unsynced (or the person chose to discard): wiping loses nothing unasked.
+				ctx.closed = true;
+				await ctx.store.clear();
 				return { ok: true };
-			}
-			await run(ctx, false).catch(() => undefined);
-			const left = (await ctx.store.listOutbox()).length;
-			if (left > 0) return { ok: false, pending: left };
-			// Nothing is unsynced, so wiping the cache loses nothing and leaves nothing on the device.
-			await exclusive(ctx, () => ctx.store.clear());
-			engine.detach();
-			return { ok: true };
+			});
+			if (result.ok) engine.detach();
+			return result;
 		},
 
 		subscribe(listener) {

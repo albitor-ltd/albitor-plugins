@@ -23,6 +23,8 @@ export interface OutboxEntry {
 	rev: number;
 	state: 'pending' | 'inflight' | 'failed';
 	attempts: number;
+	/** Do not send before this time (ms): the backoff after a server error. */
+	retryAt?: number;
 	/** Plain words for a `failed` entry; never a response body. */
 	error?: string;
 	createdAt: number;

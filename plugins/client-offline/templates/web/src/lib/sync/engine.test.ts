@@ -475,3 +475,136 @@ describe('record ids', () => {
 		expect((await a.status()).failed).toBe(1);
 	});
 });
+
+describe('review fixes: signing out cannot lose a write that lands during it', () => {
+	it('rejects the late write instead of wiping it and reporting success', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const inner = stores('alice');
+		const a = device(server, (owner) => (owner === 'alice' ? wrapped : stores(owner)));
+		let calls = 0;
+		let late: Promise<unknown> = Promise.resolve();
+		const wrapped = {
+			...inner,
+			listOutbox: async () => {
+				const rows = await inner.listOutbox();
+				if (++calls === 2) late = a.create('todos', { title: 'late' }).catch((e: Error) => e);
+				return rows;
+			}
+		};
+		await a.attach('alice');
+		calls = 0; // the first listOutbox of the run is the flush; the second is sign-out counting
+		const result = await a.signOut();
+		const outcome = await late;
+		// Either the write was refused, or it was kept and sign-out declined: never ok with it gone.
+		const kept = result.ok === false;
+		const refused = outcome instanceof Error && /signing out/.test(outcome.message);
+		expect(kept || refused).toBe(true);
+		if (result.ok) expect(a.owner).toBeNull();
+	});
+});
+
+describe('review fixes: a failing entry cannot block the queue forever', () => {
+	it('lets later records through, backs off, and marks the entry failed after the cap', async () => {
+		let clock = 1_000_000;
+		const server = new FakeServer();
+		const a = createSyncEngine({ stores: memoryStores(), transport: server, collections: ['todos'], lock: (_n, fn) => fn(), now: () => clock });
+		await a.attach('alice');
+		const p = await a.create('todos', { title: 'p' });
+		await a.create('todos', { title: 'q' });
+		server.failWhen = (e) => (e.entityId === p.id ? new ApiError(500, null) : null);
+		let attempts = 0;
+		const real = server.push.bind(server);
+		server.push = (e, o) => (e.entityId === p.id && attempts++, real(e, o));
+
+		await a.sync();
+		expect(server.records('alice', 'todos').map((r) => r.title)).toEqual(['q']);
+		await a.sync(); // immediately: still backing off
+		expect(attempts).toBe(1);
+		for (let i = 0; i < 12; i++) {
+			clock += 10 * 60_000;
+			await a.sync();
+		}
+		const s = await a.status();
+		expect(s.failed).toBe(1);
+		expect(s.pending).toBe(0);
+		expect(attempts).toBeLessThanOrEqual(6);
+		expect((await a.failures())[0].error).toMatch(/kept failing/);
+	});
+});
+
+describe('review fixes: a tombstone for a record with queued changes is not lost', () => {
+	it('is delivered once the queued change is discarded', async () => {
+		const server = new FakeServer();
+		const a = device(server);
+		await a.attach('alice');
+		server.seed('alice', 'todos', { id: 't1', title: 'one' });
+		await a.sync();
+		await a.update('todos', 't1', { title: 'edited' });
+		server.failNext = new ApiError(422, null);
+		await a.sync();
+		server.removeRemote('alice', 'todos', 't1');
+		await a.sync();
+		expect(await titles(a)).toEqual(['edited']); // the person's change is not silently dropped
+		const [failure] = await a.failures();
+		await a.discardFailed(failure.id);
+		await a.sync();
+		expect(await a.list('todos')).toEqual([]);
+	});
+
+	it('keeps local edits over the server copy while they are queued', async () => {
+		const server = new FakeServer();
+		const a = device(server);
+		await a.attach('alice');
+		server.seed('alice', 'todos', { id: 'r1', title: 'remote' });
+		await a.sync();
+		await a.update('todos', 'r1', { title: 'local' });
+		server.failNext = new ApiError(422, null); // the push fails, so this run goes on to pull
+		server.seed('alice', 'todos', { id: 'r1', title: 'remote 2' });
+		await a.sync();
+		expect(await titles(a)).toEqual(['local']);
+	});
+});
+
+describe('review fixes: mutants that survived', () => {
+	it('an entry changed while in flight is sent again, not deleted as if delivered', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const a = device(server, stores);
+		await a.attach('alice');
+		await a.create('todos', { title: 'v1' });
+		const sent: unknown[] = [];
+		const real = server.push.bind(server);
+		let first = true;
+		server.push = async (e, o) => {
+			sent.push(e.payload?.title);
+			if (first) {
+				first = false;
+				const store = stores('alice');
+				const [row] = await store.listOutbox();
+				await store.putOutbox({ ...row, rev: row.rev + 1, payload: { title: 'v2' } });
+				return;
+			}
+			return real(e, o);
+		};
+		await a.flush();
+		expect(sent).toEqual(['v1', 'v2']);
+		expect(server.records('alice', 'todos')[0].title).toBe('v2');
+	});
+
+	it('concurrent edits to a record both land in its queued entry', async () => {
+		const server = new FakeServer();
+		const a = device(server);
+		await a.attach('alice');
+		const todo = await a.create('todos', { title: 'x' });
+		await Promise.all([a.update('todos', todo.id, { a: 1 }), a.update('todos', todo.id, { b: 2 })]);
+		await a.flush();
+		expect(server.records('alice', 'todos')).toEqual([{ id: todo.id, title: 'x', a: 1, b: 2 }]);
+	});
+
+	it('remove refuses a malformed id up front', async () => {
+		const a = device(new FakeServer());
+		await a.attach('alice');
+		await expect(a.remove('todos', '../x')).rejects.toThrow(/letters, digits/);
+	});
+});

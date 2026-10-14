@@ -42,7 +42,12 @@ function open(factory: IDBFactory, name: string): Promise<IDBDatabase> {
 
 export function idbStore(name: string, factory: IDBFactory = indexedDB): LocalStore {
 	let opened: Promise<IDBDatabase> | null = null;
-	const db = () => (opened ??= open(factory, name));
+	// A failed open is not remembered: the next call tries again.
+	const db = () =>
+		(opened ??= open(factory, name).catch((err) => {
+			opened = null;
+			throw err;
+		}));
 	async function tx<T>(stores: string | string[], mode: IDBTransactionMode, fn: (t: IDBTransaction) => Promise<T> | T): Promise<T> {
 		const t = (await db()).transaction(stores, mode);
 		const finished = done(t);
