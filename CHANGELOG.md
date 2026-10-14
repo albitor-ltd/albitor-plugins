@@ -26,6 +26,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - `web-svelte` plugin (albitor-ltd/albitor#3165): the `web-framework@1` SvelteKit shell, the first
   schema-2 plugin. Monorepo-only: left out of the legacy catalogue until the switch-over.
+- `test-playwright` plugin (albitor-ltd/albitor#3175): the `test-harness@1` Playwright journey
+  harness (watched browser context, `journeyStep`, one sign-in per suite, fixtures, walk mailbox),
+  an axe WCAG 2.2 A/AA audit, a read-only managed `journeys.yml` workflow that passes the
+  `test-harness` workflow lint, and the `wcag-22-aa` skill absorbing the accessibility reference the
+  four design-system plugins each duplicate (they are unchanged). `scripts/compose-check.sh --journeys` and the compose CI job run the
+  journeys against the composed default shell.
 - `api-go` plugin (albitor-ltd/albitor#3168): the first schema-2 plugin, filling `api-runtime@1`,
   split from the starter's `_api`. A schema-2 plugin has no legacy pin, so it appears in the
   catalogue only in monorepo mode.

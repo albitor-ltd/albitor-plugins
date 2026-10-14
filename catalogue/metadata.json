@@ -119,6 +119,20 @@
     ],
     "license": "MIT"
   },
+  "test-playwright": {
+    "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
+    "category": "development",
+    "keywords": [
+      "test-harness",
+      "playwright",
+      "journeys",
+      "e2e",
+      "accessibility",
+      "axe",
+      "wcag"
+    ],
+    "license": "MIT"
+  },
   "data-dynamodb": {
     "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
     "category": "development",

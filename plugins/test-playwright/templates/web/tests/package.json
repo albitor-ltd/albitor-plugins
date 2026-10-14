@@ -1,0 +1,19 @@
+{
+  "name": "app-web-tests",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "list": "playwright test --list",
+    "unit": "node --test unit/*.test.ts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "playwright-core": "1.63.0"
+  }
+}

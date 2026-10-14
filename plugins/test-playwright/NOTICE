@@ -1,0 +1,29 @@
+test-playwright
+===============
+
+This plugin's own code (the manifest, the harness under templates/, the skills) is licensed under
+the MIT Licence, see LICENCE.
+
+Bundled reference content
+-------------------------
+
+The reference material under `skills/wcag-22-aa/references/` is distilled from public
+documentation. It is not original Albitor content and paraphrases the upstream sources:
+
+* Web Content Accessibility Guidelines (WCAG) 2.2
+  https://www.w3.org/TR/WCAG22/
+  (c) W3C. Used under the W3C Document Licence:
+  https://www.w3.org/copyright/document-license/
+
+* W3C WAI, Evaluating Web Accessibility
+  https://www.w3.org/WAI/test-evaluate/
+  (c) W3C. Used under the W3C Document Licence.
+
+The reference files are a distilled snapshot for convenience and may lag the live sources. Always
+confirm exact, current detail against the original URLs.
+
+Dependencies
+------------
+
+The harness installs, from npm, `@playwright/test` (Apache-2.0, Microsoft Corporation) and
+`@axe-core/playwright` with `axe-core` (MPL-2.0, Deque Systems). Neither is bundled here.
