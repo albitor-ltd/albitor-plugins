@@ -48,6 +48,16 @@ if [[ "$mode" == monorepo ]]; then
       echo "error: $name has no version in $manifest" >&2
       exit 1
     fi
+    # A plugin whose metadata says "unreleased": true has no tag yet and is left out of the
+    # monorepo catalogue. The flag is only for that gap: once the tag exists it must come out in
+    # the PR that regenerates the catalogue, so it cannot hide a released plugin.
+    if [[ "$(jq -r --arg n "$name" '.[$n].unreleased // false' "$root/catalogue/metadata.json")" == true ]]; then
+      if git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}" >/dev/null; then
+        echo "error: $name/v$version is tagged but catalogue/metadata.json still says unreleased" >&2
+        exit 1
+      fi
+      continue
+    fi
     sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")" || {
       echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
       exit 1
@@ -94,6 +104,7 @@ render() {
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
         [$meta[0] | to_entries[]
+          | select(.value.unreleased != true)
           | select($mode == "monorepo" or $pins[0][.key] != null)
           | .key as $n | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)

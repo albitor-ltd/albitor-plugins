@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prove the pin audit fails closed: build a throwaway copy of the repo's scripts, catalogue and
-# plugin manifests, break it three ways, and check the scripts say no.
+# plugin manifests, break it several ways, and check the scripts say no.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -73,5 +73,28 @@ expect_fail "validate-plugins.sh with a drifted catalogue description" "$work/r/
 fresh
 edit "$work/r/catalogue/legacy-pins.json" 'del(.auth)'
 "$work/r/scripts/validate-plugins.sh" >/dev/null || { echo "FAIL: monorepo validation demanded a legacy pin" >&2; fail=1; }
+
+# 7. An unreleased plugin (no tag yet) is left out of the catalogue instead of failing it, and
+#    nothing else changes.
+fresh
+edit "$work/r/plugins/auth/.claude-plugin/plugin.json" '.version = "9.9.9"'
+edit "$work/r/catalogue/metadata.json" '.auth.unreleased = true'
+"$work/r/scripts/build-catalogue.sh" --out "$work/cat.json" >/dev/null || { echo "FAIL: an unreleased plugin broke generation" >&2; fail=1; }
+if jq -e '.plugins[] | select(.name == "auth")' "$work/cat.json" >/dev/null; then
+  echo "FAIL: an unreleased plugin is in the catalogue" >&2
+  fail=1
+else
+  echo "ok: an unreleased plugin is left out"
+fi
+if ! jq -e '.plugins[] | select(.name == "gds")' "$work/cat.json" >/dev/null; then
+  echo "FAIL: the unreleased flag dropped a released plugin" >&2
+  fail=1
+fi
+
+# 8. The flag cannot hide a plugin whose tag exists.
+fresh
+edit "$work/r/catalogue/metadata.json" '.auth.unreleased = true'
+expect_fail "build-catalogue.sh with an unreleased flag on a tagged plugin" \
+  "$work/r/scripts/build-catalogue.sh" --out "$work/cat.json"
 
 exit "$fail"

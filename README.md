@@ -23,7 +23,7 @@ catalogue/legacy-pins.json        old per-plugin repo and ref; history, used onl
 catalogue/retired-entries.json    retired entries carried through in legacy mode
 scripts/build-catalogue.sh        generates marketplace.json from the tree
 scripts/validate-plugins.sh       manifest validation (also run by CI)
-scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build
+scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build and, with --journeys, the Playwright journeys
 tests/compose/                    the Go test that script runs, with stub plugins
 ```
 
@@ -37,9 +37,14 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `docs` | Diataxis, C4 and arc42 documentation skills |
 | `web-svelte` | The `web-framework@1` socket: SvelteKit static SPA, shell, slot host (schema-2 manifest; monorepo-only, not in the legacy catalogue) |
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
+| `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow (schema-2 manifest; `unreleased` until its first tag) |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).
+
+A plugin with no tag yet carries `"unreleased": true` in `catalogue/metadata.json`: the generator
+leaves it out of the monorepo catalogue instead of failing, and fails if the flag is still set once
+the tag exists. Remove the flag in the follow-up PR that regenerates the catalogue (step 4 below).
 
 ## Tags and releasing a plugin
 
@@ -88,7 +93,7 @@ Pull requests run: manifest validation (JSON parses, `name` equals the directory
 lint, a `compose` job (the real manifest parser and composer from albitor-ltd/albitor over the
 schema-2 plugins, then `npm ci`, check, test and build of the composed `web/`; it needs the
 `ALBITOR_REPO_TOKEN` secret and otherwise warns and skips, so run
-`scripts/compose-check.sh --build <albitor checkout>` locally), and a placeholder `conformance` job reserved for the socket conformance and certification
+`scripts/compose-check.sh --build --journeys <albitor checkout>` locally; it also runs the `test-playwright` journeys in Chromium), and a placeholder `conformance` job reserved for the socket conformance and certification
 harness (albitor-ltd/albitor#3164). Actions are pinned by full commit SHA.
 
 ## Third parties

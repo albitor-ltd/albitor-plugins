@@ -94,9 +94,11 @@ jobs:
         if: env.IS_FORK != 'true'
         with:
           node-version: "22"
-      - name: Compose, check, test and build
+      - name: Compose, check, test and build, then run the journeys
         if: env.IS_FORK != 'true'
-        run: scripts/compose-check.sh --build "$GITHUB_WORKSPACE/albitor"
+        env:
+          PLAYWRIGHT_INSTALL_FLAGS: --with-deps
+        run: scripts/compose-check.sh --build --journeys "$GITHUB_WORKSPACE/albitor"
 
   # The api-go plugin's own Go: its tree, composed with every slot empty, builds, vets and tests.
   api-go:
