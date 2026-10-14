@@ -29,9 +29,9 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
-mkdir "$tmp/app" "$tmp/online" "$tmp/kit"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/offline"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_KIT_OUT="$tmp/kit" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" go test -count=1 ./...)
 
 if [[ $build -eq 1 ]]; then
   cd "$tmp/app/web"
@@ -73,6 +73,23 @@ if [[ $build -eq 1 ]]; then
   npm run build
   test -f build/index.html
   echo "composed web tree with client-online builds"
+fi
+
+# Same for client-offline (fake-indexeddb, for the store tests). Its build must also emit the service
+# worker into the deploy output with the app shell in its precache list: without it the app cannot
+# open offline at all.
+if [[ $build -eq 1 ]]; then
+  cd "$tmp/offline/web"
+  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-offline/.claude-plugin/plugin.json")
+  npm ci
+  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  npm run check
+  npm test
+  npm run build
+  test -f build/index.html
+  test -f build/service-worker.js
+  grep -q 'index.html' build/service-worker.js
+  echo "composed web tree with client-offline builds and ships its service worker"
 fi
 
 # Same for kit-shadcn (bits-ui, and axe-core and jsdom for its tests). Its tests render the shell

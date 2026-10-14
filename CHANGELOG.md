@@ -43,6 +43,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   apps, schema 2. TanStack Query for Svelte behind `web.providers`, a shared retry policy, API query
   helpers and loading, offline, error and empty states. Not in the catalogue until it is tagged
   `client-online/v0.1.0` and the catalogue is regenerated.
+- `client-offline` plugin (albitor-ltd/albitor#3172): the `client-data@1` plugin for offline-first
+  apps, schema 2. `@albitor/sync`: an IndexedDB store per signed-in person, an outbox with
+  in-flight-safe amendment, tombstones for deletions, single-flight cross-tab-locked sync, sign-out
+  that refuses to discard unsynced work, auto sync, a status line, and tests proving each defect
+  plantrain's sync layer had is absent. Not in the catalogue until it is tagged
+  `client-offline/v0.1.0` and the catalogue is regenerated.
 - `kit-shadcn` plugin (albitor-ltd/albitor#3166): the `component-kit@1` plugin for Svelte, a rewrite
   of `shadcn`, schema 2. App shell, nav, forms, tables, dialogs (Bits UI), toasts and empty states
   as app-owned example files over one token set that passes WCAG 2.2 AA contrast in light and dark,

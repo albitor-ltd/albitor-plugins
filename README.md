@@ -40,6 +40,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow |
 | `data-dynamodb` | The `data-store@1` plugin: `Store` over one DynamoDB table, in-memory fake, conformance suite, `services.tables` fragment |
 | `client-online` | The `client-data@1` plugin for online-only apps: TanStack Query for Svelte, shared retry policy, loading, offline, error and empty states |
+| `client-offline` | The `client-data@1` plugin for offline-first apps: `@albitor/sync` outbox and sync, a local store per person, tombstones, guarded single-flight runs, sign-out that keeps unsynced work |
 | `kit-shadcn` | The `component-kit@1` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).

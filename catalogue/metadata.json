@@ -159,6 +159,20 @@
     ],
     "license": "MIT"
   },
+  "client-offline": {
+    "description": "The client-data plugin for offline-first apps: @albitor/sync, an IndexedDB store per signed-in person, an outbox that replays writes when the network returns, tombstones for deletions, a guarded single-flight sync, and a status line.",
+    "category": "development",
+    "keywords": [
+      "client-data",
+      "offline-first",
+      "outbox",
+      "sync",
+      "indexeddb",
+      "service-worker",
+      "svelte"
+    ],
+    "license": "MIT"
+  },
   "kit-shadcn": {
     "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
     "category": "development",
