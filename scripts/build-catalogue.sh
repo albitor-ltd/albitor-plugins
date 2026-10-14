@@ -3,10 +3,12 @@
 #
 #   build-catalogue.sh [--mode legacy|monorepo] [--check] [--out FILE]
 #
-# legacy   (default) each plugin points at its old albitor-plugin-<name> repo and ref from
+# monorepo (default) each plugin points at this repo as a git-subdir source pinned to the tag
+#          <name>/v<version>, <version> being read from plugins/<name>/.claude-plugin/plugin.json,
+#          and to the commit that tag resolves to (sha), so a moved tag fails --check. Needs the
+#          tags locally; CATALOGUE_TAG_REPO names another checkout to resolve them in.
+# legacy   each plugin points at its old albitor-plugin-<name> repo and ref from
 #          catalogue/legacy-pins.json, and the retired visual-* entries are carried through.
-# monorepo each plugin points at this repo as a git-subdir source pinned to the tag
-#          <name>/v<version>, <version> being read from plugins/<name>/.claude-plugin/plugin.json.
 # --check  write nothing; exit 1 if the output differs from the committed catalogue.
 #
 # Catalogue-facing metadata (description, category, keywords, license) lives in
@@ -15,7 +17,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-mode=legacy
+mode=monorepo
 check=0
 out="$root/.claude-plugin/marketplace.json"
 
@@ -24,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     --mode) mode="${2:?--mode needs a value}"; shift 2 ;;
     --check) check=1; shift ;;
     --out) out="${2:?--out needs a value}"; shift 2 ;;
-    -h | --help) sed -n '2,13p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h | --help) sed -n '2,15p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -36,12 +38,22 @@ fi
 command -v jq >/dev/null || { echo "jq is required" >&2; exit 2; }
 
 versions='{}'
+shas='{}'
 if [[ "$mode" == monorepo ]]; then
   while IFS= read -r name; do
     manifest="$root/plugins/$name/.claude-plugin/plugin.json"
     [[ -f "$manifest" ]] || { echo "missing $manifest" >&2; exit 1; }
-    version="$(jq -r .version "$manifest")"
+    version="$(jq -r '.version // ""' "$manifest")"
+    if [[ -z "$version" || "$version" == null ]]; then
+      echo "error: $name has no version in $manifest" >&2
+      exit 1
+    fi
+    sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")" || {
+      echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
+      exit 1
+    }
     versions="$(jq --arg n "$name" --arg v "$version" '. + {($n): $v}' <<<"$versions")"
+    shas="$(jq --arg n "$name" --arg s "$sha" '. + {($n): $s}' <<<"$shas")"
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
 fi
 
@@ -64,13 +76,14 @@ render() {
     --arg mode "$mode" \
     --arg desc "Albitor's catalogue of Claude Code plugins." \
     --argjson versions "$versions" \
+    --argjson shas "$shas" \
     --slurpfile meta "$root/catalogue/metadata.json" \
     --slurpfile pins "$root/catalogue/legacy-pins.json" \
     --slurpfile retired "$root/catalogue/retired-entries.json" '
     def source($n):
       if $mode == "monorepo" then
         {source: "git-subdir", url: "albitor-ltd/albitor-plugins",
-         path: ("plugins/" + $n), ref: ($n + "/v" + $versions[$n])}
+         path: ("plugins/" + $n), ref: ($n + "/v" + $versions[$n]), sha: $shas[$n]}
       else
         {source: "github", repo: $pins[0][$n].repo, ref: $pins[0][$n].ref}
       end;
