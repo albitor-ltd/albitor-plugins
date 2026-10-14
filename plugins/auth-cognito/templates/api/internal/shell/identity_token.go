@@ -43,6 +43,10 @@ var (
 	// pool's keys could not be fetched. It is the platform's failure, not the
 	// caller's, so it does not end their session.
 	errVerifierUnavailable = errors.New("token keys are unavailable")
+	// errUnknownKey is a token whose kid the pool's keys do not hold. It is refused like an invalid
+	// token, but it is not proof the token is bad: the pool may have rotated its keys since the
+	// last fetch, so a session cookie carrying one is not cleared.
+	errUnknownKey = errors.New("token key is unknown")
 )
 
 const (
@@ -51,7 +55,10 @@ const (
 	// jwksRefetchInterval bounds how often an unknown kid refetches the JWKS,
 	// so a flood of forged kids cannot turn into a flood of fetches.
 	jwksRefetchInterval = 5 * time.Minute
-	maxJWKSBytes        = 1 << 20
+	// jwksFailureTTL is how long a failed fetch is remembered, so a pool that is down is asked
+	// once in a while and not once per request.
+	jwksFailureTTL = 10 * time.Second
+	maxJWKSBytes   = 1 << 20
 )
 
 // cognitoVerifier checks tokens for one pool and client. It is safe for
@@ -63,9 +70,11 @@ type cognitoVerifier struct {
 	client   *http.Client
 	now      func() time.Time
 
+	fetchMu   sync.Mutex // serialises fetches; never held with mu across the network
 	mu        sync.Mutex
 	keys      map[string]*rsa.PublicKey
 	fetchedAt time.Time
+	failedAt  time.Time
 }
 
 func newCognitoVerifier(issuer, clientID, jwksURL string, client *http.Client) *cognitoVerifier {
@@ -144,7 +153,7 @@ func (v *cognitoVerifier) verify(ctx context.Context, raw string) (identity.Iden
 	if claims.Iat > now.Add(tokenClockSkew).Unix() {
 		return identity.Identity{}, errTokenInvalid
 	}
-	if claims.Exp == 0 || now.Unix() >= claims.Exp {
+	if now.Unix() >= claims.Exp { // a missing exp is 0: expired
 		return identity.Identity{}, errTokenExpired
 	}
 	return identity.Identity{Sub: claims.Sub, Email: claims.Email, Groups: claims.Groups}, nil
@@ -161,24 +170,48 @@ func decodeJWTSegment(seg string, into any) error {
 // key returns the pool's public key for kid, fetching the JWKS when the kid is
 // unknown and the last fetch is old enough. A fetch failure is not cached.
 func (v *cognitoVerifier) key(ctx context.Context, kid string) (*rsa.PublicKey, error) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	if k, ok := v.keys[kid]; ok {
-		return k, nil
+	if k, err, done := v.cached(kid); done {
+		return k, err
 	}
-	if !v.fetchedAt.IsZero() && v.now().Sub(v.fetchedAt) < jwksRefetchInterval {
-		return nil, errTokenInvalid
+	// One fetch at a time, and never under mu: a slow pool must not block requests whose key is
+	// already known.
+	v.fetchMu.Lock()
+	defer v.fetchMu.Unlock()
+	if k, err, done := v.cached(kid); done { // another request fetched while this one waited
+		return k, err
 	}
 	keys, err := v.fetchJWKS(ctx)
+	v.mu.Lock()
+	defer v.mu.Unlock()
 	if err != nil {
+		v.failedAt = v.now()
 		return nil, fmt.Errorf("%w: %w", errVerifierUnavailable, err)
 	}
 	v.keys = keys
 	v.fetchedAt = v.now()
+	v.failedAt = time.Time{}
 	if k, ok := v.keys[kid]; ok {
 		return k, nil
 	}
-	return nil, errTokenInvalid
+	return nil, errUnknownKey
+}
+
+// cached answers from what is already known: the key, an unknown kid inside the refetch interval,
+// or a fetch that failed moments ago. done is false when a fetch is due.
+func (v *cognitoVerifier) cached(kid string) (key *rsa.PublicKey, err error, done bool) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if k, ok := v.keys[kid]; ok {
+		return k, nil, true
+	}
+	now := v.now()
+	if !v.failedAt.IsZero() && now.Sub(v.failedAt) < jwksFailureTTL {
+		return nil, errVerifierUnavailable, true
+	}
+	if !v.fetchedAt.IsZero() && now.Sub(v.fetchedAt) < jwksRefetchInterval {
+		return nil, errUnknownKey, true
+	}
+	return nil, nil, false
 }
 
 type cognitoJWKS struct {

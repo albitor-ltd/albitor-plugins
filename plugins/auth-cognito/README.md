@@ -40,6 +40,33 @@ Terraform: the deploy target realises the pool and hands the function `AUTH_USER
 - The screens carry the test ids the `test-playwright` sign-in setup targets (`sign-in-form`,
   `sign-in-email`, `sign-in-password`, `sign-in-button`).
 
+- The pool's keys (JWKS) are fetched outside any lock the other requests wait on, an unknown `kid`
+  refetches at most every 5 minutes, and a failed fetch is remembered for 10 seconds. A pool that
+  cannot be reached is 503, never 401, and does not end a session. A token under a `kid` the pool
+  has not published yet is refused (401) but its cookies are kept, so a key rotation does not sign
+  anyone out.
+
+## Requirements on the deploy target
+
+- **The pool must be realised from `services.auth` and its environment delivered.** A deployed app
+  answers 503 on every route but `/api/health` until a deploy plugin supplies `AUTH_USER_POOL_ID`
+  and `AUTH_CLIENT_ID` (with `AWS_REGION`). That is deliberate, and it is how the app looks until a
+  `deploy-target` plugin fills it.
+- **The public client must have `PreventUserExistenceErrors` enabled.** Without it Cognito answers
+  `UsernameExistsException` and `UserNotConfirmedException`, which this plugin maps to 409 `exists`
+  and 403 `not_confirmed`, and an attacker can tell which email addresses have accounts. The plugin
+  cannot set it (it ships no Terraform), so the deploy target's contract has to.
+
+## Known gaps
+
+- The screens (`web/src/routes/(auth)/`) are written for `kit-shadcn` only. With another kit the
+  plugin still ships the session, the guard and the API, so the guard sends a signed-out person to
+  `/sign-in` and that screen has to be written by the build.
+- Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
+- No MFA, no challenge flows (a challenge answers 409 `challenge_unsupported`), no social sign-in.
+- Logic ships as managed files, not a versioned module (ADR-0090 amendment 3), so a fix reaches an
+  app on a compose or upgrade, not silently.
+
 ## Not carried over from the `auth` pack
 
 The Terraform (`auth.tf`), the SSM auth-config parameter, the static `index.html` screens and

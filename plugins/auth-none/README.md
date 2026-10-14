@@ -22,7 +22,10 @@ A middleware would only re-state `FixedOwner`, and a plugin that fills `api.midd
 require `api-runtime@1`, which a web-only profile does not have.
 
 An app composed with it is open to anyone who can reach it. The skill tells the build to say so in
-the delivery record.
+the delivery record, and the package logs a warning at start (the only runtime marker; there is no
+middleware or route to carry one). Whether an open app is acceptable is not this plugin's call:
+enforcing it belongs to the policy packs (ADR-0090 section 7), which can require a real `auth`
+provider.
 
 ## Verification
 

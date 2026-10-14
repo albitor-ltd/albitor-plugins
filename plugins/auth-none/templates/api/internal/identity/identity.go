@@ -10,9 +10,16 @@ package identity
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"slices"
 )
+
+func init() {
+	// The one runtime marker that an app is open to anyone: a log line, since this plugin has no
+	// middleware or route to carry one. Whether that is allowed is the policy packs' call.
+	slog.Warn("auth-none: this API has no sign-in; every request acts for the fixed owner")
+}
 
 // FixedOwner owns every record of an app with no sign-in.
 const FixedOwner = "owner"

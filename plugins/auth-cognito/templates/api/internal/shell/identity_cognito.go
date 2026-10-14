@@ -175,7 +175,9 @@ func (a *cognitoAuth) authenticate(w http.ResponseWriter, r *http.Request, logge
 		apikit.WriteError(w, http.StatusServiceUnavailable, "sign-in is unavailable")
 		return identity.Identity{}, false
 	default:
-		if fromCookie {
+		// An unknown kid may only mean the pool rotated its keys: refuse the request but keep the
+		// cookies, so the person is not signed out (and their refresh token lost) by a rotation.
+		if fromCookie && !errors.Is(err, errUnknownKey) {
 			clearSessionCookies(w)
 		}
 		writeUnauthenticated(w)
