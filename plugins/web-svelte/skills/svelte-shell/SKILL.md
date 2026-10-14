@@ -70,7 +70,16 @@ A plugin that fills `web.providers` or `web.route-guard` names an identifier and
 `src/lib/shell/scope.d/` that exports it. A provider is a Svelte component that renders its
 `children` snippet. A guard is `({ url }) => string | void`: return a same-origin path to redirect,
 nothing to allow, and always allow the path you redirect to. A guard is a convenience, not access
-control; the API must check the caller.
+control; the API must check the caller. The guard runs in `+layout.ts` `load`, before providers
+mount, so it has no session-state ordering guarantee: do not assume an auth provider has restored
+the session yet. Never persist tokens in `localStorage`.
+
+A plugin `web.nav` entry only names a label, so the plugin must ship the route its label slugs to
+(`Sign in` needs `/sign-in`); otherwise the link is dead. Two plugin entries slugging to one link
+are an error, and so is a label with no letters or digits.
+
+The slot-template layout (`slot-templates.json` and `slot-templates/`) is provisional pending
+albitor-ltd/albitor#3215.
 
 ## Run and verify
 

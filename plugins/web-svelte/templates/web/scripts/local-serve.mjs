@@ -70,7 +70,16 @@ function proxy(req, res) {
 	req.pipe(upstream);
 }
 
+const hostOk = (host = '') => /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host);
+
 const server = http.createServer((req, res) => {
+	// Refuse DNS-rebinding hosts and absolute-form request targets (`GET http://evil/ HTTP/1.1`).
+	const target = req.url ?? '/';
+	if (!hostOk(req.headers.host) || !target.startsWith('/') || target.startsWith('//')) {
+		res.writeHead(400, { 'Content-Type': 'text/plain' });
+		res.end('bad request');
+		return;
+	}
 	const { pathname } = new URL(req.url ?? '/', 'http://localhost');
 	if (pathname === '/healthz') {
 		res.writeHead(200, { 'Content-Type': 'text/plain' });

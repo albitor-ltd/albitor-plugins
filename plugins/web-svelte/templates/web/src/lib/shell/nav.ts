@@ -49,6 +49,9 @@ export function hrefForLabel(label: string): string {
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
+	if (slug === '') {
+		throw new RangeError(`nav label ${JSON.stringify(label)} has no letters or digits to link to`);
+	}
 	return '/' + slug;
 }
 
@@ -74,10 +77,19 @@ export function buildNav(
 		console.warn(message);
 	};
 
+	const pluginHrefs = new Set<string>();
 	pluginNav.forEach((entry, i) => {
 		const meta = parseNavMeta(entry);
 		if (typeof meta === 'string') return reject(`web.nav[${i}]`, meta);
-		byHref.set(hrefForLabel(meta.label), { ...meta, href: hrefForLabel(meta.label) });
+		let href: string;
+		try {
+			href = hrefForLabel(meta.label);
+		} catch (err) {
+			return reject(`web.nav[${i}]`, (err as Error).message);
+		}
+		if (pluginHrefs.has(href)) return reject(`web.nav[${i}]`, `duplicate link ${href}`);
+		pluginHrefs.add(href);
+		byHref.set(href, { ...meta, href });
 	});
 
 	for (const file of Object.keys(routeModules).sort()) {

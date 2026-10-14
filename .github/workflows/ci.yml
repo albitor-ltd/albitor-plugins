@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Validate plugin manifests
         run: scripts/validate-plugins.sh
 
@@ -26,6 +28,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Committed catalogue matches the generator
         run: scripts/build-catalogue.sh --check
       - name: Monorepo-mode catalogue generates and parses
@@ -38,6 +42,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: shellcheck
         run: find scripts plugins -name '*.sh' -print0 | xargs -0 shellcheck
       - name: JSON files parse
@@ -45,35 +51,46 @@ jobs:
 
   # Runs the real manifest parser and composer (app/core in albitor-ltd/albitor) over the schema-2
   # plugins, then builds the composed web tree. Needs read access to the private albitor
-  # repository through the ALBITOR_REPO_TOKEN secret; without it the job reports that it did not
-  # run, so check scripts/compose-check.sh locally before merging.
+  # repository through the ALBITOR_REPO_TOKEN secret. Only a pull request from a fork skips (a
+  # fork gets no secrets, and the skip is annotated); on any other run a missing token fails the
+  # job, so it can never be a silent green.
   compose:
     name: compose
     runs-on: ubuntu-24.04
     env:
+      IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       HAVE_TOKEN: ${{ secrets.ALBITOR_REPO_TOKEN != '' }}
     steps:
+      - name: Skipped for a fork pull request
+        if: env.IS_FORK == 'true'
+        run: echo "::notice::compose skipped, fork pull requests get no ALBITOR_REPO_TOKEN; a maintainer must run scripts/compose-check.sh"
+      - name: ALBITOR_REPO_TOKEN missing
+        if: env.IS_FORK != 'true' && env.HAVE_TOKEN != 'true'
+        run: |
+          echo "::error::ALBITOR_REPO_TOKEN missing"
+          exit 1
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Skipped without ALBITOR_REPO_TOKEN
-        if: env.HAVE_TOKEN != 'true'
-        run: echo "::warning::compose not run, ALBITOR_REPO_TOKEN is not set"
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        if: env.HAVE_TOKEN == 'true'
+        if: env.IS_FORK != 'true' && env.HAVE_TOKEN == 'true'
         with:
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        if: env.IS_FORK != 'true' && env.HAVE_TOKEN == 'true'
+        with:
+          persist-credentials: false
           repository: albitor-ltd/albitor
           token: ${{ secrets.ALBITOR_REPO_TOKEN }}
           path: albitor
           sparse-checkout: app/core
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
-        if: env.HAVE_TOKEN == 'true'
+        if: env.IS_FORK != 'true'
         with:
           go-version: "1.26"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        if: env.HAVE_TOKEN == 'true'
+        if: env.IS_FORK != 'true'
         with:
           node-version: "22"
       - name: Compose, check, test and build
-        if: env.HAVE_TOKEN == 'true'
+        if: env.IS_FORK != 'true'
         run: scripts/compose-check.sh --build "$GITHUB_WORKSPACE/albitor"
 
   # Placeholder for the socket conformance and certification harness

@@ -13,7 +13,12 @@ sw.addEventListener('install', (event) => {
 	event.waitUntil(
 		(async () => {
 			const cache = await caches.open(CACHE);
-			await cache.addAll([...ASSETS]);
+			try {
+				await cache.addAll([...ASSETS]);
+			} catch (err) {
+				console.error('service worker install failed: could not cache the app assets', err);
+				throw err;
+			}
 			// The SPA fallback is written by the adapter, not listed in `build` or `files`.
 			await cache.add(SHELL).catch(() => undefined);
 			await sw.skipWaiting();

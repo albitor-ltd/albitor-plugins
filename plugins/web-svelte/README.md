@@ -41,5 +41,11 @@ templates/web/**             the files composed into the app, at their repositor
 skills/svelte-shell/         the skill
 ```
 
+The slot-template layout (`slot-templates.json`) is provisional pending
+albitor-ltd/albitor#3215. A route guard is a convenience, not access control: the API must check
+the caller. The guard runs in `+layout.ts` `load` before providers mount, so there is no
+session-state ordering guarantee, and tokens must not be persisted in `localStorage`. A plugin
+`web.nav` entry must ship the route its label slugs to.
+
 `slot-templates.json` is read by whoever builds the composer's `Plugin.SlotTemplates` from this
 tree. Compose, build and test it with `scripts/compose-check.sh` (see the repository README).

@@ -8,7 +8,24 @@ const modules = import.meta.glob('./scope.d/*.ts', { eager: true }) as Record<
 	Record<string, unknown>
 >;
 
-export const scope: Record<string, unknown> = Object.assign(
-	{},
-	...Object.values(modules)
-);
+export function mergeScope(
+	all: Record<string, Record<string, unknown>>
+): Record<string, unknown> {
+	const merged: Record<string, unknown> = {};
+	const owner = new Map<string, string>();
+	for (const [file, exports] of Object.entries(all)) {
+		for (const [name, value] of Object.entries(exports)) {
+			const first = owner.get(name);
+			if (first !== undefined) {
+				throw new Error(
+					`scope.d export ${JSON.stringify(name)} is defined by both ${first} and ${file}`
+				);
+			}
+			owner.set(name, file);
+			merged[name] = value;
+		}
+	}
+	return merged;
+}
+
+export const scope: Record<string, unknown> = mergeScope(modules);

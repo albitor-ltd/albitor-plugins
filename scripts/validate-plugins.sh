@@ -44,6 +44,14 @@ for f in metadata legacy-pins; do
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/$f.json")
 done
 
+# Every legacy pin is a repo and ref, or exactly {"monorepoOnly": true}.
+while IFS= read -r key; do
+  jq -e --arg n "$key" '.[$n] | . == {"monorepoOnly": true} or
+      ((.repo | type == "string" and length > 0) and (.ref | type == "string" and length > 0))' \
+    "$root/catalogue/legacy-pins.json" >/dev/null 2>&1 ||
+    err "legacy-pins.json: '$key' needs repo and ref, or exactly {\"monorepoOnly\": true}"
+done < <(jq -r 'keys_unsorted[]' "$root/catalogue/legacy-pins.json")
+
 if [[ $fail -ne 0 ]]; then
   exit 1
 fi

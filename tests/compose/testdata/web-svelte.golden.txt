@@ -168,6 +168,11 @@
       "plugins": "auth-stub"
     },
     {
+      "path": "web/src/lib/shell/scope.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
       "path": "web/src/lib/shell/scope.ts",
       "mode": "managed",
       "plugins": "web-svelte"
@@ -294,6 +299,7 @@ export const providers = checkProviders([StubProvider]);
 export const routeGuards = checkGuards([stubGuard]);
 
 === web/src/lib/shell/scope.d/auth-stub.ts ===
+=== web/src/lib/shell/scope.test.ts ===
 === web/src/lib/shell/scope.ts ===
 === web/src/lib/shell/types.ts ===
 === web/src/lib/stub/StubProvider.svelte ===

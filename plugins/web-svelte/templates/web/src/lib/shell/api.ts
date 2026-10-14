@@ -42,9 +42,18 @@ export interface RequestOptions {
 	signal?: AbortSignal;
 }
 
-/** A path is one app-relative API path: no scheme, host, query, fragment or dot segments. */
+/** A path is one app-relative API path: no scheme, host, query, fragment, dot segments
+ * or encoded dots, slashes and backslashes. */
 function checkPath(path: string): void {
-	if (!/^\/(?!\/)[A-Za-z0-9._~%!$&'()*+,;=:@/-]*$/.test(path) || path.split('/').includes('..')) {
+	const segments = path.split('/');
+	if (
+		!/^\/(?!\/)[A-Za-z0-9._~%!$&'()*+,;=:@/-]*$/.test(path) ||
+		// Encoded dots, slashes and backslashes are refused outright (any case), because a server
+		// or proxy may decode them into a dot segment after this check.
+		/%(2e|2f|5c)/i.test(path) ||
+		segments.includes('..') ||
+		segments.includes('.')
+	) {
 		throw new TypeError(`API path ${JSON.stringify(path)} must be an app-relative path such as /items`);
 	}
 }

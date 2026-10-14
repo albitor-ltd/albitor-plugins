@@ -40,6 +40,7 @@
       { "path": "web/src/service-worker/tsconfig.json", "mode": "managed" },
       { "path": "web/src/lib/shell/types.ts", "mode": "managed" },
       { "path": "web/src/lib/shell/scope.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/scope.test.ts", "mode": "managed" },
       { "path": "web/src/lib/shell/nav.ts", "mode": "managed" },
       { "path": "web/src/lib/shell/nav.test.ts", "mode": "managed" },
       { "path": "web/src/lib/shell/guard.ts", "mode": "managed" },

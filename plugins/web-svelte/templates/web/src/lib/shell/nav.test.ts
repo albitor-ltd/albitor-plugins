@@ -105,6 +105,19 @@ describe('buildNav', () => {
 		warn.mockRestore();
 	});
 
+	it('refuses a symbol-only plugin label', () => {
+		expect(() => hrefForLabel('***')).toThrow(RangeError);
+		expect(() => buildNav([{ label: '&&', order: 1 }], {}, true)).toThrow(/no letters or digits/);
+	});
+
+	it('treats two plugin entries with one link as an error', () => {
+		const dup = [
+			{ label: 'Sign in', order: 1 },
+			{ label: 'Sign-in', order: 2 }
+		];
+		expect(() => buildNav(dup, {}, true)).toThrow(/duplicate link \/sign-in/);
+	});
+
 	it('returns no groups for an empty app', () => {
 		expect(buildNav([], {}, true)).toEqual([]);
 	});

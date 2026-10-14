@@ -78,6 +78,14 @@ describe('api', () => {
 		'/items?x=1',
 		'/items#a',
 		'/a/../b',
+		'/./x',
+		'/%2e%2e/admin',
+		'/%2E%2e/admin',
+		'/a/%2E%2E',
+		'/a%2fb',
+		'/a%2Fb',
+		'/a%5Cb',
+		'/a%5cb',
 		'/a b',
 		''
 	])('refuses the path %j before any request', async (path) => {
