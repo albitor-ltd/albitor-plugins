@@ -29,9 +29,9 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
-mkdir "$tmp/app" "$tmp/online" "$tmp/kit"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_KIT_OUT="$tmp/kit" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" go test -count=1 ./...)
 
 if [[ $build -eq 1 ]]; then
   cd "$tmp/app/web"
@@ -88,4 +88,26 @@ if [[ $build -eq 1 ]]; then
   npm run build
   test -f build/index.html
   echo "composed web tree with kit-shadcn builds, and its axe and contrast audits pass"
+fi
+
+# Same for kit-carbon (carbon-components-svelte and carbon-icons-svelte, and axe-core and jsdom for
+# its tests). Its tests render the shell pieces, run axe over them and audit Carbon's white and
+# Gray 100 themes for WCAG 2.2 AA contrast. carbon-components-svelte runs an IBM telemetry
+# postinstall; it is switched off here (IBM_TELEMETRY_DISABLED).
+if [[ $build -eq 1 ]]; then
+  cd "$tmp/kit-carbon/web"
+  export IBM_TELEMETRY_DISABLED=true
+  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/kit-carbon/.claude-plugin/plugin.json")
+  npm ci
+  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  npm run check
+  npm test
+  npm run build
+  test -f build/index.html
+  # The shell must ship Carbon's themes (AppShell imports the stylesheet) and the pinned telemetry
+  # package must be the one installed, not whatever carbon-components-svelte's range floats to.
+  grep -rlq -e '--cds-text-primary' build/_app || { echo "kit-carbon: Carbon's CSS is not in the build" >&2; exit 1; }
+  grep -rlq -e '\[theme=g100\]' build/_app || { echo "kit-carbon: Carbon's g100 theme is not in the build" >&2; exit 1; }
+  npm ls @ibm/telemetry-js | grep -q '@ibm/telemetry-js@1.11.0' || { echo "kit-carbon: @ibm/telemetry-js is not the pinned version" >&2; exit 1; }
+  echo "composed web tree with kit-carbon builds, and its axe and contrast audits pass"
 fi
