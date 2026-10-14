@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.1.0",
-        "sha": "f5f76d09f9e76b240e761b2b18339e0f18b675bb"
+        "ref": "web-svelte/v0.1.1",
+        "sha": "0b1517e98841a7671aafe6c197ae1ab65e5b3b4c"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, and the web side of the local run contract.",
       "category": "development",
@@ -283,8 +283,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.1.0",
-        "sha": "190f8997ce4ad375ebd5a0eee296c0373047d931"
+        "ref": "kit-shadcn/v0.1.1",
+        "sha": "0b1517e98841a7671aafe6c197ae1ab65e5b3b4c"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -346,8 +346,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.1.0",
-        "sha": "966a5449ad43dde3d3a7dfdf5a28d2fda5bb7a61"
+        "ref": "kit-carbon/v0.1.1",
+        "sha": "0b1517e98841a7671aafe6c197ae1ab65e5b3b4c"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
