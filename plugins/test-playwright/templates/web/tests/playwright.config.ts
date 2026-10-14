@@ -6,7 +6,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
-import { DEMO_STORAGE_STATE, TESTS_DIR, WEB_ROOT } from "./helpers/storage-state";
+import { DEMO_STORAGE_STATE, TESTS_DIR, WEB_ROOT } from "./helpers/storage-state.ts";
 
 const isCI = !!process.env.CI;
 
@@ -85,6 +85,9 @@ export default defineConfig({
 		{
 			name: "setup",
 			testMatch: /auth\.setup\.ts/,
+			// THIS PROJECT TYPES THE DEMO PASSWORD INTO A FORM. A trace, a screenshot or a video of that
+			// step holds it, and CI uploads the report. Nothing is recorded here, on a retry either.
+			use: { trace: "off", screenshot: "off", video: "off" },
 		},
 		{
 			name: "chromium",

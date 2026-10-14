@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prove the pin audit fails closed: build a throwaway copy of the repo's scripts, catalogue and
-# plugin manifests, break it several ways, and check the scripts say no.
+# plugin manifests, break it three ways, and check the scripts say no.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -74,27 +74,21 @@ fresh
 edit "$work/r/catalogue/legacy-pins.json" 'del(.auth)'
 "$work/r/scripts/validate-plugins.sh" >/dev/null || { echo "FAIL: monorepo validation demanded a legacy pin" >&2; fail=1; }
 
-# 7. An unreleased plugin (no tag yet) is left out of the catalogue instead of failing it, and
-#    nothing else changes.
+# 7. A new plugin (not yet in the committed catalogue, no tag) is left out with a note.
 fresh
-edit "$work/r/plugins/auth/.claude-plugin/plugin.json" '.version = "9.9.9"'
-edit "$work/r/catalogue/metadata.json" '.auth.unreleased = true'
-"$work/r/scripts/build-catalogue.sh" --out "$work/cat.json" >/dev/null || { echo "FAIL: an unreleased plugin broke generation" >&2; fail=1; }
-if jq -e '.plugins[] | select(.name == "auth")' "$work/cat.json" >/dev/null; then
-  echo "FAIL: an unreleased plugin is in the catalogue" >&2
-  fail=1
-else
-  echo "ok: an unreleased plugin is left out"
-fi
-if ! jq -e '.plugins[] | select(.name == "gds")' "$work/cat.json" >/dev/null; then
-  echo "FAIL: the unreleased flag dropped a released plugin" >&2
-  fail=1
-fi
+mkdir -p "$work/r/plugins/brand-new/.claude-plugin"
+jq '.name = "brand-new" | .version = "0.0.1"' "$root/plugins/api-go/.claude-plugin/plugin.json" >"$work/r/plugins/brand-new/.claude-plugin/plugin.json"
+edit "$work/r/catalogue/metadata.json" '.["brand-new"] = .["api-go"]'
+"$work/r/scripts/build-catalogue.sh" --out "$work/new.json" >"$work/out" 2>&1 || { echo "FAIL: a new untagged plugin broke generation" >&2; fail=1; }
+grep -q 'brand-new' "$work/out" || { echo "FAIL: no note for the untagged new plugin" >&2; fail=1; }
+! jq -e 'any(.plugins[]; .name == "brand-new")' "$work/new.json" >/dev/null || { echo "FAIL: the untagged plugin was catalogued" >&2; fail=1; }
+jq -e 'any(.plugins[]; .name == "api-go")' "$work/new.json" >/dev/null || { echo "FAIL: a released plugin vanished" >&2; fail=1; }
 
-# 8. The flag cannot hide a plugin whose tag exists.
+# 8. A released plugin whose tag is missing (a tagless clone) must error, not be omitted.
 fresh
-edit "$work/r/catalogue/metadata.json" '.auth.unreleased = true'
-expect_fail "build-catalogue.sh with an unreleased flag on a tagged plugin" \
+mkdir -p "$work/notags"
+git -C "$work/notags" init -q
+CATALOGUE_TAG_REPO="$work/notags" expect_fail "build-catalogue.sh with a released plugin's tag missing" \
   "$work/r/scripts/build-catalogue.sh" --out "$work/cat.json"
 
 exit "$fail"

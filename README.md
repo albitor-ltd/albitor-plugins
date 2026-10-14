@@ -37,14 +37,11 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `docs` | Diataxis, C4 and arc42 documentation skills |
 | `web-svelte` | The `web-framework@1` socket: SvelteKit static SPA, shell, slot host (schema-2 manifest; monorepo-only, not in the legacy catalogue) |
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
-| `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow (schema-2 manifest; `unreleased` until its first tag) |
+| `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow |
+| `client-online` | The `client-data@1` plugin for online-only apps: TanStack Query for Svelte, shared retry policy, loading, offline, error and empty states |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).
-
-A plugin with no tag yet carries `"unreleased": true` in `catalogue/metadata.json`: the generator
-leaves it out of the monorepo catalogue instead of failing, and fails if the flag is still set once
-the tag exists. Remove the flag in the follow-up PR that regenerates the catalogue (step 4 below).
 
 ## Tags and releasing a plugin
 
@@ -74,7 +71,10 @@ Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` 
   A `git-subdir` source takes `url`, `path`, `ref` and an optional full 40-character `sha`, and
   checks out only the subdirectory (Claude Code plugin marketplace reference). The generator reads
   `sha` from the local tag, so a tag that moves makes `--check` fail and a missing tag fails
-  generation. Albitor's pin audit joins entries on repository and subdirectory.
+  generation. A plugin not yet in the committed catalogue and with no tag is left out (with a note)
+  until its first tag, so a new plugin's pull request can pass `--check`; one already catalogued
+  whose tag is missing is an error. Albitor's pin audit joins entries on
+  repository and subdirectory.
 - `legacy`: `github` sources pointing at the old `albitor-plugin-<name>` repositories and tags
   (`catalogue/legacy-pins.json`), plus the retired `visual-*` entries. Kept only so the old shape
   can still be generated; nothing is committed in it.

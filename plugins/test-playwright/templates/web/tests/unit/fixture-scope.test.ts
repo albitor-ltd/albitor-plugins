@@ -113,4 +113,20 @@ describe("FixtureScope", () => {
 		assert.notEqual(a.uniqueName("x"), b.uniqueName("x"));
 		assert.ok(a.uniqueName("p".repeat(200)).length <= 80);
 	});
+
+	it("surfaces a created record it cannot own instead of dropping it", async () => {
+		for (const body of [() => Promise.reject(new Error("bad json")), () => Promise.resolve({ id: "" })]) {
+			const { request } = fake();
+			(request as { post: unknown }).post = async () => ({
+				ok: () => true,
+				status: () => 201,
+				text: async () => "",
+				json: body,
+			});
+			const scope = new FixtureScope(request);
+			await assert.rejects(scope.create("/api/items", {}), /cannot be cleaned up|no usable id/);
+			// The record may exist on the server: the test must not end green.
+			await assert.rejects(scope.cleanup(), /left owned records behind/);
+		}
+	});
 });

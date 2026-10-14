@@ -1,5 +1,6 @@
 // Managed by Albitor (test-playwright).
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
+import { authFor } from "./screen-rules";
 
 // SIGN IN AS A NAMED TEST IDENTITY, IN A LOCAL RUN ONLY.
 //
@@ -72,14 +73,22 @@ export function authHeader(tokens: LocalTokens): Record<string, string> {
   return { Authorization: `Bearer ${tokens.idToken}` };
 }
 
-// Sign a whole browser context in: every request its pages make, the app's own
-// fetches to /api/ included, carries the identity's token.
+// Sign a whole browser context in: every request its pages make to the APP'S OWN ORIGIN, the
+// app's fetches to /api/ included, carries the identity's token. A request to any other host (a
+// CDN, an identity provider) goes without it: context.setExtraHTTPHeaders would send the bearer
+// everywhere, so the header is added by a route that checks the origin instead.
 export async function signInAs(
   context: BrowserContext,
   request: APIRequestContext,
   identity: LocalIdentityName,
+  origin: string,
 ): Promise<LocalTokens> {
   const tokens = await localTokens(request, identity);
-  await context.setExtraHTTPHeaders(authHeader(tokens));
+  const auth = authHeader(tokens);
+  await context.route("**/*", async (route) => {
+    const req = route.request();
+    const headers = authFor(req.url(), origin, req.headers(), auth);
+    await (headers ? route.continue({ headers }) : route.continue());
+  });
   return tokens;
 }

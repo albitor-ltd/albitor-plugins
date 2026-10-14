@@ -23,7 +23,7 @@
   "requires": ["web-framework@1", "deploy-target@1"],
   "contributes": {
     "dependencies": {
-      "npm": ["@playwright/test@1.64.1", "@axe-core/playwright@4.13.0"]
+      "npm": ["@playwright/test@1.63.0", "playwright-core@1.63.0", "@axe-core/playwright@4.13.0"]
     },
     "files": [
       { "path": "web/tests/package.json", "mode": "managed" },

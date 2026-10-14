@@ -19,6 +19,7 @@ web/tests/package.json
 web/tests/playwright.config.ts
 web/tests/smoke.spec.ts
 web/tests/unit/a11y-report.test.ts
+web/tests/unit/config.test.ts
 web/tests/unit/fixture-scope.test.ts
 web/tests/unit/screen-rules.test.ts
 web/tests/unit/session.test.ts

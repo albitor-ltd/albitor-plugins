@@ -10,12 +10,13 @@
 // automatable failure", never "accessible".
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { WCAG_TAGS, type Waiver, checkWaivers, describeViolations, unwaived } from "./a11y-report";
+import { WCAG_TAGS, type Waiver, checkSelectors, checkWaivers, describeViolations, unwaived } from "./a11y-report";
 
 export type A11yOptions = {
 	// CSS selectors the audit looks inside. Default: the whole page.
 	include?: string[];
-	// CSS selectors the audit skips, for markup the app does not own (a third-party embed).
+	// CSS selectors the audit skips, for markup the app does not own (a third-party embed). Never
+	// the whole page or main: that switches the audit off.
 	exclude?: string[];
 	// Rules switched off, each with the reason. A waiver with no reason fails the audit.
 	waive?: Waiver[];
@@ -26,9 +27,9 @@ export type A11yOptions = {
 // own assertion that the screen is ready), because it audits only what is rendered.
 export async function expectNoA11yViolations(page: Page, options: A11yOptions = {}): Promise<void> {
 	const waivers = options.waive ?? [];
-	const bad = checkWaivers(waivers);
+	const bad = [...checkWaivers(waivers), ...checkSelectors(options.include ?? [], "include"), ...checkSelectors(options.exclude ?? [], "exclude")];
 	if (bad.length > 0) {
-		throw new Error(`the accessibility audit was given an invalid waiver: ${bad.join("; ")}`);
+		throw new Error(`the accessibility audit was given an invalid option: ${bad.join("; ")}`);
 	}
 
 	let builder = new AxeBuilder({ page }).withTags([...WCAG_TAGS]);

@@ -1,7 +1,7 @@
 // Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { WCAG_TAGS, checkWaivers, describeViolations, unwaived } from "../helpers/a11y-report.ts";
+import { WCAG_TAGS, checkSelectors, checkWaivers, describeViolations, unwaived } from "../helpers/a11y-report.ts";
 
 const violation = (id: string, impact = "serious", targets = ["#a"]) => ({
 	id,
@@ -52,5 +52,19 @@ describe("describeViolations", () => {
 		const text = describeViolations([many]);
 		assert.match(text, /and 30 more/);
 		assert.doesNotMatch(text, /#n39/);
+	});
+});
+
+describe("checkSelectors", () => {
+	it("accepts a selector for one element", () => {
+		assert.deepEqual(checkSelectors(["#map-embed", ".third-party iframe"], "exclude"), []);
+	});
+	it("refuses a selector that is the whole page or its landmark, which would switch the audit off", () => {
+		for (const s of ["body", "html", "main", ":root", "*", "BODY", " main ", "body *", "[role=main]", '[role="main"]']) {
+			assert.match(checkSelectors([s], "exclude").join(), /whole page/, s);
+		}
+	});
+	it("refuses an empty selector", () => {
+		assert.match(checkSelectors([""], "include").join(), /empty/);
 	});
 });

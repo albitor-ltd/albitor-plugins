@@ -30,13 +30,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   harness (watched browser context, `journeyStep`, one sign-in per suite, fixtures, walk mailbox),
   an axe WCAG 2.2 A/AA audit, a read-only managed `journeys.yml` workflow that passes the
   `test-harness` workflow lint, and the `wcag-22-aa` skill absorbing the accessibility reference the
-  four design-system plugins each duplicate (they are unchanged). Marked `unreleased` in
-  `catalogue/metadata.json` until its first tag; the generator omits an `unreleased` plugin and fails
-  if the flag outlives its tag. `scripts/compose-check.sh --journeys` and the compose CI job run the
+  four design-system plugins each duplicate (they are unchanged). `scripts/compose-check.sh --journeys` and the compose CI job run the
   journeys against the composed default shell.
 - `api-go` plugin (albitor-ltd/albitor#3168): the first schema-2 plugin, filling `api-runtime@1`,
   split from the starter's `_api`. A schema-2 plugin has no legacy pin, so it appears in the
   catalogue only in monorepo mode.
+- `client-online` plugin (albitor-ltd/albitor#3171): the `client-data@1` plugin for online-only
+  apps, schema 2. TanStack Query for Svelte behind `web.providers`, a shared retry policy, API query
+  helpers and loading, offline, error and empty states. Not in the catalogue until it is tagged
+  `client-online/v0.1.0` and the catalogue is regenerated.
 
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.

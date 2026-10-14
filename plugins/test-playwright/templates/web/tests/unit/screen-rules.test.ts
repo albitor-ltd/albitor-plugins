@@ -1,7 +1,7 @@
 // Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { onApp, safeOpenPath, titleProblem } from "../helpers/screen-rules.ts";
+import { authFor, onApp, safeOpenPath, titleProblem } from "../helpers/screen-rules.ts";
 
 describe("titleProblem", () => {
 	it("accepts a short name", () => {
@@ -50,5 +50,24 @@ describe("safeOpenPath", () => {
 	it("refuses control characters and tab or newline tricks", () => {
 		assert.equal(safeOpenPath("/a\n//evil.example"), undefined);
 		assert.equal(safeOpenPath("/\t/evil.example"), undefined);
+	});
+});
+
+describe("authFor", () => {
+	const auth = { Authorization: "Bearer t" };
+	it("adds the identity to a request to the app's origin only", () => {
+		assert.deepEqual(authFor("http://localhost:3000/api/x", "http://localhost:3000", { a: "1" }, auth), {
+			a: "1",
+			Authorization: "Bearer t",
+		});
+		assert.equal(authFor("https://cdn.example/x.js", "http://localhost:3000", {}, auth), undefined);
+		assert.equal(authFor("http://localhost:3001/", "http://localhost:3000", {}, auth), undefined);
+	});
+	it("never sends a bearer when the origin is unknown", () => {
+		assert.equal(authFor("http://localhost:3000/", "", {}, auth), undefined);
+	});
+	it("does not overwrite an Authorization header the request already carries", () => {
+		const got = authFor("http://localhost:3000/", "http://localhost:3000", { authorization: "Bearer own" }, auth);
+		assert.equal(got, undefined);
 	});
 });

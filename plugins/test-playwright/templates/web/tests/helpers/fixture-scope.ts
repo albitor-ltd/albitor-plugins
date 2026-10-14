@@ -9,6 +9,8 @@ export class FixtureScope {
 	readonly namespace = randomUUID();
 	private readonly owned = new Set<string>();
 	private sequence = 0;
+	// Records the server may hold but this scope cannot name, so cannot delete.
+	private readonly leaked: string[] = [];
 
 	private readonly request: APIRequestContext;
 	private readonly headers: Record<string, string>;
@@ -33,8 +35,15 @@ export class FixtureScope {
 		if (!response.ok()) {
 			throw new Error(`Fixture creation failed: ${response.status()} ${await response.text()}`);
 		}
-		const record = (await response.json()) as T;
-		if (typeof record.id !== "string" || !record.id || record.id === "." || record.id === "..") {
+		let record: T;
+		try {
+			record = (await response.json()) as T;
+		} catch {
+			this.leaked.push(`${collection}: a 2xx answer that is not JSON`);
+			throw new Error(`Fixture creation answered ${response.status()} but the record cannot be cleaned up: ${collection}`);
+		}
+		if (typeof record?.id !== "string" || !record.id || record.id === "." || record.id === "..") {
+			this.leaked.push(`${collection}: a 2xx answer with no usable id`);
 			throw new Error(`Fixture creation returned no usable id: ${collection}`);
 		}
 		this.owned.add(`${collection.replace(/\/$/, "")}/${encodeURIComponent(record.id)}`);
@@ -68,6 +77,9 @@ export class FixtureScope {
 			} catch (error) {
 				failures.push(error);
 			}
+		}
+		for (const what of this.leaked) {
+			failures.push(new Error(`Unnamed fixture left behind: ${what}`));
 		}
 		if (failures.length) {
 			throw new AggregateError(failures, "Fixture cleanup left owned records behind");

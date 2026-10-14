@@ -41,6 +41,22 @@ export function checkWaivers(waivers: readonly Waiver[]): string[] {
 	return problems;
 }
 
+// checkSelectors returns what is wrong with an include or exclude list. A selector that is the
+// whole page, or its main landmark, would switch the audit off without a waiver's reason, so it is
+// refused: exclude the one third-party element instead.
+export function checkSelectors(selectors: readonly string[], kind: "include" | "exclude"): string[] {
+	const problems: string[] = [];
+	for (const raw of selectors) {
+		const s = raw.trim().toLowerCase().replace(/\s+/g, " ");
+		if (s === "") {
+			problems.push(`an empty ${kind} selector`);
+		} else if (/^(html|body|main|:root|\*|(html|body|main) \*|\[role=("|')?main("|')?\])$/.test(s)) {
+			problems.push(`the ${kind} selector "${raw.trim()}" is the whole page; name the one element`);
+		}
+	}
+	return problems;
+}
+
 // unwaived drops the violations of waived rules.
 export function unwaived(violations: readonly AxeViolation[], waivers: readonly Waiver[]): AxeViolation[] {
 	const waived = new Set(waivers.map((w) => w.rule));

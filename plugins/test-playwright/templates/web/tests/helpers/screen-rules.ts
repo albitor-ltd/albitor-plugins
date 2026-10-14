@@ -59,3 +59,22 @@ export function safeOpenPath(value: unknown): string | undefined {
 	}
 	return value;
 }
+
+// authFor returns the headers to send a request with the journey identity's bearer added, or
+// undefined when the request must go as it is: it is not to the app's origin (a CDN, an identity
+// provider, an analytics host must never see the token), the origin is unknown, or the request
+// already carries its own Authorization.
+export function authFor(
+	url: string,
+	origin: string,
+	headers: Record<string, string>,
+	auth: Record<string, string>,
+): Record<string, string> | undefined {
+	if (origin === "" || !onApp(url, origin)) {
+		return undefined;
+	}
+	if (Object.keys(headers).some((k) => k.toLowerCase() === "authorization")) {
+		return undefined;
+	}
+	return { ...headers, ...auth };
+}

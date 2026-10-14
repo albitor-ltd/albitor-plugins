@@ -332,7 +332,7 @@ export const test = base.extend<JourneyFixtures>({
       await use({});
       return;
     }
-    const tokens = await signInAs(context, request, "alice");
+    const tokens = await signInAs(context, request, "alice", appOrigin());
     await use(authHeader(tokens));
   }, { auto: true }],
   context: async ({ context }, use) => {
