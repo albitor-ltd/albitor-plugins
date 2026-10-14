@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "font_family": "ui-sans-serif, system-ui, sans-serif",
+  "heading_weight": 600,
+  "type_scale": {
+    "small": "0.875rem",
+    "body": "1rem",
+    "heading": "1.25rem",
+    "title": "1.875rem"
+  },
+  "radius": "0.5rem",
+  "density": "comfortable",
+  "elevation": "subtle",
+  "colours": {
+    "text": "#09090b",
+    "text_secondary": "#71717a",
+    "border": "#e4e4e7",
+    "surface": "#f4f4f5",
+    "background": "#ffffff",
+    "accent": "#18181b",
+    "on_accent": "#fafafa"
+  }
+}

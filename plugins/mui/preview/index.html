@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Material UI (MUI) — component preview</title>
+<style>
+  /* ------------------------------------------------------------------
+     Self-contained Material UI (MUI) preview.
+     No build step, no external fonts/scripts/CDNs — opens from file://.
+     Hand-rendered Material-styled markup approximating real MUI output.
+
+     Layout follows the shared preview comparison spec (PREVIEW-SPEC.md):
+     the same screen, sample data, and copy as the other Albitor
+     design-system previews, rendered with Material UI components.
+     ------------------------------------------------------------------ */
+  :root {
+    --primary: #1976d2; --primary-dark: #1565c0; --primary-contrast: #fff;
+    --secondary: #9c27b0; --error: #d32f2f; --warning: #ed6c02;
+    --info: #0288d1; --success: #2e7d32;
+    --bg: #f5f5f5; --paper: #ffffff;
+    --text: rgba(0,0,0,0.87); --text-2: rgba(0,0,0,0.6); --text-dis: rgba(0,0,0,0.38);
+    --divider: rgba(0,0,0,0.12); --hover: rgba(0,0,0,0.04); --sel: rgba(25,118,210,0.08);
+    --field-border: rgba(0,0,0,0.23);
+    --radius: 4px;
+    --font: "Roboto","Helvetica","Arial",sans-serif;
+    --sh1: 0 2px 1px -1px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 1px 3px 0 rgba(0,0,0,.12);
+    --sh2: 0 3px 3px -2px rgba(0,0,0,.2),0 3px 4px 0 rgba(0,0,0,.14),0 1px 8px 0 rgba(0,0,0,.12);
+    --sh4: 0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12);
+    --sh8: 0 5px 5px -3px rgba(0,0,0,.2),0 8px 10px 1px rgba(0,0,0,.14),0 3px 14px 2px rgba(0,0,0,.12);
+    --sh24: 0 11px 15px -7px rgba(0,0,0,.2),0 24px 38px 3px rgba(0,0,0,.14),0 9px 46px 8px rgba(0,0,0,.12);
+  }
+  :root[data-theme="dark"] {
+    --primary: #90caf9; --primary-dark: #648dae; --primary-contrast: rgba(0,0,0,0.87);
+    --secondary: #ce93d8; --error: #f44336; --warning: #ffa726;
+    --info: #29b6f6; --success: #66bb6a;
+    --bg: #121212; --paper: #1e1e1e;
+    --text: #fff; --text-2: rgba(255,255,255,0.7); --text-dis: rgba(255,255,255,0.5);
+    --divider: rgba(255,255,255,0.12); --hover: rgba(255,255,255,0.08); --sel: rgba(144,202,249,0.16);
+    --field-border: rgba(255,255,255,0.23);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font); color: var(--text); background: var(--bg);
+    -webkit-font-smoothing: antialiased; line-height: 1.5; font-size: 16px;
+  }
+
+  /* App bar */
+  .appbar {
+    background: var(--primary); color: var(--primary-contrast);
+    box-shadow: var(--sh4); position: sticky; top: 0; z-index: 10;
+  }
+  :root[data-theme="dark"] .appbar { background: #272727; color: #fff; }
+  .toolbar { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; }
+  .toolbar .title { font-size: 1.25rem; font-weight: 500; flex: 1; letter-spacing: .0075em; }
+  .icon-btn {
+    border: 0; background: transparent; color: inherit; cursor: pointer;
+    width: 40px; height: 40px; border-radius: 50%; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 20px; line-height: 1;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.12); }
+  :root[data-theme="dark"] .icon-btn:hover { background: rgba(255,255,255,0.08); }
+  .badge-dot { position: relative; }
+  .badge-dot::after {
+    content: "3"; position: absolute; top: 2px; right: 2px; background: var(--error);
+    color: #fff; font-size: 11px; font-weight: 500; min-width: 18px; height: 18px;
+    border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  }
+
+  /* Layout */
+  /* Shared preview skeleton: a single 960px centred content column with a
+     consistent 24px gutter, matched across all four Albitor DS previews. */
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+  .lead { color: var(--text-2); max-width: 62ch; margin: 0 0 32px; }
+  h1.page { font-size: 2.125rem; font-weight: 400; margin: 0 0 4px; letter-spacing: .0025em; }
+  section { margin: 40px 0 0; }
+  h2.section { font-size: 1.5rem; font-weight: 500; margin: 0 0 4px; }
+  .overline { text-transform: uppercase; letter-spacing: .08em; font-size: .75rem;
+    font-weight: 500; color: var(--text-2); margin: 0 0 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+  /* Two-column form layout, shared across the four previews:
+     inputs on the left, selection controls on the right. */
+  .preview-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px 40px; align-items: start; }
+  .preview-fields { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+  .preview-fields .field { display: flex; width: 100%; margin-top: 0; }
+  .preview-controls { display: flex; flex-direction: column; gap: 24px; }
+  /* Narrow surfaces (card + dialog) share one max-width across the four. */
+  .preview-narrow { max-width: 480px; }
+
+  /* Paper / Card */
+  .paper { background: var(--paper); border-radius: var(--radius); box-shadow: var(--sh1); }
+  .card { background: var(--paper); border-radius: var(--radius); box-shadow: var(--sh1); overflow: hidden; }
+  .card-body { padding: 16px; }
+  .card-title { font-size: 1.25rem; font-weight: 500; margin: 0 0 8px; }
+  .card-text { color: var(--text-2); margin: 0; font-size: .875rem; }
+  .card-actions { padding: 8px; display: flex; gap: 4px; border-top: 1px solid var(--divider); }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font); font-size: .875rem; font-weight: 500; letter-spacing: .02857em;
+    text-transform: uppercase; border-radius: var(--radius); padding: 6px 16px; cursor: pointer;
+    border: 0; min-height: 36px; display: inline-flex; align-items: center; gap: 8px;
+    transition: background .2s, box-shadow .2s;
+  }
+  .btn-contained { background: var(--primary); color: var(--primary-contrast); box-shadow: var(--sh2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--sh4); }
+  .btn-contained.error { background: var(--error); }
+  .btn-outlined { background: transparent; color: var(--primary); border: 1px solid rgba(25,118,210,0.5); }
+  :root[data-theme="dark"] .btn-outlined { border-color: rgba(144,202,249,0.5); }
+  .btn-outlined:hover { background: var(--sel); border-color: var(--primary); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 8px; }
+  .btn-text:hover { background: var(--sel); }
+  .btn:disabled { color: var(--text-dis); background: rgba(0,0,0,0.12); box-shadow: none; cursor: default; }
+  :root[data-theme="dark"] .btn:disabled { background: rgba(255,255,255,0.12); }
+  .btn:focus-visible { outline: 3px solid var(--info); outline-offset: 2px; }
+
+  /* Text fields */
+  .field { position: relative; display: inline-flex; flex-direction: column; min-width: 220px; margin-top: 8px; }
+  .field label { position: absolute; top: -8px; left: 10px; background: var(--paper); padding: 0 4px;
+    font-size: .75rem; color: var(--text-2); }
+  .field.focused label { color: var(--primary); }
+  .field.err label { color: var(--error); }
+  .field input, .field select, .field textarea {
+    font-family: var(--font); font-size: 1rem; color: var(--text); background: transparent;
+    border: 1px solid var(--field-border); border-radius: var(--radius);
+    padding: 14px; width: 100%;
+  }
+  .field.err input, .field.err select { border-color: var(--error); }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border: 2px solid var(--primary); padding: 13px; }
+  .field.err input:focus, .field.err select:focus { border-color: var(--error); }
+  .field .helper { font-size: .75rem; color: var(--text-2); margin: 3px 14px 0; }
+  .field.err .helper { color: var(--error); }
+  select { appearance: none; }
+
+  /* Selection controls */
+  .ctrl { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 8px;
+    color: var(--text); font-size: 1rem; }
+  .ctrl input { accent-color: var(--primary); width: 18px; height: 18px; }
+  fieldset.group { border: 0; padding: 0; margin: 0; }
+  fieldset.group legend { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-2); margin-bottom: 8px; padding: 0; }
+  fieldset.group .ctrl { display: flex; margin: 0 0 6px; }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
+    border-radius: 16px; background: rgba(0,0,0,0.08); color: var(--text); font-size: .8125rem; }
+  :root[data-theme="dark"] .chip { background: rgba(255,255,255,0.16); }
+  .chip.primary { background: var(--primary); color: var(--primary-contrast); }
+  .chip.info { background: var(--info); color: #fff; }
+  .chip.success { background: var(--success); color: #fff; }
+  .chip.warning { background: var(--warning); color: #fff; }
+  .chip.error { background: var(--error); color: #fff; }
+  .chip.outlined { background: transparent; border: 1px solid var(--field-border); }
+
+  /* Tabs */
+  .tabs { border-bottom: 1px solid var(--divider); display: flex; gap: 0; }
+  .tab { border: 0; background: transparent; font-family: var(--font); font-size: .875rem;
+    font-weight: 500; text-transform: uppercase; letter-spacing: .02857em; color: var(--text-2);
+    padding: 14px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab[aria-selected="true"] { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab:hover { background: var(--hover); }
+  .tabpanel { padding: 20px 4px; color: var(--text-2); }
+  .tabpanel[hidden] { display: none; }
+
+  /* Table */
+  table.mui { width: 100%; border-collapse: collapse; background: var(--paper);
+    border-radius: var(--radius); overflow: hidden; box-shadow: var(--sh1); }
+  table.mui caption { text-align: left; padding: 16px; font-size: 1rem; font-weight: 500; caption-side: top; }
+  table.mui th, table.mui td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--divider);
+    font-size: .875rem; }
+  table.mui th { color: var(--text-2); font-weight: 500; }
+  table.mui td.num, table.mui th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.mui tbody tr:hover { background: var(--hover); }
+  table.mui tbody tr:last-child td { border-bottom: 0; }
+  .table-wrap { overflow-x: auto; }
+
+  /* Alerts */
+  .alert { display: flex; gap: 12px; padding: 8px 16px; border-radius: var(--radius);
+    font-size: .875rem; align-items: flex-start; }
+  .alert .ico { font-weight: 700; }
+  .alert.success { background: #edf7ed; color: #1e4620; }
+  .alert.info { background: #e5f6fd; color: #014361; }
+  .alert.error { background: #fdeded; color: #5f2120; }
+  :root[data-theme="dark"] .alert.success { background: rgba(102,187,106,.15); color: #a3d9a5; }
+  :root[data-theme="dark"] .alert.info { background: rgba(41,182,246,.15); color: #a9dcf5; }
+  :root[data-theme="dark"] .alert.error { background: rgba(244,67,54,.15); color: #f4b6b0; }
+  .alert strong { display: block; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 48px 24px; }
+  .empty .glyph { width: 56px; height: 56px; border-radius: 50%; background: var(--hover);
+    color: var(--text-2); display: inline-flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 16px; }
+  .empty h3 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 500; }
+  .empty p { margin: 0 0 20px; color: var(--text-2); font-size: .875rem; }
+
+  /* Dialog — left-aligned narrow surface, shared skeleton */
+  .dialog-frame { display: block; }
+  .dialog { background: var(--paper); color: var(--text); border-radius: var(--radius);
+    box-shadow: var(--sh24); max-width: 480px; }
+  .dialog h3 { margin: 0; padding: 16px 24px; font-size: 1.25rem; font-weight: 500; }
+  .dialog .content { padding: 0 24px 20px; color: var(--text-2); font-size: 1rem; }
+  .dialog .actions { display: flex; justify-content: flex-end; gap: 8px; padding: 8px; }
+
+  .note { color: var(--text-2); font-size: .8125rem; margin-top: 8px; }
+  a.mui-link { color: var(--primary); text-decoration: underline; }
+</style>
+</head>
+<body>
+  <!-- 1. Page header / title bar -->
+  <header class="appbar">
+    <div class="toolbar">
+      <button class="icon-btn" type="button" aria-label="Open navigation menu">&#9776;</button>
+      <span class="title">Northwind</span>
+      <button class="icon-btn badge-dot" type="button" aria-label="Notifications, 3 unread">&#9993;</button>
+      <button class="icon-btn" type="button" id="themeToggle" aria-label="Toggle light or dark theme">&#9681;</button>
+      <button class="icon-btn" type="button" aria-label="Account">&#128100;</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="page">Component preview</h1>
+    <p class="lead">A self-contained, static rendering of the shared preview comparison spec using
+      Material UI (MUI) components on the Material colour, type, elevation, and spacing scales. Same
+      screen and sample data as the other Albitor design-system previews. The real components (from
+      <code>@mui/material</code>) are the source of truth. Toggle the theme with the &#9681; button in the app bar.</p>
+
+    <!-- 2. Buttons -->
+    <section aria-labelledby="s-buttons">
+      <h2 class="section" id="s-buttons">Buttons</h2>
+      <p class="overline">Button</p>
+      <div class="row">
+        <button class="btn btn-contained" type="button">Save changes</button>
+        <button class="btn btn-outlined" type="button">Cancel</button>
+        <button class="btn btn-contained error" type="button">Delete account</button>
+        <button class="btn btn-contained" type="button" disabled>Submitting…</button>
+      </div>
+    </section>
+
+    <!-- 3. Form fields -->
+    <section aria-labelledby="s-fields">
+      <h2 class="section" id="s-fields">Form fields</h2>
+      <p class="overline">TextField &middot; Select &middot; Checkbox &middot; Radio</p>
+      <div class="preview-form-grid">
+        <div class="preview-fields">
+          <span class="field">
+            <label>Full name</label>
+            <input type="text" placeholder="Ada Lovelace" autocomplete="name" aria-label="Full name">
+          </span>
+          <span class="field err">
+            <label>Email address</label>
+            <input type="email" value="ada@" aria-label="Email address" aria-invalid="true" aria-describedby="email-help">
+            <span class="helper" id="email-help">Enter a valid email address, for example name@example.com</span>
+          </span>
+          <span class="field">
+            <label>Country</label>
+            <select aria-label="Country">
+              <option selected>United Kingdom</option>
+              <option>France</option>
+              <option>Germany</option>
+            </select>
+          </span>
+        </div>
+        <div class="preview-controls">
+          <fieldset class="group">
+            <legend>Notifications</legend>
+            <label class="ctrl"><input type="checkbox" checked> Email</label>
+            <label class="ctrl"><input type="checkbox"> SMS</label>
+            <label class="ctrl"><input type="checkbox"> Push</label>
+          </fieldset>
+          <fieldset class="group">
+            <legend>Plan</legend>
+            <label class="ctrl"><input type="radio" name="plan"> Free</label>
+            <label class="ctrl"><input type="radio" name="plan" checked> Pro</label>
+            <label class="ctrl"><input type="radio" name="plan"> Enterprise</label>
+          </fieldset>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Data table -->
+    <section aria-labelledby="s-table">
+      <h2 class="section" id="s-table">Data table</h2>
+      <p class="overline">Table &middot; (MUI X DataGrid for large/interactive data)</p>
+      <div class="table-wrap">
+        <table class="mui">
+          <caption>Recent orders</caption>
+          <thead>
+            <tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Status</th><th scope="col" class="num">Amount</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ORD-1001</td><td>Northwind Ltd</td><td><span class="chip success" style="height:24px">Paid</span></td><td class="num">£1,240.00</td></tr>
+            <tr><td>ORD-1002</td><td>Acme Co</td><td><span class="chip warning" style="height:24px">Pending</span></td><td class="num">£530.50</td></tr>
+            <tr><td>ORD-1003</td><td>Globex</td><td><span class="chip error" style="height:24px">Overdue</span></td><td class="num">£98.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. Tabs -->
+    <section aria-labelledby="s-tabs">
+      <h2 class="section" id="s-tabs">Tabs</h2>
+      <p class="overline">Tabs</p>
+      <div class="paper" style="padding:0 8px">
+        <div class="tabs" role="tablist" aria-label="Record view">
+          <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">Overview</button>
+          <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false">Activity</button>
+          <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false">Settings</button>
+        </div>
+        <div class="tabpanel" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+          Overview content. Tabs switch between equivalent views of the same screen.
+        </div>
+        <div class="tabpanel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+          Activity content.
+        </div>
+        <div class="tabpanel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+          Settings content.
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Card -->
+    <section aria-labelledby="s-cards">
+      <h2 class="section" id="s-cards">Card</h2>
+      <p class="overline">Card &middot; CardContent &middot; CardActions</p>
+      <div class="preview-narrow">
+        <article class="card">
+          <div class="card-body">
+            <h3 class="card-title">Project Atlas</h3>
+            <p class="card-text">A short supporting description that sits inside the card content region.</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-text" type="button">View details</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 7. Dialog (static example) -->
+    <section aria-labelledby="s-dialog">
+      <h2 class="section" id="s-dialog">Dialog</h2>
+      <p class="overline">Dialog</p>
+      <div class="dialog-frame">
+        <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-desc">
+          <h3 id="dlg-title">Delete account?</h3>
+          <div class="content" id="dlg-desc">This permanently removes your account and all associated data. This action cannot be undone.</div>
+          <div class="actions">
+            <button class="btn btn-text" type="button">Cancel</button>
+            <button class="btn btn-contained error" type="button">Delete account</button>
+          </div>
+        </div>
+      </div>
+      <p class="note">Static example. The real <code>Dialog</code> traps focus, closes on Esc/backdrop, and is labelled with
+        <code>aria-labelledby</code>/<code>aria-describedby</code>.</p>
+    </section>
+
+    <!-- 8. Notification / alert set -->
+    <section aria-labelledby="s-feedback">
+      <h2 class="section" id="s-feedback">Alerts</h2>
+      <p class="overline">Alert</p>
+      <div style="display:grid; gap:12px">
+        <div class="alert info"><span class="ico" aria-hidden="true">&#9432;</span><span><strong>Information</strong>A new version is available.</span></div>
+        <div class="alert success"><span class="ico" aria-hidden="true">&#10003;</span><span><strong>Success</strong>Your changes have been saved.</span></div>
+        <div class="alert error"><span class="ico" aria-hidden="true">&#10006;</span><span><strong>Error</strong>Could not connect to the server.</span></div>
+      </div>
+    </section>
+
+    <!-- 9. Empty state -->
+    <section aria-labelledby="s-empty">
+      <h2 class="section" id="s-empty">Empty state</h2>
+      <p class="overline">Paper &middot; Button</p>
+      <div class="paper empty">
+        <span class="glyph" aria-hidden="true">&#128230;</span>
+        <h3>No orders yet</h3>
+        <p>When you create your first order, it will appear here.</p>
+        <button class="btn btn-contained" type="button">Create order</button>
+      </div>
+    </section>
+
+    <!-- 10. Chips -->
+    <section aria-labelledby="s-chips">
+      <h2 class="section" id="s-chips">Chips</h2>
+      <p class="overline">Chip</p>
+      <div class="row">
+        <span class="chip info">Active</span>
+        <span class="chip success">Complete</span>
+        <span class="chip warning">Pending</span>
+        <span class="chip error">Failed</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Theme toggle
+    (function () {
+      var root = document.documentElement;
+      var pref = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', pref ? 'dark' : 'light');
+      var btn = document.getElementById('themeToggle');
+      btn.addEventListener('click', function () {
+        root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      });
+    })();
+
+    // Tabs
+    (function () {
+      var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          tabs.forEach(function (t) {
+            var selected = t === tab;
+            t.setAttribute('aria-selected', String(selected));
+            document.getElementById(t.getAttribute('aria-controls')).hidden = !selected;
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

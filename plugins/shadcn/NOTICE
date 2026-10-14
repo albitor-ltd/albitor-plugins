@@ -1,0 +1,35 @@
+albitor-plugin-shadcn
+=====================
+
+This plugin's own code (the plugin manifest, skill wiring, commands, agent
+definition, hook script, and the preview page) is licensed under the MIT
+Licence — see LICENCE.
+
+Bundled reference content
+-------------------------
+
+The reference material under `skills/*/references/` is distilled from public
+documentation for the tools this plugin targets. It is not original Albitor
+content and paraphrases the upstream docs; each is MIT-licensed open source or
+an open standard:
+
+* shadcn/ui
+  https://ui.shadcn.com/
+  MIT Licence. Copyright (c) shadcn. The component code shadcn/ui generates is
+  yours to own and adapt under the MIT Licence.
+
+* Radix UI (Radix Primitives)
+  https://www.radix-ui.com/primitives
+  MIT Licence. Copyright (c) WorkOS.
+
+* Tailwind CSS
+  https://tailwindcss.com/
+  MIT Licence. Copyright (c) Tailwind Labs, Inc.
+
+* Web Content Accessibility Guidelines (WCAG) 2.2
+  https://www.w3.org/TR/WCAG22/
+  © W3C. Used under the W3C Document Licence:
+  https://www.w3.org/copyright/document-license/
+
+The reference files are a distilled snapshot for convenience and may lag the
+live sources. Always confirm exact, current detail against the original URLs.

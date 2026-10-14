@@ -1,0 +1,96 @@
+{
+  "gds": {
+    "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
+    "category": "development",
+    "keywords": [
+      "gds",
+      "gov.uk",
+      "govuk",
+      "design-system",
+      "preview-page",
+      "accessibility",
+      "wcag",
+      "a11y",
+      "public-sector",
+      "government"
+    ],
+    "license": "MIT"
+  },
+  "shadcn": {
+    "description": "Build, audit, and preview modern web apps with shadcn/ui components on Radix UI primitives and Tailwind CSS, meeting WCAG 2.2 AA accessibility. The default design system for net-new SME and startup web apps.",
+    "category": "development",
+    "keywords": [
+      "shadcn",
+      "radix",
+      "tailwind",
+      "design-system",
+      "preview-page",
+      "accessibility",
+      "wcag",
+      "a11y"
+    ],
+    "license": "MIT"
+  },
+  "mui": {
+    "description": "Build, audit, and preview Material Design interfaces across frameworks: the shared Material foundations (colour, type, spacing, elevation, theming) with a framework-appropriate component layer \u2014 SMUI on SvelteKit, @mui/material on React \u2014 plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
+    "category": "development",
+    "keywords": [
+      "mui",
+      "material-ui",
+      "material-design",
+      "design-system",
+      "preview-page",
+      "accessibility",
+      "wcag",
+      "a11y"
+    ],
+    "license": "MIT"
+  },
+  "carbon": {
+    "description": "Build and audit enterprise, data-heavy B2B interfaces with the IBM Carbon Design System: Carbon components (React and Web Components), patterns, IBM Design Language styles and tokens, plus WCAG 2.2 AA accessibility and an axe-based conformance baseline.",
+    "category": "development",
+    "keywords": [
+      "carbon",
+      "ibm",
+      "enterprise",
+      "design-system",
+      "preview-page",
+      "accessibility",
+      "wcag",
+      "a11y"
+    ],
+    "license": "Apache-2.0"
+  },
+  "auth": {
+    "description": "The default auth pack: end-user sign-up and login for a delivered app, backed by an Amazon Cognito user pool with a public app client, in-app UI (styled by the app's chosen design system, not the Cognito Hosted UI), and JWT-validated API middleware. Self-sign-up is on by default.",
+    "category": "development",
+    "keywords": [
+      "auth",
+      "auth-mechanism",
+      "cognito",
+      "authentication",
+      "sign-up",
+      "self-signup",
+      "login",
+      "jwt",
+      "user-pool"
+    ],
+    "license": "MIT"
+  },
+  "docs": {
+    "description": "Author an app's documentation to a consistent standard with three authoritative frameworks: Di\u00e1taxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
+    "category": "development",
+    "keywords": [
+      "required-documentation",
+      "documentation",
+      "diataxis",
+      "c4",
+      "arc42",
+      "docs",
+      "architecture",
+      "adr",
+      "technical-writing"
+    ],
+    "license": "MIT"
+  }
+}
