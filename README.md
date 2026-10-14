@@ -23,6 +23,8 @@ catalogue/legacy-pins.json        old per-plugin repo and ref, used until the sw
 catalogue/retired-entries.json    retired entries carried through in legacy mode
 scripts/build-catalogue.sh        generates marketplace.json from the tree
 scripts/validate-plugins.sh       manifest validation (also run by CI)
+scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build
+tests/compose/                    the Go test that script runs, with stub plugins
 ```
 
 | Plugin | What it does |
@@ -33,6 +35,7 @@ scripts/validate-plugins.sh       manifest validation (also run by CI)
 | `carbon` | IBM Carbon Design System for enterprise interfaces |
 | `auth` | Cognito-backed sign-up and login |
 | `docs` | Diataxis, C4 and arc42 documentation skills |
+| `web-svelte` | The `web-framework@1` socket: SvelteKit static SPA, shell, slot host (schema-2 manifest; monorepo-only, not in the legacy catalogue) |
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
@@ -86,7 +89,10 @@ Albitor's pin audit and tenant plugin sources understand `git-subdir`:
 
 Pull requests run: manifest validation (JSON parses, `name` equals the directory, semver
 `version`, catalogue metadata present), catalogue reproducibility (`--check`), shellcheck and JSON
-lint, and a placeholder `conformance` job reserved for the socket conformance and certification
+lint, a `compose` job (the real manifest parser and composer from albitor-ltd/albitor over the
+schema-2 plugins, then `npm ci`, check, test and build of the composed `web/`; it needs the
+`ALBITOR_REPO_TOKEN` secret and otherwise warns and skips, so run
+`scripts/compose-check.sh --build <albitor checkout>` locally), and a placeholder `conformance` job reserved for the socket conformance and certification
 harness (albitor-ltd/albitor#3164). Actions are pinned by full commit SHA.
 
 ## Third parties

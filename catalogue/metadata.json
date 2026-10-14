@@ -93,6 +93,18 @@
     ],
     "license": "MIT"
   },
+  "web-svelte": {
+    "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, and the web side of the local run contract.",
+    "category": "development",
+    "keywords": [
+      "web-framework",
+      "svelte",
+      "sveltekit",
+      "spa",
+      "shell"
+    ],
+    "license": "MIT"
+  },
   "api-go": {
     "description": "The api-runtime plugin for Go APIs: an HTTP server skeleton with request logging, a middleware chain, routes, paging, a health route, an OpenAPI contract and a local test issuer, behind the api.middleware and api.routes slots.",
     "category": "development",

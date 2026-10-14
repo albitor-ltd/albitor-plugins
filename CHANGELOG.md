@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `web-svelte` plugin (albitor-ltd/albitor#3165): the `web-framework@1` SvelteKit shell, the first
+  schema-2 plugin. Monorepo-only: left out of the legacy catalogue until the switch-over.
 - `api-go` plugin (albitor-ltd/albitor#3168): the first schema-2 plugin, filling `api-runtime@1`,
   split from the starter's `_api`. A schema-2 plugin has no legacy pin, so it appears in the
   catalogue only in monorepo mode.

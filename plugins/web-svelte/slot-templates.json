@@ -1,0 +1,12 @@
+[
+  {
+    "path": "web/src/lib/shell/nav.generated.ts",
+    "syntax": "ts",
+    "body": "slot-templates/nav.generated.ts"
+  },
+  {
+    "path": "web/src/lib/shell/providers.generated.ts",
+    "syntax": "ts",
+    "body": "slot-templates/providers.generated.ts"
+  }
+]

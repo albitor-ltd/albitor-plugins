@@ -1,0 +1,20 @@
+{
+  "schema": 2,
+  "name": "auth-stub",
+  "version": "0.0.1",
+  "description": "A stub auth plugin that fills every web slot, for composing web-svelte in tests. Not published.",
+  "kind": "socket",
+  "provides": ["auth@1"],
+  "requires": ["web-framework@1"],
+  "contributes": {
+    "files": [
+      { "path": "web/src/lib/shell/scope.d/auth-stub.ts", "mode": "managed" },
+      { "path": "web/src/lib/stub/StubProvider.svelte", "mode": "managed" }
+    ],
+    "slots": {
+      "web.providers": ["StubProvider"],
+      "web.route-guard": "stubGuard",
+      "web.nav": [{ "label": "Account", "order": 900, "group": "user" }]
+    }
+  }
+}

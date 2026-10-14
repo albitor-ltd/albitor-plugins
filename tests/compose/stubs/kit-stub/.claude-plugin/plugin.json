@@ -1,0 +1,14 @@
+{
+  "schema": 2,
+  "name": "kit-stub",
+  "version": "0.0.1",
+  "description": "A minimal component-kit for composing web-svelte in tests. Not published.",
+  "kind": "socket",
+  "provides": ["component-kit@1"],
+  "requires": ["web-framework@1"],
+  "contributes": {
+    "files": [
+      { "path": "web/src/lib/kit/AppShell.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } }
+    ]
+  }
+}
