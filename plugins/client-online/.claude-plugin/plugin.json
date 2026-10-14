@@ -1,0 +1,36 @@
+{
+  "schema": 2,
+  "name": "client-online",
+  "displayName": "Online data (TanStack Query)",
+  "version": "0.1.0",
+  "description": "The client-data plugin for online-only apps: TanStack Query for Svelte behind the web.providers slot, one shared query client with a sane retry policy, API query helpers, and loading, offline, error and empty states.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": ["client-data", "tanstack-query", "svelte", "data-fetching", "cache", "online"],
+  "kind": "socket",
+  "provides": ["client-data@1"],
+  "requires": ["web-framework@1"],
+  "contributes": {
+    "dependencies": {
+      "npm": ["@tanstack/svelte-query@^6.3.2"]
+    },
+    "files": [
+      { "path": "web/src/lib/data/client.ts", "mode": "managed" },
+      { "path": "web/src/lib/data/client.test.ts", "mode": "managed" },
+      { "path": "web/src/lib/data/query.ts", "mode": "managed" },
+      { "path": "web/src/lib/data/query.test.ts", "mode": "managed" },
+      { "path": "web/src/lib/data/state.ts", "mode": "managed" },
+      { "path": "web/src/lib/data/state.test.ts", "mode": "managed" },
+      { "path": "web/src/lib/data/QueryProvider.svelte", "mode": "managed" },
+      { "path": "web/src/lib/data/DataState.svelte", "mode": "managed" },
+      { "path": "web/src/lib/shell/scope.d/client-online.ts", "mode": "managed" }
+    ],
+    "slots": {
+      "web.providers": ["QueryProvider"]
+    },
+    "skills": ["client-online"]
+  }
+}

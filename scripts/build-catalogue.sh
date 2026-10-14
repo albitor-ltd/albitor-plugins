@@ -48,6 +48,13 @@ if [[ "$mode" == monorepo ]]; then
       echo "error: $name has no version in $manifest" >&2
       exit 1
     fi
+    # A plugin with no release tag of any version has never shipped: it stays out of the catalogue
+    # until it is tagged and the catalogue regenerated. A missing tag for a plugin that has
+    # released before is still an error, so a version bump cannot slip out untagged.
+    if [[ -z "$(git -C "${CATALOGUE_TAG_REPO:-$root}" tag --list "$name/v*")" ]]; then
+      echo "note: $name has no release tag yet, left out of the catalogue" >&2
+      continue
+    fi
     sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")" || {
       echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
       exit 1
@@ -94,7 +101,7 @@ render() {
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
         [$meta[0] | to_entries[]
-          | select($mode == "monorepo" or $pins[0][.key] != null)
+          | select(if $mode == "monorepo" then $versions[.key] != null else $pins[0][.key] != null end)
           | .key as $n | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)
       )
