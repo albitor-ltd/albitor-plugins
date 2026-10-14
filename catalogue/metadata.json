@@ -118,5 +118,18 @@
       "openapi"
     ],
     "license": "MIT"
+  },
+  "client-online": {
+    "description": "The client-data plugin for online-only apps: TanStack Query for Svelte behind the web.providers slot, one shared query client with a sane retry policy, API query helpers, and loading, offline, error and empty states.",
+    "category": "development",
+    "keywords": [
+      "client-data",
+      "tanstack-query",
+      "svelte",
+      "data-fetching",
+      "cache",
+      "online"
+    ],
+    "license": "MIT"
   }
 }

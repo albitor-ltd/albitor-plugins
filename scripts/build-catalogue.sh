@@ -48,10 +48,18 @@ if [[ "$mode" == monorepo ]]; then
       echo "error: $name has no version in $manifest" >&2
       exit 1
     fi
-    sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")" || {
-      echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
-      exit 1
-    }
+    # A plugin absent from the committed catalogue has never shipped: until it is tagged and the
+    # catalogue regenerated it stays out, so a new plugin's pull request can pass --check. A plugin
+    # already in the committed catalogue must have its tag; a missing one is an error, never a
+    # silent omission.
+    if ! sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")"; then
+      if jq -e --arg n "$name" 'any(.plugins[]?; .name == $n)' "$root/.claude-plugin/marketplace.json" >/dev/null 2>&1; then
+        echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
+        exit 1
+      fi
+      echo "note: $name is new and has no release tag yet, left out of the catalogue" >&2
+      continue
+    fi
     versions="$(jq --arg n "$name" --arg v "$version" '. + {($n): $v}' <<<"$versions")"
     shas="$(jq --arg n "$name" --arg s "$sha" '. + {($n): $s}' <<<"$shas")"
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
@@ -94,7 +102,7 @@ render() {
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
         [$meta[0] | to_entries[]
-          | select($mode == "monorepo" or $pins[0][.key] != null)
+          | select(if $mode == "monorepo" then $versions[.key] != null else $pins[0][.key] != null end)
           | .key as $n | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)
       )

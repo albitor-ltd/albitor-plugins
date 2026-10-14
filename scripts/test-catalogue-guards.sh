@@ -74,4 +74,21 @@ fresh
 edit "$work/r/catalogue/legacy-pins.json" 'del(.auth)'
 "$work/r/scripts/validate-plugins.sh" >/dev/null || { echo "FAIL: monorepo validation demanded a legacy pin" >&2; fail=1; }
 
+# 7. A new plugin (not yet in the committed catalogue, no tag) is left out with a note.
+fresh
+mkdir -p "$work/r/plugins/brand-new/.claude-plugin"
+jq '.name = "brand-new" | .version = "0.0.1"' "$root/plugins/api-go/.claude-plugin/plugin.json" >"$work/r/plugins/brand-new/.claude-plugin/plugin.json"
+edit "$work/r/catalogue/metadata.json" '.["brand-new"] = .["api-go"]'
+"$work/r/scripts/build-catalogue.sh" --out "$work/new.json" >"$work/out" 2>&1 || { echo "FAIL: a new untagged plugin broke generation" >&2; fail=1; }
+grep -q 'brand-new' "$work/out" || { echo "FAIL: no note for the untagged new plugin" >&2; fail=1; }
+! jq -e 'any(.plugins[]; .name == "brand-new")' "$work/new.json" >/dev/null || { echo "FAIL: the untagged plugin was catalogued" >&2; fail=1; }
+jq -e 'any(.plugins[]; .name == "api-go")' "$work/new.json" >/dev/null || { echo "FAIL: a released plugin vanished" >&2; fail=1; }
+
+# 8. A released plugin whose tag is missing (a tagless clone) must error, not be omitted.
+fresh
+mkdir -p "$work/notags"
+git -C "$work/notags" init -q
+CATALOGUE_TAG_REPO="$work/notags" expect_fail "build-catalogue.sh with a released plugin's tag missing" \
+  "$work/r/scripts/build-catalogue.sh" --out "$work/cat.json"
+
 exit "$fail"
