@@ -29,6 +29,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   exists; transitives in the seeded lockfile are not subject to the rule (current practice).
   `compose-check.sh` falls back to `npm install` only where the composer merged dependencies, and
   reports the failing `npm ci` there as an expected failure (albitor-ltd/albitor#3178).
+- Release `kit-shadcn`, `kit-carbon` and `web-svelte` `v0.1.1`: the themeable markers, `web-svelte`'s
+  exact npm pins and the `tokens.css` and README changes above (#20) were merged without a version
+  bump, so they have no tag. The catalogue pins them once `<name>/v0.1.1` exists.
 
 ### Added
 
