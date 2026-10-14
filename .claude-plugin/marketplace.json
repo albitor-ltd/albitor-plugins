@@ -256,6 +256,28 @@
       "license": "MIT"
     },
     {
+      "name": "client-offline",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/client-offline",
+        "ref": "client-offline/v0.1.0",
+        "sha": "116b26d3cad350b0dd15875cd12c278735f8a6fc"
+      },
+      "description": "The client-data plugin for offline-first apps: @albitor/sync, an IndexedDB store per signed-in person, an outbox that replays writes when the network returns, tombstones for deletions, a guarded single-flight sync, and a status line.",
+      "category": "development",
+      "keywords": [
+        "client-data",
+        "offline-first",
+        "outbox",
+        "sync",
+        "indexeddb",
+        "service-worker",
+        "svelte"
+      ],
+      "license": "MIT"
+    },
+    {
       "name": "kit-shadcn",
       "source": {
         "source": "git-subdir",
@@ -271,6 +293,68 @@
         "shadcn",
         "shadcn-svelte",
         "bits-ui",
+        "svelte",
+        "accessibility"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "auth-cognito",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/auth-cognito",
+        "ref": "auth-cognito/v0.1.0",
+        "sha": "de7ba8c004e9443351d29f01f21c63231e7cc62f"
+      },
+      "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
+      "category": "development",
+      "keywords": [
+        "auth",
+        "cognito",
+        "authentication",
+        "sign-up",
+        "sign-in",
+        "session",
+        "route-guard"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "auth-none",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/auth-none",
+        "ref": "auth-none/v0.1.0",
+        "sha": "de7ba8c004e9443351d29f01f21c63231e7cc62f"
+      },
+      "description": "The auth plugin for an app with no sign-in: a stub identity seam for the Go API in which every request acts for one fixed owner, so a handler written against it works unchanged under a real sign-in. No screens, no middleware, no routes, and no requirements, so a web-only profile composes it too.",
+      "category": "development",
+      "keywords": [
+        "auth",
+        "no-auth",
+        "stub",
+        "identity",
+        "fixed-owner"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "kit-carbon",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/kit-carbon",
+        "ref": "kit-carbon/v0.1.0",
+        "sha": "966a5449ad43dde3d3a7dfdf5a28d2fda5bb7a61"
+      },
+      "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
+      "category": "development",
+      "keywords": [
+        "component-kit",
+        "carbon",
+        "carbon-components-svelte",
         "svelte",
         "accessibility"
       ],
