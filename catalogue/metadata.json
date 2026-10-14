@@ -144,5 +144,18 @@
       "online"
     ],
     "license": "MIT"
+  },
+  "kit-shadcn": {
+    "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
+    "category": "development",
+    "keywords": [
+      "component-kit",
+      "shadcn",
+      "shadcn-svelte",
+      "bits-ui",
+      "svelte",
+      "accessibility"
+    ],
+    "license": "MIT"
   }
 }

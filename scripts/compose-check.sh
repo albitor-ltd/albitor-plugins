@@ -21,9 +21,9 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
-mkdir "$tmp/app" "$tmp/online"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_KIT_OUT="$tmp/kit" go test -count=1 ./...)
 
 if [[ $build -eq 1 ]]; then
   cd "$tmp/app/web"
@@ -42,10 +42,25 @@ if [[ $build -eq 1 ]]; then
   cd "$tmp/online/web"
   mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/client-online/.claude-plugin/plugin.json")
   npm ci
-  npm install --save-dev --no-audit --no-fund "${deps[@]}"
+  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
   npm run check
   npm test
   npm run build
   test -f build/index.html
   echo "composed web tree with client-online builds"
+fi
+
+# Same for kit-shadcn (bits-ui, and axe-core and jsdom for its tests). Its tests render the shell
+# pieces, run axe over them and audit the colour tokens for WCAG 2.2 AA contrast, so a green run
+# here is the kit's accessibility gate.
+if [[ $build -eq 1 ]]; then
+  cd "$tmp/kit/web"
+  mapfile -t deps < <(jq -r '.contributes.dependencies.npm[]' "$root/plugins/kit-shadcn/.claude-plugin/plugin.json")
+  npm ci
+  npm install --save-dev --save-exact --no-audit --no-fund "${deps[@]}"
+  npm run check
+  npm test
+  npm run build
+  test -f build/index.html
+  echo "composed web tree with kit-shadcn builds, and its axe and contrast audits pass"
 fi

@@ -1,0 +1,45 @@
+{
+  "schema": 2,
+  "name": "kit-shadcn",
+  "displayName": "Component kit (shadcn-svelte)",
+  "version": "0.1.0",
+  "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": ["component-kit", "shadcn", "shadcn-svelte", "bits-ui", "svelte", "accessibility"],
+  "kind": "socket",
+  "provides": ["component-kit@1"],
+  "requires": ["web-framework@1"],
+  "contributes": {
+    "dependencies": {
+      "npm": [
+        "bits-ui@2.19.3",
+        "@internationalized/date@3.12.4",
+        "axe-core@4.13.0",
+        "jsdom@30.1.1",
+        "@types/jsdom@30.0.0"
+      ]
+    },
+    "files": [
+      { "path": "web/vitest.config.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/tokens.css", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/contrast.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/AppShell.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Button.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Dialog.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/EmptyState.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Field.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Table.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Toaster.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/toast.svelte.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/index.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Showcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/kit.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/dialog.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } }
+    ],
+    "skills": ["kit-shadcn"]
+  }
+}
