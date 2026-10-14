@@ -37,6 +37,9 @@ const BUTTON = '<button data-testid="sign-in-button" type="button">Sign in</butt
 const PAGES: Record<string, string> = {
 	"/never": FIELDS(BUTTON),
 	"/disabled": FIELDS(BUTTON.replace("<button ", "<button disabled ")),
+	// A cold edge: the page reaches `load` only after ~27s (a script that is slow to arrive), and the
+	// button is disabled. The test timeout then fires late in the sign-in, not in a step of its own.
+	"/slow": `${FIELDS(BUTTON.replace("<button ", "<button disabled "))}<script src="/slow.js"></script>`,
 	"/overlay": `${FIELDS(BUTTON)}<div id="veil" style="position:fixed;inset:0;background:#fff8"></div>`,
 	// A framework-bound input. Like React, it replaces the value property on the INSTANCE to track
 	// what it last saw, and only believes a change when an input event arrives with a value that
@@ -142,15 +145,29 @@ async function run(cwd: string, args: string[], env: Record<string, string>): Pr
 
 async function serve(): Promise<{ base: string; close: () => void }> {
 	const server = createServer((req, res) => {
+		if (req.url === "/slow.js") {
+			const timer = setTimeout(() => {
+				res.writeHead(200, { "Content-Type": "text/javascript" });
+				res.end("");
+			}, 27_000);
+			res.on("close", () => clearTimeout(timer));
+			return;
+		}
 		res.writeHead(200, { "Content-Type": "text/html" });
 		res.end(PAGES[req.url ?? ""] ?? PAGES["/never"]);
 	});
 	await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", () => resolve()));
-	return { base: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, close: () => server.close() };
+	return {
+		base: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
+		close: () => {
+			server.closeAllConnections();
+			server.close();
+		},
+	};
 }
 
 describe("the demo password", () => {
-	for (const route of ["/never", "/disabled", "/overlay"]) {
+	for (const route of ["/never", "/disabled", "/overlay", "/slow"]) {
 		it(`is in no snapshot, report or trace when sign-in fails (${route})`, async () => {
 			const app = await serve();
 			const out = mkdtempSync(join(tmpdir(), "albitor-secret-"));

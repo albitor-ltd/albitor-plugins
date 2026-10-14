@@ -74,6 +74,11 @@ const SIGN_IN_EMAIL_ID = "sign-in-email";
 // so a stuck step fails into the catch that empties the password field.
 const SIGN_IN_STEP_MS = 5_000;
 
+// How long loading the sign-in page may take, and the longest everything before the password goes
+// in can take: the goto, the screen probe, the email.
+const SIGN_IN_GOTO_MS = 15_000;
+const SIGN_IN_PRELUDE_MS = SIGN_IN_GOTO_MS + 10_000 + SIGN_IN_STEP_MS;
+
 // How long the setup looks for the sign-in screen before deciding there is none.
 // Generous on purpose: it is paid once per run, and only by an app with no
 // screen, while a cold edge that answers slowly must not be mistaken for one.
@@ -212,7 +217,12 @@ setup("sign in once as the demo account", async ({ page }) => {
   // THE SIGN-IN SCREEN'S CONTRACT: the auth plugin's screen carries the test ids
   // sign-in-form, sign-in-email, sign-in-password and sign-in-button. A screen that names
   // them differently is the auth plugin's defect to fix, not a reason to edit this file.
-  await page.goto(signInRoute);
+  // THE PASSWORD ONLY GOES IN WITH HEADROOM. Everything before the try below is bounded (the probe
+  // 10s, goto 15s, the email 5s) and the test timeout is raised to cover them plus three steps and
+  // the clean-up, so the test timeout can never fire while the password is in the field: a timeout
+  // never reaches the catch that empties it.
+  setup.setTimeout(SIGN_IN_PRELUDE_MS + 5 * SIGN_IN_STEP_MS + 10_000);
+  await page.goto(signInRoute, { timeout: SIGN_IN_GOTO_MS });
   const emailField = page.getByTestId(SIGN_IN_EMAIL_ID);
 
   if (!signInScreenExists && !(await signInScreenAppears(emailField))) {
@@ -228,7 +238,7 @@ setup("sign in once as the demo account", async ({ page }) => {
     return;
   }
 
-  await emailField.fill(username);
+  await emailField.fill(username, { timeout: SIGN_IN_STEP_MS });
   const passwordField = page.getByTestId("sign-in-password");
   // THE PASSWORD MUST NOT OUTLIVE THE SIGN-IN IN ANYTHING A FAILURE LEAVES BEHIND. Playwright
   // writes a page snapshot (error-context.md) for a failed test, and CI uploads the HTML report; a

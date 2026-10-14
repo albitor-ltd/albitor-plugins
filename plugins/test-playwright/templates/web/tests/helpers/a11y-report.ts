@@ -56,14 +56,19 @@ export function checkSelectors(selectors: readonly string[], kind: "include" | "
 		// root, however they are combined (`body > *`, `html > body`, `:root *`).
 		// :not(...) only narrows a root by a hair (`body:not(.x)` is still the page), and :is() and
 		// :where() wrap a list (`:is(body)` is body), so the first is dropped and the others unwrapped.
+		// Position and :has() pseudos narrow a root just as little. Arguments may hold quoted parens.
+		const ARGS = String.raw`\(((?:[^()'"]|'[^']*'|"[^"]*")*)\)`;
+		const DROP = new RegExp(String.raw`:(?:not|has|nth-[a-z-]+)${ARGS}|:(?:first|last|only)-(?:child|of-type)`, "gi");
+		const UNWRAP = new RegExp(String.raw`:(?:is|where|matches|-webkit-any|-moz-any)${ARGS}`, "gi");
 		let flat = raw;
 		for (let prev = ""; prev !== flat; ) {
 			prev = flat;
-			flat = flat.replace(/:not\([^()]*\)/gi, "").replace(/:(?:is|where|matches|-webkit-any|-moz-any)\(([^()]*)\)/gi, "$1");
+			flat = flat.replace(DROP, "").replace(UNWRAP, "$1");
 		}
+		// A part that is nothing once those are gone (`:not(:not(body))`) selects anything at all.
 		const wholePage = flat.split(",").some((part) => {
 			const p = part.trim().toLowerCase();
-			return p !== "" && p.split(/[\s>+~]+/).every((tok) => PAGE_ROOTS.test(tok));
+			return p === "" || p.split(/[\s>+~]+/).every((tok) => PAGE_ROOTS.test(tok));
 		});
 		if (wholePage) {
 			problems.push(`the ${kind} selector "${raw.trim()}" is the whole page; name the one element`);

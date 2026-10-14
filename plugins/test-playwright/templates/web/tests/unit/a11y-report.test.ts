@@ -70,7 +70,7 @@ describe("checkSelectors", () => {
 		}
 	});
 	it("refuses a page root wrapped in :not() or :is()", () => {
-		for (const s of ["body:not(.x)", ":root:not([hidden])", "*:not(.x)", ":is(body)", ":where(html, body)", ":is(:is(main))", "body:not(.x):not(.y) *"]) {
+		for (const s of ["body:not(.x)", ":root:not([hidden])", "*:not(.x)", ":is(body)", ":where(html, body)", ":is(:is(main))", "body:not(.x):not(.y) *", ":not(:not(body))", "body:has(main)", "body:first-child", "body:nth-child(1)", "body:not([data-x=')'])"]) {
 			assert.match(checkSelectors([s], "exclude").join(), /whole page/, s);
 		}
 	});
