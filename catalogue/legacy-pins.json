@@ -22,8 +22,5 @@
   "docs": {
     "repo": "albitor-ltd/albitor-plugin-docs",
     "ref": "v0.2.0"
-  },
-  "web-svelte": {
-    "monorepoOnly": true
   }
 }

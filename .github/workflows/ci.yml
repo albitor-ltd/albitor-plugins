@@ -22,6 +22,8 @@ jobs:
           persist-credentials: false
       - name: Validate plugin manifests
         run: scripts/validate-plugins.sh
+      - name: The pin audit fails closed
+        run: scripts/test-catalogue-guards.sh
 
   catalogue:
     name: catalogue
@@ -92,6 +94,19 @@ jobs:
       - name: Compose, check, test and build
         if: env.IS_FORK != 'true'
         run: scripts/compose-check.sh --build "$GITHUB_WORKSPACE/albitor"
+
+  # The api-go plugin's own Go: its tree, composed with every slot empty, builds, vets and tests.
+  api-go:
+    name: api-go
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version: "1.26"
+          cache: false
+      - name: Build, vet and test the composed API tree
+        run: scripts/verify-api-go.sh
 
   # Placeholder for the socket conformance and certification harness
   # (albitor-ltd/albitor#3164). Deliberately a no-op until that lands; the job name is stable

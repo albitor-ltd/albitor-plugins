@@ -1,0 +1,6 @@
+# Lambda Web Adapter bootstrap binary and build artifacts
+/bootstrap
+/dist
+*.exe
+*.test
+*.out

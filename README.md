@@ -36,6 +36,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `auth` | Cognito-backed sign-up and login |
 | `docs` | Diataxis, C4 and arc42 documentation skills |
 | `web-svelte` | The `web-framework@1` socket: SvelteKit static SPA, shell, slot host (schema-2 manifest; monorepo-only, not in the legacy catalogue) |
+| `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).

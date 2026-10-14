@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - `web-svelte` plugin (albitor-ltd/albitor#3165): the `web-framework@1` SvelteKit shell, the first
   schema-2 plugin. Monorepo-only: left out of the legacy catalogue until the switch-over.
+- `api-go` plugin (albitor-ltd/albitor#3168): the first schema-2 plugin, filling `api-runtime@1`,
+  split from the starter's `_api`. A schema-2 plugin has no legacy pin, so it appears in the
+  catalogue only in monorepo mode.
+
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.
 - `shadcn` plugin pinned at `v0.1.4` — shadcn/ui, Radix UI and Tailwind CSS.

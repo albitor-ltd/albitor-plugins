@@ -34,8 +34,16 @@ for dir in "${dirs[@]}"; do
   [[ -n "$(jq -r '.description // ""' "$manifest")" ]] || err "$base: plugin.json has no description"
   jq -e --arg n "$base" 'has($n)' "$root/catalogue/metadata.json" >/dev/null ||
     err "$base: no entry in catalogue/metadata.json"
-  jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
-    err "$base: no entry in catalogue/legacy-pins.json"
+  # A schema-2 plugin was born in this repository: it has no old repository to pin in legacy mode.
+  # A legacy-pinned plugin is released from its old repo and must stay schema 1; flipping it to 2
+  # would drop it from the legacy catalogue without a word.
+  if [[ "$(jq -r '.schema // 1' "$manifest")" == 2 ]]; then
+    ! jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
+      err "$base: schema 2 but listed in catalogue/legacy-pins.json (a legacy plugin must stay schema 1)"
+  else
+    jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
+      err "$base: no entry in catalogue/legacy-pins.json"
+  fi
 done
 
 for f in metadata legacy-pins; do
@@ -43,14 +51,6 @@ for f in metadata legacy-pins; do
     [[ -d "$root/plugins/$key" ]] || err "catalogue/$f.json lists '$key' but plugins/$key does not exist"
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/$f.json")
 done
-
-# Every legacy pin is a repo and ref, or exactly {"monorepoOnly": true}.
-while IFS= read -r key; do
-  jq -e --arg n "$key" '.[$n] | . == {"monorepoOnly": true} or
-      ((.repo | type == "string" and length > 0) and (.ref | type == "string" and length > 0))' \
-    "$root/catalogue/legacy-pins.json" >/dev/null 2>&1 ||
-    err "legacy-pins.json: '$key' needs repo and ref, or exactly {\"monorepoOnly\": true}"
-done < <(jq -r 'keys_unsorted[]' "$root/catalogue/legacy-pins.json")
 
 if [[ $fail -ne 0 ]]; then
   exit 1
