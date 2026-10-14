@@ -608,3 +608,169 @@ describe('review fixes: mutants that survived', () => {
 		await expect(a.remove('todos', '../x')).rejects.toThrow(/letters, digits/);
 	});
 });
+
+describe('round 2: sign-out races', () => {
+	it('a discard during an in-flight push leaves nothing behind in the cleared store', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const a = device(server, stores);
+		await a.attach('alice');
+		await a.create('todos', { title: 'secret' });
+		const gate = deferred();
+		server.gate = gate.promise;
+		server.failWhen = () => new ApiError(400, null);
+		const run = a.flush();
+		await new Promise((r) => setTimeout(r, 0));
+		const out = a.signOut({ discard: true });
+		await new Promise((r) => setTimeout(r, 0));
+		gate.resolve();
+		expect(await out).toEqual({ ok: true });
+		await run;
+		expect(await stores('alice').listOutbox()).toEqual([]);
+		expect(await stores('alice').listRecords('todos')).toEqual([]);
+	});
+
+	it('recovers when clearing the store throws: later writes still work', async () => {
+		const server = new FakeServer();
+		const inner = memoryStores()('alice');
+		let failClear = true;
+		const store = { ...inner, clear: async () => { if (failClear) throw new Error('disk'); return inner.clear(); } };
+		const a = device(server, () => store);
+		await a.attach('alice');
+		await expect(a.signOut({ discard: true })).rejects.toThrow('disk');
+		failClear = false;
+		await expect(a.create('todos', { title: 'still works' })).resolves.toBeDefined();
+	});
+
+	it('does not sign out the next person who attached while it was finishing', async () => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const inner = stores('alice');
+		const gate = deferred();
+		const slow = { ...inner, clear: async () => { await gate.promise; return inner.clear(); } };
+		const a = device(server, (o) => (o === 'alice' ? slow : stores(o)));
+		await a.attach('alice');
+		const out = a.signOut({ discard: true });
+		await new Promise((r) => setTimeout(r, 0));
+		await a.attach('bob');
+		gate.resolve();
+		await out;
+		expect(a.owner).toBe('bob');
+	});
+
+	it.each(['update', 'remove'] as const)('refuses a late %s instead of letting it be wiped', async (kind) => {
+		const server = new FakeServer();
+		const stores = memoryStores();
+		const inner = stores('alice');
+		let calls = 0;
+		let late: Promise<unknown> = Promise.resolve();
+		let id = '';
+		const wrapped = {
+			...inner,
+			listOutbox: async () => {
+				const rows = await inner.listOutbox();
+				if (++calls === 2) {
+					late = (kind === 'update' ? a.update('todos', id, { title: 'late' }) : a.remove('todos', id)).catch((e: Error) => e);
+				}
+				return rows;
+			}
+		};
+		const a = device(server, (o) => (o === 'alice' ? wrapped : stores(o)));
+		await a.attach('alice');
+		id = (await a.create('todos', { title: 'x' })).id;
+		await a.flush();
+		calls = 0;
+		const result = await a.signOut();
+		const outcome = await late;
+		expect(result.ok === false || (outcome instanceof Error && /signing out/.test(outcome.message))).toBe(true);
+	});
+});
+
+describe('round 2: failed entries', () => {
+	it('retryFailed starts the attempts again, so one 503 does not fail it straight back', async () => {
+		let clock = 0;
+		const server = new FakeServer();
+		const a = createSyncEngine({ stores: memoryStores(), transport: server, collections: ['todos'], lock: (_n, fn) => fn(), now: () => clock });
+		await a.attach('alice');
+		await a.create('todos', { title: 'p' });
+		server.failWhen = () => new ApiError(500, null);
+		for (let i = 0; i < 8; i++) {
+			clock += 10 * 60_000;
+			await a.sync();
+		}
+		expect((await a.status()).failed).toBe(1);
+		server.failWhen = null;
+		await a.retryFailed();
+		server.failNext = new ApiError(503, null);
+		await a.sync();
+		const s = await a.status();
+		expect(s.failed).toBe(0);
+		expect(s.pending).toBe(1);
+		clock += 10 * 60_000;
+		await a.sync();
+		expect(server.records('alice', 'todos')).toHaveLength(1);
+	});
+
+	it('backs off for seconds, not milliseconds', async () => {
+		let clock = 1_000_000;
+		const server = new FakeServer();
+		const a = createSyncEngine({ stores: memoryStores(), transport: server, collections: ['todos'], lock: (_n, fn) => fn(), now: () => clock });
+		await a.attach('alice');
+		await a.create('todos', { title: 'p' });
+		server.failNext = new ApiError(500, null);
+		await a.sync();
+		clock += 1000;
+		await a.sync();
+		expect(server.pushes).toHaveLength(0); // still backing off after 1s
+		clock += 3000;
+		await a.sync();
+		expect(server.pushes).toHaveLength(1);
+	});
+
+	it('is not stuck if the clock jumps back', async () => {
+		let clock = 10 * 86_400_000;
+		const server = new FakeServer();
+		const a = createSyncEngine({ stores: memoryStores(), transport: server, collections: ['todos'], lock: (_n, fn) => fn(), now: () => clock });
+		await a.attach('alice');
+		await a.create('todos', { title: 'p' });
+		server.failNext = new ApiError(500, null);
+		await a.sync();
+		clock -= 86_400_000;
+		await a.sync();
+		expect(server.pushes).toHaveLength(1);
+	});
+
+	it('discarding a failed create also drops the updates queued behind it', async () => {
+		const server = new FakeServer();
+		const a = device(server);
+		await a.attach('alice');
+		const todo = await a.create('todos', { title: 'x' });
+		server.failNext = new ApiError(400, null);
+		await a.flush();
+		await a.update('todos', todo.id, { title: 'y' });
+		const [bad] = await a.failures();
+		await a.discardFailed(bad.id);
+		await a.flush();
+		expect(server.pushes).toEqual([]);
+		expect(await a.status()).toMatchObject({ pending: 0, failed: 0 });
+	});
+});
+
+describe('round 2: pull holds the cursor for a skipped upsert', () => {
+	it("delivers another device's fields once the queued change is discarded", async () => {
+		const server = new FakeServer();
+		const a = device(server);
+		await a.attach('alice');
+		server.seed('alice', 'todos', { id: 'r1', title: 'one' });
+		await a.sync();
+		await a.update('todos', 'r1', { title: 'mine' });
+		server.failNext = new ApiError(422, null);
+		await a.sync();
+		server.seed('alice', 'todos', { id: 'r1', title: 'one', extra: 'from the other device' });
+		await a.sync();
+		const [bad] = await a.failures();
+		await a.discardFailed(bad.id);
+		await a.sync();
+		expect((await a.get('todos', 'r1'))?.extra).toBe('from the other device');
+	});
+});

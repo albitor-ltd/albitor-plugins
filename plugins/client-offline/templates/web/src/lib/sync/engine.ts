@@ -64,7 +64,8 @@ interface Ctx {
 
 /** Server errors are retried this many times in all before the change is marked failed. */
 export const MAX_ATTEMPTS = 5;
-const backoff = (attempts: number) => Math.min(2000 * 2 ** (attempts - 1), 5 * 60_000);
+const MAX_BACKOFF = 5 * 60_000;
+const backoff = (attempts: number) => Math.min(2000 * 2 ** (attempts - 1), MAX_BACKOFF);
 
 const webLock: Lock = (name, fn) =>
 	typeof navigator !== 'undefined' && navigator.locks ? navigator.locks.request(name, fn) : fn();
@@ -73,6 +74,8 @@ type Outcome = 'done' | 'offline' | 'auth' | 'retry' | 'fail';
 
 /** What a failed upload means. Only a change the server will never accept is `fail`. */
 function classify(err: unknown, op: OutboxEntry['op']): Outcome {
+	// Known gap: a request that times out before any response arrives also lands here, so a server
+	// that hangs for ever pauses the whole queue without counting attempts.
 	if (err instanceof NetworkError) return 'offline';
 	if (err instanceof ApiError) {
 		const s = err.status;
@@ -156,13 +159,14 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			const entry = await exclusive(ctx, async () => {
 				const outbox = await ctx.store.listOutbox();
 				// A rejected change blocks later changes to the same record, which depend on it.
-				// A change backing off after a server error blocks them too, until its time comes.
+				// A change backing off after a server error blocks them too, until its time comes. A
+				// retryAt further off than the longest backoff means the clock went back: it is due.
 				const t = now();
 				const blocked = new Set(
-					outbox.filter((e) => e.state === 'failed' || (e.state === 'pending' && (e.retryAt ?? 0) > t)).map(keyOf)
+					outbox.filter((e) => e.state === 'failed' || (e.state === 'pending' && (e.retryAt ?? 0) > t && (e.retryAt ?? 0) - t <= MAX_BACKOFF)).map(keyOf)
 				);
 				const next = outbox.find((e) => e.state === 'pending' && !blocked.has(keyOf(e)));
-				if (!next) return undefined;
+				if (!next || ctx.closed) return undefined;
 				const sent = { ...next, state: 'inflight' as const };
 				await ctx.store.putOutbox(sent);
 				return sent;
@@ -175,14 +179,16 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			} catch (err) {
 				outcome = classify(err, entry.op);
 				if (outcome === 'fail') {
-					await exclusive(ctx, () =>
-						ctx.store.putOutbox({
+					await exclusive(ctx, async () => {
+						// Sign-out has wiped this store: writing now would resurrect discarded work.
+						if (ctx.closed) return;
+						await ctx.store.putOutbox({
 							...entry,
 							state: 'failed',
 							attempts: entry.attempts + 1,
 							error: `The server rejected this change${err instanceof ApiError ? ` (${err.status})` : ''}.`
-						})
-					);
+						});
+					});
 					result.failed++;
 					continue;
 				}
@@ -190,7 +196,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 
 			await exclusive(ctx, async () => {
 				const live = (await ctx.store.listOutbox()).find((e) => e.id === entry.id);
-				if (!live) return;
+				if (!live || ctx.closed) return;
 				if (outcome === 'done' && live.rev === entry.rev) {
 					await ctx.store.deleteOutbox(entry.id);
 				} else if (outcome === 'retry') {
@@ -243,6 +249,8 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 					if (touched.has(id)) held = true;
 					else await ctx.store.deleteRecord(collection, id);
 				}
+				// A permanently failed entry therefore keeps this collection's cursor back, and each pull
+				// re-downloads the delta, until the person retries or discards it.
 				if (!held) await ctx.store.setCursor(collection, page.cursor);
 			});
 		}
@@ -421,7 +429,9 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			const ctx = need();
 			await exclusive(ctx, async () => {
 				for (const e of await ctx.store.listOutbox()) {
-					if (e.state === 'failed') await ctx.store.putOutbox({ ...e, state: 'pending', error: undefined });
+					if (e.state === 'failed') {
+						await ctx.store.putOutbox({ ...e, state: 'pending', error: undefined, attempts: 0, retryAt: undefined });
+					}
 				}
 			});
 			emit('write');
@@ -433,7 +443,15 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 				const e = (await ctx.store.listOutbox()).find((x) => x.id === id && x.state === 'failed');
 				if (!e) return;
 				await ctx.store.deleteOutbox(id);
-				if (e.op === 'create') await ctx.store.deleteRecord(e.collection, e.entityId);
+				if (e.op === 'create') {
+					// The server never had the record, so changes queued behind its create cannot apply.
+					for (const dep of await ctx.store.listOutbox()) {
+						if (dep.collection === e.collection && dep.entityId === e.entityId && dep.state !== 'inflight') {
+							await ctx.store.deleteOutbox(dep.id);
+						}
+					}
+					await ctx.store.deleteRecord(e.collection, e.entityId);
+				}
 			});
 			emit('write');
 		},
@@ -448,10 +466,16 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 				if (left > 0 && !opts?.discard) return { ok: false, pending: left };
 				// Nothing is unsynced (or the person chose to discard): wiping loses nothing unasked.
 				ctx.closed = true;
-				await ctx.store.clear();
+				try {
+					await ctx.store.clear();
+				} catch (err) {
+					ctx.closed = false; // the store is still usable: do not leave the session refusing writes
+					throw err;
+				}
 				return { ok: true };
 			});
-			if (result.ok) engine.detach();
+			// Someone else may have attached while this was finishing; only end the session that asked.
+			if (result.ok && current === ctx) engine.detach();
 			return result;
 		},
 

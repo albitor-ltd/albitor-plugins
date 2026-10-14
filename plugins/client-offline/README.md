@@ -60,7 +60,7 @@ Not built, on purpose or yet: no caps on record, payload or outbox size, or on p
 the pull is unpaginated; no `BroadcastChannel`, so another tab's changes appear on its next sync, not
 at once; create and update use two storage transactions (a crash between them can leave a record
 with no queued entry); discarding while a push is in flight can write that entry back as failed; if
-IndexedDB cannot open, data falls back to memory and is lost on reload.
+IndexedDB cannot open, data falls back to memory and is lost on reload; a permanently failed change keeps its collection's pull cursor back (each pull re-downloads the delta) until it is retried or discarded; a server that hangs for ever is classed as offline and pauses the whole queue without counting attempts.
 
 ## Layout
 
