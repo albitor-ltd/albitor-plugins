@@ -1,0 +1,9 @@
+{
+  "slot_templates": [
+    {
+      "path": "api/internal/shell/router.go",
+      "syntax": "go",
+      "source": "api/internal/shell/router.go.tmpl"
+    }
+  ]
+}

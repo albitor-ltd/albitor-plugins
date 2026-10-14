@@ -92,5 +92,19 @@
       "technical-writing"
     ],
     "license": "MIT"
+  },
+  "api-go": {
+    "description": "The api-runtime plugin for Go APIs: an HTTP server skeleton with request logging, a middleware chain, routes, paging, a health route, an OpenAPI contract and a local test issuer, behind the api.middleware and api.routes slots.",
+    "category": "development",
+    "keywords": [
+      "api",
+      "api-runtime",
+      "go",
+      "http",
+      "middleware",
+      "pagination",
+      "openapi"
+    ],
+    "license": "MIT"
   }
 }

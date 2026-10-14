@@ -33,6 +33,7 @@ scripts/validate-plugins.sh       manifest validation (also run by CI)
 | `carbon` | IBM Carbon Design System for enterprise interfaces |
 | `auth` | Cognito-backed sign-up and login |
 | `docs` | Diataxis, C4 and arc42 documentation skills |
+| `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).

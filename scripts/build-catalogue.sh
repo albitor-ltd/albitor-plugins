@@ -10,7 +10,8 @@
 # --check  write nothing; exit 1 if the output differs from the committed catalogue.
 #
 # Catalogue-facing metadata (description, category, keywords, license) lives in
-# catalogue/metadata.json; the key order there is the catalogue order.
+# catalogue/metadata.json; the key order there is the catalogue order. A plugin with no legacy pin
+# (a schema-2 plugin born in this repository) appears only in monorepo mode.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -44,6 +45,20 @@ if [[ "$mode" == monorepo ]]; then
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
 fi
 
+# Legacy mode points every plugin at its old repo: a schema-1 plugin with no pin is an error,
+# never a silent omission. Only a schema-2 plugin (born here, no old repo) may lack one.
+if [[ "$mode" == legacy ]]; then
+  while IFS= read -r name; do
+    manifest="$root/plugins/$name/.claude-plugin/plugin.json"
+    [[ -f "$manifest" ]] || { echo "missing $manifest" >&2; exit 1; }
+    [[ "$(jq -r '.schema // 1' "$manifest")" == 2 ]] && continue
+    if ! jq -e --arg n "$name" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null; then
+      echo "error: $name is a schema-1 plugin with no entry in catalogue/legacy-pins.json" >&2
+      exit 1
+    fi
+  done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
+fi
+
 render() {
   jq -a -n \
     --arg mode "$mode" \
@@ -65,7 +80,9 @@ render() {
       description: $desc,
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
-        [$meta[0] | to_entries[] | .key as $n | {name: $n, source: source($n)} + .value]
+        [$meta[0] | to_entries[]
+          | select($mode == "monorepo" or $pins[0][.key] != null)
+          | .key as $n | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)
       )
     }'
