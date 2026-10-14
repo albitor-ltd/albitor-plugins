@@ -10,7 +10,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded pull request runs only; every push to main runs to completion.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   manifests:
@@ -20,6 +21,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          fetch-depth: 0 # the catalogue guards resolve the release tags
       - name: Validate plugin manifests
         run: scripts/validate-plugins.sh
       - name: The pin audit fails closed
@@ -32,12 +34,13 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          fetch-depth: 0 # the generator resolves each release tag to its commit (sha)
       - name: Committed catalogue matches the generator
         run: scripts/build-catalogue.sh --check
-      - name: Monorepo-mode catalogue generates and parses
+      - name: Legacy-mode catalogue still generates and parses
         run: |
-          scripts/build-catalogue.sh --mode monorepo --out "$RUNNER_TEMP/monorepo.json"
-          jq -e '.plugins | length > 0' "$RUNNER_TEMP/monorepo.json"
+          scripts/build-catalogue.sh --mode legacy --out "$RUNNER_TEMP/legacy.json"
+          jq -e '.plugins | length > 0' "$RUNNER_TEMP/legacy.json"
 
   lint:
     name: lint
@@ -109,8 +112,8 @@ jobs:
         run: scripts/verify-api-go.sh
 
   # Placeholder for the socket conformance and certification harness
-  # (albitor-ltd/albitor#3164). Deliberately a no-op until that lands; the job name is stable
-  # so branch protection can require it now.
+  # (albitor-ltd/albitor#3164). Deliberately a no-op until that lands. It must NOT be a required
+  # check until then: a required no-op reads as a passing gate while checking nothing.
   conformance:
     name: conformance
     runs-on: ubuntu-24.04

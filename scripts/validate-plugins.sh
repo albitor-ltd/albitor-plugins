@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
 # Validate every plugins/*/.claude-plugin/plugin.json and its catalogue metadata:
 # the JSON parses, name matches the directory, version is semver, and catalogue/metadata.json
-# lists exactly the plugins that exist.
+# lists exactly the plugins that exist, with the plugin.json description.
+#
+#   validate-plugins.sh [--mode monorepo|legacy]
+#
+# Only legacy mode (the old per-plugin repositories) requires a plugin to have a pin in
+# catalogue/legacy-pins.json; in monorepo mode (the default) the pins are history.
 set -euo pipefail
+
+mode=monorepo
+case "${1:-}" in
+  "") ;;
+  --mode) mode="${2:?--mode needs a value}" ;;
+  *) echo "usage: $0 [--mode monorepo|legacy]" >&2; exit 2 ;;
+esac
+[[ "$mode" == monorepo || "$mode" == legacy ]] || { echo "mode must be legacy or monorepo" >&2; exit 2; }
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'
@@ -34,13 +47,15 @@ for dir in "${dirs[@]}"; do
   [[ -n "$(jq -r '.description // ""' "$manifest")" ]] || err "$base: plugin.json has no description"
   jq -e --arg n "$base" 'has($n)' "$root/catalogue/metadata.json" >/dev/null ||
     err "$base: no entry in catalogue/metadata.json"
+  [[ "$(jq -r --arg n "$base" '.[$n].description // ""' "$root/catalogue/metadata.json")" == "$(jq -r '.description // ""' "$manifest")" ]] ||
+    err "$base: catalogue/metadata.json description differs from plugin.json"
   # A schema-2 plugin was born in this repository: it has no old repository to pin in legacy mode.
   # A legacy-pinned plugin is released from its old repo and must stay schema 1; flipping it to 2
   # would drop it from the legacy catalogue without a word.
   if [[ "$(jq -r '.schema // 1' "$manifest")" == 2 ]]; then
     ! jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
       err "$base: schema 2 but listed in catalogue/legacy-pins.json (a legacy plugin must stay schema 1)"
-  else
+  elif [[ "$mode" == legacy ]]; then
     jq -e --arg n "$base" 'has($n)' "$root/catalogue/legacy-pins.json" >/dev/null ||
       err "$base: no entry in catalogue/legacy-pins.json"
   fi

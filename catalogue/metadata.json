@@ -32,7 +32,7 @@
     "license": "MIT"
   },
   "mui": {
-    "description": "Build, audit, and preview Material Design interfaces across frameworks: the shared Material foundations (colour, type, spacing, elevation, theming) with a framework-appropriate component layer \u2014 SMUI on SvelteKit, @mui/material on React \u2014 plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
+    "description": "Build, audit, and preview Material Design interfaces in the app's own framework (Svelte SMUI/m3-svelte, React @mui/material): the shared Material system (colour, type, spacing, elevation, theming) and component inventory, plus WCAG 2.2 AA accessibility for consumer and general-purpose web apps.",
     "category": "development",
     "keywords": [
       "mui",
@@ -62,7 +62,7 @@
     "license": "Apache-2.0"
   },
   "auth": {
-    "description": "The default auth pack: end-user sign-up and login for a delivered app, backed by an Amazon Cognito user pool with a public app client, in-app UI (styled by the app's chosen design system, not the Cognito Hosted UI), and JWT-validated API middleware. Self-sign-up is on by default.",
+    "description": "The default auth pack: end-user sign-up and sign-in for a delivered app, backed by an Amazon Cognito user pool. Ships templated files (pool and public client, the API's token check and GET /api/me, the sign-in, sign-up, confirm-code and reset screens) that the platform renders into a new BYOA app's first commit, and a skill for what each build still writes. Self-sign-up is on by default; email verification is required.",
     "category": "development",
     "keywords": [
       "auth",
@@ -78,7 +78,7 @@
     "license": "MIT"
   },
   "docs": {
-    "description": "Author an app's documentation to a consistent standard with three authoritative frameworks: Di\u00e1taxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
+    "description": "Author an app's documentation with three authoritative frameworks: Diátaxis (the four documentation modes), the C4 model (software architecture diagrams), and arc42 (the 12-section architecture template). The first-party required-documentation capability skills.",
     "category": "development",
     "keywords": [
       "required-documentation",
@@ -106,7 +106,7 @@
     "license": "MIT"
   },
   "api-go": {
-    "description": "The api-runtime plugin for Go APIs: an HTTP server skeleton with request logging, a middleware chain, routes, paging, a health route, an OpenAPI contract and a local test issuer, behind the api.middleware and api.routes slots.",
+    "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
     "category": "development",
     "keywords": [
       "api",
