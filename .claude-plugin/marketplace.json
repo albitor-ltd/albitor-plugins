@@ -232,6 +232,27 @@
         "online"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "kit-shadcn",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/kit-shadcn",
+        "ref": "kit-shadcn/v0.1.0",
+        "sha": "190f8997ce4ad375ebd5a0eee296c0373047d931"
+      },
+      "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
+      "category": "development",
+      "keywords": [
+        "component-kit",
+        "shadcn",
+        "shadcn-svelte",
+        "bits-ui",
+        "svelte",
+        "accessibility"
+      ],
+      "license": "MIT"
     }
   ]
 }
