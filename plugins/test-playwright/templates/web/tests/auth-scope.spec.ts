@@ -68,6 +68,95 @@ test.describe("attachAuth", () => {
 		}
 	});
 
+	test("a same-origin redirect is followed by the browser without the bearer", async ({ browser }) => {
+		const app = await listen((req) => {
+			if (req.url === "/api/old") {
+				return { status: 302, headers: { Location: "/api/new" } };
+			}
+			return { status: 200 };
+		});
+		const context = await browser.newContext({ storageState: EMPTY_STORAGE_STATE });
+		try {
+			await attachAuth(context, AUTH, app.origin);
+			const page = await context.newPage();
+			await page.goto(`${app.origin}/`);
+			await page.evaluate(() => fetch("/api/old").then((r) => r.text()));
+			expect(app.seen.find((s) => s.path === "/api/new")).toBeDefined();
+			// Documented, not wanted: the hop after a redirect does not come back through the route, so an
+			// API that redirects to another API path sees an anonymous request and fails closed.
+			expect(app.seen.find((s) => s.path === "/api/new")?.authorization).toBeUndefined();
+		} finally {
+			await context.close();
+			await app.close();
+		}
+	});
+
+	test("script and module-preload fetches are not round-tripped", async ({ browser }) => {
+		const app = await listen((req) => {
+			if (req.url === "/m.js") {
+				return { status: 200, headers: { "Content-Type": "text/javascript" }, body: "export const x = 1;" };
+			}
+			return {
+				status: 200,
+				body: '<!doctype html><title>x</title><link rel="modulepreload" href="/m.js"><main>ok</main>',
+			};
+		});
+		const context = await browser.newContext({ storageState: EMPTY_STORAGE_STATE });
+		try {
+			await attachAuth(context, AUTH, app.origin);
+			const page = await context.newPage();
+			await page.goto(`${app.origin}/`);
+			await expect.poll(() => app.seen.some((s) => s.path === "/m.js")).toBe(true);
+			expect(app.seen.find((s) => s.path === "/m.js")?.authorization).toBeUndefined();
+		} finally {
+			await context.close();
+			await app.close();
+		}
+	});
+
+	test("a streaming call is left alone rather than buffered, and goes without the bearer", async ({ browser }) => {
+		const app = await listen(() => ({ status: 200, headers: { "Content-Type": "text/event-stream" }, body: "data: 1\n\n" }));
+		const context = await browser.newContext({ storageState: EMPTY_STORAGE_STATE });
+		try {
+			await attachAuth(context, AUTH, app.origin);
+			const page = await context.newPage();
+			await page.goto(`${app.origin}/`);
+			await page.evaluate(() => fetch("/api/stream", { headers: { Accept: "text/event-stream" } }).then((r) => r.text()));
+			expect(app.seen.find((s) => s.path === "/api/stream")?.authorization).toBeUndefined();
+		} finally {
+			await context.close();
+			await app.close();
+		}
+	});
+
+	test("a request still in flight when the context closes does not raise", async ({ browser }) => {
+		const app = await listen((req) => ({ status: 200, body: req.url ?? "" }));
+		const raised: string[] = [];
+		const onError = (err: unknown) => raised.push(String(err));
+		process.on("unhandledRejection", onError);
+		process.on("uncaughtException", onError);
+		try {
+			for (let round = 0; round < 8; round++) {
+				const context = await browser.newContext({ storageState: EMPTY_STORAGE_STATE });
+				await attachAuth(context, AUTH, app.origin);
+				const page = await context.newPage();
+				await page.goto(`${app.origin}/`);
+				await page.evaluate(() => {
+					for (let i = 0; i < 40; i++) {
+						fetch(`/api/slow-${i}`).catch(() => {});
+					}
+				});
+				await context.close();
+			}
+			await new Promise((r) => setTimeout(r, 500));
+			expect(raised).toEqual([]);
+		} finally {
+			process.off("unhandledRejection", onError);
+			process.off("uncaughtException", onError);
+			await app.close();
+		}
+	});
+
 	test("leaves a request that carries its own Authorization alone", async ({ browser }) => {
 		const app = await listen(() => ({ status: 200 }));
 		const context = await browser.newContext({ storageState: EMPTY_STORAGE_STATE });

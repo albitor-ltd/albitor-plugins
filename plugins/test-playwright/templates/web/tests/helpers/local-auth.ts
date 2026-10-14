@@ -73,8 +73,24 @@ export function authHeader(tokens: LocalTokens): Record<string, string> {
   return { Authorization: `Bearer ${tokens.idToken}` };
 }
 
-// attachAuth adds `auth` to every request the context makes to `origin`, by a route that checks
-// the origin (see authFor).
+// attachAuth adds `auth` to the app's own fetch and XHR calls to `origin`, by a route that checks
+// the origin (see authFor). Three things it is not:
+//
+//  - Not for pages, scripts, module preloads, images or EventSource: they go as they are, and a
+//    request whose Sec-Fetch-Dest is not "empty" (a preload, a script) is never round-tripped.
+//  - Not for streams. A call is answered by route.fetch, which buffers the whole response before the
+//    browser sees any of it, so a fetch() that streams (Accept: text/event-stream) is left alone
+//    and goes WITHOUT the bearer: give such a call its own Authorization header, which is also
+//    always left alone.
+//  - Not for the hop after a redirect. The browser follows a 3xx we hand it itself, and that hop
+//    does not come back through this route, so it carries no bearer: an API that redirects to
+//    another API path sees an anonymous request and fails closed. That is the price of never
+//    handing the bearer to a redirect's target, and the reason route.continue({ headers }) is not
+//    used (Chromium keeps an overridden header across a redirect, so an app-origin URL that
+//    redirects to another host would hand that host the bearer).
+//
+// A request still in flight when the context closes is dropped quietly: route.fetch and
+// route.fulfill throw "disposed" errors then, and an error out of a route handler fails the test.
 export async function attachAuth(
   context: BrowserContext,
   auth: Record<string, string>,
@@ -82,20 +98,25 @@ export async function attachAuth(
 ): Promise<void> {
   await context.route("**/*", async (route) => {
     const req = route.request();
-    // Only the app's own API calls need the identity. Pages, scripts and images go as they are.
     const type = req.resourceType();
-    const headers = type === "fetch" || type === "xhr" ? authFor(req.url(), origin, req.headers(), auth) : undefined;
-    if (!headers) {
-      await route.continue();
-      return;
+    const sent = req.headers();
+    const streams = (sent.accept ?? "").includes("text/event-stream");
+    const headers =
+      (type === "fetch" || type === "xhr") && !streams && (sent["sec-fetch-dest"] ?? "empty") === "empty"
+        ? authFor(req.url(), origin, sent, auth)
+        : undefined;
+    try {
+      if (!headers) {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch({ headers, maxRedirects: 0 });
+      await route.fulfill({ response });
+    } catch {
+      // The page or context went away mid-request (teardown), or the request failed outright. Fail
+      // the request if it can still be failed, and never throw out of the handler.
+      await route.abort().catch(() => {});
     }
-    // NOT route.continue({ headers }): Chromium keeps an overridden header across a redirect, so
-    // an app-origin URL that redirects to another host would hand that host the bearer. Fetch the
-    // app-origin request ourselves without following redirects and give the browser the answer,
-    // a 3xx included; the browser follows it itself, and the next hop comes back through this
-    // route with its own origin check.
-    const response = await route.fetch({ headers, maxRedirects: 0 });
-    await route.fulfill({ response });
   });
 }
 

@@ -69,8 +69,13 @@ describe("checkSelectors", () => {
 			assert.match(checkSelectors([s], "exclude").join(), /whole page/, s);
 		}
 	});
+	it("refuses a page root wrapped in :not() or :is()", () => {
+		for (const s of ["body:not(.x)", ":root:not([hidden])", "*:not(.x)", ":is(body)", ":where(html, body)", ":is(:is(main))", "body:not(.x):not(.y) *"]) {
+			assert.match(checkSelectors([s], "exclude").join(), /whole page/, s);
+		}
+	});
 	it("allows a root as the start of a selector that names one element", () => {
-		assert.deepEqual(checkSelectors(["body .banner", "main > #map", "html:lang(en) .x"], "exclude"), []);
+		assert.deepEqual(checkSelectors(["body .banner", "main > #map", "html:lang(en) .x", "body:not(.x) .banner", ":is(.a, .b) iframe"], "exclude"), []);
 	});
 	it("refuses an empty selector", () => {
 		assert.match(checkSelectors([""], "include").join(), /empty/);

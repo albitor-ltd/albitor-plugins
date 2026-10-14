@@ -70,6 +70,10 @@ const { username, password, signInRoute } = readCredentials(process.env);
 // The test id the setup types the username into, and looks for.
 const SIGN_IN_EMAIL_ID = "sign-in-email";
 
+// How long each step of typing the password and signing in may take: well under the test timeout,
+// so a stuck step fails into the catch that empties the password field.
+const SIGN_IN_STEP_MS = 5_000;
+
 // How long the setup looks for the sign-in screen before deciding there is none.
 // Generous on purpose: it is paid once per run, and only by an app with no
 // screen, while a cold edge that answers slowly must not be mistaken for one.
@@ -174,13 +178,17 @@ function runSignedOut(why: string): void {
 // value setter (so a framework that wraps the property still sees it) and the input and change
 // events. Playwright's own fill() would print the secret in the step title of the report.
 async function fillSecret(field: Locator, secret: string): Promise<void> {
-  await field.evaluate((el, value) => {
-    const input = el as HTMLInputElement;
-    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-    set?.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-  }, secret);
+  await field.evaluate(
+    (el, value) => {
+      const input = el as HTMLInputElement;
+      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      set?.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+    secret,
+    { timeout: SIGN_IN_STEP_MS },
+  );
 }
 
 setup("sign in once as the demo account", async ({ page }) => {
@@ -227,9 +235,13 @@ setup("sign in once as the demo account", async ({ page }) => {
   // password sitting in the field at that moment, or printed in a `fill("...")` step title, would
   // be in both. So it goes in through the page (the step is named "evaluate", its argument is not
   // printed) and, if anything below fails, the field is emptied before the snapshot is taken.
+  //
+  // EVERY WAIT HERE HAS ITS OWN TIMEOUT, shorter than the test's. A click on a disabled or covered
+  // button otherwise waits out the whole test timeout, and a test that times out never reaches the
+  // catch: the snapshot is taken with the password still in the field.
   try {
     await fillSecret(passwordField, password);
-    await page.getByTestId("sign-in-button").click();
+    await page.getByTestId("sign-in-button").click({ timeout: SIGN_IN_STEP_MS });
 
     // Prove the sign-in worked before saving it. A saved session that is not a
     // session turns every later spec red on its first assertion, one screen away
@@ -239,7 +251,7 @@ setup("sign in once as the demo account", async ({ page }) => {
     // fails, with the password still in the field. waitFor fails first, the field is emptied,
     // and a plain Error is thrown, so the snapshot Playwright writes for the failed test is taken
     // after.
-    await page.getByTestId("sign-in-form").waitFor({ state: "hidden", timeout: 5_000 });
+    await page.getByTestId("sign-in-form").waitFor({ state: "hidden", timeout: SIGN_IN_STEP_MS });
   } catch (err) {
     await fillSecret(passwordField, "").catch(() => {});
     throw new Error(`the demo account did not sign in at ${signInRoute}: ${err instanceof Error ? err.name : "failed"}`);

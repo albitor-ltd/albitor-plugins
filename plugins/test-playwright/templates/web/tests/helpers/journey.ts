@@ -334,6 +334,8 @@ export const test = base.extend<JourneyFixtures>({
     }
     const tokens = await signInAs(context, request, "alice", appOrigin());
     await use(authHeader(tokens));
+    // A request the auth route is still answering when the test ends must not fail it.
+    await context.unrouteAll({ behavior: "ignoreErrors" });
   }, { auto: true }],
   context: async ({ context }, use) => {
     const origin = appOrigin();

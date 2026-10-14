@@ -54,7 +54,14 @@ export function checkSelectors(selectors: readonly string[], kind: "include" | "
 		}
 		// A list is judged part by part; a part is the whole page when every compound in it is a page
 		// root, however they are combined (`body > *`, `html > body`, `:root *`).
-		const wholePage = raw.split(",").some((part) => {
+		// :not(...) only narrows a root by a hair (`body:not(.x)` is still the page), and :is() and
+		// :where() wrap a list (`:is(body)` is body), so the first is dropped and the others unwrapped.
+		let flat = raw;
+		for (let prev = ""; prev !== flat; ) {
+			prev = flat;
+			flat = flat.replace(/:not\([^()]*\)/gi, "").replace(/:(?:is|where|matches|-webkit-any|-moz-any)\(([^()]*)\)/gi, "$1");
+		}
+		const wholePage = flat.split(",").some((part) => {
 			const p = part.trim().toLowerCase();
 			return p !== "" && p.split(/[\s>+~]+/).every((tok) => PAGE_ROOTS.test(tok));
 		});
