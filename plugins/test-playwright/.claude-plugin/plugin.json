@@ -35,6 +35,7 @@
       { "path": "web/tests/unit/**", "mode": "managed" },
       { "path": "web/tests/smoke.spec.ts", "mode": "managed" },
       { "path": "web/tests/a11y.spec.ts", "mode": "managed" },
+      { "path": "web/tests/auth-scope.spec.ts", "mode": "managed" },
       { "path": "web/tests/journeys/README.md", "mode": "example" },
       { "path": ".github/workflows/journeys.yml", "mode": "managed" }
     ],

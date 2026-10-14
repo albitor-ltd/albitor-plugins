@@ -39,11 +39,11 @@ jobs:
       - name: Install the journey suite
         run: npm ci
         working-directory: web/tests
+      - name: Install the browser (the unit tests drive it too)
+        run: npx playwright install --with-deps chromium
+        working-directory: web/tests
       - name: Unit-test the harness helpers
         run: npm run unit
-        working-directory: web/tests
-      - name: Install the browser
-        run: npx playwright install --with-deps chromium
         working-directory: web/tests
       - name: Run the journeys
         run: npm test

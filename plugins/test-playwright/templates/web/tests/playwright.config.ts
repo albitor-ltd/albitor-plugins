@@ -10,6 +10,9 @@ import { DEMO_STORAGE_STATE, TESTS_DIR, WEB_ROOT } from "./helpers/storage-state
 
 const isCI = !!process.env.CI;
 
+// Where the results and the HTML report go. Only the harness's own tests move it.
+const outRoot = process.env.ALBITOR_TESTS_OUT || TESTS_DIR;
+
 // ALBITOR_JOURNEY_BASE_URL: an automated walk of this app's journeys drives an app that is ALREADY
 // deployed and published, so nothing is served from the runner. The suite boots no server and
 // browses that origin.
@@ -64,8 +67,8 @@ export default defineConfig({
 	retries: isCI ? 1 : 0,
 	timeout: 30_000,
 	expect: { timeout: 5_000 },
-	reporter: isCI ? [["list"], ["html", { open: "never" }]] : "list",
-	outputDir: resolve(TESTS_DIR, ".results"),
+	reporter: isCI ? [["list"], ["html", { open: "never", outputFolder: resolve(outRoot, "playwright-report") }]] : "list",
+	outputDir: resolve(outRoot, ".results"),
 	use: {
 		baseURL: journeyBaseURL || localBaseURL || `http://localhost:${webPort}`,
 		trace: "on-first-retry",

@@ -73,6 +73,32 @@ export function authHeader(tokens: LocalTokens): Record<string, string> {
   return { Authorization: `Bearer ${tokens.idToken}` };
 }
 
+// attachAuth adds `auth` to every request the context makes to `origin`, by a route that checks
+// the origin (see authFor).
+export async function attachAuth(
+  context: BrowserContext,
+  auth: Record<string, string>,
+  origin: string,
+): Promise<void> {
+  await context.route("**/*", async (route) => {
+    const req = route.request();
+    // Only the app's own API calls need the identity. Pages, scripts and images go as they are.
+    const type = req.resourceType();
+    const headers = type === "fetch" || type === "xhr" ? authFor(req.url(), origin, req.headers(), auth) : undefined;
+    if (!headers) {
+      await route.continue();
+      return;
+    }
+    // NOT route.continue({ headers }): Chromium keeps an overridden header across a redirect, so
+    // an app-origin URL that redirects to another host would hand that host the bearer. Fetch the
+    // app-origin request ourselves without following redirects and give the browser the answer,
+    // a 3xx included; the browser follows it itself, and the next hop comes back through this
+    // route with its own origin check.
+    const response = await route.fetch({ headers, maxRedirects: 0 });
+    await route.fulfill({ response });
+  });
+}
+
 // Sign a whole browser context in: every request its pages make to the APP'S OWN ORIGIN, the
 // app's fetches to /api/ included, carries the identity's token. A request to any other host (a
 // CDN, an identity provider) goes without it: context.setExtraHTTPHeaders would send the bearer
@@ -84,11 +110,6 @@ export async function signInAs(
   origin: string,
 ): Promise<LocalTokens> {
   const tokens = await localTokens(request, identity);
-  const auth = authHeader(tokens);
-  await context.route("**/*", async (route) => {
-    const req = route.request();
-    const headers = authFor(req.url(), origin, req.headers(), auth);
-    await (headers ? route.continue({ headers }) : route.continue());
-  });
+  await attachAuth(context, authHeader(tokens), origin);
   return tokens;
 }

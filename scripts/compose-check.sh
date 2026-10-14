@@ -51,9 +51,10 @@ if [[ $journeys -eq 1 ]]; then
   sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' "$api/slots/api/internal/shell/router.go.tmpl" >"$tmp/app/api/internal/shell/router.go"
   cd "$tmp/app/web/tests"
   npm ci
-  npm run unit
   # shellcheck disable=SC2086 # the flags are a word list on purpose
   npx playwright install ${PLAYWRIGHT_INSTALL_FLAGS:-} chromium
+  # The harness's unit tests drive the browser too (a failed sign-in must leave no password).
+  npm run unit
   # The temporary go.work above must not capture the composed api/ module.
   GOWORK=off npm test
   echo "journeys pass against the composed default shell"

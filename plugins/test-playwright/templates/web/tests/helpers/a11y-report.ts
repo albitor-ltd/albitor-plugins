@@ -21,6 +21,7 @@ export type Waiver = { rule: string; reason: string };
 
 const RULE_ID = /^[a-z][a-z0-9-]{0,63}$/;
 const MAX_NODES_SHOWN = 10;
+const PAGE_ROOTS = /^(html|body|main|:root|\*|\[role=["']?main["']?\])$/;
 
 // checkWaivers returns what is wrong with a list of waivers, or [] when it is fit to use.
 export function checkWaivers(waivers: readonly Waiver[]): string[] {
@@ -47,10 +48,17 @@ export function checkWaivers(waivers: readonly Waiver[]): string[] {
 export function checkSelectors(selectors: readonly string[], kind: "include" | "exclude"): string[] {
 	const problems: string[] = [];
 	for (const raw of selectors) {
-		const s = raw.trim().toLowerCase().replace(/\s+/g, " ");
-		if (s === "") {
+		if (raw.trim() === "") {
 			problems.push(`an empty ${kind} selector`);
-		} else if (/^(html|body|main|:root|\*|(html|body|main) \*|\[role=("|')?main("|')?\])$/.test(s)) {
+			continue;
+		}
+		// A list is judged part by part; a part is the whole page when every compound in it is a page
+		// root, however they are combined (`body > *`, `html > body`, `:root *`).
+		const wholePage = raw.split(",").some((part) => {
+			const p = part.trim().toLowerCase();
+			return p !== "" && p.split(/[\s>+~]+/).every((tok) => PAGE_ROOTS.test(tok));
+		});
+		if (wholePage) {
 			problems.push(`the ${kind} selector "${raw.trim()}" is the whole page; name the one element`);
 		}
 	}

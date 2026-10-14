@@ -170,6 +170,19 @@ function runSignedOut(why: string): void {
   writeFileSync(DEMO_STORAGE_STATE, JSON.stringify(EMPTY_STORAGE_STATE));
 }
 
+// fillSecret sets an input's value and tells the page, the way typing would: through the native
+// value setter (so a framework that wraps the property still sees it) and the input and change
+// events. Playwright's own fill() would print the secret in the step title of the report.
+async function fillSecret(field: Locator, secret: string): Promise<void> {
+  await field.evaluate((el, value) => {
+    const input = el as HTMLInputElement;
+    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    set?.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, secret);
+}
+
 setup("sign in once as the demo account", async ({ page }) => {
   mkdirSync(dirname(DEMO_STORAGE_STATE), { recursive: true });
 
@@ -208,13 +221,29 @@ setup("sign in once as the demo account", async ({ page }) => {
   }
 
   await emailField.fill(username);
-  await page.getByTestId("sign-in-password").fill(password);
-  await page.getByTestId("sign-in-button").click();
+  const passwordField = page.getByTestId("sign-in-password");
+  // THE PASSWORD MUST NOT OUTLIVE THE SIGN-IN IN ANYTHING A FAILURE LEAVES BEHIND. Playwright
+  // writes a page snapshot (error-context.md) for a failed test, and CI uploads the HTML report; a
+  // password sitting in the field at that moment, or printed in a `fill("...")` step title, would
+  // be in both. So it goes in through the page (the step is named "evaluate", its argument is not
+  // printed) and, if anything below fails, the field is emptied before the snapshot is taken.
+  try {
+    await fillSecret(passwordField, password);
+    await page.getByTestId("sign-in-button").click();
 
-  // Prove the sign-in worked before saving it. A saved session that is not a
-  // session turns every later spec red on its first assertion, one screen away
-  // from the thing that actually broke.
-  await expect(page.getByTestId("sign-in-form")).toBeHidden();
+    // Prove the sign-in worked before saving it. A saved session that is not a
+    // session turns every later spec red on its first assertion, one screen away
+    // from the thing that actually broke.
+    //
+    // NOT expect(...).toBeHidden(): a failed matcher takes its page snapshot at the moment it
+    // fails, with the password still in the field. waitFor fails first, the field is emptied,
+    // and a plain Error is thrown, so the snapshot Playwright writes for the failed test is taken
+    // after.
+    await page.getByTestId("sign-in-form").waitFor({ state: "hidden", timeout: 5_000 });
+  } catch (err) {
+    await fillSecret(passwordField, "").catch(() => {});
+    throw new Error(`the demo account did not sign in at ${signInRoute}: ${err instanceof Error ? err.name : "failed"}`);
+  }
 
   await page.context().storageState({ path: DEMO_STORAGE_STATE });
 

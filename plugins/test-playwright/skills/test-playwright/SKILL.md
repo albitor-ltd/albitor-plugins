@@ -54,6 +54,10 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   session every spec inherits. Do not sign in again, and do not sign up.
 - In a local run the journey fixture signs the browser in as the fixed `alice` identity from the local
   issuer, and `appAuthHeaders` carries the same bearer on direct `request` calls.
+  The bearer goes only on the app's own fetch and XHR calls to its own origin, never to another host;
+  an app call that redirects off-origin fails rather than carrying it along.
+- The demo password is typed through the page, not Playwright's `fill()`, and the field is emptied if
+  the sign-in fails, so no failure snapshot, report or trace holds it. Do not log it or fill it from a spec.
 - Only the one sign-up spec signs up, with the platform's mailbox helper (`helpers/mailbox.ts`:
   `walkMailboxAvailable`, `walkAccount`, `awaitVerification`). It starts signed out
   (`test.use({ storageState: EMPTY_STORAGE_STATE })`), signs up with `walkAccount()`'s address and

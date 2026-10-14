@@ -64,6 +64,14 @@ describe("checkSelectors", () => {
 			assert.match(checkSelectors([s], "exclude").join(), /whole page/, s);
 		}
 	});
+	it("refuses lists and descendants made only of page roots", () => {
+		for (const s of ["html, body", "body,main", "body > *", "html > body", "body main", ":root *", "[role=main] *", "body, .ok"]) {
+			assert.match(checkSelectors([s], "exclude").join(), /whole page/, s);
+		}
+	});
+	it("allows a root as the start of a selector that names one element", () => {
+		assert.deepEqual(checkSelectors(["body .banner", "main > #map", "html:lang(en) .x"], "exclude"), []);
+	});
 	it("refuses an empty selector", () => {
 		assert.match(checkSelectors([""], "include").join(), /empty/);
 	});
