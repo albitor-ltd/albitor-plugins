@@ -1,0 +1,45 @@
+{
+  "schema": 2,
+  "name": "kit-carbon",
+  "displayName": "Component kit (Carbon)",
+  "version": "0.1.0",
+  "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": ["component-kit", "carbon", "carbon-components-svelte", "svelte", "accessibility"],
+  "kind": "socket",
+  "provides": ["component-kit@1"],
+  "requires": ["web-framework@1"],
+  "contributes": {
+    "dependencies": {
+      "npm": [
+        "carbon-components-svelte@0.112.0",
+        "carbon-icons-svelte@13.15.0",
+        "axe-core@4.13.0",
+        "jsdom@30.1.1",
+        "@types/jsdom@30.0.0"
+      ]
+    },
+    "files": [
+      { "path": "web/vitest.config.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/contrast.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/AppShell.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Button.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Dialog.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/EmptyState.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Field.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Table.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Toaster.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/toast.svelte.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/theme.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/index.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Showcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/kit.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/dialog.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } }
+    ],
+    "skills": ["kit-carbon"]
+  }
+}
