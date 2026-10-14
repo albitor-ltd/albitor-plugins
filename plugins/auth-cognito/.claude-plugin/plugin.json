@@ -1,0 +1,65 @@
+{
+  "schema": 2,
+  "name": "auth-cognito",
+  "displayName": "Auth (Amazon Cognito)",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "auth",
+    "cognito",
+    "authentication",
+    "sign-up",
+    "sign-in",
+    "jwt",
+    "session",
+    "route-guard"
+  ],
+  "provides": ["auth@1"],
+  "requires": ["api-runtime@1", "web-framework@1"],
+  "contributes": {
+    "files": [
+      { "path": "api/internal/identity/identity.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "api/internal/identity/identity_test.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "api/internal/shell/identity_verify.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "api/internal/shell/identity_token.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "api/internal/shell/identity_cognito.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "api/internal/shell/identity_test.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "api/internal/shell/identity_hardening_test.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "web/src/lib/auth/session.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/auth/session.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/auth/guard.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/auth/guard.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/auth/client.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/auth/client.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/shell/scope.d/auth-cognito.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      {
+        "path": "web/src/routes/(auth)/**",
+        "mode": "example",
+        "when": { "web-framework": "web-svelte", "component-kit": "kit-shadcn" }
+      },
+      {
+        "path": "web/tests/journeys/sign-in.spec.ts",
+        "mode": "example",
+        "when": { "web-framework": "web-svelte", "test-harness": "test-playwright" }
+      }
+    ],
+    "slots": {
+      "api.middleware": ["IdentityVerify"],
+      "api.routes": ["IdentityRoutes"],
+      "web.route-guard": "requireSession"
+    },
+    "manifest": {
+      "services": {
+        "auth": { "provider": "cognito", "posture": "private", "sign_up": "open" }
+      }
+    },
+    "journeys": ["sign-in"],
+    "skills": ["auth-cognito"]
+  }
+}
