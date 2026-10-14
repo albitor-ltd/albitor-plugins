@@ -21,6 +21,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - CI: `cancel-in-progress` applies to pull requests only; `validate-plugins.sh` requires a legacy
   pin only with `--mode legacy`; `build-catalogue.sh` fails on a missing version or tag; the
   catalogue description must equal `plugin.json` (it had drifted for `auth`, `mui`, `docs`).
+- `kit-shadcn` states `"themeable": true` and `kit-carbon` `"themeable": false`; the `albitor-kit`
+  layer is documented as `kit-shadcn`'s theming contract (albitor-ltd/albitor#3236). `web-svelte`'s
+  npm dependencies are exact pins, and its seed `web/package.json` and lockfile match them
+  (albitor-ltd/albitor#3235). `@sveltejs/kit` 3.0.1 (2026-10-06) and `@sveltejs/adapter-static`
+  4.0.0 (2026-10-01) are pinned under the 14-day rule because no older release of their major
+  exists; transitives in the seeded lockfile are not subject to the rule (current practice).
+  `compose-check.sh` falls back to `npm install` only where the composer merged dependencies, and
+  reports the failing `npm ci` there as an expected failure (albitor-ltd/albitor#3178).
 
 ### Added
 

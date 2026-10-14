@@ -10,9 +10,12 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
   (on [Bits UI](https://bits-ui.com)), `Toaster` and `toast`, `EmptyState`.
-- One token file, `tokens.css`: colour roles, radius and type, in light and dark, in an
-  `albitor-kit` cascade layer so an unlayered declaration (an app, or a visual-language plugin)
-  wins. The platform reads `preview-tokens.json` for the build preview.
+- One token file, `tokens.css`: colour roles, radius and type, in light and dark. The `albitor-kit`
+  cascade layer is the theming contract: every token is declared inside
+  `@layer albitor-kit { :root { ... } }`, so an unlayered declaration of the same custom property
+  (an app, or a visual-language plugin) wins. The kit states `"themeable": true` in `plugin.json`,
+  which is what lets a visual language compose over it. The platform reads `preview-tokens.json`
+  for the build preview.
 - Colour contrast that passes out of the box: `contrast.test.ts` computes WCAG 2.2 AA ratios for
   every foreground and background pair the components use, in both schemes, from the shipped
   tokens (axe cannot judge contrast without layout).
