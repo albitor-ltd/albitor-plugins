@@ -33,6 +33,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   interface for the Go API over one DynamoDB table, the in-memory fake, the conformance suite
   (run against DynamoDB Local in CI) and the `services.tables` fragment. Stdlib only (the adapter
   signs its own requests). Enters the catalogue once tagged `data-dynamodb/v0.1.0`.
+- `client-online` plugin (albitor-ltd/albitor#3171): the `client-data@1` plugin for online-only
+  apps, schema 2. TanStack Query for Svelte behind `web.providers`, a shared retry policy, API query
+  helpers and loading, offline, error and empty states. Not in the catalogue until it is tagged
+  `client-online/v0.1.0` and the catalogue is regenerated.
 
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.
