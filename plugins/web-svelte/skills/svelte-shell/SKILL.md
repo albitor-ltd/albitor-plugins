@@ -1,0 +1,88 @@
+---
+name: svelte-shell
+description: How to add a route, a page and a nav entry on the web-svelte shell, and what the shell owns. Use when a build touches web/src/routes, the nav, providers or the route guard of a SvelteKit app composed from the web-svelte plugin.
+---
+
+# The web-svelte shell
+
+The app is a SvelteKit static single-page app under `web/`. Routes are SvelteKit's own file routing
+and belong to the app, so **adding a page never edits a managed file**.
+
+## Add a page
+
+1. Create `web/src/routes/<name>/+page.svelte`. A route group in parentheses, such as
+   `web/src/routes/(app)/reports/+page.svelte`, shares a layout and adds nothing to the URL.
+2. Give it a `<svelte:head><title>` and one `<h1>`.
+3. Load data with the API client, in the page or a `+page.ts`:
+
+   ```ts
+   import { get, post, ApiError, NetworkError } from '../../lib/shell/api';
+   const items = await get<Item[]>('/items');
+   ```
+
+   Paths are app-relative and always go to this app's `/api`. Catch `NetworkError` (check `.offline`)
+   and `ApiError` (`.status`, `.body`) and show the person what happened.
+
+SvelteKit 3 has no `$lib` alias, and this shell configures none: import with relative paths.
+
+## Put a page in the nav
+
+Add a sibling `nav.ts` to the route directory:
+
+```ts
+// web/src/routes/(app)/reports/nav.ts
+import type { NavMeta } from '../../../lib/shell/types';
+export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
+```
+
+- `label` is plain text, 1 to 64 characters: letters, digits, spaces and `. , & ( ) / _ : -`.
+- `order` is an integer from 0 to 1000; lower is first. `group` is optional, a lower-case identifier.
+- The link is the route's path with route groups removed, so the file above links to `/reports`.
+- A route with a parameter (`[id]`) has no single link and cannot be a nav entry.
+- **Put the nav entry in `nav.ts`, never in `+page.ts`:** SvelteKit rejects unknown exports from
+  `+page.ts`, and the build fails.
+- Delete `nav.ts` to take a page out of the nav. The shell collects every
+  `src/routes/**/nav.ts` at build time through `import.meta.glob`; a malformed one fails the dev
+  server with the file named, and is skipped with a warning in a production build.
+
+## What the shell owns (managed files: do not edit)
+
+| File | Role |
+|---|---|
+| `src/routes/+layout.svelte`, `+layout.ts` | The slot host: providers wrap the kit's `AppShell`; every navigation runs the route guard |
+| `src/lib/shell/nav.generated.ts`, `providers.generated.ts` | Rendered from plugin slot fragments (`web.nav`, `web.providers`, `web.route-guard`) |
+| `src/lib/shell/nav.ts`, `guard.ts`, `api.ts`, `types.ts`, `scope.ts` | Nav merge and ordering, guard runner, API client, contract types |
+| `src/service-worker/` | Caches the built app so it opens offline; never caches `/api` |
+| `vite.config.ts` (SvelteKit 3 config lives here), `tsconfig.json`, `scripts/local-serve.mjs` | Build and the local run |
+
+To change one, **eject** it (the file becomes yours and the lock records it); do not edit it in
+place.
+
+## Seeded files you own
+
+`src/routes/+error.svelte` (error and 404), `src/routes/offline/+page.svelte`,
+`src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`, `src/app.html`,
+`package.json` and its lockfile.
+
+## Plugins: providers and the route guard
+
+A plugin that fills `web.providers` or `web.route-guard` names an identifier and ships a module in
+`src/lib/shell/scope.d/` that exports it. A provider is a Svelte component that renders its
+`children` snippet. A guard is `({ url }) => string | void`: return a same-origin path to redirect,
+nothing to allow, and always allow the path you redirect to. A guard is a convenience, not access
+control; the API must check the caller.
+
+## Run and verify
+
+- `npm run dev` starts the dev server and forwards `/api` to `ALBITOR_API_ORIGIN` (default
+  `http://127.0.0.1:8080`).
+- `npm run local` builds and serves `build/` on `PORT` (default 3000) with `/api` forwarded and
+  `/healthz` answering `ok`: the web side of the local run contract.
+- `npm run check` (types), `npm test` (the shell's unit tests), `npm run build`.
+
+## The component-kit contract
+
+The shell imports `src/lib/kit/AppShell.svelte` from the component-kit plugin. It receives
+`nav: NavGroup[]` (ungrouped entries first, then each group), `path: string` (the current
+pathname, for the active link) and `children: Snippet`. It must render the landmarks: a nav, a
+`main` and a skip link.

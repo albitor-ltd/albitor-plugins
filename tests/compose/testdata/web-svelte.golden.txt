@@ -1,0 +1,309 @@
+=== .albitor/lock.json (not shown) ===
+=== .albitor/shell.json ===
+{
+  "schema": 1,
+  "sockets": [
+    {
+      "socket": "web-framework",
+      "plugin": "web-svelte",
+      "version": "0.1.0"
+    },
+    {
+      "socket": "component-kit",
+      "plugin": "kit-stub",
+      "version": "0.0.1"
+    },
+    {
+      "socket": "auth",
+      "plugin": "auth-stub",
+      "version": "0.0.1"
+    },
+    {
+      "socket": "client-data",
+      "plugin": "client-stub"
+    },
+    {
+      "socket": "deploy-target",
+      "plugin": "deploy-stub"
+    },
+    {
+      "socket": "test-harness",
+      "plugin": "harness-stub"
+    }
+  ],
+  "slots": [
+    {
+      "slot": "web.providers",
+      "file": "web/src/lib/shell/providers.generated.ts",
+      "contributors": [
+        "auth-stub"
+      ]
+    },
+    {
+      "slot": "web.nav",
+      "file": "web/src/lib/shell/nav.generated.ts",
+      "contributors": [
+        "auth-stub"
+      ]
+    },
+    {
+      "slot": "web.route-guard",
+      "file": "web/src/lib/shell/providers.generated.ts",
+      "contributors": [
+        "auth-stub"
+      ]
+    },
+    {
+      "slot": "repo.dependabot",
+      "file": ".github/dependabot.yml",
+      "contributors": [
+        "web-svelte"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": ".github/dependabot.yml",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "albitor.yaml",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/.gitignore",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/package-lock.json",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/package.json",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/scripts/local-serve.mjs",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/app.d.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/app.html",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/app/app.css",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/kit/AppShell.svelte",
+      "mode": "managed",
+      "plugins": "kit-stub"
+    },
+    {
+      "path": "web/src/lib/shell/OfflineBanner.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/ShellProviders.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/api.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/api.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/guard.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/guard.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/nav.generated.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/nav.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/nav.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/providers.generated.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/scope.d/auth-stub.ts",
+      "mode": "managed",
+      "plugins": "auth-stub"
+    },
+    {
+      "path": "web/src/lib/shell/scope.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/types.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/stub/StubProvider.svelte",
+      "mode": "managed",
+      "plugins": "auth-stub"
+    },
+    {
+      "path": "web/src/routes/+error.svelte",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/routes/+layout.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/routes/+layout.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/routes/+page.svelte",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/routes/nav.ts",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/routes/offline/+page.svelte",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/service-worker/index.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/service-worker/tsconfig.json",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/tsconfig.json",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/vite.config.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    }
+  ]
+}
+
+=== albitor.yaml ===
+version: "albitor/v1"
+build:
+  static:
+    command: "cd web && npm ci && npm run build"
+    output: "web/build"
+site:
+  spa: true
+
+=== web/.gitignore ===
+=== web/package-lock.json (not shown) ===
+=== web/package.json ===
+=== web/scripts/local-serve.mjs ===
+=== web/src/app.d.ts ===
+=== web/src/app.html ===
+=== web/src/lib/app/app.css ===
+=== web/src/lib/kit/AppShell.svelte ===
+=== web/src/lib/shell/OfflineBanner.svelte ===
+=== web/src/lib/shell/ShellProviders.svelte ===
+=== web/src/lib/shell/api.test.ts ===
+=== web/src/lib/shell/api.ts ===
+=== web/src/lib/shell/guard.test.ts ===
+=== web/src/lib/shell/guard.ts ===
+=== web/src/lib/shell/nav.generated.ts ===
+// Generated by Albitor from the web.nav slot. Do not edit: a plugin upgrade rewrites this file.
+// Add a page to the nav with a sibling nav.ts, not here (see the svelte-shell skill).
+import { buildNav } from './nav';
+import type { NavMeta } from './types';
+
+/**
+ * Entries contributed by plugins through the web.nav slot. With no contribution the composer
+ * renders the placeholder as nothing, not as [], so concat takes zero arguments then.
+ */
+const pluginNav = ([] as NavMeta[]).concat([{"label":"Account","order":900,"group":"user"}]);
+
+/** Every app-owned nav.ts under src/routes, collected at build time. */
+const routeNavModules = import.meta.glob('/src/routes/**/nav.ts', { eager: true });
+
+export const navGroups = buildNav(pluginNav, routeNavModules);
+
+=== web/src/lib/shell/nav.test.ts ===
+=== web/src/lib/shell/nav.ts ===
+=== web/src/lib/shell/providers.generated.ts ===
+// Generated by Albitor from the web.providers and web.route-guard slots. Do not edit: a plugin
+// upgrade rewrites this file. Identifiers resolve against the scope in ./scope (see the
+// svelte-shell skill).
+import { checkGuards, checkProviders } from './guard';
+import { scope } from './scope';
+
+const { StubProvider } = scope;
+const { stubGuard } = scope;
+
+/** Provider components, outermost first. */
+export const providers = checkProviders([StubProvider]);
+
+/** Route guards. The slot is single-valued, so this holds zero or one. */
+export const routeGuards = checkGuards([stubGuard]);
+
+=== web/src/lib/shell/scope.d/auth-stub.ts ===
+=== web/src/lib/shell/scope.ts ===
+=== web/src/lib/shell/types.ts ===
+=== web/src/lib/stub/StubProvider.svelte ===
+=== web/src/routes/+error.svelte ===
+=== web/src/routes/+layout.svelte ===
+=== web/src/routes/+layout.ts ===
+=== web/src/routes/+page.svelte ===
+=== web/src/routes/nav.ts ===
+=== web/src/routes/offline/+page.svelte ===
+=== web/src/service-worker/index.ts ===
+=== web/src/service-worker/tsconfig.json ===
+=== web/tsconfig.json ===
+=== web/vite.config.ts ===

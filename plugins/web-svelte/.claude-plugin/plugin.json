@@ -1,0 +1,70 @@
+{
+  "schema": 2,
+  "name": "web-svelte",
+  "displayName": "Web shell (SvelteKit)",
+  "version": "0.1.0",
+  "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, and the web side of the local run contract.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": ["web-framework", "svelte", "sveltekit", "spa", "shell"],
+  "kind": "socket",
+  "provides": ["web-framework@1"],
+  "requires": ["component-kit@1", "deploy-target@1"],
+  "contributes": {
+    "dependencies": {
+      "npm": [
+        "svelte@^5.57.1",
+        "@sveltejs/kit@^3.0.1",
+        "@sveltejs/adapter-static@^4.0.0",
+        "@sveltejs/vite-plugin-svelte@^7.3.1",
+        "vite@^8.0.12",
+        "typescript@^6.0.3",
+        "svelte-check@^4.7.6",
+        "vitest@^5.0.4",
+        "@types/node@^22.0.0"
+      ]
+    },
+    "files": [
+      { "path": "web/package.json", "mode": "example" },
+      { "path": "web/package-lock.json", "mode": "example" },
+      { "path": "web/.gitignore", "mode": "example" },
+      { "path": "web/vite.config.ts", "mode": "managed" },
+      { "path": "web/tsconfig.json", "mode": "managed" },
+      { "path": "web/scripts/local-serve.mjs", "mode": "managed" },
+      { "path": "web/src/app.html", "mode": "example" },
+      { "path": "web/src/app.d.ts", "mode": "managed" },
+      { "path": "web/src/service-worker/index.ts", "mode": "managed" },
+      { "path": "web/src/service-worker/tsconfig.json", "mode": "managed" },
+      { "path": "web/src/lib/shell/types.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/scope.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/nav.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/nav.test.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/guard.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/guard.test.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/api.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/api.test.ts", "mode": "managed" },
+      { "path": "web/src/lib/shell/ShellProviders.svelte", "mode": "managed" },
+      { "path": "web/src/lib/shell/OfflineBanner.svelte", "mode": "managed" },
+      { "path": "web/src/lib/app/app.css", "mode": "example" },
+      { "path": "web/src/routes/+layout.svelte", "mode": "managed" },
+      { "path": "web/src/routes/+layout.ts", "mode": "managed" },
+      { "path": "web/src/routes/+error.svelte", "mode": "example" },
+      { "path": "web/src/routes/+page.svelte", "mode": "example" },
+      { "path": "web/src/routes/nav.ts", "mode": "example" },
+      { "path": "web/src/routes/offline/+page.svelte", "mode": "example" }
+    ],
+    "slots": {
+      "repo.dependabot": [{ "ecosystem": "npm", "directory": "/web" }]
+    },
+    "manifest": {
+      "build": {
+        "static": { "command": "cd web && npm ci && npm run build", "output": "web/build" }
+      },
+      "site": { "spa": true }
+    },
+    "skills": ["svelte-shell"]
+  }
+}

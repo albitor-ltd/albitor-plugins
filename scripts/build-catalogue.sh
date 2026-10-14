@@ -5,6 +5,8 @@
 #
 # legacy   (default) each plugin points at its old albitor-plugin-<name> repo and ref from
 #          catalogue/legacy-pins.json, and the retired visual-* entries are carried through.
+#          A plugin whose legacy-pins entry is {"monorepoOnly": true} has no old repository and is
+#          left out of this mode.
 # monorepo each plugin points at this repo as a git-subdir source pinned to the tag
 #          <name>/v<version>, <version> being read from plugins/<name>/.claude-plugin/plugin.json.
 # --check  write nothing; exit 1 if the output differs from the committed catalogue.
@@ -23,7 +25,7 @@ while [[ $# -gt 0 ]]; do
     --mode) mode="${2:?--mode needs a value}"; shift 2 ;;
     --check) check=1; shift ;;
     --out) out="${2:?--out needs a value}"; shift 2 ;;
-    -h | --help) sed -n '2,13p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h | --help) sed -n '2,15p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -65,7 +67,7 @@ render() {
       description: $desc,
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
-        [$meta[0] | to_entries[] | .key as $n | {name: $n, source: source($n)} + .value]
+        [$meta[0] | to_entries[] | .key as $n | select($mode == "monorepo" or ($pins[0][$n].monorepoOnly | not)) | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)
       )
     }'
