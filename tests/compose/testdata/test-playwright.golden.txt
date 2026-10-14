@@ -1,6 +1,7 @@
 .github/workflows/journeys.yml
 web/tests/.gitignore
 web/tests/a11y.spec.ts
+web/tests/auth-scope.spec.ts
 web/tests/auth.setup.ts
 web/tests/helpers/a11y-report.ts
 web/tests/helpers/a11y.ts
@@ -22,4 +23,5 @@ web/tests/unit/a11y-report.test.ts
 web/tests/unit/config.test.ts
 web/tests/unit/fixture-scope.test.ts
 web/tests/unit/screen-rules.test.ts
+web/tests/unit/secret-artifacts.test.ts
 web/tests/unit/session.test.ts

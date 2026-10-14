@@ -35,10 +35,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `api-go` plugin (albitor-ltd/albitor#3168): the first schema-2 plugin, filling `api-runtime@1`,
   split from the starter's `_api`. A schema-2 plugin has no legacy pin, so it appears in the
   catalogue only in monorepo mode.
+- `data-dynamodb` plugin (albitor-ltd/albitor#3169): the `data-store@1` plugin. A `Store`
+  interface for the Go API over one DynamoDB table, the in-memory fake, the conformance suite
+  (run against DynamoDB Local in CI) and the `services.tables` fragment. Stdlib only (the adapter
+  signs its own requests). Enters the catalogue once tagged `data-dynamodb/v0.1.0`.
 - `client-online` plugin (albitor-ltd/albitor#3171): the `client-data@1` plugin for online-only
   apps, schema 2. TanStack Query for Svelte behind `web.providers`, a shared retry policy, API query
   helpers and loading, offline, error and empty states. Not in the catalogue until it is tagged
   `client-online/v0.1.0` and the catalogue is regenerated.
+- `kit-shadcn` plugin (albitor-ltd/albitor#3166): the `component-kit@1` plugin for Svelte, a rewrite
+  of `shadcn`, schema 2. App shell, nav, forms, tables, dialogs (Bits UI), toasts and empty states
+  as app-owned example files over one token set that passes WCAG 2.2 AA contrast in light and dark,
+  with axe and contrast tests that ship with the app, preview tokens and a Svelte-first skill. Not
+  in the catalogue until it is tagged `kit-shadcn/v0.1.0` and the catalogue is regenerated.
 
 - Initial catalogue.
 - `gds` plugin pinned at `v0.1.6` — GOV.UK Design System + WCAG 2.2 AA accessibility.

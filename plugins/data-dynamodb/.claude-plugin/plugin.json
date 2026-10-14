@@ -1,0 +1,40 @@
+{
+  "schema": 2,
+  "name": "data-dynamodb",
+  "displayName": "DynamoDB data store",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "data-store",
+    "dynamodb",
+    "go",
+    "store",
+    "pagination",
+    "conformance"
+  ],
+  "provides": ["data-store@1"],
+  "requires": ["api-runtime@1"],
+  "contributes": {
+    "files": [
+      { "path": "api/internal/store/**", "mode": "managed" }
+    ],
+    "manifest": {
+      "services": {
+        "tables": [
+          {
+            "name": "data",
+            "partition_key": { "name": "pk", "type": "string" },
+            "sort_key": { "name": "sk", "type": "string" }
+          }
+        ]
+      }
+    },
+    "skills": ["data-dynamodb"]
+  }
+}

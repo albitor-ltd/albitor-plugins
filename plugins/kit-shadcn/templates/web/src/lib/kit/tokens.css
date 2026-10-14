@@ -1,0 +1,77 @@
+/* kit-shadcn tokens: the colour roles, radius and type the kit's components read.
+
+   Every value is declared in the `albitor-kit` cascade layer, which loses to any unlayered rule.
+   To theme the app (a visual-language plugin does exactly this), declare the same custom
+   properties unlayered in src/lib/app/app.css. Do not edit the components to change a colour.
+
+   Every foreground and background pair here is audited by contrast.test.ts, in both schemes:
+   4.5:1 for text, 3:1 for the control border, the focus ring and the primary fill. If you
+   override colours, keep that test passing. */
+@layer albitor-kit {
+	:root {
+		color-scheme: light dark;
+		--background: #ffffff;
+		--foreground: #09090b;
+		--muted: #f4f4f5;
+		--muted-foreground: #52525b;
+		--border: #e4e4e7;
+		--input: #737373;
+		--ring: #1d4ed8;
+		--primary: #18181b;
+		--primary-foreground: #fafafa;
+		--destructive: #b91c1c;
+		--destructive-foreground: #ffffff;
+		--link: #1d4ed8;
+		--radius: 0.5rem;
+		--font-sans: ui-sans-serif, system-ui, sans-serif;
+		--text-small: 0.875rem;
+		--text-body: 1rem;
+		--text-heading: 1.25rem;
+		--text-title: 1.875rem;
+	}
+
+	/* Dark by the visitor's preference, unless the page says data-theme="light". */
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme="light"]) {
+			--background: #09090b;
+			--foreground: #fafafa;
+			--muted: #18181b;
+			--muted-foreground: #a1a1aa;
+			--border: #27272a;
+			--input: #71717a;
+			--ring: #60a5fa;
+			--primary: #fafafa;
+			--primary-foreground: #18181b;
+			--destructive: #f87171;
+			--destructive-foreground: #09090b;
+			--link: #60a5fa;
+		}
+	}
+
+	/* Dark by choice: data-theme="dark" wins over the preference. Keep in step with the block above. */
+	:root[data-theme="dark"] {
+		--background: #09090b;
+		--foreground: #fafafa;
+		--muted: #18181b;
+		--muted-foreground: #a1a1aa;
+		--border: #27272a;
+		--input: #71717a;
+		--ring: #60a5fa;
+		--primary: #fafafa;
+		--primary-foreground: #18181b;
+		--destructive: #f87171;
+		--destructive-foreground: #09090b;
+		--link: #60a5fa;
+	}
+
+	body {
+		background: var(--background);
+		color: var(--foreground);
+		font-family: var(--font-sans);
+		font-size: var(--text-body);
+	}
+
+	a {
+		color: var(--link);
+	}
+}

@@ -133,6 +133,19 @@
     ],
     "license": "MIT"
   },
+  "data-dynamodb": {
+    "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
+    "category": "development",
+    "keywords": [
+      "data-store",
+      "dynamodb",
+      "go",
+      "store",
+      "pagination",
+      "conformance"
+    ],
+    "license": "MIT"
+  },
   "client-online": {
     "description": "The client-data plugin for online-only apps: TanStack Query for Svelte behind the web.providers slot, one shared query client with a sane retry policy, API query helpers, and loading, offline, error and empty states.",
     "category": "development",
@@ -143,6 +156,19 @@
       "data-fetching",
       "cache",
       "online"
+    ],
+    "license": "MIT"
+  },
+  "kit-shadcn": {
+    "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
+    "category": "development",
+    "keywords": [
+      "component-kit",
+      "shadcn",
+      "shadcn-svelte",
+      "bits-ui",
+      "svelte",
+      "accessibility"
     ],
     "license": "MIT"
   }
