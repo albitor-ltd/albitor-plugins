@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -220,8 +221,8 @@ func TestDynamoDBRefusesMalformedRows(t *testing.T) {
 func TestDynamoDBRetriesThrottlingButNotCallerFaults(t *testing.T) {
 	throttle := reply(400, `{"__type":"com.amazonaws.dynamodb.v20120810#ProvisionedThroughputExceededException","message":"slow down"}`)
 	f := newFakeDynamo(t, throttle, reply(503, `{}`), reply(200, `{}`))
-	if err := f.store().Delete(context.Background(), "p", "s", 0); err != nil {
-		t.Fatalf("Delete after two retryable failures = %v", err)
+	if _, err := f.store().Get(context.Background(), "p", "s"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("Get after two retryable failures = %v", err)
 	}
 	if len(f.calls) != 3 {
 		t.Errorf("%d calls, want 3", len(f.calls))
@@ -238,6 +239,56 @@ func TestDynamoDBRetriesThrottlingButNotCallerFaults(t *testing.T) {
 	f = newFakeDynamo(t, reply(400, `{"__type":"com.amazon.coral.validate#ValidationException","message":"bad"}`))
 	if err := f.store().Delete(context.Background(), "p", "s", 0); err == nil || len(f.calls) != 1 {
 		t.Errorf("a validation error was retried or swallowed: err %v, %d calls", err, len(f.calls))
+	}
+}
+
+func TestDynamoDBDoesNotRetryWritesOn5xx(t *testing.T) {
+	// A 500 on a write may have applied; a retry would then report the real winner's
+	// ErrExists/ErrConflict to the caller whose write took effect. Reads are safe to retry.
+	for name, op := range map[string]func(*DynamoDB) error{
+		"create":  func(d *DynamoDB) error { _, e := d.Create(context.Background(), rec("p", "s", `{}`)); return e },
+		"replace": func(d *DynamoDB) error { _, e := d.Replace(context.Background(), rec("p", "s", `{}`), 1); return e },
+		"delete":  func(d *DynamoDB) error { return d.Delete(context.Background(), "p", "s", 0) },
+	} {
+		f := newFakeDynamo(t, reply(500, `{}`), reply(200, `{}`))
+		if err := op(f.store()); err == nil || len(f.calls) != 1 {
+			t.Errorf("%s: err %v after %d calls, want the 500 returned after one", name, err, len(f.calls))
+		}
+	}
+	f := newFakeDynamo(t, reply(500, `{}`), reply(200, `{}`))
+	if _, err := f.store().Get(context.Background(), "p", "s"); !errors.Is(err, ErrNotFound) || len(f.calls) != 2 {
+		t.Errorf("a read was not retried past a 500: %v after %d calls", err, len(f.calls))
+	}
+	// Throttling means the request was refused, so a write may retry that.
+	f = newFakeDynamo(t, reply(400, `{"__type":"x#ThrottlingException"}`), reply(200, `{}`))
+	if err := f.store().Delete(context.Background(), "p", "s", 0); err != nil || len(f.calls) != 2 {
+		t.Errorf("a throttled write was not retried: %v after %d calls", err, len(f.calls))
+	}
+}
+
+func TestRevisionOverflowIsInvalid(t *testing.T) {
+	f := newFakeDynamo(t)
+	if _, err := f.store().Replace(context.Background(), rec("p", "s", `{}`), math.MaxInt64); !errors.Is(err, ErrInvalid) {
+		t.Errorf("Replace at MaxInt64 = %v, want ErrInvalid", err)
+	}
+	if _, err := NewMemory().Replace(context.Background(), rec("p", "s", `{}`), math.MaxInt64); !errors.Is(err, ErrInvalid) {
+		t.Errorf("Memory.Replace at MaxInt64 = %v, want ErrInvalid", err)
+	}
+	if len(f.calls) != 0 {
+		t.Errorf("%d requests sent", len(f.calls))
+	}
+}
+
+func TestDynamoDBClientIgnoresProxyEnvironment(t *testing.T) {
+	t.Setenv("HTTPS_PROXY", "http://127.0.0.1:1")
+	t.Setenv("HTTP_PROXY", "http://127.0.0.1:1")
+	d, err := NewDynamoDB(DynamoDBConfig{Table: "app-data", Region: "eu-west-2", AccessKeyID: "a", SecretAccessKey: "s"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr, ok := d.client.Transport.(*http.Transport)
+	if !ok || tr.Proxy != nil {
+		t.Fatalf("transport %T must set Proxy nil so signed requests never go via an environment proxy", d.client.Transport)
 	}
 }
 

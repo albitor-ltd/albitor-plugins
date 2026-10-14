@@ -12,9 +12,7 @@
 # --check  write nothing; exit 1 if the output differs from the committed catalogue.
 #
 # Catalogue-facing metadata (description, category, keywords, license) lives in
-# catalogue/metadata.json; the key order there is the catalogue order. A plugin listed in
-# catalogue/unreleased.json has metadata but no release tag yet and is left out until it is tagged
-# (the entry must then be removed); any other plugin without its tag is an error. A plugin with no legacy pin
+# catalogue/metadata.json; the key order there is the catalogue order. A plugin with no legacy pin
 # (a schema-2 plugin born in this repository) appears only in monorepo mode.
 set -euo pipefail
 
@@ -50,19 +48,10 @@ if [[ "$mode" == monorepo ]]; then
       echo "error: $name has no version in $manifest" >&2
       exit 1
     fi
-    listed=0
-    jq -e --arg n "$name" 'index($n) != null' "$root/catalogue/unreleased.json" >/dev/null && listed=1
-    if sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")"; then
-      if [[ $listed -eq 1 ]]; then
-        echo "error: $name/v$version is tagged but still listed in catalogue/unreleased.json (remove it)" >&2
-        exit 1
-      fi
-    elif [[ $listed -eq 1 ]]; then
-      continue # not released yet: left out of the catalogue until tagged
-    else
+    sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")" || {
       echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
       exit 1
-    fi
+    }
     versions="$(jq --arg n "$name" --arg v "$version" '. + {($n): $v}' <<<"$versions")"
     shas="$(jq --arg n "$name" --arg s "$sha" '. + {($n): $s}' <<<"$shas")"
   done < <(jq -r 'keys_unsorted[]' "$root/catalogue/metadata.json")
@@ -105,7 +94,7 @@ render() {
       owner: {name: "Albitor Ltd", email: "jamie@albitor.com"},
       plugins: (
         [$meta[0] | to_entries[]
-          | select(. as $e | ($mode == "monorepo" and ($versions | has($e.key))) or ($mode == "legacy" and $pins[0][$e.key] != null))
+          | select($mode == "monorepo" or $pins[0][.key] != null)
           | .key as $n | {name: $n, source: source($n)} + .value]
         + (if $mode == "legacy" then $retired[0] else [] end)
       )

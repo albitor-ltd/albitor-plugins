@@ -87,6 +87,21 @@ func TestOpenEndpointOverrideIsLoopbackOnly(t *testing.T) {
 	}
 }
 
+func TestOpenIgnoresEndpointOverrideOnALambda(t *testing.T) {
+	base := append(append([]string{}, aws...), "ALBITOR_TABLE_DATA", "app-data", "AWS_LAMBDA_FUNCTION_NAME", "fn")
+	s, err := Open(env(append(base, EndpointEnv, "http://127.0.0.1:8000")...), DataTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d := s.(*DynamoDB); d.endpoint != "https://dynamodb.eu-west-2.amazonaws.com" {
+		t.Errorf("a deployed function honoured the override: %s", d.endpoint)
+	}
+	// Even a hostile value is ignored there, not rejected: nothing in the environment can steer it.
+	if _, err := Open(env(append(base, EndpointEnv, "https://attacker.example")...), DataTable); err != nil {
+		t.Errorf("a deployed function failed on an ignored override: %v", err)
+	}
+}
+
 func TestOpenRefusesABadLogicalName(t *testing.T) {
 	for _, name := range []string{"", "Data", "a", "x_y", "../x", "data\n", strings.Repeat("a", 40)} {
 		if _, err := Open(env("ALBITOR_LOCAL", "1"), name); err == nil {

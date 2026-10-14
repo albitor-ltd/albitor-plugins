@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -162,8 +163,10 @@ func checkData(data json.RawMessage) error {
 	if len(data) > MaxDataBytes {
 		return fmt.Errorf("%w: data is longer than %d bytes", ErrInvalid, MaxDataBytes)
 	}
-	if !json.Valid(data) {
-		return fmt.Errorf("%w: data is not valid JSON", ErrInvalid)
+	// json.Valid accepts raw invalid UTF-8 inside strings, which the DynamoDB adapter's JSON
+	// encoding would silently rewrite to U+FFFD: refuse it so both adapters store what was given.
+	if !utf8.Valid(data) || !json.Valid(data) {
+		return fmt.Errorf("%w: data is not valid UTF-8 JSON", ErrInvalid)
 	}
 	return nil
 }
@@ -176,7 +179,8 @@ func checkWrite(r Record) error {
 }
 
 func checkRev(rev int64, zeroOK bool) error {
-	if rev < 0 || (rev == 0 && !zeroOK) {
+	// MaxInt64 is refused so a replace's rev+1 can never overflow.
+	if rev < 0 || rev == math.MaxInt64 || (rev == 0 && !zeroOK) {
 		return fmt.Errorf("%w: revision %d", ErrInvalid, rev)
 	}
 	return nil

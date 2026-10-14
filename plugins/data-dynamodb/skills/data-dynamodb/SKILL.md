@@ -68,6 +68,10 @@ beside a configured table, and refuses to start deployed without `ALBITOR_TABLE_
 never fall back to memory by accident. In a Go test, use `store.NewMemory()` directly. To prove a
 new `Store` implementation, run `storetest.Run(t, newStore)`.
 
+Credentials are environment variables only (the Lambda execution role's `AWS_*` variables); the
+store reads no profile or file. A write that fails with a 5xx is not retried, so treat that error
+as "unknown outcome": read the record before repeating the write.
+
 ## What this store is not
 
 One table, string keys, no secondary indexes and no multi-record transactions. If an endpoint

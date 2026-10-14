@@ -62,7 +62,7 @@ func TestCursorRoundTripAndBinding(t *testing.T) {
 }
 
 func TestCheckData(t *testing.T) {
-	for data, ok := range map[string]bool{`{}`: true, `[1]`: true, `"s"`: true, `null`: true, ``: false, `{`: false, `{} {}`: false} {
+	for data, ok := range map[string]bool{`{}`: true, `[1]`: true, `"s"`: true, `null`: true, ``: false, `{`: false, `{} {}`: false, "{\"a\":\"\xff\"}": false, `{"a":"é"}`: true} {
 		if err := checkData([]byte(data)); (err == nil) != ok {
 			t.Errorf("checkData(%q) = %v, want ok=%v", data, err, ok)
 		}

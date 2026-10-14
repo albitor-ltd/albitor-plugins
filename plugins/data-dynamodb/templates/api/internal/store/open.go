@@ -60,10 +60,16 @@ func Open(getenv func(string) string, logical string) (Store, error) {
 	if table == "" {
 		return nil, fmt.Errorf("store: %s is not set; the app cannot start without its table", TableEnv(logical))
 	}
+	// A deployed function always talks to the regional endpoint: nothing in its
+	// environment may steer signed requests elsewhere, loopback or not.
+	endpoint := env(EndpointEnv)
+	if env(lambdaMarker) != "" {
+		endpoint = ""
+	}
 	return NewDynamoDB(DynamoDBConfig{
 		Table:           table,
 		Region:          env("AWS_REGION"),
-		Endpoint:        env(EndpointEnv),
+		Endpoint:        endpoint,
 		AccessKeyID:     env("AWS_ACCESS_KEY_ID"),
 		SecretAccessKey: env("AWS_SECRET_ACCESS_KEY"),
 		SessionToken:    env("AWS_SESSION_TOKEN"),

@@ -52,9 +52,7 @@ Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` 
 3. Tag the merge commit: `git tag auth/v0.7.0 && git push origin auth/v0.7.0`.
 4. In a follow-up PR, regenerate the catalogue (`scripts/build-catalogue.sh`, after `git fetch --tags`) so it
    pins the new tag and its commit. Only tag-then-regenerate keeps the catalogue from pointing at a tag that does
-   not exist yet. A brand-new plugin is listed in `catalogue/unreleased.json` in the PR that adds
-   it, which leaves it out of the catalogue until it is tagged; the follow-up PR removes the
-   entry as it regenerates (the generator fails if a tagged plugin is still listed).
+   not exist yet.
 
 ## The catalogue
 

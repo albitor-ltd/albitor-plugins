@@ -28,6 +28,58 @@ func TestSignRequestMatchesAWSVector(t *testing.T) {
 	}
 }
 
+// A golden vector for the request this store actually sends: a DynamoDB POST to a host with a port,
+// with content type, target, session token and a body. The expected signature was computed
+// independently of signRequest (Python hmac over the same canonical request).
+func TestSignRequestDynamoDBPostGolden(t *testing.T) {
+	body := []byte(`{"a":1}`)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/", strings.NewReader(string(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-amz-json-1.0")
+	req.Header.Set("X-Amz-Target", "DynamoDB_20120810.GetItem")
+	creds := awsCredentials{AccessKeyID: "AKID", SecretAccessKey: "secret", SessionToken: "tok"}
+	signRequest(req, body, creds, "eu-west-2", "dynamodb", time.Date(2026, 10, 14, 1, 2, 3, 0, time.UTC))
+	want := "AWS4-HMAC-SHA256 Credential=AKID/20261014/eu-west-2/dynamodb/aws4_request, " +
+		"SignedHeaders=content-type;host;x-amz-date;x-amz-security-token;x-amz-target, " +
+		"Signature=08bad1c54ecd4f8a7a6f9f7d3c6d7407babd6d7e5dd373e5519d4313d9c66d08"
+	if got := req.Header.Get("Authorization"); got != want {
+		t.Fatalf("Authorization\n got %s\nwant %s", got, want)
+	}
+}
+
+func signedWith(t *testing.T, url, contentType string) string {
+	t.Helper()
+	req, err := http.NewRequest(http.MethodPost, url, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", contentType)
+	signRequest(req, nil, awsCredentials{AccessKeyID: "A", SecretAccessKey: "s"}, "eu-west-2", "dynamodb",
+		time.Date(2026, 10, 14, 0, 0, 0, 0, time.UTC))
+	return req.Header.Get("Authorization")
+}
+
+func TestSignRequestBindsThePortAndFoldsWhitespace(t *testing.T) {
+	if signedWith(t, "http://127.0.0.1:8000/", "a") == signedWith(t, "http://127.0.0.1/", "a") {
+		t.Error("the host's port is not part of the signature")
+	}
+	if signedWith(t, "http://127.0.0.1:8000/", "a") == signedWith(t, "http://127.0.0.1:8001/", "a") {
+		t.Error("a different port signs the same")
+	}
+	// Runs of spaces fold to one and the ends are trimmed, as SigV4 canonicalises headers.
+	if signedWith(t, "http://h/", "a   b") != signedWith(t, "http://h/", "a b") {
+		t.Error("interior whitespace is not folded")
+	}
+	if signedWith(t, "http://h/", "  a b  ") != signedWith(t, "http://h/", "a b") {
+		t.Error("surrounding whitespace is not trimmed")
+	}
+	if signedWith(t, "http://h/", "a b") == signedWith(t, "http://h/", "ab") {
+		t.Error("folding removed a space instead of collapsing it")
+	}
+}
+
 func TestSignRequestSessionTokenAndBody(t *testing.T) {
 	req, err := http.NewRequest(http.MethodPost, "https://dynamodb.eu-west-2.amazonaws.com/", strings.NewReader(`{"a":1}`))
 	if err != nil {

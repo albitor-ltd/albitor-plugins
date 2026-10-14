@@ -243,6 +243,7 @@ func caseInvalid(t *testing.T, s store.Store) {
 		{"control char in sk", func() error { _, e := s.Create(ctx(t), rec(pk, "a\x00b", `{}`)); return e }()},
 		{"invalid utf-8", func() error { _, e := s.Create(ctx(t), rec(pk, "a\xffb", `{}`)); return e }()},
 		{"empty data", func() error { _, e := s.Create(ctx(t), rec(pk, "a", ``)); return e }()},
+		{"data with invalid utf-8", func() error { _, e := s.Create(ctx(t), rec(pk, "a", "{\"v\":\"\xff\"}")); return e }()},
 		{"data not json", func() error { _, e := s.Create(ctx(t), rec(pk, "a", `{nope`)); return e }()},
 		{"oversize data", func() error { _, e := s.Create(ctx(t), rec(pk, "a", big)); return e }()},
 		{"replace at rev 0", func() error { _, e := s.Replace(ctx(t), rec(pk, "a", `{}`), 0); return e }()},

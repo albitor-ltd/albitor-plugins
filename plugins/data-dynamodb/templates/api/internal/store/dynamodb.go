@@ -102,6 +102,9 @@ func NewDynamoDB(cfg DynamoDBConfig) (*DynamoDB, error) {
 		creds:    awsCredentials{cfg.AccessKeyID, cfg.SecretAccessKey, cfg.SessionToken},
 		client: &http.Client{
 			Timeout: requestTimeout,
+			// No proxy from the environment: a proxy would see the signed request and the
+			// session token, and a poisoned HTTPS_PROXY would capture them.
+			Transport: &http.Transport{Proxy: nil, ForceAttemptHTTP2: true, MaxIdleConns: 10, IdleConnTimeout: 90 * time.Second, TLSHandshakeTimeout: 10 * time.Second},
 			// A signed request is never replayed elsewhere.
 			CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 		},
@@ -383,22 +386,22 @@ func isType(err error, typ string) bool {
 	return errors.As(err, &ae) && ae.Type == typ
 }
 
-func retryable(e *apiError) bool {
-	if e.Status >= 500 {
-		return true
-	}
+// retryable reports whether a failed call may be sent again. Throttling means
+// the request was refused, so any call may retry it. A 5xx says nothing about
+// whether a write applied, so only a read retries it: retrying a write whose
+// first attempt did apply would answer ErrExists or ErrConflict, blaming the
+// real winner on someone else.
+func retryable(e *apiError, read bool) bool {
 	switch e.Type {
-	case "ThrottlingException", "ProvisionedThroughputExceededException",
-		"RequestLimitExceeded", "InternalServerError", "ServiceUnavailable":
+	case "ThrottlingException", "ProvisionedThroughputExceededException", "RequestLimitExceeded":
 		return true
 	}
-	return false
+	return read && e.Status >= 500
 }
 
 // call sends one signed DynamoDB request and decodes the reply into out (nil to
-// discard it). It retries only responses that say the request did not apply:
-// throttling and 5xx. A network failure is not retried, because a conditional
-// write whose answer was lost must not be reported as someone else's win.
+// discard it). It retries throttling, and 5xx on reads only (see retryable). A
+// network failure is never retried, for the same reason as a write's 5xx.
 func (d *DynamoDB) call(ctx context.Context, op string, in, out any) error {
 	body, err := json.Marshal(in)
 	if err != nil {
@@ -434,7 +437,7 @@ func (d *DynamoDB) call(ctx context.Context, op string, in, out any) error {
 				ae.Type = e.Type
 			}
 		}
-		if !retryable(ae) {
+		if !retryable(ae, op == "GetItem" || op == "Query") {
 			return ae
 		}
 		last = ae

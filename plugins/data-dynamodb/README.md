@@ -34,6 +34,11 @@ module later is an ordinary plugin major.
   cursor bound to the partition and prefix. It reads `Limit+1` rows so a cursor means more
   follows, and keeps reading when DynamoDB cuts a response short at 1 MB.
 - Reads are strongly consistent.
+- Credentials are environment variables only (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+  `AWS_SESSION_TOKEN`, `AWS_REGION`), which is what Lambda sets for the execution role. There is
+  no profile, file or metadata-service lookup. The HTTP client ignores proxy environment variables.
+- Writes are not retried on a 5xx (it may have applied); throttling is retried, and so is a read's 5xx.
+- On a deployed function `ALBITOR_DYNAMODB_ENDPOINT` is ignored.
 - `ALBITOR_DYNAMODB_ENDPOINT` points the adapter at DynamoDB Local and accepts loopback hosts
   only: a signed request is never sent to a host the platform did not name. Responses are capped,
   redirects are not followed, and DynamoDB error messages (which can name roles and accounts) are
