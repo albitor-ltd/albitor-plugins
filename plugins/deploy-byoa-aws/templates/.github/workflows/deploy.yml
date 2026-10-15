@@ -5,18 +5,35 @@
 # The account is reached by OIDC: the job assumes the deploy role named in
 # infrastructure/aws/env/<environment>.deploy.env, and no long-lived key is stored in the
 # repository. The role's trust policy is pinned by the platform to this repository and to the
-# `dev` environment, so the token this workflow mints can assume that one role and no other.
+# environment the job runs in (`dev` unless a promotion names another), so the token this workflow
+# mints can assume that one role and no other.
 # `id-token: write` is held by the deploy job alone; the build job reads the repository and nothing
 # else.
 #
-# The triggers are a push to main and a manual dispatch. Nothing triggered by a pull request, a
-# fork or another workflow can reach the deploy job.
+# The triggers are a push to main and a dispatch. Nothing triggered by a pull request, a fork or
+# another workflow can reach the deploy job.
+#
+# The platform dispatches this workflow to promote a commit, and reads the result back (Albitor's
+# deploy-receipt contract, albitor-ltd/albitor#3178):
+#   - the dispatch inputs `environment` and `ref` are declared (GitHub refuses undeclared ones);
+#   - a job named exactly `ship SPA` runs only after a green apply and ends with a
+#     `::notice title=deploy-receipt::{...}` step. The reader trusts that one job alone, so a run
+#     that deployed nothing (no receipt) is never recorded as a deploy. Do not rename the job.
 name: deploy
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to apply into (its env/<name>.* files must exist)
+        required: false
+        default: dev
+      ref:
+        description: Exact commit to deploy. Empty deploys the default branch head.
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -24,11 +41,12 @@ permissions:
 concurrency:
   # One deploy at a time, and a deploy already applying is never cancelled: a killed apply leaves
   # a state lock behind. A newer push waits its turn.
-  group: deploy
+  # One deploy at a time per environment: a promotion applies a different state from a dev deploy.
+  group: deploy-${{ inputs.environment || 'dev' }}
   cancel-in-progress: false
 
 env:
-  ENVIRONMENT: dev
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
 
 jobs:
   build:
@@ -38,6 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         if: hashFiles('api/go.mod') != ''
@@ -90,14 +109,54 @@ jobs:
     needs: [build]
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    environment: dev
+    # The deploy role's OIDC trust is scoped to the GitHub Environment of this name.
+    environment: ${{ inputs.environment || 'dev' }}
+    outputs:
+      app_url: ${{ steps.app_url.outputs.app_url }}
+      commit_sha: ${{ steps.app_url.outputs.commit_sha }}
     permissions:
       contents: read
       id-token: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
+
+      # First step, before the environment name is used to build any path. It matches the stack's
+      # own rule (variables.tf); bash [[ =~ ]] anchors the whole value, so a newline cannot slip a
+      # second line past the check.
+      - name: check the environment name
+        run: |
+          set -euo pipefail
+          if ! [[ "$ENVIRONMENT" =~ ^[a-z][a-z0-9]{1,8}$ ]]; then
+            echo "::error::the environment must be 2 to 9 lower-case letters and digits, starting with a letter" >&2
+            exit 1
+          fi
+
+      # A promotion pins `ref` to an older commit, which predates the env/<environment>.* files the
+      # platform commits to the default branch just before it dispatches. So: code from the pinned
+      # commit, per-environment configuration from the default branch head (github.sha of a
+      # dispatch). The build job reads no env file, so only this job overlays.
+      - name: take deploy inputs from the default branch
+        if: ${{ inputs.ref != '' }}
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          path: deploy-inputs-src
+          sparse-checkout: infrastructure/aws/env
+          persist-credentials: false
+      - name: overlay deploy inputs
+        if: ${{ inputs.ref != '' }}
+        run: |
+          set -euo pipefail
+          if [ ! -d deploy-inputs-src/infrastructure/aws/env ]; then
+            echo "::error::no infrastructure/aws/env directory on the default branch to overlay" >&2
+            exit 1
+          fi
+          mkdir -p infrastructure/aws/env
+          cp -f deploy-inputs-src/infrastructure/aws/env/* infrastructure/aws/env/
+          rm -rf deploy-inputs-src
 
       # The platform writes these files when it binds the repository to an account. A deploy with
       # no identity fails here, loudly, rather than finishing green having deployed nothing.
@@ -208,5 +267,44 @@ jobs:
           aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$invalidation"
 
       - name: print the app url
-        run: terraform output -raw app_url
+        id: app_url
+        run: |
+          set -euo pipefail
+          url="$(terraform output -raw app_url)"
+          echo "$url"
+          if [ -z "$url" ]; then
+            echo "::error::the stack applied but exposes no app_url (no site and no API), so there is nothing to report" >&2
+            exit 1
+          fi
+          {
+            echo "app_url=$url"
+            echo "commit_sha=$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+          } >>"$GITHUB_OUTPUT"
         working-directory: infrastructure/aws
+
+  # The platform reads the deploy receipt from this job and no other (core.DeployReceiptJobName).
+  # It runs only after a green apply and ship, so its receipt is the evidence that something was
+  # published. It holds no cloud identity.
+  ship:
+    name: ship SPA
+    needs: [deploy]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: stamp the deploy receipt
+        env:
+          APP_URL: ${{ needs.deploy.outputs.app_url }}
+          DEPLOY_SHA: ${{ needs.deploy.outputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if ! printf '%s' "$APP_URL" | grep -Eq '^https://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+$'; then
+            echo "::error::the stack has no https app url to report" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$DEPLOY_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::the deployed commit is not a full sha" >&2
+            exit 1
+          fi
+          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s"}\n' "$APP_URL" "$DEPLOY_SHA"

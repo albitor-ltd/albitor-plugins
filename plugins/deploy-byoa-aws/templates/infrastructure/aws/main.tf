@@ -68,7 +68,7 @@ resource "terraform_data" "manifest" {
 }
 
 module "data" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.1.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.1.1"
 
   name_prefix         = local.name_prefix
   tables              = local.tables
@@ -76,7 +76,7 @@ module "data" {
 }
 
 module "api" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.1.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.1.1"
   count  = local.http == null ? 0 : 1
 
   name_prefix = local.name_prefix
@@ -88,7 +88,7 @@ module "api" {
 }
 
 module "site" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.1.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.1.1"
   count  = local.site == null ? 0 : 1
 
   providers = {
@@ -108,7 +108,7 @@ module "site" {
 }
 
 module "alarms" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.1.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.1.1"
 
   name_prefix   = local.name_prefix
   api_enabled   = local.http != null
