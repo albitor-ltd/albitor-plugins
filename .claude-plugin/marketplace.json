@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.1.1",
-        "sha": "0b1517e98841a7671aafe6c197ae1ab65e5b3b4c"
+        "ref": "web-svelte/v0.1.2",
+        "sha": "31fb08db1d3b1a541da9916d8e4b17ba7be4ee37"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, and the web side of the local run contract.",
       "category": "development",
@@ -210,6 +210,28 @@
         "accessibility",
         "axe",
         "wcag"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "deploy-byoa-aws",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/deploy-byoa-aws",
+        "ref": "deploy-byoa-aws/v0.1.0",
+        "sha": "b100d157af19cd2fd15587d964e6d2a2db8f86b1"
+      },
+      "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, and the stale state-lock guard.",
+      "category": "development",
+      "keywords": [
+        "deploy-target",
+        "aws",
+        "terraform",
+        "cloudfront",
+        "lambda",
+        "dynamodb",
+        "byoa"
       ],
       "license": "MIT"
     },
