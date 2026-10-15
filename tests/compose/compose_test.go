@@ -60,46 +60,16 @@ func loadDir(t *testing.T, dir string) composer.Plugin {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p := composer.Plugin{Manifest: m, Tree: tree}
-	if index, ok := tree["slot-templates.json"]; ok {
-		var entries []struct {
-			Path   string          `json:"path"`
-			Syntax composer.Syntax `json:"syntax"`
-			Body   string          `json:"body"`
-		}
-		if err := json.Unmarshal(index, &entries); err != nil {
-			t.Fatalf("%s: slot-templates.json: %v", dir, err)
-		}
-		for _, e := range entries {
-			body, ok := tree[e.Body]
-			if !ok {
-				t.Fatalf("%s: slot template body %s is not in the plugin", dir, e.Body)
-			}
-			p.SlotTemplates = append(p.SlotTemplates, composer.SlotTemplate{Path: e.Path, Syntax: e.Syntax, Body: string(body)})
+	// Slot templates are manifest files entries (mode slot-template, ADR-0090 amendment of
+	// 2026-10-14, item 1), read by the composer from Tree exactly as the platform loads a pinned
+	// version: nothing here supplies Plugin.SlotTemplates, so a sidecar the platform never reads
+	// cannot make a test pass.
+	for _, sidecar := range []string{"slot-templates.json", "slots/slots.json"} {
+		if _, ok := tree[sidecar]; ok {
+			t.Fatalf("%s: %s is a sidecar the platform never reads; declare the template in plugin.json", dir, sidecar)
 		}
 	}
-	// api-go's sidecar convention (slots/slots.json); the same two conventions retire when the
-	// manifest declares slot templates as a files mode (ADR-0090 amendment of 2026-10-14, item 1).
-	if index, ok := tree["slots/slots.json"]; ok {
-		var sidecar struct {
-			SlotTemplates []struct {
-				Path   string          `json:"path"`
-				Syntax composer.Syntax `json:"syntax"`
-				Source string          `json:"source"`
-			} `json:"slot_templates"`
-		}
-		if err := json.Unmarshal(index, &sidecar); err != nil {
-			t.Fatalf("%s: slots/slots.json: %v", dir, err)
-		}
-		for _, e := range sidecar.SlotTemplates {
-			body, ok := tree["slots/"+e.Source]
-			if !ok {
-				t.Fatalf("%s: slot template body slots/%s is not in the plugin", dir, e.Source)
-			}
-			p.SlotTemplates = append(p.SlotTemplates, composer.SlotTemplate{Path: e.Path, Syntax: e.Syntax, Body: string(body)})
-		}
-	}
-	return p
+	return composer.Plugin{Manifest: m, Tree: tree}
 }
 
 // inline builds a plugin from a manifest literal, parsed by the real parser.

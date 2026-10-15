@@ -33,7 +33,7 @@ trap cleanup EXIT
 cp -R "$apigo/templates/api/." "$work/"
 cp -R "$plugin/templates/api/." "$work/"
 sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' \
-  "$apigo/slots/api/internal/shell/router.go.tmpl" >"$work/internal/shell/router.go"
+  "$apigo/templates/api/internal/shell/router.go" >"$work/internal/shell/router.go"
 
 cd "$work"
 unformatted="$(gofmt -l .)"

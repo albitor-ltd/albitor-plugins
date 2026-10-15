@@ -110,19 +110,19 @@ writes.
 
 ```text
 .claude-plugin/plugin.json   schema-2 manifest
-slot-templates.json          the generated slot files this plugin designates
-slot-templates/              their bodies, with {{albitor.slot.*}} placeholders
-templates/web/**             the files composed into the app, at their repository paths
+templates/web/**             the files composed into the app, at their repository paths; the
+                             two generated slot files (src/lib/shell/nav.generated.ts and
+                             providers.generated.ts) are slot-template entries in plugin.json
 skills/svelte-shell/         the shell skill
 skills/data-online/          the online data layer skill
 skills/data-offline/         the offline data layer skill
 ```
 
-The slot-template layout (`slot-templates.json`) is provisional pending
-albitor-ltd/albitor#3215. A route guard is a convenience, not access control: the API must check
+Slot templates are declared in the manifest (`mode: "slot-template"`, `syntax: "ts"`; ADR-0090
+amendment of 2026-10-14, item 1); the old `slot-templates.json` sidecar is gone, because the
+platform never read it (dev build 63716a5c refused to compose with `no_slot_template`). A route guard is a convenience, not access control: the API must check
 the caller. The guard runs in `+layout.ts` `load` before providers mount, so there is no
 session-state ordering guarantee, and tokens must not be persisted in `localStorage`. A plugin
 `web.nav` entry must ship the route its label slugs to.
 
-`slot-templates.json` is read by whoever builds the composer's `Plugin.SlotTemplates` from this
-tree. Compose, build and test it with `scripts/compose-check.sh` (see the repository README).
+Compose, build and test it with `scripts/compose-check.sh` (see the repository README).

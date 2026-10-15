@@ -80,8 +80,7 @@ A plugin `web.nav` entry only names a label, so the plugin must ship the route i
 (`Sign in` needs `/sign-in`); otherwise the link is dead. Two plugin entries slugging to one link
 are an error, and so is a label with no letters or digits.
 
-The slot-template layout (`slot-templates.json` and `slot-templates/`) is provisional pending
-albitor-ltd/albitor#3215.
+The generated slot files are managed: a plugin upgrade re-renders them from the slot fragments.
 
 ## Run and verify
 

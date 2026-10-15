@@ -10,7 +10,7 @@ provides, requires and contributes, and the platform composer renders it into a 
 | --- | --- | --- |
 | `api/go.mod`, `api/main.go` | managed | Module `webapp` (stdlib only) and the process entry point |
 | `api/internal/shell/shell.go`, `boot.go` | managed | Health route, JSON 404, middleware chain, request logging, local issuer wiring |
-| `api/internal/shell/router.go` | generated | Places the `api.middleware` and `api.routes` slots; designated by `slots/slots.json` |
+| `api/internal/shell/router.go` | generated | Places the `api.middleware` and `api.routes` slots; a `slot-template` entry in `plugin.json` (syntax `go`) |
 | `api/internal/apikit/**` | managed | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
 | `api/internal/localauth/**` | managed | The Go side of the local run contract: the in-process test issuer |
 | `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)`, where product handlers are registered |
@@ -27,8 +27,8 @@ object-store and auth plugins.
 .claude-plugin/plugin.json   schema-2 manifest
 templates/api/...            files the composer copies; a contributed file at repo path P is
                              read from templates/P, with {{albitor.*}} tokens substituted
-slots/slots.json             the generated slot files this plugin designates (path, syntax, source)
-slots/api/internal/shell/    the slot template bodies, with {{albitor.slot.<name>}} placeholders
+                             (router.go is a slot-template entry in plugin.json, its body with
+                             {{albitor.slot.<name>}} placeholders, syntax go)
 skills/api-go/SKILL.md       how to add an endpoint on this shell
 ```
 

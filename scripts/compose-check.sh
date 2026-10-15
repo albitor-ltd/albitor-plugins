@@ -69,7 +69,7 @@ if [[ $journeys -eq 1 ]]; then
   api="$root/plugins/api-go"
   mkdir -p "$tmp/app/api"
   cp -R "$api/templates/api/." "$tmp/app/api/"
-  sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' "$api/slots/api/internal/shell/router.go.tmpl" >"$tmp/app/api/internal/shell/router.go"
+  sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' "$api/templates/api/internal/shell/router.go" >"$tmp/app/api/internal/shell/router.go"
   cd "$tmp/app/web/tests"
   npm ci
   # shellcheck disable=SC2086 # the flags are a word list on purpose

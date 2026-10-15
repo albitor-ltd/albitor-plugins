@@ -27,7 +27,7 @@ middleware="$(jq -r '(.contributes.slots["api.middleware"] // []) | join(", ")' 
 routes="$(jq -r '(.contributes.slots["api.routes"] // []) | join(", ")' "$manifest")"
 sed -e "s/{{albitor\.slot\.api\.middleware}}/$middleware/" \
   -e "s/{{albitor\.slot\.api\.routes}}/$routes/" \
-  "$apigo/slots/api/internal/shell/router.go.tmpl" >"$work/internal/shell/router.go"
+  "$apigo/templates/api/internal/shell/router.go" >"$work/internal/shell/router.go"
 
 if grep -rn '{{albitor\.slot' "$work" >/dev/null; then
   echo "error: an unrendered slot placeholder is left in the composed tree" >&2

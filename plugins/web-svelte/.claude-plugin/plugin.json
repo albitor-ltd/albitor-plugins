@@ -51,6 +51,8 @@
       { "path": "web/src/lib/shell/api.test.ts", "mode": "managed" },
       { "path": "web/src/lib/shell/ShellProviders.svelte", "mode": "managed" },
       { "path": "web/src/lib/shell/OfflineBanner.svelte", "mode": "managed" },
+      { "path": "web/src/lib/shell/nav.generated.ts", "mode": "slot-template", "syntax": "ts" },
+      { "path": "web/src/lib/shell/providers.generated.ts", "mode": "slot-template", "syntax": "ts" },
       { "path": "web/src/lib/data-layer/index.ts", "mode": "managed" },
       { "path": "web/src/lib/data-layer/online.ts", "mode": "managed" },
       { "path": "web/src/lib/data-layer/offline.ts", "mode": "managed" },
