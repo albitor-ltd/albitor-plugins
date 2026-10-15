@@ -23,6 +23,7 @@ var update = flag.Bool("update", false, "rewrite the golden file")
 var tokens = authtemplate.Values{
 	authtemplate.TokenProjectName: "plantrain",
 	authtemplate.TokenRepo:        "acme/plantrain",
+	composer.TokenDataLayer:       composer.DataLayerOnline,
 }
 
 func repoRoot(t *testing.T) string {
@@ -116,7 +117,6 @@ func stubs(t *testing.T, root string, withAuth bool) []composer.Plugin {
 	t.Helper()
 	ps := []composer.Plugin{
 		loadDir(t, filepath.Join(root, "tests", "compose", "stubs", "kit-stub")),
-		inline(t, `{"schema":2,"name":"client-stub","kind":"socket","provides":["client-data@1"]}`),
 		inline(t, `{"schema":2,"name":"harness-stub","kind":"socket","provides":["test-harness@1"]}`),
 		inline(t, `{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`),
 	}
@@ -224,9 +224,9 @@ func TestSlotFilesAreOpaqueLiterals(t *testing.T) {
 	full := compose(t, true)
 	providers := string(full.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{
-		"const { StubProvider } = scope;",
+		"const { DataProvider, StubProvider } = scope;",
 		"const { stubGuard } = scope;",
-		"checkProviders([StubProvider])",
+		"checkProviders([DataProvider, StubProvider])",
 		"checkGuards([stubGuard])",
 	} {
 		if !strings.Contains(providers, want) {
@@ -241,11 +241,12 @@ func TestSlotFilesAreOpaqueLiterals(t *testing.T) {
 		t.Errorf("nav.generated.ts must collect route nav.ts modules:\n%s", nav)
 	}
 
-	// With no plugin filling the web slots every placeholder renders empty, and the generated
+	// With no other plugin filling the web slots, providers hold only web-svelte's own DataProvider,
+	// every other placeholder renders empty, and the generated
 	// code must still be well formed.
 	bare := compose(t, false)
 	providers = string(bare.Files["web/src/lib/shell/providers.generated.ts"])
-	for _, want := range []string{"const {  } = scope;", "checkProviders([])", "checkGuards([])"} {
+	for _, want := range []string{"const { DataProvider } = scope;", "const {  } = scope;", "checkProviders([DataProvider])", "checkGuards([])"} {
 		if !strings.Contains(providers, want) {
 			t.Errorf("empty providers.generated.ts lacks %q:\n%s", want, providers)
 		}

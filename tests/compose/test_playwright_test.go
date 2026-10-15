@@ -101,7 +101,6 @@ func composeDefault(t *testing.T) *composer.Result {
 	root := repoRoot(t)
 	plugins := []composer.Plugin{
 		loadDir(t, filepath.Join(root, "tests", "compose", "stubs", "kit-stub")),
-		inline(t, `{"schema":2,"name":"client-stub","kind":"socket","provides":["client-data@1"]}`),
 		inline(t, `{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`),
 		inline(t, `{"schema":2,"name":"auth-none-stub","kind":"socket","provides":["auth@1"]}`),
 		loadDir(t, filepath.Join(root, "plugins", "web-svelte")),
@@ -230,7 +229,6 @@ func TestOnlyAHarnessMayShipAWorkflow(t *testing.T) {
 	other.Manifest = inline(t, raw).Manifest
 	plugins := []composer.Plugin{
 		other,
-		inline(t, `{"schema":2,"name":"client-stub","kind":"socket","provides":["client-data@1"]}`),
 		inline(t, `{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`),
 		inline(t, `{"schema":2,"name":"auth-none-stub","kind":"socket","provides":["auth@1"]}`),
 		inline(t, `{"schema":2,"name":"harness-stub","kind":"socket","provides":["test-harness@1"]}`),

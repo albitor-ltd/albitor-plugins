@@ -20,7 +20,7 @@ func authPeers(t *testing.T) catalogue {
 	t.Helper()
 	root := repoRoot(t)
 	c := catalogue{}
-	for _, n := range []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "test-playwright"} {
+	for _, n := range []string{"web-svelte", "kit-shadcn", "api-go", "test-playwright"} {
 		c[n] = loadDir(t, filepath.Join(root, "plugins", n))
 	}
 	c["deploy-stub"] = inline(t, `{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`)
@@ -31,7 +31,6 @@ func authProfile(withAPI bool) certification.Profile {
 	members := []certification.Member{
 		{Socket: core.SocketWebFramework, Plugin: "web-svelte"},
 		{Socket: core.SocketComponentKit, Plugin: "kit-shadcn"},
-		{Socket: core.SocketClientData, Plugin: "client-online"},
 		{Socket: core.SocketDeployTarget, Plugin: "deploy-stub"},
 		{Socket: core.SocketTestHarness, Plugin: "test-playwright"},
 		{Socket: core.SocketAuth, Plugin: "auth-candidate"},
@@ -52,6 +51,7 @@ func TestAuthPluginsConform(t *testing.T) {
 	for _, name := range []string{"auth-cognito", "auth-none"} {
 		t.Run(name, func(t *testing.T) {
 			h := &certification.Harness{
+				Tokens:   tokens,
 				Profiles: []certification.Profile{authProfile(true)},
 				Peers:    authPeers(t),
 				Suites:   certification.DefaultSuites(),
@@ -92,6 +92,7 @@ func TestAuthPluginsFailClosed(t *testing.T) {
 			}
 			delete(files, missing)
 			h := &certification.Harness{
+				Tokens:   tokens,
 				Profiles: []certification.Profile{authProfile(true)},
 				Peers:    authPeers(t),
 				Suites:   certification.DefaultSuites(),
@@ -108,14 +109,14 @@ func TestAuthPluginsFailClosed(t *testing.T) {
 }
 
 // composeAuth composes the default shell around one auth plugin: the real web-svelte, kit-shadcn,
-// client-online, api-go and test-playwright, and a stub deploy target.
+// api-go and test-playwright, and a stub deploy target.
 func composeAuth(t *testing.T, auth string, extra ...string) (*composer.Result, error) {
 	t.Helper()
 	peers := authPeers(t)
 	plugins := []composer.Plugin{loadDir(t, authDir(t, auth))}
 	names := extra
 	if len(names) == 0 {
-		names = []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "test-playwright", "deploy-stub"}
+		names = []string{"web-svelte", "kit-shadcn", "api-go", "test-playwright", "deploy-stub"}
 	}
 	for _, n := range names {
 		plugins = append(plugins, peers[n])
@@ -206,7 +207,7 @@ func TestAuthCognitoScreensAreSeededPerKit(t *testing.T) {
 	plugins := []composer.Plugin{
 		loadDir(t, authDir(t, "auth-cognito")),
 		loadDir(t, filepath.Join(root, "tests", "compose", "stubs", "kit-stub")),
-		peers["web-svelte"], peers["client-online"], peers["api-go"], peers["test-playwright"], peers["deploy-stub"],
+		peers["web-svelte"], peers["api-go"], peers["test-playwright"], peers["deploy-stub"],
 	}
 	out, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
 	if err != nil {
@@ -224,7 +225,7 @@ func TestAuthCognitoScreensAreSeededPerKit(t *testing.T) {
 
 // TestAuthCognitoNeedsAnAPI: a web-only profile (no api-runtime) uses auth-none.
 func TestAuthCognitoNeedsAnAPI(t *testing.T) {
-	webOnly := []string{"web-svelte", "kit-shadcn", "client-online", "test-playwright", "deploy-stub"}
+	webOnly := []string{"web-svelte", "kit-shadcn", "test-playwright", "deploy-stub"}
 	if _, err := composeAuth(t, "auth-cognito", webOnly...); err == nil {
 		t.Fatal("auth-cognito composed with no api-runtime")
 	}

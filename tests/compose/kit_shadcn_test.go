@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"albitor/core"
-	"albitor/core/authtemplate"
 	"albitor/core/certification"
 	"albitor/core/composer"
 	"albitor/core/governance"
@@ -25,7 +24,6 @@ func kitProfile(kit string) certification.Profile {
 		{Socket: core.SocketWebFramework, Plugin: "web-svelte"},
 		{Socket: core.SocketComponentKit, Plugin: kit},
 		{Socket: core.SocketAuth, Plugin: "auth-none-stub"},
-		{Socket: core.SocketClientData, Plugin: "client-stub"},
 		{Socket: core.SocketDeployTarget, Plugin: "deploy-stub"},
 		{Socket: core.SocketTestHarness, Plugin: "harness-stub"},
 	}}
@@ -41,7 +39,6 @@ func kitPeers(t *testing.T) catalogue {
 	c := catalogue{"web-svelte": loadDir(t, filepath.Join(root, "plugins", "web-svelte"))}
 	for _, m := range []string{
 		`{"schema":2,"name":"auth-none-stub","kind":"socket","provides":["auth@1"]}`,
-		`{"schema":2,"name":"client-stub","kind":"socket","provides":["client-data@1"]}`,
 		`{"schema":2,"name":"harness-stub","kind":"socket","provides":["test-harness@1"]}`,
 		`{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`,
 	} {
@@ -77,13 +74,10 @@ func composeKit(t *testing.T, kit string) *composer.Result {
 	t.Helper()
 	peers := kitPeers(t)
 	plugins := []composer.Plugin{loadDir(t, kitDir(t, kit))}
-	for _, n := range []string{"web-svelte", "auth-none-stub", "client-stub", "harness-stub", "deploy-stub"} {
+	for _, n := range []string{"web-svelte", "auth-none-stub", "harness-stub", "deploy-stub"} {
 		plugins = append(plugins, peers[n])
 	}
-	res, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: authtemplate.Values{
-		authtemplate.TokenProjectName: "plantrain",
-		authtemplate.TokenRepo:        "acme/plantrain",
-	}})
+	res, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
 	if err != nil {
 		t.Fatalf("%s does not compose with web-svelte: %v", kit, composer.Problems(err))
 	}
@@ -99,6 +93,7 @@ func TestKitShadcnPassesComponentKitConformance(t *testing.T) { kitPassesConform
 func kitPassesConformance(t *testing.T, kit string) {
 	t.Helper()
 	h := &certification.Harness{
+		Tokens:   tokens,
 		Profiles: []certification.Profile{kitProfile(kit)},
 		Peers:    kitPeers(t),
 		Suites:   certification.DefaultSuites(),
@@ -132,6 +127,7 @@ func kitFailsClosed(t *testing.T, kit string) {
 	files := snapshot(t, kitDir(t, kit))
 	delete(files, "templates/web/src/lib/kit/AppShell.svelte")
 	h := &certification.Harness{
+		Tokens:   tokens,
 		Profiles: []certification.Profile{kitProfile(kit)},
 		Peers:    kitPeers(t),
 		Suites:   certification.DefaultSuites(),

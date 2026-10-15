@@ -6,7 +6,7 @@
     {
       "socket": "web-framework",
       "plugin": "web-svelte",
-      "version": "0.1.2"
+      "version": "0.2.0"
     },
     {
       "socket": "component-kit",
@@ -17,10 +17,6 @@
       "socket": "auth",
       "plugin": "auth-stub",
       "version": "0.0.1"
-    },
-    {
-      "socket": "client-data",
-      "plugin": "client-stub"
     },
     {
       "socket": "deploy-target",
@@ -36,6 +32,7 @@
       "slot": "web.providers",
       "file": "web/src/lib/shell/providers.generated.ts",
       "contributors": [
+        "web-svelte",
         "auth-stub"
       ]
     },
@@ -108,6 +105,66 @@
       "plugins": "web-svelte"
     },
     {
+      "path": "web/src/lib/data-layer/index.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data-layer/offline.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data-layer/online.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/DataState.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/DataState.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/QueryProvider.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/client.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/client.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/query.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/query.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/state.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/data/state.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
       "path": "web/src/lib/kit/AppShell.svelte",
       "mode": "managed",
       "plugins": "kit-stub"
@@ -168,6 +225,11 @@
       "plugins": "auth-stub"
     },
     {
+      "path": "web/src/lib/shell/scope.d/data-layer.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
       "path": "web/src/lib/shell/scope.test.ts",
       "mode": "managed",
       "plugins": "web-svelte"
@@ -186,6 +248,121 @@
       "path": "web/src/lib/stub/StubProvider.svelte",
       "mode": "managed",
       "plugins": "auth-stub"
+    },
+    {
+      "path": "web/src/lib/sync/SyncProvider.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/SyncStatus.svelte",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/auto.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/auto.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/collections.ts",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/context.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/engine.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/engine.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/fallback.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/idb.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/live.svelte.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/memory.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/session.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/shell.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/status.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/status.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/store.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/testing.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/transport.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/transport.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/types.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/watch.test.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/sync/watch.ts",
+      "mode": "managed",
+      "plugins": "web-svelte"
     },
     {
       "path": "web/src/routes/+error.svelte",
@@ -256,6 +433,18 @@ site:
 === web/src/app.d.ts ===
 === web/src/app.html ===
 === web/src/lib/app/app.css ===
+=== web/src/lib/data-layer/index.ts ===
+=== web/src/lib/data-layer/offline.ts ===
+=== web/src/lib/data-layer/online.ts ===
+=== web/src/lib/data/DataState.svelte ===
+=== web/src/lib/data/DataState.test.ts ===
+=== web/src/lib/data/QueryProvider.svelte ===
+=== web/src/lib/data/client.test.ts ===
+=== web/src/lib/data/client.ts ===
+=== web/src/lib/data/query.test.ts ===
+=== web/src/lib/data/query.ts ===
+=== web/src/lib/data/state.test.ts ===
+=== web/src/lib/data/state.ts ===
 === web/src/lib/kit/AppShell.svelte ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===
@@ -289,20 +478,44 @@ export const navGroups = buildNav(pluginNav, routeNavModules);
 import { checkGuards, checkProviders } from './guard';
 import { scope } from './scope';
 
-const { StubProvider } = scope;
+const { DataProvider, StubProvider } = scope;
 const { stubGuard } = scope;
 
 /** Provider components, outermost first. */
-export const providers = checkProviders([StubProvider]);
+export const providers = checkProviders([DataProvider, StubProvider]);
 
 /** Route guards. The slot is single-valued, so this holds zero or one. */
 export const routeGuards = checkGuards([stubGuard]);
 
 === web/src/lib/shell/scope.d/auth-stub.ts ===
+=== web/src/lib/shell/scope.d/data-layer.ts ===
 === web/src/lib/shell/scope.test.ts ===
 === web/src/lib/shell/scope.ts ===
 === web/src/lib/shell/types.ts ===
 === web/src/lib/stub/StubProvider.svelte ===
+=== web/src/lib/sync/SyncProvider.svelte ===
+=== web/src/lib/sync/SyncStatus.svelte ===
+=== web/src/lib/sync/auto.test.ts ===
+=== web/src/lib/sync/auto.ts ===
+=== web/src/lib/sync/collections.ts ===
+=== web/src/lib/sync/context.ts ===
+=== web/src/lib/sync/engine.test.ts ===
+=== web/src/lib/sync/engine.ts ===
+=== web/src/lib/sync/fallback.ts ===
+=== web/src/lib/sync/idb.ts ===
+=== web/src/lib/sync/live.svelte.ts ===
+=== web/src/lib/sync/memory.ts ===
+=== web/src/lib/sync/session.ts ===
+=== web/src/lib/sync/shell.test.ts ===
+=== web/src/lib/sync/status.test.ts ===
+=== web/src/lib/sync/status.ts ===
+=== web/src/lib/sync/store.test.ts ===
+=== web/src/lib/sync/testing.ts ===
+=== web/src/lib/sync/transport.test.ts ===
+=== web/src/lib/sync/transport.ts ===
+=== web/src/lib/sync/types.ts ===
+=== web/src/lib/sync/watch.test.ts ===
+=== web/src/lib/sync/watch.ts ===
 === web/src/routes/+error.svelte ===
 === web/src/routes/+layout.svelte ===
 === web/src/routes/+layout.ts ===

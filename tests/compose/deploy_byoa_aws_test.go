@@ -113,7 +113,7 @@ func byoaPeers(t *testing.T) catalogue {
 	t.Helper()
 	root := repoRoot(t)
 	c := catalogue{}
-	for _, n := range []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "data-dynamodb", "auth-none", "test-playwright"} {
+	for _, n := range []string{"web-svelte", "kit-shadcn", "api-go", "data-dynamodb", "auth-none", "test-playwright"} {
 		c[n] = loadDir(t, filepath.Join(root, "plugins", n))
 	}
 	return c
@@ -124,7 +124,6 @@ func byoaProfile() certification.Profile {
 		{Socket: core.SocketWebFramework, Plugin: "web-svelte"},
 		{Socket: core.SocketComponentKit, Plugin: "kit-shadcn"},
 		{Socket: core.SocketAuth, Plugin: "auth-none"},
-		{Socket: core.SocketClientData, Plugin: "client-online"},
 		{Socket: core.SocketAPIRuntime, Plugin: "api-go"},
 		{Socket: core.SocketDataStore, Plugin: "data-dynamodb"},
 		{Socket: core.SocketDeployTarget, Plugin: "deploy-byoa-aws"},
@@ -136,6 +135,7 @@ func byoaProfile() certification.Profile {
 // profile: manifest, deploy-target@1 conformance, compose and the floor gate.
 func TestDeployBYOACertifies(t *testing.T) {
 	h := &certification.Harness{
+		Tokens:   tokens,
 		Profiles: []certification.Profile{byoaProfile()},
 		Peers:    byoaPeers(t),
 		Suites:   certification.DefaultSuites(),
@@ -161,7 +161,7 @@ func composeBYOA(t *testing.T) *composer.Result {
 	t.Helper()
 	peers := byoaPeers(t)
 	plugins := []composer.Plugin{loadDir(t, byoaDir(t))}
-	for _, n := range []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "data-dynamodb", "auth-none", "test-playwright"} {
+	for _, n := range []string{"web-svelte", "kit-shadcn", "api-go", "data-dynamodb", "auth-none", "test-playwright"} {
 		plugins = append(plugins, peers[n])
 	}
 	res, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
