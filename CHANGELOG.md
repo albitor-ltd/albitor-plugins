@@ -48,7 +48,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `DataProvider`. `@tanstack/svelte-query` 6.3.0 and `fake-indexeddb` 6.2.5 join the seeded
   `web/package.json` and lockfile. Needs an albitor composer that owns `data_layer`; an older one
   refuses it (`unknown_token`). The catalogue pins it once `web-svelte/v0.2.0` exists.
-
 - Release `api-go` `v0.1.1`, and in `web-svelte` `v0.2.0` too: slot templates are declared in
   `plugin.json` as `mode: "slot-template"` entries (ADR-0090 amendment of 2026-10-14, items 1 and
   8), with their bodies at the generated paths under `templates/`

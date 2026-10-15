@@ -36,7 +36,7 @@ func repoRoot(t *testing.T) string {
 }
 
 // loadDir reads a plugin directory as the composer sees it: the validated manifest, the whole
-// tree keyed by plugin-relative path, and the slot templates slot-templates.json designates.
+// tree keyed by plugin-relative path (slot templates are manifest entries; a sidecar is refused).
 func loadDir(t *testing.T, dir string) composer.Plugin {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join(dir, ".claude-plugin", "plugin.json"))
