@@ -134,7 +134,7 @@ jobs:
 }
 
 func hostedPeerNames() []string {
-	return []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "data-dynamodb", "auth-none", "test-playwright"}
+	return []string{"web-svelte", "kit-shadcn", "api-go", "data-dynamodb", "auth-none", "test-playwright"}
 }
 
 func hostedPeers(t *testing.T) catalogue {
@@ -152,7 +152,6 @@ func hostedProfile() certification.Profile {
 		{Socket: core.SocketWebFramework, Plugin: "web-svelte"},
 		{Socket: core.SocketComponentKit, Plugin: "kit-shadcn"},
 		{Socket: core.SocketAuth, Plugin: "auth-none"},
-		{Socket: core.SocketClientData, Plugin: "client-online"},
 		{Socket: core.SocketAPIRuntime, Plugin: "api-go"},
 		{Socket: core.SocketDataStore, Plugin: "data-dynamodb"},
 		{Socket: core.SocketDeployTarget, Plugin: "deploy-hosted"},
@@ -164,6 +163,7 @@ func hostedProfile() certification.Profile {
 // profile: manifest, deploy-target@1 conformance, compose and the floor gate.
 func TestDeployHostedCertifies(t *testing.T) {
 	h := &certification.Harness{
+		Tokens:   tokens,
 		Profiles: []certification.Profile{hostedProfile()},
 		Peers:    hostedPeers(t),
 		Suites:   certification.DefaultSuites(),

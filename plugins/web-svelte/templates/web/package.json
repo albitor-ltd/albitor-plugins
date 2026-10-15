@@ -20,6 +20,8 @@
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
     "vite": "8.3.1",
-    "vitest": "5.0.2"
+    "vitest": "5.0.2",
+    "@tanstack/svelte-query": "6.3.0",
+    "fake-indexeddb": "6.2.5"
   }
 }

@@ -12,7 +12,7 @@
 # --journeys (with --build) then runs the test-playwright harness over the composed default shell:
 # the api-go tree is added, the harness's own unit tests run, and the journeys run against the
 # locally booted app in Chromium (needs go; PLAYWRIGHT_INSTALL_FLAGS="--with-deps" in CI).
-# The default shell with auth-cognito (web-svelte, kit-shadcn, client-online, api-go, test-playwright)
+# The default shell with auth-cognito (web-svelte, kit-shadcn, api-go, test-playwright)
 # is composed too: --build vets and tests its API and checks, tests and builds its web, and
 # --journeys runs the harness plus the sign-in journey against it.
 set -euo pipefail
@@ -69,7 +69,7 @@ if [[ $journeys -eq 1 ]]; then
   api="$root/plugins/api-go"
   mkdir -p "$tmp/app/api"
   cp -R "$api/templates/api/." "$tmp/app/api/"
-  sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' "$api/slots/api/internal/shell/router.go.tmpl" >"$tmp/app/api/internal/shell/router.go"
+  sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' "$api/templates/api/internal/shell/router.go" >"$tmp/app/api/internal/shell/router.go"
   cd "$tmp/app/web/tests"
   npm ci
   # shellcheck disable=SC2086 # the flags are a word list on purpose
@@ -81,7 +81,8 @@ if [[ $journeys -eq 1 ]]; then
   echo "journeys pass against the composed default shell"
 fi
 
-# Each tree below is installed with install_web before it is built. client-online:
+# Each tree below is installed with install_web before it is built. web-svelte with the online
+# data layer (data_layer=online):
 if [[ $build -eq 1 ]]; then
   cd "$tmp/online/web"
   install_web
@@ -89,10 +90,10 @@ if [[ $build -eq 1 ]]; then
   npm test
   npm run build
   test -f build/index.html
-  echo "composed web tree with client-online builds"
+  echo "composed web tree with the online data layer builds"
 fi
 
-# Same for client-offline (fake-indexeddb, for the store tests). Its build must also emit the service
+# Same for the offline data layer (data_layer=offline). Its build must also emit the service
 # worker into the deploy output: without it the app cannot open offline at all. What the worker
 # caches is asserted by shell.test.ts in the app's own tests.
 if [[ $build -eq 1 ]]; then
@@ -103,7 +104,7 @@ if [[ $build -eq 1 ]]; then
   npm run build
   test -f build/index.html
   test -f build/service-worker.js
-  echo "composed web tree with client-offline builds and ships its service worker"
+  echo "composed web tree with the offline data layer builds and ships its service worker"
 fi
 
 # Same for kit-shadcn (bits-ui, and axe-core and jsdom for its tests). Its tests render the shell

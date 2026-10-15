@@ -2,7 +2,7 @@
 # Build, vet and test the api-go plugin's tree as it composes with no other plugin.
 #
 # The real composer lives in albitor-ltd/albitor and is not importable here, so this renders the
-# one thing it adds, the generated router (slots/api/internal/shell/router.go.tmpl), with every
+# one thing it adds, the generated router (templates/api/internal/shell/router.go), with every
 # slot empty, over a copy of templates/api. The composer's golden test (in the albitor repo) is the
 # authority on what composes; this is the plugin's own gate that its Go compiles and passes.
 set -euo pipefail
@@ -14,7 +14,7 @@ trap 'rm -rf "$work"' EXIT
 
 cp -R "$plugin/templates/api/." "$work/"
 sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' \
-  "$plugin/slots/api/internal/shell/router.go.tmpl" >"$work/internal/shell/router.go"
+  "$plugin/templates/api/internal/shell/router.go" >"$work/internal/shell/router.go"
 
 if grep -rn '{{albitor\.slot' "$work" >/dev/null; then
   echo "error: an unrendered slot placeholder is left in the composed tree" >&2
@@ -33,7 +33,7 @@ fi
 # The same template with populated slots (joined as the composer joins them, ", ") is clean too.
 populated="$(mktemp -d)"
 sed -e 's/{{albitor\.slot\.api\.middleware}}/mwA, mwB/' -e 's/{{albitor\.slot\.api\.routes}}/routesA/' \
-  "$plugin/slots/api/internal/shell/router.go.tmpl" >"$populated/router.go"
+  "$plugin/templates/api/internal/shell/router.go" >"$populated/router.go"
 if [[ -n "$(gofmt -l "$populated/router.go")" ]]; then
   echo "error: the router template is not gofmt-clean with populated slots" >&2
   rm -rf "$populated"

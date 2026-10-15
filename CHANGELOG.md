@@ -39,6 +39,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `environment` and `ref` dispatch inputs the platform sends for a promotion, runs in the named
   GitHub Environment, and gains the `ship SPA` job that stamps the `deploy-receipt` notice the
   platform reads. The catalogue pins it once `deploy-byoa-aws/v0.1.1` exists.
+- Release `web-svelte` `v0.2.0` (albitor-ltd/albitor ADR-0090, amendment of 2026-10-15): the
+  `client-data@1` socket is retired and both data layers move into `web-svelte`, the online layer
+  under `src/lib/data/` and the offline-first `@albitor/sync` layer under `src/lib/sync/`, file for
+  file, with their tests and skills (`data-online`, `data-offline`). The platform's `data_layer`
+  token (`online` or `offline`, from the plan's `offline` need) selects the entry point
+  (`src/lib/data-layer/index.ts`), which `web-svelte` names in its own `web.providers` fragment as
+  `DataProvider`. `@tanstack/svelte-query` 6.3.0 and `fake-indexeddb` 6.2.5 join the seeded
+  `web/package.json` and lockfile. Needs an albitor composer that owns `data_layer`; an older one
+  refuses it (`unknown_token`). The catalogue pins it once `web-svelte/v0.2.0` exists.
+- Release `api-go` `v0.1.1`, and in `web-svelte` `v0.2.0` too: slot templates are declared in
+  `plugin.json` as `mode: "slot-template"` entries (ADR-0090 amendment of 2026-10-14, items 1 and
+  8), with their bodies at the generated paths under `templates/`
+  (`api/internal/shell/router.go`; `web/src/lib/shell/nav.generated.ts` and
+  `providers.generated.ts`). The `slots/slots.json` and `slot-templates.json` sidecars are removed:
+  the platform never read them, so dev build 63716a5c refused to compose with four
+  `no_slot_template` problems (`web.providers`, `web.route-guard`, `api.middleware`, `api.routes`).
+  `tests/compose` now refuses a sidecar and composes every certified profile
+  (`certification.Profiles()`) from the real plugin trees, with both data layers and every
+  alternative plugin here, so this class cannot pass CI again.
+
+### Removed
+
+- `client-online` and `client-offline`: folded into `web-svelte` `v0.2.0` with the `client-data@1`
+  socket. Their `v0.1.0` tags stay; the catalogue drops them when it is next regenerated.
 
 ### Added
 

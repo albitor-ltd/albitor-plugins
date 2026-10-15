@@ -23,6 +23,7 @@ var update = flag.Bool("update", false, "rewrite the golden file")
 var tokens = authtemplate.Values{
 	authtemplate.TokenProjectName: "plantrain",
 	authtemplate.TokenRepo:        "acme/plantrain",
+	composer.TokenDataLayer:       composer.DataLayerOnline,
 }
 
 func repoRoot(t *testing.T) string {
@@ -35,7 +36,7 @@ func repoRoot(t *testing.T) string {
 }
 
 // loadDir reads a plugin directory as the composer sees it: the validated manifest, the whole
-// tree keyed by plugin-relative path, and the slot templates slot-templates.json designates.
+// tree keyed by plugin-relative path (slot templates are manifest entries; a sidecar is refused).
 func loadDir(t *testing.T, dir string) composer.Plugin {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join(dir, ".claude-plugin", "plugin.json"))
@@ -59,46 +60,16 @@ func loadDir(t *testing.T, dir string) composer.Plugin {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p := composer.Plugin{Manifest: m, Tree: tree}
-	if index, ok := tree["slot-templates.json"]; ok {
-		var entries []struct {
-			Path   string          `json:"path"`
-			Syntax composer.Syntax `json:"syntax"`
-			Body   string          `json:"body"`
-		}
-		if err := json.Unmarshal(index, &entries); err != nil {
-			t.Fatalf("%s: slot-templates.json: %v", dir, err)
-		}
-		for _, e := range entries {
-			body, ok := tree[e.Body]
-			if !ok {
-				t.Fatalf("%s: slot template body %s is not in the plugin", dir, e.Body)
-			}
-			p.SlotTemplates = append(p.SlotTemplates, composer.SlotTemplate{Path: e.Path, Syntax: e.Syntax, Body: string(body)})
+	// Slot templates are manifest files entries (mode slot-template, ADR-0090 amendment of
+	// 2026-10-14, item 1), read by the composer from Tree exactly as the platform loads a pinned
+	// version: nothing here supplies Plugin.SlotTemplates, so a sidecar the platform never reads
+	// cannot make a test pass.
+	for _, sidecar := range []string{"slot-templates.json", "slots/slots.json"} {
+		if _, ok := tree[sidecar]; ok {
+			t.Fatalf("%s: %s is a sidecar the platform never reads; declare the template in plugin.json", dir, sidecar)
 		}
 	}
-	// api-go's sidecar convention (slots/slots.json); the same two conventions retire when the
-	// manifest declares slot templates as a files mode (ADR-0090 amendment of 2026-10-14, item 1).
-	if index, ok := tree["slots/slots.json"]; ok {
-		var sidecar struct {
-			SlotTemplates []struct {
-				Path   string          `json:"path"`
-				Syntax composer.Syntax `json:"syntax"`
-				Source string          `json:"source"`
-			} `json:"slot_templates"`
-		}
-		if err := json.Unmarshal(index, &sidecar); err != nil {
-			t.Fatalf("%s: slots/slots.json: %v", dir, err)
-		}
-		for _, e := range sidecar.SlotTemplates {
-			body, ok := tree["slots/"+e.Source]
-			if !ok {
-				t.Fatalf("%s: slot template body slots/%s is not in the plugin", dir, e.Source)
-			}
-			p.SlotTemplates = append(p.SlotTemplates, composer.SlotTemplate{Path: e.Path, Syntax: e.Syntax, Body: string(body)})
-		}
-	}
-	return p
+	return composer.Plugin{Manifest: m, Tree: tree}
 }
 
 // inline builds a plugin from a manifest literal, parsed by the real parser.
@@ -116,7 +87,6 @@ func stubs(t *testing.T, root string, withAuth bool) []composer.Plugin {
 	t.Helper()
 	ps := []composer.Plugin{
 		loadDir(t, filepath.Join(root, "tests", "compose", "stubs", "kit-stub")),
-		inline(t, `{"schema":2,"name":"client-stub","kind":"socket","provides":["client-data@1"]}`),
 		inline(t, `{"schema":2,"name":"harness-stub","kind":"socket","provides":["test-harness@1"]}`),
 		inline(t, `{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`),
 	}
@@ -224,9 +194,9 @@ func TestSlotFilesAreOpaqueLiterals(t *testing.T) {
 	full := compose(t, true)
 	providers := string(full.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{
-		"const { StubProvider } = scope;",
+		"const { DataProvider, StubProvider } = scope;",
 		"const { stubGuard } = scope;",
-		"checkProviders([StubProvider])",
+		"checkProviders([DataProvider, StubProvider])",
 		"checkGuards([stubGuard])",
 	} {
 		if !strings.Contains(providers, want) {
@@ -241,11 +211,12 @@ func TestSlotFilesAreOpaqueLiterals(t *testing.T) {
 		t.Errorf("nav.generated.ts must collect route nav.ts modules:\n%s", nav)
 	}
 
-	// With no plugin filling the web slots every placeholder renders empty, and the generated
+	// With no other plugin filling the web slots, providers hold only web-svelte's own DataProvider,
+	// every other placeholder renders empty, and the generated
 	// code must still be well formed.
 	bare := compose(t, false)
 	providers = string(bare.Files["web/src/lib/shell/providers.generated.ts"])
-	for _, want := range []string{"const {  } = scope;", "checkProviders([])", "checkGuards([])"} {
+	for _, want := range []string{"const { DataProvider } = scope;", "const {  } = scope;", "checkProviders([DataProvider])", "checkGuards([])"} {
 		if !strings.Contains(providers, want) {
 			t.Errorf("empty providers.generated.ts lacks %q:\n%s", want, providers)
 		}

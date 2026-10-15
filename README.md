@@ -35,12 +35,10 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `carbon` | IBM Carbon Design System for enterprise interfaces |
 | `auth` | Cognito-backed sign-up and login |
 | `docs` | Diataxis, C4 and arc42 documentation skills |
-| `web-svelte` | The `web-framework@1` socket: SvelteKit static SPA, shell, slot host (schema-2 manifest; monorepo-only, not in the legacy catalogue) |
+| `web-svelte` | The `web-framework@1` socket: SvelteKit static SPA, shell, slot host, and both client data layers (online-only TanStack Query, or offline-first `@albitor/sync` outbox and sync), the platform's `data_layer` token selecting one (schema-2 manifest; monorepo-only, not in the legacy catalogue) |
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 | `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow |
 | `data-dynamodb` | The `data-store@1` plugin: `Store` over one DynamoDB table, in-memory fake, conformance suite, `services.tables` fragment |
-| `client-online` | The `client-data@1` plugin for online-only apps: TanStack Query for Svelte, shared retry policy, loading, offline, error and empty states |
-| `client-offline` | The `client-data@1` plugin for offline-first apps: `@albitor/sync` outbox and sync, a local store per person, tombstones, guarded single-flight runs, sign-out that keeps unsynced work |
 | `kit-shadcn` | The `component-kit@1` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
 | `kit-carbon` | The `component-kit@1` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
 | `deploy-byoa-aws` | The `deploy-target@1` plugin for a customer's own AWS account: Terraform rendered from `albitor.yaml` (site, API, tables, alarms, DNS) from versioned modules, the CI and deploy workflows (OIDC), the stale state-lock guard |
@@ -49,6 +47,9 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
 
 `auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`).
+
+`client-online` and `client-offline` (the retired `client-data@1` socket) folded into `web-svelte`
+0.2.0 (albitor-ltd/albitor ADR-0090 amendment of 2026-10-15); their `v0.1.0` tags stay for history.
 
 The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).

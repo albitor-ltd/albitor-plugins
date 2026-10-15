@@ -53,6 +53,7 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
 | `src/lib/shell/nav.generated.ts`, `providers.generated.ts` | Rendered from plugin slot fragments (`web.nav`, `web.providers`, `web.route-guard`) |
 | `src/lib/shell/nav.ts`, `guard.ts`, `api.ts`, `types.ts`, `scope.ts` | Nav merge and ordering, guard runner, API client, contract types |
 | `src/service-worker/` | Caches the built app so it opens offline; never caches `/api` |
+| `src/lib/data-layer/`, `src/lib/data/`, `src/lib/sync/` (not `sync/collections.ts`) | Both data layers and the entry point the platform selected before Start: online (TanStack Query, the data-online skill) or offline-first (outbox and sync, the data-offline skill). `data-layer/index.ts` names the one in use |
 | `vite.config.ts` (SvelteKit 3 config lives here), `tsconfig.json`, `scripts/local-serve.mjs` | Build and the local run |
 
 To change one, **eject** it (the file becomes yours and the lock records it); do not edit it in
@@ -62,7 +63,8 @@ place.
 
 `src/routes/+error.svelte` (error and 404), `src/routes/offline/+page.svelte`,
 `src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`, `src/app.html`,
-`package.json` and its lockfile.
+`package.json` and its lockfile, and `src/lib/sync/collections.ts` (the synced collections, read
+only by the offline data layer).
 
 ## Plugins: providers and the route guard
 
@@ -78,8 +80,7 @@ A plugin `web.nav` entry only names a label, so the plugin must ship the route i
 (`Sign in` needs `/sign-in`); otherwise the link is dead. Two plugin entries slugging to one link
 are an error, and so is a label with no letters or digits.
 
-The slot-template layout (`slot-templates.json` and `slot-templates/`) is provisional pending
-albitor-ltd/albitor#3215.
+The generated slot files are managed: a plugin upgrade re-renders them from the slot fragments.
 
 ## Run and verify
 
