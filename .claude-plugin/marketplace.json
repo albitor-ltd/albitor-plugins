@@ -155,17 +155,20 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.1.2",
-        "sha": "31fb08db1d3b1a541da9916d8e4b17ba7be4ee37"
+        "ref": "web-svelte/v0.2.0",
+        "sha": "60715e6ef4ff7a461bf9946683cb7d55def5139c"
       },
-      "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, and the web side of the local run contract.",
+      "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
       "category": "development",
       "keywords": [
         "web-framework",
         "svelte",
         "sveltekit",
         "spa",
-        "shell"
+        "shell",
+        "data-fetching",
+        "offline-first",
+        "sync"
       ],
       "license": "MIT"
     },
@@ -175,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.1.0",
-        "sha": "f5f76d09f9e76b240e761b2b18339e0f18b675bb"
+        "ref": "api-go/v0.1.1",
+        "sha": "60715e6ef4ff7a461bf9946683cb7d55def5139c"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -272,49 +275,6 @@
         "store",
         "pagination",
         "conformance"
-      ],
-      "license": "MIT"
-    },
-    {
-      "name": "client-online",
-      "source": {
-        "source": "git-subdir",
-        "url": "albitor-ltd/albitor-plugins",
-        "path": "plugins/client-online",
-        "ref": "client-online/v0.1.0",
-        "sha": "834a1743f4c5ff65c177837b15dad97bca598ee2"
-      },
-      "description": "The client-data plugin for online-only apps: TanStack Query for Svelte behind the web.providers slot, one shared query client with a sane retry policy, API query helpers, and loading, offline, error and empty states.",
-      "category": "development",
-      "keywords": [
-        "client-data",
-        "tanstack-query",
-        "svelte",
-        "data-fetching",
-        "cache",
-        "online"
-      ],
-      "license": "MIT"
-    },
-    {
-      "name": "client-offline",
-      "source": {
-        "source": "git-subdir",
-        "url": "albitor-ltd/albitor-plugins",
-        "path": "plugins/client-offline",
-        "ref": "client-offline/v0.1.0",
-        "sha": "116b26d3cad350b0dd15875cd12c278735f8a6fc"
-      },
-      "description": "The client-data plugin for offline-first apps: @albitor/sync, an IndexedDB store per signed-in person, an outbox that replays writes when the network returns, tombstones for deletions, a guarded single-flight sync, and a status line.",
-      "category": "development",
-      "keywords": [
-        "client-data",
-        "offline-first",
-        "outbox",
-        "sync",
-        "indexeddb",
-        "service-worker",
-        "svelte"
       ],
       "license": "MIT"
     },
