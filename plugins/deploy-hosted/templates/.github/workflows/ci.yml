@@ -1,0 +1,168 @@
+# Managed by Albitor (deploy-hosted). The gate for this repository: every pull request and every
+# push to main checks albitor.yaml, then builds and tests the API and the web app. Read-only: it
+# assumes no cloud role and reads no secret. This repository holds no infrastructure; the platform
+# compiles albitor.yaml and deploys, so there is no Terraform job and no deploy workflow here.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # A push gets a group of its own, so a later push never cancels the run of an earlier commit.
+  group: ci-${{ github.event_name }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # ADVISORY. The deploy checks albitor.yaml again, with the full validator, and
+  # never trusts this result. This job exists so a manifest mistake is red on
+  # the pull request that makes it rather than at deploy time.
+  #
+  # It checks the shape every deploy relies on — the version, the top-level
+  # keys, and which build blocks must exist — and reports failures in the
+  # manifest's own {field, code} shape: one annotation per failure, and a JSON
+  # array as the last line of output.
+  manifest:
+    name: manifest (advisory check)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: check albitor.yaml
+        run: |
+          set -euo pipefail
+          if [ ! -f albitor.yaml ]; then
+            echo "::error::no albitor.yaml at the repository root"
+            exit 1
+          fi
+          yq -o=json '.' albitor.yaml >"${RUNNER_TEMP}/manifest.json"
+          python3 - "${RUNNER_TEMP}/manifest.json" <<'PY'
+          import json
+          import sys
+
+          TOP = {"version", "build", "site", "http", "services", "schedules", "config"}
+          errors = []
+
+
+          def err(field, code):
+              errors.append({"field": field, "code": code})
+
+
+          def finish():
+              errors.sort(key=lambda e: e["field"])
+              for e in errors:
+                  print(f"::error title=albitor.yaml::{e['field']}: {e['code']}")
+              print(json.dumps(errors, separators=(",", ":")))
+              sys.exit(1 if errors else 0)
+
+
+          def step(build, name, wanted):
+              field = f"build.{name}"
+              block = build.get(name)
+              if block is None:
+                  if wanted:
+                      err(field, "missing_field")
+                  return
+              if not wanted:
+                  err(field, "orphan_block")
+                  return
+              if not isinstance(block, dict):
+                  err(field, "invalid_type")
+                  return
+              for key in ("command", "output"):
+                  value = block.get(key)
+                  if value is None:
+                      err(f"{field}.{key}", "missing_field")
+                  elif not isinstance(value, str):
+                      err(f"{field}.{key}", "invalid_type")
+                  elif not value.strip():
+                      err(f"{field}.{key}", "invalid_value")
+
+
+          with open(sys.argv[1], encoding="utf-8") as f:
+              doc = json.load(f)
+          if not isinstance(doc, dict) or doc.get("version") != "albitor/v1":
+              err("version", "unsupported_version")
+              finish()
+          for key in sorted(set(doc) - TOP):
+              err(key, "unknown_field")
+
+          site = doc.get("site")
+          http = doc.get("http")
+          schedules = doc.get("schedules") or []
+          if site is None and http is None:
+              err("site", "missing_field")
+
+          build = doc.get("build")
+          if build is None:
+              err("build", "missing_field")
+          elif not isinstance(build, dict):
+              err("build", "invalid_type")
+          else:
+              for key in sorted(set(build) - {"static", "api"}):
+                  err(f"build.{key}", "unknown_field")
+              step(build, "static", site is not None)
+              step(build, "api", http is not None or bool(schedules))
+          finish()
+          PY
+
+  api:
+    name: api (build and unit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        if: hashFiles('api/go.mod') != ''
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: build
+        if: hashFiles('api/go.mod') != ''
+        run: go build ./...
+        working-directory: api
+      - name: vet
+        if: hashFiles('api/go.mod') != ''
+        run: go vet ./...
+        working-directory: api
+      - name: test
+        if: hashFiles('api/go.mod') != ''
+        run: go test ./... -count=1
+        working-directory: api
+
+  web:
+    name: web (check, test, build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: hashFiles('web/package.json') != ''
+        with:
+          node-version: "24.21.0"
+      - name: install
+        if: hashFiles('web/package.json') != ''
+        run: npm install
+        working-directory: web
+      - name: check
+        if: hashFiles('web/package.json') != ''
+        run: npm run check
+        working-directory: web
+      - name: test
+        if: hashFiles('web/package.json') != ''
+        run: npm test
+        working-directory: web
+      - name: build
+        if: hashFiles('web/package.json') != ''
+        run: npm run build
+        working-directory: web
