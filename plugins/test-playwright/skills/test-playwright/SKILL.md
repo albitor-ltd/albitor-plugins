@@ -72,7 +72,7 @@ test("browse the claims", async ({ page, fixtureScope }) => {
 ## Running
 
 ```sh
-cd web && npm ci && cd tests && npm ci && npx playwright install chromium
+cd web && npm install && cd tests && npm ci && npx playwright install chromium
 cd web/tests && npm test                 # boots the API and the web build, runs the journeys
 cd web/tests && npm run unit             # the helpers' own unit tests
 npx playwright test --list -c web/tests/playwright.config.ts web/tests/journeys/x.spec.ts   # from the repository root

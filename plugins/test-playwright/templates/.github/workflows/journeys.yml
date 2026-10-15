@@ -34,7 +34,7 @@ jobs:
           go-version-file: api/go.mod
           cache: false
       - name: Install the app's web dependencies
-        run: npm ci
+        run: npm install
         working-directory: web
       - name: Install the journey suite
         run: npm ci
