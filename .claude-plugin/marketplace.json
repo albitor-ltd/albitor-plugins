@@ -236,6 +236,25 @@
       "license": "MIT"
     },
     {
+      "name": "deploy-hosted",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/deploy-hosted",
+        "ref": "deploy-hosted/v0.1.0",
+        "sha": "86ef344d3f4b7e40e58b3b68f1f33c7f56cbe0f4"
+      },
+      "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
+      "category": "development",
+      "keywords": [
+        "deploy-target",
+        "hosted",
+        "albitor-yaml",
+        "ci"
+      ],
+      "license": "MIT"
+    },
+    {
       "name": "data-dynamodb",
       "source": {
         "source": "git-subdir",
