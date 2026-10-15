@@ -34,9 +34,17 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
-mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/auth" "$tmp/offline"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/auth" "$tmp/offline" "$tmp/byoa"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_OUT_AUTH="$tmp/auth" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
+
+# The BYOA profile's composed tree: its rendered Terraform validates and plans offline against the
+# albitor.yaml the composer wrote (needs terraform; skipped with a note where there is none).
+if command -v terraform >/dev/null; then
+  "$root/scripts/verify-deploy-byoa-aws.sh" --composed "$tmp/byoa"
+else
+  echo "terraform not installed: skipping the BYOA composed-tree plan"
+fi
 
 # install_web installs the composed web/ in the current directory with `npm install`. The composer
 # omits a plugin-declared web/package-lock.json whenever the npm merge changes web/package.json

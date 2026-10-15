@@ -1,0 +1,12 @@
+version: albitor/v1
+build:
+  api:
+    command: cd api && go build -o dist/api .
+    output: api/dist
+http:
+  runtime: go
+  handler: api
+schedules:
+  - name: nightly
+    rate: rate(1 day)
+    handler: api

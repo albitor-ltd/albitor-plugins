@@ -1,0 +1,8 @@
+version: albitor/v1
+build:
+  api:
+    command: x
+    output: api/dist
+http:
+  runtime: node
+  handler: api

@@ -1,0 +1,5 @@
+version: albitor/v1
+build:
+  api:
+    command: x
+    output: api/dist

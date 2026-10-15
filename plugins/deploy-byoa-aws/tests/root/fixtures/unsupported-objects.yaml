@@ -1,0 +1,10 @@
+version: albitor/v1
+build:
+  static:
+    command: cd web && npm ci && npm run build
+    output: web/build
+site:
+  spa: true
+services:
+  objects:
+    - name: uploads

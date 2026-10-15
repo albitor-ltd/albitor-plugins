@@ -1,0 +1,8 @@
+version: albitor/v1
+build:
+  api:
+    command: x
+    output: build/out
+http:
+  runtime: go
+  handler: api
