@@ -32,6 +32,14 @@ old. `@sveltejs/kit` 3.0.1 (2026-10-06) and `@sveltejs/adapter-static` 4.0.0 (20
 exception: no older release of their major exists. Transitives in the seeded lockfile are not
 subject to the rule (current practice).
 
+## The lockfile is the app's
+
+The plugin seeds `web/package-lock.json` only as a starting point. The composer omits it whenever
+the npm merge changes `web/package.json`, so the app owns the lockfile from then on. The shipped
+build command is therefore `cd web && npm install && npm run build`, not `npm ci`: there is no
+plugin-supplied lockfile for `npm ci` to be reproducible against. Commit the lockfile `npm install`
+writes.
+
 ## What it needs from other plugins
 
 - `component-kit@1`: a `web/src/lib/kit/AppShell.svelte` taking `nav: NavGroup[]`,

@@ -99,7 +99,7 @@ their tags ingestible until then).
 Pull requests run: manifest validation (JSON parses, `name` equals the directory, semver
 `version`, catalogue metadata present), catalogue reproducibility (`--check`), shellcheck and JSON
 lint, a `compose` job (the real manifest parser and composer from albitor-ltd/albitor over the
-schema-2 plugins, then `npm ci`, check, test and build of the composed `web/`; it needs the
+schema-2 plugins, then `npm install`, check, test and build of the composed `web/`; it needs the
 `ALBITOR_REPO_TOKEN` secret and otherwise warns and skips, so run
 `scripts/compose-check.sh --build --journeys <albitor checkout>` locally; it also runs the `test-playwright` journeys in Chromium), and a placeholder `conformance` job reserved for the socket conformance and certification
 harness (albitor-ltd/albitor#3164). Actions are pinned by full commit SHA.

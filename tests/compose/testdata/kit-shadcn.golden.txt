@@ -2,7 +2,6 @@
 === .albitor/shell.json ===
 === albitor.yaml ===
 === web/.gitignore ===
-=== web/package-lock.json ===
 === web/package.json ===
 === web/scripts/local-serve.mjs ===
 === web/src/app.d.ts ===

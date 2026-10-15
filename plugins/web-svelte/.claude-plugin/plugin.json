@@ -62,7 +62,7 @@
     },
     "manifest": {
       "build": {
-        "static": { "command": "cd web && npm ci && npm run build", "output": "web/build" }
+        "static": { "command": "cd web && npm install && npm run build", "output": "web/build" }
       },
       "site": { "spa": true }
     },

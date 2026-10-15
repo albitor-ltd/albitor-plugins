@@ -27,8 +27,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   (albitor-ltd/albitor#3235). `@sveltejs/kit` 3.0.1 (2026-10-06) and `@sveltejs/adapter-static`
   4.0.0 (2026-10-01) are pinned under the 14-day rule because no older release of their major
   exists; transitives in the seeded lockfile are not subject to the rule (current practice).
-  `compose-check.sh` falls back to `npm install` only where the composer merged dependencies, and
-  reports the failing `npm ci` there as an expected failure (albitor-ltd/albitor#3178).
+  `compose-check.sh` runs `npm install` in the composed `web/`, as the lockfile is the app's, and
+  CI pins Node 24.21.0 (npm 11), as npm 10.9 crashes on a lockfile-less install
+  (albitor-ltd/albitor#3178).
 - Release `kit-shadcn`, `kit-carbon` and `web-svelte` `v0.1.1`: the themeable markers, `web-svelte`'s
   exact npm pins and the `tokens.css` and README changes above (#20) were merged without a version
   bump, so they have no tag. The catalogue pins them once `<name>/v0.1.1` exists.
