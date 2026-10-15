@@ -33,6 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Release `kit-shadcn`, `kit-carbon` and `web-svelte` `v0.1.1`: the themeable markers, `web-svelte`'s
   exact npm pins and the `tokens.css` and README changes above (#20) were merged without a version
   bump, so they have no tag. The catalogue pins them once `<name>/v0.1.1` exists.
+- Release `web-svelte` `v0.1.2`: the build command is `npm install`, as the lockfile is the app's
+  (#23). The catalogue pins it once `web-svelte/v0.1.2` exists.
 
 ### Added
 
