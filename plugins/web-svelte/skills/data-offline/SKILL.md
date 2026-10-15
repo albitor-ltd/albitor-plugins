@@ -66,6 +66,9 @@ change was rejected. For rejected changes, `sync.failures()` lists them (no serv
 - The auth integration calls `setSyncUser(userId)` (`lib/sync/session.ts`) with the stable user id
   when a session starts or the person changes, and `setSyncUser(null)` when it ends. Call it before the bearer token source switches to the new person (and before it is cleared). Each person has
   their own local database; one never sees or uploads another's.
+- **No auth plugin makes that call yet.** Until one does, wire it in the app's own code where the
+  session is read (for `auth-cognito`, beside `getSession()`; for `auth-none`, once at start-up
+  with its fixed owner id). Without it the engine never attaches, and nothing syncs.
 - Before ending a session, `await sync.signOut()`. If it returns `{ ok: false, pending }`, tell the
   person that many changes have not been saved and let them wait, or choose `signOut({ discard: true })`
   explicitly. Never discard silently.

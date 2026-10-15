@@ -60,6 +60,15 @@ its create is in flight being lost; a different person after a lapsed session se
 the last person's data; deletions never reaching other devices; sign-out silently discarding
 unsynced work; concurrent flushes bypassing the guard.
 
+**Known gap: no auth plugin calls `setSyncUser` yet.** Neither `auth-cognito` nor `auth-none`
+wires it, so in a composed offline app the sync engine never attaches to a person, and so never
+syncs, until the build wires the call (the data-offline skill says where). `lib/sync/session.ts`
+ships in every app, so the auth plugins can import it unconditionally; that is a follow-up there.
+
+`DataProvider` is the outermost provider: slot fragments merge in socket order and this plugin's
+socket comes first. No other plugin fills `web.providers` today; a provider whose context the data
+layer must read could not wrap it.
+
 Known gaps of the offline layer, on purpose or yet: no caps on record, payload, outbox or
 pull-page size, and an unpaginated pull; no `BroadcastChannel`; create and update use two storage
 transactions; discarding during a push can write the entry back as failed; with no usable IndexedDB
