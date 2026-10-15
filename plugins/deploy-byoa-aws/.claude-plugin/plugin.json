@@ -1,0 +1,44 @@
+{
+  "schema": 2,
+  "name": "deploy-byoa-aws",
+  "displayName": "AWS deploy target (bring your own account)",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, and the stale state-lock guard.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "deploy-target",
+    "aws",
+    "terraform",
+    "cloudfront",
+    "lambda",
+    "dynamodb",
+    "byoa"
+  ],
+  "provides": ["deploy-target@1"],
+  "contributes": {
+    "files": [
+      { "path": ".github/workflows/ci.yml", "mode": "managed" },
+      { "path": ".github/workflows/deploy.yml", "mode": "managed" },
+      { "path": "infrastructure/aws/main.tf", "mode": "managed" },
+      { "path": "infrastructure/aws/variables.tf", "mode": "managed" },
+      { "path": "infrastructure/aws/versions.tf", "mode": "managed" },
+      { "path": "infrastructure/aws/backend.tf", "mode": "managed" },
+      { "path": "infrastructure/aws/outputs.tf", "mode": "managed" },
+      { "path": "infrastructure/aws/.terraform.lock.hcl", "mode": "managed" },
+      { "path": "infrastructure/aws/terraform.tfvars", "mode": "example" },
+      { "path": "scripts/tf-unlock-stale.sh", "mode": "managed" }
+    ],
+    "slots": {
+      "repo.dependabot": [
+        { "ecosystem": "github-actions", "directory": "/" },
+        { "ecosystem": "terraform", "directory": "/infrastructure/aws" }
+      ]
+    },
+    "skills": ["deploy-byoa-aws"]
+  }
+}

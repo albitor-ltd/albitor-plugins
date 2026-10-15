@@ -1,0 +1,212 @@
+# Managed by Albitor (deploy-byoa-aws). Builds and tests the app, applies the Terraform in
+# infrastructure/aws against the AWS account this repository is bound to, ships the web bundle and
+# waits for the CloudFront invalidation.
+#
+# The account is reached by OIDC: the job assumes the deploy role named in
+# infrastructure/aws/env/<environment>.deploy.env, and no long-lived key is stored in the
+# repository. The role's trust policy is pinned by the platform to this repository and to the
+# `dev` environment, so the token this workflow mints can assume that one role and no other.
+# `id-token: write` is held by the deploy job alone; the build job reads the repository and nothing
+# else.
+#
+# The triggers are a push to main and a manual dispatch. Nothing triggered by a pull request, a
+# fork or another workflow can reach the deploy job.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # One deploy at a time, and a deploy already applying is never cancelled: a killed apply leaves
+  # a state lock behind. A newer push waits its turn.
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  ENVIRONMENT: dev
+
+jobs:
+  build:
+    name: build and test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        if: hashFiles('api/go.mod') != ''
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: test the api
+        if: hashFiles('api/go.mod') != ''
+        run: go vet ./... && go test ./... -count=1
+        working-directory: api
+      - name: build the api for Lambda
+        if: hashFiles('api/go.mod') != ''
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dist/api .
+        working-directory: api
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: hashFiles('web/package.json') != ''
+        with:
+          node-version: "24.21.0"
+      - name: install the web app
+        if: hashFiles('web/package.json') != ''
+        run: npm install
+        working-directory: web
+      - name: check and test the web app
+        if: hashFiles('web/package.json') != ''
+        run: npm run check && npm test
+        working-directory: web
+      - name: build the web app
+        if: hashFiles('web/package.json') != ''
+        run: npm run build
+        working-directory: web
+      - name: keep the api build
+        if: hashFiles('api/go.mod') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: api-dist
+          path: api/dist
+          retention-days: 1
+          if-no-files-found: error
+      - name: keep the web build
+        if: hashFiles('web/package.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: web-build
+          path: web/build
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy:
+    name: terraform apply and ship
+    needs: [build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      # The platform writes these files when it binds the repository to an account. A deploy with
+      # no identity fails here, loudly, rather than finishing green having deployed nothing.
+      - name: resolve the deploy identity
+        id: identity
+        run: |
+          set -euo pipefail
+          cfg="infrastructure/aws/env/${ENVIRONMENT}.deploy.env"
+          backend="infrastructure/aws/env/${ENVIRONMENT}.s3.tfbackend"
+          if [ ! -f "$cfg" ] || [ ! -f "$backend" ]; then
+            echo "::error::no deploy identity: $cfg and $backend are written when the repository is bound to an AWS account" >&2
+            exit 1
+          fi
+          role="$(sed -n 's/^[[:space:]]*AWS_DEPLOY_ROLE_ARN[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          region="$(sed -n 's/^[[:space:]]*AWS_REGION[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          bucket="$(sed -n 's/^[[:space:]]*bucket[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' "$backend" | head -n1)"
+          key="$(sed -n 's/^[[:space:]]*key[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' "$backend" | head -n1)"
+          # Each value is a plain token before it reaches a later step.
+          if ! printf '%s' "$role" | grep -Eq '^arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9_+=,.@/-]{1,128}$'; then
+            echo "::error::AWS_DEPLOY_ROLE_ARN in $cfg is not a role ARN" >&2
+            exit 1
+          fi
+          region="${region:-eu-west-2}"
+          if ! printf '%s' "$region" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]$'; then
+            echo "::error::AWS_REGION in $cfg is not a region" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$bucket" | grep -Eq '^[a-z0-9][a-z0-9.-]{2,62}$' || ! printf '%s' "$key" | grep -Eq '^[A-Za-z0-9/_.-]{1,512}$'; then
+            echo "::error::bucket or key in $backend is not a plain value" >&2
+            exit 1
+          fi
+          # The project name is the repository name, folded to what the stack accepts.
+          project="$(printf '%s' "${GITHUB_REPOSITORY#*/}" | tr 'A-Z_.' 'a-z--' | tr -cd 'a-z0-9-' | cut -c1-31)"
+          {
+            echo "role=$role"
+            echo "region=$region"
+            echo "bucket=$bucket"
+            echo "key=$key"
+            echo "project=$project"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: fetch the api build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: hashFiles('api/go.mod') != ''
+        with:
+          name: api-dist
+          path: api/dist
+      - name: fetch the web build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        if: hashFiles('web/package.json') != ''
+        with:
+          name: web-build
+          path: web/build
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ steps.identity.outputs.role }}
+          aws-region: ${{ steps.identity.outputs.region }}
+
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+        working-directory: infrastructure/aws
+
+      # A lock left by a killed apply is cleared when it is stale and in this account's own state
+      # bucket; a live one is waited out by -lock-timeout below.
+      - name: clear a stale state lock
+        env:
+          STATE_BUCKET: ${{ steps.identity.outputs.bucket }}
+          STATE_KEY: ${{ steps.identity.outputs.key }}
+        run: bash ./scripts/tf-unlock-stale.sh "$STATE_BUCKET" "$STATE_KEY"
+
+      - name: terraform init
+        run: terraform init -input=false -lock-timeout=300s -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
+        working-directory: infrastructure/aws
+
+      - name: terraform apply
+        env:
+          TF_VAR_project_name: ${{ steps.identity.outputs.project }}
+          TF_VAR_environment: ${{ env.ENVIRONMENT }}
+          TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
+        run: terraform apply -input=false -auto-approve -lock-timeout=300s
+        working-directory: infrastructure/aws
+
+      # Every output is read into a variable and checked before it is used: a failed read inside
+      # `echo "$(...)"` would hand an empty value on and read as success.
+      - name: ship the web bundle
+        run: |
+          set -euo pipefail
+          if [ ! -d web/build ]; then
+            echo "no web bundle in this build; nothing to ship"
+            exit 0
+          fi
+          cd infrastructure/aws
+          bucket="$(terraform output -raw spa_bucket)"
+          distribution="$(terraform output -raw cloudfront_distribution_id)"
+          if ! printf '%s' "$bucket" | grep -Eq '^[a-z0-9][a-z0-9.-]{2,62}$' || ! printf '%s' "$distribution" | grep -Eq '^[A-Z0-9]{8,32}$'; then
+            echo "::error::the stack has no site bucket or distribution to ship to" >&2
+            exit 1
+          fi
+          cd ../..
+          aws s3 sync web/build "s3://${bucket}" --delete
+          invalidation="$(aws cloudfront create-invalidation --distribution-id "$distribution" --paths '/*' --query Invalidation.Id --output text)"
+          aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$invalidation"
+
+      - name: print the app url
+        run: terraform output -raw app_url
+        working-directory: infrastructure/aws

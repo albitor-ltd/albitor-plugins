@@ -1,0 +1,97 @@
+# Managed by Albitor (deploy-byoa-aws). The gate for this repository: every pull request and every
+# push to main builds and tests the API and the web app, and checks the Terraform. Read-only: it
+# assumes no cloud role and reads no secret. deploy.yml repeats the build and the tests before it
+# ships, because a deploy cannot wait on this workflow without a trigger that could run it for a
+# fork.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # A push gets a group of its own, so a later push never cancels the run of an earlier commit.
+  group: ci-${{ github.event_name }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  api:
+    name: api (build and unit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        if: hashFiles('api/go.mod') != ''
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: build
+        if: hashFiles('api/go.mod') != ''
+        run: go build ./...
+        working-directory: api
+      - name: vet
+        if: hashFiles('api/go.mod') != ''
+        run: go vet ./...
+        working-directory: api
+      - name: test
+        if: hashFiles('api/go.mod') != ''
+        run: go test ./... -count=1
+        working-directory: api
+
+  web:
+    name: web (check, test, build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: hashFiles('web/package.json') != ''
+        with:
+          node-version: "24.21.0"
+      - name: install
+        if: hashFiles('web/package.json') != ''
+        run: npm install
+        working-directory: web
+      - name: check
+        if: hashFiles('web/package.json') != ''
+        run: npm run check
+        working-directory: web
+      - name: test
+        if: hashFiles('web/package.json') != ''
+        run: npm test
+        working-directory: web
+      - name: build
+        if: hashFiles('web/package.json') != ''
+        run: npm run build
+        working-directory: web
+
+  terraform:
+    name: terraform (fmt and validate)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+      - name: fmt
+        run: terraform fmt -check -recursive
+        working-directory: infrastructure/aws
+      - name: validate
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+        working-directory: infrastructure/aws

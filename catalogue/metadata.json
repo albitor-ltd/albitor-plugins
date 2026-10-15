@@ -133,6 +133,20 @@
     ],
     "license": "MIT"
   },
+  "deploy-byoa-aws": {
+    "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, and the stale state-lock guard.",
+    "category": "development",
+    "keywords": [
+      "deploy-target",
+      "aws",
+      "terraform",
+      "cloudfront",
+      "lambda",
+      "dynamodb",
+      "byoa"
+    ],
+    "license": "MIT"
+  },
   "data-dynamodb": {
     "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
     "category": "development",

@@ -94,6 +94,11 @@ jobs:
         if: env.IS_FORK != 'true'
         with:
           node-version: "24.21.0"
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        if: env.IS_FORK != 'true'
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
       - name: Compose, check, test and build, then run the journeys
         if: env.IS_FORK != 'true'
         env:
@@ -149,6 +154,22 @@ jobs:
           cache: false
       - name: Build, vet and test the composed API tree
         run: scripts/verify-auth.sh "${{ matrix.plugin }}"
+
+  # The deploy-byoa-aws plugin's Terraform: fmt, then each module's and the rendered root's tests
+  # with the AWS provider mocked, so no account and no credential is involved.
+  deploy-byoa-aws:
+    name: deploy-byoa-aws
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+      - name: Format, validate and test the modules and the rendered root
+        run: scripts/verify-deploy-byoa-aws.sh
 
   # Placeholder for the socket conformance and certification harness
   # (albitor-ltd/albitor#3164). Deliberately a no-op until that lands. It must NOT be a required

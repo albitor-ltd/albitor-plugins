@@ -1,0 +1,24 @@
+version: albitor/v1
+build:
+  static:
+    command: cd web && npm install && npm run build
+    output: web/build
+  api:
+    command: cd api && go build -o dist/api .
+    output: api/dist
+site:
+  spa: true
+http:
+  runtime: go
+  handler: api
+services:
+  tables:
+    - name: data
+      partition_key: {name: pk, type: string}
+      sort_key: {name: sk, type: string}
+    - name: orders
+      partition_key: {name: pk, type: string}
+      indexes:
+        - name: by-status
+          partition_key: {name: status, type: string}
+          sort_key: {name: created_at, type: string}

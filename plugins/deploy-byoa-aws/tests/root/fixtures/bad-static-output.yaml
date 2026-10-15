@@ -1,0 +1,6 @@
+version: albitor/v1
+build:
+  static:
+    command: x
+    output: dist
+site: {}

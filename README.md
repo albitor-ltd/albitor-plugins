@@ -43,6 +43,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `client-offline` | The `client-data@1` plugin for offline-first apps: `@albitor/sync` outbox and sync, a local store per person, tombstones, guarded single-flight runs, sign-out that keeps unsynced work |
 | `kit-shadcn` | The `component-kit@1` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
 | `kit-carbon` | The `component-kit@1` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
+| `deploy-byoa-aws` | The `deploy-target@1` plugin for a customer's own AWS account: Terraform rendered from `albitor.yaml` (site, API, tables, alarms, DNS) from versioned modules, the CI and deploy workflows (OIDC), the stale state-lock guard |
 | `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-in screens per kit, `services.auth` |
 | `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
 

@@ -1,0 +1,273 @@
+package compose
+
+import (
+	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"testing"
+
+	"albitor/core"
+	"albitor/core/certification"
+	"albitor/core/composer"
+)
+
+func byoaDir(t *testing.T) string { return filepath.Join(repoRoot(t), "plugins", "deploy-byoa-aws") }
+
+func byoaSubject(t *testing.T) certification.Subject {
+	t.Helper()
+	p := loadDir(t, byoaDir(t))
+	for _, s := range core.Sockets() {
+		if s.Name == core.SocketDeployTarget {
+			return certification.Subject{Manifest: p.Manifest, Tree: p.Tree, Socket: s}
+		}
+	}
+	t.Fatal("the registry has no deploy-target socket")
+	return certification.Subject{}
+}
+
+// TestDeployBYOAConforms runs the real deploy-target@1 suite, the checks ingest runs, over the
+// plugin, the workflow lint included.
+func TestDeployBYOAConforms(t *testing.T) {
+	sub := byoaSubject(t)
+	ids := map[string]bool{}
+	for _, c := range certification.DefaultSuites()[core.SocketDeployTarget] {
+		ids[c.ID] = true
+		if err := c.Run(sub); err != nil {
+			t.Errorf("conformance check %s: %v", c.ID, err)
+		}
+	}
+	if !ids["workflows-are-safe-to-pin"] {
+		t.Fatal("the deploy-target suite carries no workflow lint")
+	}
+}
+
+var workflowPaths = []string{
+	"templates/.github/workflows/ci.yml",
+	"templates/.github/workflows/deploy.yml",
+}
+
+// TestDeployBYOAWorkflowsPassTheRealLint runs LintWorkflow with the deploy-target policy over each
+// shipped workflow, so a violation names the workflow and the rule.
+func TestDeployBYOAWorkflowsPassTheRealLint(t *testing.T) {
+	sub := byoaSubject(t)
+	pol := certification.DefaultWorkflowPolicy(core.SocketDeployTarget)
+	for _, p := range workflowPaths {
+		body, ok := sub.Tree[p]
+		if !ok {
+			t.Fatalf("plugin ships no %s", p)
+		}
+		if msgs := certification.LintWorkflow(body, pol); len(msgs) != 0 {
+			t.Errorf("%s fails the workflow lint:\n  %s", p, strings.Join(msgs, "\n  "))
+		}
+	}
+}
+
+// TestDeployBYOALintIsReallyApplied proves the passes above are not vacuous: each unsafe edit of
+// the shipped deploy workflow must fail the real lint.
+func TestDeployBYOALintIsReallyApplied(t *testing.T) {
+	const path = "templates/.github/workflows/deploy.yml"
+	sub := byoaSubject(t)
+	orig, ok := sub.Tree[path]
+	if !ok {
+		t.Fatalf("plugin ships no %s", path)
+	}
+	pol := certification.DefaultWorkflowPolicy(core.SocketDeployTarget)
+	cases := map[string]func(string) string{
+		"an unpinned action": func(s string) string {
+			return strings.Replace(s, "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683", "actions/checkout@v4", 1)
+		},
+		"a pull request trigger beside id-token": func(s string) string {
+			return strings.Replace(s, "on:\n", "on:\n  pull_request:\n", 1)
+		},
+		"a workflow_run trigger": func(s string) string {
+			return strings.Replace(s, "on:\n", "on:\n  workflow_run:\n    workflows: [ci]\n", 1)
+		},
+		"id-token at the top level": func(s string) string {
+			return strings.Replace(s, "permissions:\n  contents: read\n", "permissions:\n  contents: read\n  id-token: write\n", 1)
+		},
+		"a secret outside the allowlist": func(s string) string {
+			return strings.Replace(s, "run: terraform fmt", "run: echo ${{ secrets.NPM_TOKEN }}", 1)
+		},
+		"a ref spliced into a script": func(s string) string {
+			return strings.Replace(s, "run: terraform fmt", "run: echo ${{ github.ref_name }}", 1)
+		},
+		"a dumped environment": func(s string) string {
+			return strings.Replace(s, "run: terraform fmt", "run: printenv", 1)
+		},
+	}
+	for name, edit := range cases {
+		changed := edit(string(orig))
+		if changed == string(orig) {
+			t.Fatalf("%s: the edit did not apply; the case is stale", name)
+		}
+		if msgs := certification.LintWorkflow([]byte(changed), pol); len(msgs) == 0 {
+			t.Errorf("%s was accepted by the workflow lint", name)
+		}
+	}
+}
+
+func byoaPeers(t *testing.T) catalogue {
+	t.Helper()
+	root := repoRoot(t)
+	c := catalogue{}
+	for _, n := range []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "data-dynamodb", "auth-none", "test-playwright"} {
+		c[n] = loadDir(t, filepath.Join(root, "plugins", n))
+	}
+	return c
+}
+
+func byoaProfile() certification.Profile {
+	return certification.Profile{Name: "byoa-check", Members: []certification.Member{
+		{Socket: core.SocketWebFramework, Plugin: "web-svelte"},
+		{Socket: core.SocketComponentKit, Plugin: "kit-shadcn"},
+		{Socket: core.SocketAuth, Plugin: "auth-none"},
+		{Socket: core.SocketClientData, Plugin: "client-online"},
+		{Socket: core.SocketAPIRuntime, Plugin: "api-go"},
+		{Socket: core.SocketDataStore, Plugin: "data-dynamodb"},
+		{Socket: core.SocketDeployTarget, Plugin: "deploy-byoa-aws"},
+		{Socket: core.SocketTestHarness, Plugin: "test-playwright"},
+	}}
+}
+
+// TestDeployBYOACertifies runs the platform's harness over the plugin's snapshot in a BYOA
+// profile: manifest, deploy-target@1 conformance, compose and the floor gate.
+func TestDeployBYOACertifies(t *testing.T) {
+	h := &certification.Harness{
+		Profiles: []certification.Profile{byoaProfile()},
+		Peers:    byoaPeers(t),
+		Suites:   certification.DefaultSuites(),
+	}
+	cert, err := h.Certify(context.Background(), snapshot(t, byoaDir(t)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cert.Verdict == certification.VerdictFailed {
+		t.Fatalf("certification failed: %v", cert.Failures)
+	}
+	for _, c := range cert.Conformance {
+		if !c.Passed {
+			t.Errorf("conformance %s: %s", c.ID, c.Detail)
+		}
+	}
+	if len(cert.Profiles) != 1 || !cert.Profiles[0].Compatible || len(cert.Profiles[0].ComposeErrors) != 0 {
+		t.Fatalf("profile result: %+v", cert.Profiles)
+	}
+}
+
+func composeBYOA(t *testing.T) *composer.Result {
+	t.Helper()
+	peers := byoaPeers(t)
+	plugins := []composer.Plugin{loadDir(t, byoaDir(t))}
+	for _, n := range []string{"web-svelte", "kit-shadcn", "client-online", "api-go", "data-dynamodb", "auth-none", "test-playwright"} {
+		plugins = append(plugins, peers[n])
+	}
+	res, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
+	if err != nil {
+		t.Fatalf("deploy-byoa-aws does not compose in a BYOA profile: %v", err)
+	}
+	return res
+}
+
+// TestDeployBYOAComposes pins what the plugin writes, in which mode, and what it must not write.
+func TestDeployBYOAComposes(t *testing.T) {
+	res := composeBYOA(t)
+
+	var lock composer.Lock
+	if err := json.Unmarshal(res.Files[".albitor/lock.json"], &lock); err != nil {
+		t.Fatal(err)
+	}
+	modes := map[string]string{}
+	for _, f := range lock.Files {
+		modes[f.Path] = f.Mode
+	}
+	// Deploy plumbing is pinned: a build cannot weaken the pipeline or the rendered stack.
+	for _, p := range []string{
+		".github/workflows/ci.yml", ".github/workflows/deploy.yml",
+		"infrastructure/aws/main.tf", "infrastructure/aws/variables.tf", "infrastructure/aws/versions.tf",
+		"infrastructure/aws/backend.tf", "infrastructure/aws/outputs.tf", "infrastructure/aws/.terraform.lock.hcl",
+		"scripts/tf-unlock-stale.sh",
+	} {
+		if _, ok := res.Files[p]; !ok {
+			t.Errorf("%s is not in the composed tree", p)
+		}
+		if modes[p] != "managed" {
+			t.Errorf("%s should be managed, got %q", p, modes[p])
+		}
+	}
+	// The one app-owned file: per-environment choices (DNS, alarm address) the person makes.
+	if modes["infrastructure/aws/terraform.tfvars"] != "example" {
+		t.Errorf("terraform.tfvars should be an example the app owns, got %q", modes["infrastructure/aws/terraform.tfvars"])
+	}
+	for p := range res.Files {
+		if strings.HasPrefix(p, "infrastructure/aws/env/") {
+			t.Errorf("a plugin wrote %s, which the platform renders from the bound account", p)
+		}
+		if strings.HasPrefix(p, ".github/") && !strings.HasPrefix(p, ".github/workflows/") {
+			t.Errorf("a plugin wrote %s", p)
+		}
+	}
+
+	// The Dependabot entries: the workflow pins and the module and provider pins.
+	dependabot := string(res.Held[".github/dependabot.yml"])
+	for _, want := range []string{"github-actions", "terraform", "/infrastructure/aws"} {
+		if !strings.Contains(dependabot, want) {
+			t.Errorf("dependabot.yml lacks %q:\n%s", want, dependabot)
+		}
+	}
+	if _, ok := res.Files[".github/dependabot.yml"]; ok {
+		t.Error("dependabot.yml is in the Start tree; it is held until handover (ADR-0041, #1187)")
+	}
+
+	// The manifest the stack renders from is the composed one: the table api-go's store needs.
+	yaml := string(res.Files["albitor.yaml"])
+	for _, want := range []string{"tables:", `name: "data"`, "http:", "handler:"} {
+		if !strings.Contains(yaml, want) {
+			t.Errorf("albitor.yaml lacks %q:\n%s", want, yaml)
+		}
+	}
+
+	// COMPOSE_OUT_BYOA writes the composed tree for scripts/compose-check.sh to plan with Terraform.
+	if out := os.Getenv("COMPOSE_OUT_BYOA"); out != "" {
+		for path, content := range res.Files {
+			dst := filepath.Join(out, filepath.FromSlash(path))
+			if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(dst, content, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+}
+
+var moduleSourceRE = regexp.MustCompile(`source\s*=\s*"([^"]+)"`)
+
+// TestDeployBYOAModulesAreVersioned: the managed root consumes the plugin's modules by a git
+// source whose ref is this plugin's release tag, so a root and its modules always match. The ref
+// is a literal (Terraform takes no variable in a source) and moves with plugin.json's version.
+func TestDeployBYOAModulesAreVersioned(t *testing.T) {
+	sub := byoaSubject(t)
+	version := sub.Manifest.Version
+	if version == "" {
+		t.Fatal("plugin.json has no version")
+	}
+	main := string(sub.Tree["templates/infrastructure/aws/main.tf"])
+	sources := moduleSourceRE.FindAllStringSubmatch(main, -1)
+	if len(sources) == 0 {
+		t.Fatal("main.tf calls no module")
+	}
+	want := "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/"
+	for _, m := range sources {
+		src := m[1]
+		if !strings.HasPrefix(src, want) || !strings.HasSuffix(src, "?ref=deploy-byoa-aws/v"+version) {
+			t.Errorf("module source %q is not %s<name>?ref=deploy-byoa-aws/v%s", src, want, version)
+		}
+		dir := strings.TrimSuffix(strings.TrimPrefix(src, want), "?ref=deploy-byoa-aws/v"+version)
+		if _, err := os.Stat(filepath.Join(byoaDir(t), "modules", dir)); err != nil {
+			t.Errorf("module source %q names no module in the plugin: %v", src, err)
+		}
+	}
+}
