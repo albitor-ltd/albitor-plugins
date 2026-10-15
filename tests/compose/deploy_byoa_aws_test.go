@@ -271,3 +271,51 @@ func TestDeployBYOAModulesAreVersioned(t *testing.T) {
 		}
 	}
 }
+
+// TestDeployBYOAHonoursThePlatformDispatchContract pins what the platform relies on when it
+// dispatches the deploy workflow to promote a commit and reads the result back
+// (albitor-ltd/albitor#3178): the `environment` and `ref` inputs are declared (GitHub answers 422
+// to an undeclared one), and a job named exactly core.DeployReceiptJobName ends with the
+// deploy-receipt notice, after the apply.
+func TestDeployBYOAHonoursThePlatformDispatchContract(t *testing.T) {
+	sub := byoaSubject(t)
+	body, ok := sub.Tree["templates/.github/workflows/deploy.yml"]
+	if !ok {
+		t.Fatal("plugin ships no deploy.yml")
+	}
+	s := string(body)
+	for _, input := range []string{"environment", "ref"} {
+		re := regexp.MustCompile(`(?m)^  workflow_dispatch:\n    inputs:\n(?:      .*\n|        .*\n)*?      ` + input + `:\n`)
+		if !re.MatchString(s) {
+			t.Errorf("workflow_dispatch does not declare the %q input", input)
+		}
+	}
+	// A promotion pins ref to an older commit that predates env/<environment>.*, so the deploy job
+	// must take those files from the default branch head and overlay them.
+	for _, want := range []string{
+		"ref: ${{ github.sha }}",
+		"sparse-checkout: infrastructure/aws/env",
+		"name: overlay deploy inputs",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("deploy.yml does not overlay the deploy inputs from the default branch: missing %q", want)
+		}
+	}
+	check, identity := strings.Index(s, "name: check the environment name"), strings.Index(s, "name: resolve the deploy identity")
+	if check < 0 || check > identity {
+		t.Error("the environment name must be validated before the deploy identity is resolved")
+	}
+	job := regexp.MustCompile(`(?m)^  [a-z_-]+:\n    name: ` + regexp.QuoteMeta(core.DeployReceiptJobName) + `\n    needs: \[deploy\]\n`)
+	idx := job.FindStringIndex(s)
+	if idx == nil {
+		t.Fatalf("no job named exactly %q that needs the deploy job", core.DeployReceiptJobName)
+	}
+	tail := s[idx[0]:]
+	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s"}`
+	if !strings.Contains(tail, notice) {
+		t.Errorf("the receipt job does not print %s", notice)
+	}
+	if strings.Contains(tail, "id-token") {
+		t.Error("the receipt job must hold no cloud identity")
+	}
+}

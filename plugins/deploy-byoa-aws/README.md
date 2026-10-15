@@ -33,7 +33,9 @@ a composed root cannot `init` before it exists).
 - **Pins are exact.** Terraform providers, the root's and modules' `required_providers`, the
   lockfile, Terraform itself and every workflow action (a full commit SHA).
 - **No stored cloud key.** `deploy.yml` assumes the role in `env/<environment>.deploy.env` by OIDC.
-  `id-token: write` is on the deploy job alone; triggers are `push` to main and `workflow_dispatch`.
+  `id-token: write` is on the deploy job alone; triggers are `push` to main and `workflow_dispatch`
+  (inputs `environment` and `ref`, as the platform dispatches it for a promotion). The `ship SPA`
+  job runs after a green apply and ends with the `deploy-receipt` notice the platform reads.
   The platform writes the `env/` files and pins the role's trust to the repository and environment.
 - **State** is the S3 backend with native locking; the bucket and key come from
   `env/<environment>.s3.tfbackend` at `init`.
