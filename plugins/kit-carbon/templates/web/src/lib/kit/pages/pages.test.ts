@@ -8,6 +8,7 @@ import { JSDOM } from 'jsdom';
 import type { ComponentProps } from 'svelte';
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it } from 'vitest';
+import { toast } from '../toast.svelte';
 import PagesShowcase from './PagesShowcase.svelte';
 
 let dom: JSDOM;
@@ -30,9 +31,23 @@ async function audit(): Promise<string[]> {
 	return result.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html).join(' | ')}`);
 }
 
-afterEach(() => dom?.window.close());
+afterEach(() => {
+	dom?.window.close();
+	toast.clear();
+});
 
-type Case = [name: string, props: ComponentProps<typeof PagesShowcase>];
+function expectSummaryLinksResolve(root: HTMLElement): void {
+	const links = [...root.querySelectorAll('.summary a')];
+	expect(links.length).toBeGreaterThan(0);
+	for (const link of links) {
+		const href = link.getAttribute('href') ?? '';
+		expect(href).toMatch(/^#.+/);
+		const target = root.ownerDocument.getElementById(href.slice(1));
+		expect(target?.matches('input, textarea, select')).toBe(true);
+	}
+}
+
+type Case = [name: string, props: ComponentProps<typeof PagesShowcase>, saved?: boolean];
 
 const cases: Case[] = [
 	['list', { page: 'list' }],
@@ -40,24 +55,33 @@ const cases: Case[] = [
 	['list, failed', { page: 'list', status: 'error' }],
 	['list, empty', { page: 'list', rows: [] }],
 	['detail', { page: 'detail' }],
+	['detail, loading', { page: 'detail', status: 'loading' }],
 	['detail, failed', { page: 'detail', status: 'error' }],
 	['form', { page: 'form' }],
-	['form, with errors', { page: 'form', errors: ['Enter a name'] }],
+	['form, with errors', { page: 'form', errors: [{ field: 'name', message: 'Enter a name' }] }],
+	['form, busy', { page: 'form', busy: true }],
 	['dashboard', { page: 'dashboard' }],
 	['dashboard, loading', { page: 'dashboard', status: 'loading' }],
+	['dashboard, failed', { page: 'dashboard', status: 'error' }],
 	['settings', { page: 'settings' }],
-	['settings, with errors', { page: 'settings', errors: ['Enter a display name'] }],
+	['settings, with errors', { page: 'settings', errors: [{ field: 'display-name', message: 'Enter a display name' }] }],
+	['settings, busy', { page: 'settings', busy: true }],
 	['sign-in', { page: 'sign-in' }],
-	['sign-in, with error', { page: 'sign-in', signInError: 'Email or password is incorrect' }]
+	['sign-in, with error', { page: 'sign-in', signInError: 'Email or password is incorrect' }],
+	['form, saved', { page: 'form' }, true],
+	['settings, saved', { page: 'settings' }, true],
+	['detail, after a save', { page: 'detail' }, true]
 ];
 
 describe('every page template', () => {
-	it.each(cases)('%s has no axe violations', async (_name, props) => {
+	it.each(cases)('%s has no axe violations', async (_name, props, saved) => {
+		if (saved) toast.push({ message: 'Saved', tone: 'success' });
 		mount(props);
 		expect(await audit()).toEqual([]);
 	});
 
-	it.each(cases)('%s has exactly one h1 and no skipped heading level', (_name, props) => {
+	it.each(cases)('%s has exactly one h1 and no skipped heading level', (_name, props, saved) => {
+		if (saved) toast.push({ message: 'Saved', tone: 'success' });
 		const root = mount(props);
 		expect(root.querySelectorAll('h1')).toHaveLength(1);
 		const levels = [...root.querySelectorAll('h1, h2, h3, h4')].map((h) => Number(h.tagName[1]));
@@ -118,13 +142,31 @@ describe('FormPage', () => {
 	});
 
 	it('puts the problems in a focusable alert above the form, beside the field error', () => {
-		const root = mount({ page: 'form', errors: ['Enter a name'] });
+		const root = mount({ page: 'form', errors: [{ field: 'name', message: 'Enter a name' }] });
 		const summary = root.querySelector('.summary');
 		expect(summary?.getAttribute('role')).toBe('alert');
 		expect(summary?.getAttribute('tabindex')).toBe('-1');
 		expect(summary?.querySelector('h2')?.textContent).toBe('There is a problem');
 		expect(summary?.nextElementSibling?.tagName).toBe('FORM');
 		expect(root.querySelector('input[aria-invalid="true"]')).not.toBeNull();
+	});
+
+	it('links every summary entry to the control it names', () => {
+		const root = mount({ page: 'form', errors: [{ field: 'name', message: 'Enter a name' }] });
+		expectSummaryLinksResolve(root);
+	});
+
+	it('lists a problem with no one field as plain text', () => {
+		const root = mount({ page: 'form', errors: [{ message: 'Try again later' }] });
+		expect(root.querySelector('.summary li')?.textContent).toBe('Try again later');
+		expect(root.querySelector('.summary a')).toBeNull();
+	});
+
+	it('disables the button while saving so it cannot submit twice', () => {
+		const root = mount({ page: 'form', busy: true });
+		const button = root.querySelector('button[type="submit"]');
+		expect(button?.hasAttribute('disabled')).toBe(true);
+		expect(button?.textContent?.trim()).toBe('Saving…');
 	});
 
 	it('names the action and offers a way out', () => {
@@ -144,6 +186,11 @@ describe('DashboardPage', () => {
 });
 
 describe('SettingsPage', () => {
+	it('links every summary entry to the control it names', () => {
+		const root = mount({ page: 'settings', errors: [{ field: 'display-name', message: 'Enter a display name' }] });
+		expectSummaryLinksResolve(root);
+	});
+
 	it('names each group by its heading and has one save', () => {
 		const root = mount({ page: 'settings' });
 		const sections = [...root.querySelectorAll('section[aria-labelledby]')];

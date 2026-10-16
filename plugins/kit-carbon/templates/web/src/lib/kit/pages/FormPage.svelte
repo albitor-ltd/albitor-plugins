@@ -1,11 +1,12 @@
 <!-- Seeded by Albitor (kit-carbon), then yours: create or edit one record. Put labelled Fields in the
-     children. On a failed submit, pass `errors`: the summary appears above the form and takes focus
+     children. On a failed submit, pass `errors` as `{ field: 'name', message: 'Enter a name' }` (field is the
+     Field's `id`, so the summary links to the control; WCAG 2.4.3): the summary appears above the form and takes focus
      so a screen reader announces what to fix (WCAG 3.3.1), and each Field also gets its own `error`
      next to the control. Validate on the server too: the browser is not a boundary.
 
        <FormPage title="New report" submitLabel="Create report" cancelHref="/reports"
                  {errors} onsubmit={save}>
-         <Field label="Name" bind:value={name} error={nameError} />
+         <Field id="name" label="Name" bind:value={name} error={nameError} />
        </FormPage> -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -27,8 +28,9 @@
 		/** Name the action ("Create report"), not "Submit". */
 		submitLabel?: string;
 		cancelHref?: string;
-		/** One plain sentence per problem; empty when the form is valid. */
-		errors?: string[];
+		/** One plain sentence per problem, with the `id` of the Field it concerns so the summary
+		 * links to it (WCAG 2.4.3, 3.3.1); empty when the form is valid. */
+		errors?: Array<{ field?: string; message: string }>;
 		/** True while saving: the button is disabled so a double click cannot submit twice. */
 		busy?: boolean;
 		onsubmit: () => void | Promise<void>;
@@ -53,7 +55,9 @@
 	<div class="summary" role="alert" tabindex="-1" bind:this={summary}>
 		<h2>There is a problem</h2>
 		<ul>
-			{#each errors as message (message)}<li>{message}</li>{/each}
+			{#each errors as error, i (i)}
+				<li>{#if error.field}<a href="#{error.field}">{error.message}</a>{:else}{error.message}{/if}</li>
+			{/each}
 		</ul>
 	</div>
 {/if}

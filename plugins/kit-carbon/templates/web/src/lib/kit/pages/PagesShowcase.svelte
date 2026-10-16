@@ -20,12 +20,14 @@
 		status = 'ready',
 		rows = [{ name: 'Quarterly summary', owner: 'Finance' }],
 		errors = [],
+		busy = false,
 		signInError
 	}: {
 		page: 'list' | 'detail' | 'form' | 'dashboard' | 'settings' | 'sign-in';
 		status?: 'loading' | 'error' | 'ready';
 		rows?: Array<Record<string, string | number>>;
-		errors?: string[];
+		errors?: Array<{ field?: string; message: string }>;
+		busy?: boolean;
 		signInError?: string;
 	} = $props();
 
@@ -74,8 +76,9 @@
 			<Table caption="Revisions" columns={[{ key: 'when', label: 'When' }]} rows={[{ when: 'Today' }]} />
 		</DetailPage>
 	{:else if page === 'form'}
-		<FormPage title="New report" submitLabel="Create report" cancelHref="/reports" {errors} onsubmit={noop}>
+		<FormPage title="New report" submitLabel="Create report" cancelHref="/reports" {errors} {busy} onsubmit={noop}>
 			<Field
+				id="name"
 				label="Name"
 				bind:value={name}
 				hint="Shown in the list."
@@ -97,10 +100,15 @@
 			<Table caption="Recent activity" columns={[{ key: 'what', label: 'What' }]} rows={[{ what: 'Report published' }]} />
 		</DashboardPage>
 	{:else if page === 'settings'}
-		<SettingsPage title="Settings" {errors} onsubmit={noop}>
+		<SettingsPage title="Settings" {errors} {busy} onsubmit={noop}>
 			{#snippet sections()}
 				<SettingsSection title="Profile" description="How you appear to your team.">
-					<Field label="Display name" bind:value={name} />
+					<Field
+						id="display-name"
+						label="Display name"
+						bind:value={name}
+						error={errors.length ? 'Enter a display name' : undefined}
+					/>
 				</SettingsSection>
 				<SettingsSection title="Notifications">
 					<fieldset>

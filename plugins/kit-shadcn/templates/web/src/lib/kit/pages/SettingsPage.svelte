@@ -1,11 +1,12 @@
 <!-- Seeded by Albitor (kit-shadcn), then yours: settings in titled groups. Each group is a
      SettingsSection (a named region holding the fields that belong together), and the page has one
      Save: settings are saved together, not field by field. A group of related choices (radios,
-     checkboxes) goes in a `<fieldset>` with a `<legend>`. Confirm a save with a toast.
+     checkboxes) goes in a `<fieldset>` with a `<legend>`. Confirm a save with a toast. Pass `errors` as `{ field, message }` (field is a Field's `id`)
+     so the summary links to the control.
 
        <SettingsPage title="Settings" {errors} onsubmit={save}>
          {#snippet sections()}
-           <SettingsSection title="Profile"><Field label="Display name" bind:value={name} /></SettingsSection>
+           <SettingsSection title="Profile"><Field id="display-name" label="Display name" bind:value={name} /></SettingsSection>
          {/snippet}
        </SettingsPage> -->
 <script lang="ts">
@@ -26,7 +27,7 @@
 		description?: string;
 		submitLabel?: string;
 		/** One plain sentence per problem; empty when the settings are valid. */
-		errors?: string[];
+		errors?: Array<{ field?: string; message: string }>;
 		busy?: boolean;
 		onsubmit: () => void | Promise<void>;
 		/** One `<SettingsSection>` per group. */
@@ -51,7 +52,9 @@
 	<div class="summary" role="alert" tabindex="-1" bind:this={summary}>
 		<h2>There is a problem</h2>
 		<ul>
-			{#each errors as message (message)}<li>{message}</li>{/each}
+			{#each errors as error, i (i)}
+				<li>{#if error.field}<a href="#{error.field}">{error.message}</a>{:else}{error.message}{/if}</li>
+			{/each}
 		</ul>
 	</div>
 {/if}
