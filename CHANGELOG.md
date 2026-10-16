@@ -49,11 +49,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `invite_only` or `open` sign-up, deletion protection), a public app client (`USER_PASSWORD_AUTH`,
   `PreventUserExistenceErrors` on) and one group per `groups` entry; the function is handed
   `AUTH_USER_POOL_ID` and `AUTH_CLIENT_ID`, and the root outputs `auth_user_pool_id` and
-  `auth_client_id`. Usernames are case-insensitive. Known gap: with the default `invite_only` the
-  pool starts empty and nothing seeds a user, so the operator must create one by hand
-  (`admin-create-user` then `admin-set-user-password --permanent`; see the plugin README), because
-  a `FORCE_CHANGE_PASSWORD` user cannot sign in through `auth-cognito`. Module and root golden
-  tests cover it. The catalogue pins it once `deploy-byoa-aws/v0.2.0` exists.
+  `auth_client_id`. Usernames are case-insensitive. Module and root golden tests cover it. (The
+  pool's empty start, which v0.2.0 left to an operator, is closed in `v0.3.0` below.) The catalogue pins it once `deploy-byoa-aws/v0.2.0` exists.
+- Release `deploy-byoa-aws` `v0.3.0` and `auth-cognito` `v0.2.0` (albitor-ltd/albitor#3354): nobody has to
+  create a user by hand any more. Every `dev` deploy seeds the owner's demo account and Albitor's
+  verifier account into the pool (`scripts/seed-platform-accounts.sh`, a step of `deploy.yml` between
+  the apply and the ship, under the deploy role, passwords read from the app's secret store; a
+  promotion seeds nothing), and a new `invite` workflow plus `scripts/invite-user.sh` lets the owner
+  invite anyone by email. `auth-cognito` answers the `NEW_PASSWORD_REQUIRED` challenge an invited
+  person meets at first sign-in: `409 new_password_required` carries the challenge session,
+  `POST /api/auth/new-password` finishes it, and the sign-in screen asks for a password of their
+  own. The receipt carries `auth_user_pool_id`, `auth_client_id` and `seed_status` (#3022); the seed
+  reads the passwords under the path segment Albitor writes as `ALBITOR_APP_SECRETS_SEGMENT` in
+  `env/<environment>.deploy.env` and fails loudly without it; the pool's invitation email names the
+  app and the sign-in address; the sign-in screen moves focus to the new-password step and states the
+  password rules; `docs/inviting-people.md` is delivered to the owner at handover. The README's "operator path" and its known-gap line are removed. The catalogue pins
+  them once `deploy-byoa-aws/v0.3.0` and `auth-cognito/v0.2.0` exist. `deploy-hosted` needs no change: the
+  hosted pipeline seeds both accounts on a preview deploy.
 - Release `web-svelte` `v0.2.0` (albitor-ltd/albitor ADR-0090, amendment of 2026-10-15): the
   `client-data@1` socket is retired and both data layers move into `web-svelte`, the online layer
   under `src/lib/data/` and the offline-first `@albitor/sync` layer under `src/lib/sync/`, file for

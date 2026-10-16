@@ -268,6 +268,7 @@ func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *
 		Email    string `json:"email"`
 		Password string `json:"password"`
 		Code     string `json:"code"`
+		Session  string `json:"session"`
 	}
 	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodyBytes)).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
 		writeAuthError(w, http.StatusBadRequest, "invalid_input", "invalid json")
@@ -287,6 +288,15 @@ func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *
 	case "sign-in":
 		var tokens cognitoTokens
 		tokens, cerr = a.initiateAuth(r.Context(), "USER_PASSWORD_AUTH", map[string]string{"USERNAME": email, "PASSWORD": body.Password})
+		if cerr == nil {
+			a.finishSignIn(w, r, tokens, logger)
+			return
+		}
+	case "new-password":
+		// The second half of a first sign-in: an invited person signed in with
+		// the temporary password the pool emailed and was asked for their own.
+		var tokens cognitoTokens
+		tokens, cerr = a.respondNewPassword(r.Context(), email, body.Password, body.Session)
 		if cerr == nil {
 			a.finishSignIn(w, r, tokens, logger)
 			return
@@ -364,6 +374,7 @@ type cognitoTokens struct {
 func (a *cognitoAuth) initiateAuth(ctx context.Context, flow string, params map[string]string) (cognitoTokens, *cognitoError) {
 	var out struct {
 		ChallengeName        string        `json:"ChallengeName"`
+		Session              string        `json:"Session"`
 		AuthenticationResult cognitoTokens `json:"AuthenticationResult"`
 	}
 	if cerr := a.call(ctx, "InitiateAuth", map[string]any{
@@ -371,12 +382,63 @@ func (a *cognitoAuth) initiateAuth(ctx context.Context, flow string, params map[
 	}, &out); cerr != nil {
 		return cognitoTokens{}, cerr
 	}
-	if out.ChallengeName != "" || out.AuthenticationResult.IDToken == "" {
-		// A challenge (a temporary password, MFA) needs a screen this plugin
-		// does not ship. Add it when the app turns either on.
-		return cognitoTokens{}, &cognitoError{kind: "ChallengeRequired", message: out.ChallengeName}
+	return challengeOrTokens(out.ChallengeName, out.Session, out.AuthenticationResult)
+}
+
+// The challenge a person invited by the app's owner meets on first sign-in,
+// and the error kinds that stand for it and for every other challenge.
+const (
+	challengeNewPassword     = "NEW_PASSWORD_REQUIRED"
+	kindNewPasswordRequired  = "NewPasswordRequired"
+	kindChallengeRequired    = "ChallengeRequired"
+	maxChallengeSessionBytes = 8 << 10
+)
+
+// challengeOrTokens turns a sign-in answer into tokens, or into the error that
+// says what the pool wants instead. A temporary password to replace
+// (NEW_PASSWORD_REQUIRED, an invited person's first sign-in) is a step this
+// plugin ships; any other challenge (MFA) needs a screen it does not, so the
+// app adds it when it turns one on.
+func challengeOrTokens(name, session string, tokens cognitoTokens) (cognitoTokens, *cognitoError) {
+	switch {
+	case name == challengeNewPassword && session != "":
+		return cognitoTokens{}, &cognitoError{kind: kindNewPasswordRequired, message: name, session: session}
+	case name != "" || tokens.IDToken == "":
+		return cognitoTokens{}, &cognitoError{kind: kindChallengeRequired, message: name}
 	}
-	return out.AuthenticationResult, nil
+	return tokens, nil
+}
+
+// respondNewPassword answers a NEW_PASSWORD_REQUIRED challenge with the
+// person's own password. The session is the opaque token the pool handed back
+// with the challenge; it is bound to this user and lasts a few minutes, so
+// holding it in the page between the two calls gives nobody anything the
+// temporary password did not.
+func (a *cognitoAuth) respondNewPassword(ctx context.Context, email, password, session string) (cognitoTokens, *cognitoError) {
+	if password == "" || session == "" || len(session) > maxChallengeSessionBytes {
+		return cognitoTokens{}, &cognitoError{kind: "InvalidParameterException", message: "a new password and the sign-in session are required"}
+	}
+	var out struct {
+		ChallengeName        string        `json:"ChallengeName"`
+		Session              string        `json:"Session"`
+		AuthenticationResult cognitoTokens `json:"AuthenticationResult"`
+	}
+	if cerr := a.call(ctx, "RespondToAuthChallenge", map[string]any{
+		"ClientId":      a.clientID,
+		"ChallengeName": challengeNewPassword,
+		"Session":       session,
+		"ChallengeResponses": map[string]string{
+			"USERNAME":     email,
+			"NEW_PASSWORD": password,
+		},
+	}, &out); cerr != nil {
+		return cognitoTokens{}, cerr
+	}
+	// Asked for the same step again would loop the screen: only tokens succeed.
+	if out.ChallengeName == challengeNewPassword {
+		return cognitoTokens{}, &cognitoError{kind: kindChallengeRequired, message: out.ChallengeName}
+	}
+	return challengeOrTokens(out.ChallengeName, out.Session, out.AuthenticationResult)
 }
 
 // cognitoError is a failed call. kind is Cognito's exception name, or empty
@@ -384,6 +446,8 @@ func (a *cognitoAuth) initiateAuth(ctx context.Context, flow string, params map[
 type cognitoError struct {
 	kind    string
 	message string
+	// session is the challenge session of a kindNewPasswordRequired answer.
+	session string
 	err     error
 }
 
@@ -449,6 +513,11 @@ func (a *cognitoAuth) call(ctx context.Context, op string, in any, out any) *cog
 func (a *cognitoAuth) writeCognitoError(w http.ResponseWriter, r *http.Request, logger *slog.Logger, action string, e *cognitoError) {
 	switch e.kind {
 	case "NotAuthorizedException", "UserNotFoundException":
+		if action == "new-password" {
+			// The challenge session lapsed (a few minutes) or was never this person's.
+			writeAuthError(w, http.StatusUnauthorized, "session_expired", "that sign-in has expired: sign in again")
+			return
+		}
 		writeAuthError(w, http.StatusUnauthorized, "invalid_credentials", "incorrect email or password")
 	case "UserNotConfirmedException":
 		writeAuthError(w, http.StatusForbidden, "not_confirmed", "confirm your email address first")
@@ -464,7 +533,11 @@ func (a *cognitoAuth) writeCognitoError(w http.ResponseWriter, r *http.Request, 
 		writeAuthError(w, http.StatusBadRequest, "invalid_input", "check the details and try again")
 	case "LimitExceededException", "TooManyRequestsException", "TooManyFailedAttemptsException", "CodeDeliveryFailureException":
 		writeAuthError(w, http.StatusTooManyRequests, "rate_limited", "too many attempts: wait a while and try again")
-	case "ChallengeRequired":
+	case kindNewPasswordRequired:
+		apikit.WriteJSON(w, http.StatusConflict, map[string]string{
+			"error": "choose a new password to finish signing in", "code": "new_password_required", "session": e.session,
+		})
+	case kindChallengeRequired:
 		writeAuthError(w, http.StatusConflict, "challenge_unsupported", "this account needs a sign-in step the app does not have yet")
 	default:
 		logger.ErrorContext(r.Context(), "sign-in call failed",

@@ -47,6 +47,7 @@ func TestDeployBYOAConforms(t *testing.T) {
 var workflowPaths = []string{
 	"templates/.github/workflows/ci.yml",
 	"templates/.github/workflows/deploy.yml",
+	"templates/.github/workflows/invite.yml",
 }
 
 // TestDeployBYOAWorkflowsPassTheRealLint runs LintWorkflow with the deploy-target policy over each
@@ -185,10 +186,10 @@ func TestDeployBYOAComposes(t *testing.T) {
 	}
 	// Deploy plumbing is pinned: a build cannot weaken the pipeline or the rendered stack.
 	for _, p := range []string{
-		".github/workflows/ci.yml", ".github/workflows/deploy.yml",
+		".github/workflows/ci.yml", ".github/workflows/deploy.yml", ".github/workflows/invite.yml",
 		"infrastructure/aws/main.tf", "infrastructure/aws/variables.tf", "infrastructure/aws/versions.tf",
 		"infrastructure/aws/backend.tf", "infrastructure/aws/outputs.tf", "infrastructure/aws/.terraform.lock.hcl",
-		"scripts/tf-unlock-stale.sh",
+		"scripts/tf-unlock-stale.sh", "scripts/seed-platform-accounts.sh", "scripts/invite-user.sh",
 	} {
 		if _, ok := res.Files[p]; !ok {
 			t.Errorf("%s is not in the composed tree", p)
@@ -311,7 +312,7 @@ func TestDeployBYOAHonoursThePlatformDispatchContract(t *testing.T) {
 		t.Fatalf("no job named exactly %q that needs the deploy job", core.DeployReceiptJobName)
 	}
 	tail := s[idx[0]:]
-	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s"}`
+	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s"}`
 	if !strings.Contains(tail, notice) {
 		t.Errorf("the receipt job does not print %s", notice)
 	}

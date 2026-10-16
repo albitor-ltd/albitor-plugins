@@ -8,6 +8,27 @@ variable "name_prefix" {
   }
 }
 
+variable "app_name" {
+  description = "The app's name as the invitation email says it: the project name, since the manifest carries none."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9][A-Za-z0-9 ._-]{0,63}$", var.app_name))
+    error_message = "app_name must be 1 to 64 letters, digits, spaces, dots, underscores and hyphens, starting with a letter or digit."
+  }
+}
+
+variable "sign_in_url" {
+  description = "Where the app signs people in, quoted in the invitation. Empty when the stack cannot know it before the apply (the CloudFront address is created after the pool); the email then leaves the link out."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.sign_in_url == "" || can(regex("^https://[a-z0-9.-]{1,253}(/[A-Za-z0-9._~/-]*)?$", var.sign_in_url))
+    error_message = "sign_in_url must be empty or a plain https URL."
+  }
+}
+
 variable "provider_name" {
   description = "services.auth.provider from albitor.yaml. Only cognito is rendered. The manifest is not trusted."
   type        = string

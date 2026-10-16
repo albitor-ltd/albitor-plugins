@@ -47,7 +47,7 @@
 		label="Password"
 		type="password"
 		autocomplete="new-password"
-		hint="At least 12 characters."
+		hint="At least 12 characters, with a lower-case letter, an upper-case letter and a number."
 		required
 		bind:value={password}
 		data-testid="sign-up-password"

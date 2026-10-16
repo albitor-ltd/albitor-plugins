@@ -1,0 +1,129 @@
+# Managed by Albitor (deploy-byoa-aws). Invites one person to the app: the pool emails them a
+# temporary password, and the app asks them to choose their own at their first sign-in. Run it from
+# the repository's Actions tab ("Run workflow", then the person's email) by someone who may deploy.
+#
+# It is the only way an admin call reaches the user pool on the owner's behalf, and it runs under
+# the same OIDC-assumed deploy role as deploy.yml: no long-lived key, `id-token: write` on the one
+# job, and only a manual dispatch from the default branch can start it. The email is passed through
+# the environment, never spliced into a script, and the script accepts a plain address and nothing
+# else.
+name: invite
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: Email address to invite
+        required: true
+      environment:
+        description: Environment whose user pool to invite them to (its env/<name>.* files must exist)
+        required: false
+        default: dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: invite-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+env:
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
+  INVITE_EMAIL: ${{ inputs.email }}
+
+jobs:
+  invite:
+    name: invite a user
+    # Only the default branch holds the deploy role's trust.
+    if: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: ${{ inputs.environment || 'dev' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: check the environment name
+        run: |
+          set -euo pipefail
+          if ! [[ "$ENVIRONMENT" =~ ^[a-z][a-z0-9]{1,8}$ ]]; then
+            echo "::error::the environment must be 2 to 9 lower-case letters and digits, starting with a letter" >&2
+            exit 1
+          fi
+
+      # The same identity deploy.yml resolves: the platform writes these files when it binds the
+      # repository to an account.
+      - name: resolve the deploy identity
+        id: identity
+        run: |
+          set -euo pipefail
+          cfg="infrastructure/aws/env/${ENVIRONMENT}.deploy.env"
+          backend="infrastructure/aws/env/${ENVIRONMENT}.s3.tfbackend"
+          if [ ! -f "$cfg" ] || [ ! -f "$backend" ]; then
+            echo "::error::no deploy identity: $cfg and $backend are written when the repository is bound to an AWS account" >&2
+            exit 1
+          fi
+          role="$(sed -n 's/^[[:space:]]*AWS_DEPLOY_ROLE_ARN[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          region="$(sed -n 's/^[[:space:]]*AWS_REGION[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          if ! printf '%s' "$role" | grep -Eq '^arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9_+=,.@/-]{1,128}$'; then
+            echo "::error::AWS_DEPLOY_ROLE_ARN in $cfg is not a role ARN" >&2
+            exit 1
+          fi
+          region="${region:-eu-west-2}"
+          if ! printf '%s' "$region" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]$'; then
+            echo "::error::AWS_REGION in $cfg is not a region" >&2
+            exit 1
+          fi
+          {
+            echo "role=$role"
+            echo "region=$region"
+          } >>"$GITHUB_OUTPUT"
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ steps.identity.outputs.role }}
+          aws-region: ${{ steps.identity.outputs.region }}
+
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+
+      # Reading an output needs the state, not a plan, and takes no lock.
+      - name: terraform init
+        run: terraform init -input=false -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
+        working-directory: infrastructure/aws
+
+      - name: invite
+        run: |
+          set -euo pipefail
+          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
+          bash ./scripts/invite-user.sh "$pool" "$INVITE_EMAIL"
+
+      # The invitation email carries a username and a temporary password but, unless the app has
+      # its own domain, not the app's address (it is not known to the user pool). Print it so the
+      # owner can send it on.
+      - name: show the app address
+        run: |
+          set -euo pipefail
+          url="$(terraform -chdir=infrastructure/aws output -raw app_url 2>/dev/null || true)"
+          if [ -z "$url" ]; then
+            url="$(terraform -chdir=infrastructure/aws output -raw cloudfront_url 2>/dev/null || true)"
+          fi
+          if [ -z "$url" ]; then
+            echo "::warning::the app has no address yet: deploy it, then send the invited person its URL"
+            exit 0
+          fi
+          echo "::notice title=Send ${INVITE_EMAIL} the app's address::${url}"
+          {
+            echo "### Invitation sent"
+            echo
+            echo "The email carries a username and a temporary password but not the app's address."
+            echo "Send ${INVITE_EMAIL} this address to sign in at:"
+            echo
+            echo "${url}"
+          } >>"$GITHUB_STEP_SUMMARY"

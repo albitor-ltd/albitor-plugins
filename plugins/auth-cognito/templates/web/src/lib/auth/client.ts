@@ -8,7 +8,9 @@ import { ApiError, NetworkError, post } from '../shell/api';
 import { clearSession } from './session';
 
 /** What the screens can act on. `code` is stable; `message` is safe to show. */
-export type AuthResult<T = object> = ({ ok: true } & T) | { ok: false; code: string; message: string };
+export type AuthResult<T = object> =
+	| ({ ok: true } & T)
+	| { ok: false; code: string; message: string; session?: string };
 
 const UNAVAILABLE = { ok: false, code: 'unavailable', message: 'Sign-in is unavailable: try again shortly.' } as const;
 const OFFLINE = { ok: false, code: 'offline', message: 'You are offline: check your connection and try again.' } as const;
@@ -20,9 +22,12 @@ async function call<T extends object>(action: string, body?: unknown): Promise<A
 	} catch (err) {
 		if (err instanceof NetworkError) return err.offline ? OFFLINE : UNAVAILABLE;
 		if (err instanceof ApiError) {
-			const b = (err.body ?? {}) as { code?: unknown; error?: unknown };
+			const b = (err.body ?? {}) as { code?: unknown; error?: unknown; session?: unknown };
 			if (err.status < 500 && typeof b.code === 'string' && typeof b.error === 'string') {
-				return { ok: false, code: b.code, message: b.error };
+				// `new_password_required` carries the challenge session the next call hands back.
+				return typeof b.session === 'string'
+					? { ok: false, code: b.code, message: b.error, session: b.session }
+					: { ok: false, code: b.code, message: b.error };
 			}
 			return UNAVAILABLE;
 		}
@@ -33,6 +38,17 @@ async function call<T extends object>(action: string, body?: unknown): Promise<A
 /** Signs in. On success the API has set the session cookies. */
 export async function signIn(email: string, password: string): Promise<AuthResult> {
 	const result = await call('sign-in', { email, password });
+	if (result.ok) clearSession();
+	return result;
+}
+
+/**
+ * Finishes the first sign-in of an invited person: they signed in with the temporary password the
+ * pool emailed, `signIn` answered `new_password_required` with a `session`, and this trades that
+ * session and their own password for the signed-in session cookies.
+ */
+export async function newPassword(email: string, password: string, session: string): Promise<AuthResult> {
+	const result = await call('new-password', { email, password, session });
 	if (result.ok) clearSession();
 	return result;
 }

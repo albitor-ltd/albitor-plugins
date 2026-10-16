@@ -43,7 +43,9 @@ readable by page script. A script or test client may send `Authorization: Bearer
   guard only shapes what the browser shows; the API enforces access.
 - **Anything the brief adds** (MFA, social sign-in, invite-only) is a change to `services.auth` in
   `albitor.yaml` and, where the API must change, an ejected file. `sign_up` is `open` or
-  `invite_only`; a challenge the screens do not handle answers `challenge_unsupported`.
+  `invite_only`; a challenge the screens do not handle answers `challenge_unsupported`. The
+  invited person's temporary-password step (`new_password_required`, then `newPassword` in
+  `client.ts`) is handled: keep the `new-password-*` test ids on the sign-in page.
 
 ## Rules
 

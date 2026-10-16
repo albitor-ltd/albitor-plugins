@@ -671,3 +671,98 @@ func TestLocalIdentitiesSignInThroughTheLocalIssuer(t *testing.T) {
 		t.Fatalf("sign-in call in a local run = %d %v, want 501 local", status, out)
 	}
 }
+
+// An invited person's first sign-in: the pool answers the temporary password with
+// NEW_PASSWORD_REQUIRED, the API hands the screen the challenge session, and the
+// second call trades it plus their own password for the session cookies.
+func TestAnInvitedPersonSetsTheirOwnPasswordAtFirstSignIn(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	h := gateFor(f, srv)
+	f.answer("InitiateAuth", func(in map[string]any) (int, any) {
+		params, _ := in["AuthParameters"].(map[string]any)
+		switch {
+		case params["PASSWORD"] == "Temp-0nly-pw":
+			return http.StatusOK, map[string]any{"ChallengeName": "NEW_PASSWORD_REQUIRED", "Session": "challenge-session"}
+		case params["PASSWORD"] == "mfa":
+			return http.StatusOK, map[string]any{"ChallengeName": "SMS_MFA", "Session": "mfa-session"}
+		}
+		return http.StatusBadRequest, map[string]string{"__type": "NotAuthorizedException", "message": "Incorrect username or password."}
+	})
+	var gotResponse map[string]any
+	f.answer("RespondToAuthChallenge", func(in map[string]any) (int, any) {
+		gotResponse = in
+		responses, _ := in["ChallengeResponses"].(map[string]any)
+		switch {
+		case in["Session"] != "challenge-session":
+			return http.StatusBadRequest, map[string]string{"__type": "NotAuthorizedException", "message": "Invalid session for the user."}
+		case responses["NEW_PASSWORD"] == "short":
+			return http.StatusBadRequest, map[string]string{"__type": "InvalidPasswordException", "message": "Password did not conform with policy: Password not long enough"}
+		}
+		return http.StatusOK, map[string]any{"AuthenticationResult": map[string]string{
+			"IdToken": f.token("invitee", nil), "AccessToken": "access", "RefreshToken": "refresh-i",
+		}}
+	})
+
+	rec := authDo(t, h, http.MethodPost, "/api/auth/sign-in", `{"email":"Invitee@Example.invalid","password":"Temp-0nly-pw"}`, nil)
+	out := authDecode(t, rec)
+	if rec.Code != http.StatusConflict || out["code"] != "new_password_required" || out["session"] != "challenge-session" {
+		t.Fatalf("sign-in with a temporary password = %d %v, want 409 new_password_required with the session", rec.Code, out)
+	}
+	if responseCookie(rec, sessionCookie) != nil {
+		t.Fatal("a challenge set a session")
+	}
+
+	// Any other challenge stays unsupported and does not leak its session.
+	rec = authDo(t, h, http.MethodPost, "/api/auth/sign-in", `{"email":"invitee@example.invalid","password":"mfa"}`, nil)
+	out = authDecode(t, rec)
+	if out["code"] != "challenge_unsupported" || out["session"] != nil {
+		t.Fatalf("an MFA challenge = %v, want challenge_unsupported with no session", out)
+	}
+
+	rec = authDo(t, h, http.MethodPost, "/api/auth/new-password",
+		`{"email":" Invitee@Example.invalid ","password":"A-brand-new-pw-1","session":"challenge-session"}`, nil)
+	if rec.Code != http.StatusOK || authDecode(t, rec)["sub"] != "invitee" {
+		t.Fatalf("new-password = %d: %s", rec.Code, rec.Body.String())
+	}
+	for _, name := range []string{sessionCookie, refreshCookie} {
+		if c := responseCookie(rec, name); c == nil || !c.HttpOnly || !c.Secure || c.SameSite != http.SameSiteStrictMode {
+			t.Fatalf("%s cookie = %+v, want HttpOnly, Secure, SameSite=Strict", name, c)
+		}
+	}
+	responses, _ := gotResponse["ChallengeResponses"].(map[string]any)
+	if gotResponse["ChallengeName"] != "NEW_PASSWORD_REQUIRED" || responses["USERNAME"] != "invitee@example.invalid" ||
+		responses["NEW_PASSWORD"] != "A-brand-new-pw-1" {
+		t.Fatalf("RespondToAuthChallenge got %v", gotResponse)
+	}
+	if strings.Contains(rec.Body.String(), "refresh-i") {
+		t.Fatalf("new-password put a token in the body: %s", rec.Body.String())
+	}
+
+	for _, tc := range []struct{ body, code string }{
+		{`{"email":"invitee@example.invalid","password":"short","session":"challenge-session"}`, "invalid_password"},
+		{`{"email":"invitee@example.invalid","password":"A-brand-new-pw-1","session":"stale"}`, "session_expired"},
+		{`{"email":"invitee@example.invalid","password":"A-brand-new-pw-1"}`, "invalid_input"},
+		{`{"email":"invitee@example.invalid","session":"challenge-session"}`, "invalid_input"},
+		{`{"password":"A-brand-new-pw-1","session":"challenge-session"}`, "invalid_input"},
+	} {
+		rec := authDo(t, h, http.MethodPost, "/api/auth/new-password", tc.body, nil)
+		if got := authDecode(t, rec)["code"]; got != tc.code || responseCookie(rec, sessionCookie) != nil {
+			t.Fatalf("new-password %s: code %v, want %s and no session", tc.body, got, tc.code)
+		}
+	}
+}
+
+// A pool that asks for the new password a second time must not loop the screen.
+func TestANewPasswordChallengeThatRepeatsIsUnsupported(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	h := gateFor(f, srv)
+	f.answer("RespondToAuthChallenge", func(map[string]any) (int, any) {
+		return http.StatusOK, map[string]any{"ChallengeName": "NEW_PASSWORD_REQUIRED", "Session": "again"}
+	})
+	rec := authDo(t, h, http.MethodPost, "/api/auth/new-password",
+		`{"email":"invitee@example.invalid","password":"A-brand-new-pw-1","session":"s"}`, nil)
+	out := authDecode(t, rec)
+	if rec.Code != http.StatusConflict || out["code"] != "challenge_unsupported" || out["session"] != nil {
+		t.Fatalf("a repeated challenge = %d %v, want 409 challenge_unsupported", rec.Code, out)
+	}
+}

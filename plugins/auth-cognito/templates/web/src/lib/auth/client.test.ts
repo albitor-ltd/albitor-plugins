@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { confirm, forgot, resend, reset, signIn, signOut, signUp } from './client';
+import { confirm, forgot, newPassword, resend, reset, signIn, signOut, signUp } from './client';
 
 const session = vi.hoisted(() => ({ clearSession: vi.fn() }));
 vi.mock('./session', () => session);
@@ -85,5 +85,40 @@ describe('the session cache', () => {
 		stubFetch(() => json(502, {}));
 		await signOut();
 		expect(session.clearSession).toHaveBeenCalledOnce();
+	});
+});
+
+describe('an invited person\'s first sign-in', () => {
+	it('hands the challenge session to the screen, and only that code carries one', async () => {
+		stubFetch(() =>
+			json(409, { error: 'choose a new password', code: 'new_password_required', session: 'sess-1' })
+		);
+		expect(await signIn('a@example.test', 'temp')).toEqual({
+			ok: false,
+			code: 'new_password_required',
+			message: 'choose a new password',
+			session: 'sess-1'
+		});
+		stubFetch(() => json(401, { error: 'no', code: 'invalid_credentials' }));
+		expect(await signIn('a@example.test', 'x')).not.toHaveProperty('session');
+	});
+
+	it('trades the session and a chosen password for a sign-in, clearing the session cache', async () => {
+		const fetch = stubFetch(() => json(200, { sub: 'u1' }));
+		expect(await newPassword('a@example.test', 'my-own-pw', 'sess-1')).toMatchObject({ ok: true });
+		expect(fetch.mock.calls[0][0]).toBe('/api/auth/new-password');
+		expect(fetch.mock.calls[0][1].body).toBe(
+			'{"email":"a@example.test","password":"my-own-pw","session":"sess-1"}'
+		);
+		expect(session.clearSession).toHaveBeenCalledTimes(1);
+	});
+
+	it('answers a lapsed session as a result, without clearing the cache', async () => {
+		stubFetch(() => json(401, { error: 'that sign-in has expired', code: 'session_expired' }));
+		expect(await newPassword('a@example.test', 'pw', 'old')).toMatchObject({
+			ok: false,
+			code: 'session_expired'
+		});
+		expect(session.clearSession).not.toHaveBeenCalled();
 	});
 });

@@ -4,6 +4,7 @@ mock_provider "aws" {}
 variables {
   name_prefix   = "plantrain-dev"
   provider_name = "cognito"
+  app_name      = "plantrain"
 }
 
 run "invite_only_is_the_default_and_the_client_is_public_and_hardened" {
@@ -99,4 +100,47 @@ run "duplicate_groups_are_refused" {
     groups = ["admin", "admin"]
   }
   expect_failures = [var.groups]
+}
+
+run "the_invitation_names_the_app_and_where_to_sign_in" {
+  command = plan
+
+  variables {
+    sign_in_url = "https://plantrain.example.com"
+  }
+
+  assert {
+    condition     = one(one(aws_cognito_user_pool.this.admin_create_user_config).invite_message_template).email_subject == "You have been invited to plantrain"
+    error_message = "the invitation subject names the app"
+  }
+  assert {
+    condition = alltrue([
+      for token in ["{username}", "{####}", "plantrain", "https://plantrain.example.com"] :
+      strcontains(one(one(aws_cognito_user_pool.this.admin_create_user_config).invite_message_template).email_message, token)
+    ])
+    error_message = "the invitation carries the username and temporary password placeholders, the app name and the sign-in URL"
+  }
+}
+
+run "an_unknown_sign_in_url_leaves_the_link_out_but_keeps_the_placeholders" {
+  command = plan
+
+  assert {
+    condition     = !strcontains(one(one(aws_cognito_user_pool.this.admin_create_user_config).invite_message_template).email_message, "Sign in at")
+    error_message = "no link is invented when the URL is not known"
+  }
+  assert {
+    condition     = strcontains(one(one(aws_cognito_user_pool.this.admin_create_user_config).invite_message_template).email_message, "{####}")
+    error_message = "the temporary password placeholder is mandatory"
+  }
+}
+
+run "a_hostile_sign_in_url_is_refused" {
+  command = plan
+
+  variables {
+    sign_in_url = "https://x.example.com/ {####} javascript:"
+  }
+
+  expect_failures = [var.sign_in_url]
 }
