@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+    # Release tags (<plugin>/v<semver>) run the same jobs, certification included (albitor#3333).
+    tags: ["*/v*"]
 
 permissions:
   contents: read
