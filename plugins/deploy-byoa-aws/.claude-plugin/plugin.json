@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "deploy-byoa-aws",
   "displayName": "AWS deploy target (bring your own account)",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "kind": "socket",
   "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, and the stale state-lock guard.",
   "author": {
