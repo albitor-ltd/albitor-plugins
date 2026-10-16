@@ -26,6 +26,10 @@ run "invite_only_is_the_default_and_the_client_is_public_and_hardened" {
     error_message = "the email address is the username, as the auth-cognito API signs in"
   }
   assert {
+    condition     = !one(aws_cognito_user_pool.this.username_configuration).case_sensitive
+    error_message = "usernames are case-insensitive: the API lowercases emails and the setting cannot change later"
+  }
+  assert {
     condition     = aws_cognito_user_pool_client.this.prevent_user_existence_errors == "ENABLED"
     error_message = "PreventUserExistenceErrors is on, or sign-in leaks which accounts exist"
   }

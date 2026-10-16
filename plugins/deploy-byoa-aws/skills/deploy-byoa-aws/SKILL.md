@@ -31,6 +31,13 @@ refuses, at plan time, a manifest that declares `services.objects`, `schedules` 
 other than `go`, or build outputs other than `web/build` and `api/dist`. Do not work around the
 refusal: remove the block or choose another deploy target.
 
+With `sign_up: invite_only` (the default) the pool starts empty and nothing seeds a user, so nobody
+can sign in until the operator creates one under their own AWS identity, with the email lowercased:
+`aws cognito-idp admin-create-user --user-pool-id <auth_user_pool_id output> --username <email>
+--user-attributes Name=email,Value=<email> Name=email_verified,Value=true --message-action SUPPRESS`,
+then `aws cognito-idp admin-set-user-password ... --password <12+ chars> --permanent` (a user left in
+`FORCE_CHANGE_PASSWORD` cannot sign in through the app). See the README.
+
 ## Custom domains
 
 `dns_mode = "none"` serves the CloudFront URL. `in_account` needs the parent zone in the same

@@ -49,8 +49,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `invite_only` or `open` sign-up, deletion protection), a public app client (`USER_PASSWORD_AUTH`,
   `PreventUserExistenceErrors` on) and one group per `groups` entry; the function is handed
   `AUTH_USER_POOL_ID` and `AUTH_CLIENT_ID`, and the root outputs `auth_user_pool_id` and
-  `auth_client_id`. Module and root golden tests cover it. The catalogue pins it once
-  `deploy-byoa-aws/v0.2.0` exists.
+  `auth_client_id`. Usernames are case-insensitive. Known gap: with the default `invite_only` the
+  pool starts empty and nothing seeds a user, so the operator must create one by hand
+  (`admin-create-user` then `admin-set-user-password --permanent`; see the plugin README), because
+  a `FORCE_CHANGE_PASSWORD` user cannot sign in through `auth-cognito`. Module and root golden
+  tests cover it. The catalogue pins it once `deploy-byoa-aws/v0.2.0` exists.
 - Release `web-svelte` `v0.2.0` (albitor-ltd/albitor ADR-0090, amendment of 2026-10-15): the
   `client-data@1` socket is retired and both data layers move into `web-svelte`, the online layer
   under `src/lib/data/` and the offline-first `@albitor/sync` layer under `src/lib/sync/`, file for

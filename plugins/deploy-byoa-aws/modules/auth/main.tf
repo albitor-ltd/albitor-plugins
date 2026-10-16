@@ -10,7 +10,14 @@ resource "aws_cognito_user_pool" "this" {
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
 
-  # invite_only: only an administrator creates accounts, so the public SignUp call is refused.
+  # The auth-cognito API lowercases the email it signs in with, so the pool must not tell
+  # Ada@x.com from ada@x.com. Immutable once the pool exists.
+  username_configuration {
+    case_sensitive = false
+  }
+
+  # invite_only: the public SignUp call is refused, so accounts are created by an administrator
+  # (see the README for the operator path; the pool seeds none).
   admin_create_user_config {
     allow_admin_create_user_only = var.sign_up == "invite_only"
   }

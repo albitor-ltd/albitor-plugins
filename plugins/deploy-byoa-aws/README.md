@@ -42,12 +42,30 @@ a composed root cannot `init` before it exists).
 - Deletion protection is on for every table and for the user pool.
 - **`services.auth`** renders one Cognito user pool (the email address is the username), one public
   app client (`USER_PASSWORD_AUTH` and refresh, no secret, `PreventUserExistenceErrors` on, which
-  the `auth-cognito` plugin requires) and one group per `groups` entry. `sign_up: invite_only` (the
-  default) lets only an administrator create accounts; `open` lets anyone register and confirm by
-  email. `posture` is enforced by the app and changes nothing in the infrastructure. The function
+  the `auth-cognito` plugin requires), usernames case-insensitive, and one group per `groups`
+  entry. `sign_up: invite_only` (the default) refuses public sign-up, and nothing on this target
+  seeds an account, so the pool starts empty and **nobody can sign in until an operator creates a
+  user** (below). `open` lets anyone register and confirm by email. `posture` is enforced by the app and changes nothing in the infrastructure. The function
   is handed `AUTH_USER_POOL_ID` and `AUTH_CLIENT_ID` (Lambda supplies `AWS_REGION`) and the root
   outputs both ids as `auth_user_pool_id` and `auth_client_id`. Mail goes through Cognito's default
   sender, which has a daily cap. Only `provider: cognito` is accepted; the module refuses the rest.
+
+## Creating the first user (`invite_only`)
+
+A user made by `AdminCreateUser` starts in `FORCE_CHANGE_PASSWORD`; the `auth-cognito` API answers
+that state with 409 `challenge_unsupported`, and `ForgotPassword` is refused in it. So give the
+user a permanent password at once, under your own AWS identity, with the email lowercased:
+
+```bash
+POOL=$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)
+aws cognito-idp admin-create-user --user-pool-id "$POOL" --username ada@example.com \
+  --user-attributes Name=email,Value=ada@example.com Name=email_verified,Value=true \
+  --message-action SUPPRESS
+aws cognito-idp admin-set-user-password --user-pool-id "$POOL" --username ada@example.com \
+  --password '<a password of 12 or more characters>' --permanent
+```
+
+This is a known gap: the target does not yet seed or invite users itself.
 
 ## Verification
 
