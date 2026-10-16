@@ -8,6 +8,8 @@
 
 	type Props = Omit<HTMLInputAttributes, 'value' | 'id'> & {
 		label: string;
+		/** Give it a name when an error summary links here (`{ field: 'name', message }`). */
+		id?: string;
 		value?: string;
 		/** Help shown under the control, read before the error. */
 		hint?: string;
@@ -19,6 +21,7 @@
 	};
 
 	let {
+		id,
 		label,
 		value = $bindable(''),
 		hint,
@@ -30,10 +33,11 @@
 		...rest
 	}: Props = $props();
 
-	const uid = $props.id();
+	const generated = $props.id();
+	const uid = $derived(id ?? generated);
 	// Carbon derives the error id from the control's id. It hides its own helper text once there is
 	// an error, so the hint is rendered here and stays.
-	const hintId = `${uid}-hint`;
+	const hintId = $derived(`${uid}-hint`);
 	const errorId = $derived(`error-${uid}`);
 	const describedBy = $derived(
 		[hint ? hintId : '', error ? errorId : '', extraDescribedBy ?? ''].filter(Boolean).join(' ') ||

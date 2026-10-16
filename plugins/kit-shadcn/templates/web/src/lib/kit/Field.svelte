@@ -6,6 +6,8 @@
 
 	type Props = Omit<HTMLInputAttributes, 'value' | 'id'> & {
 		label: string;
+		/** Give it a name when an error summary links here (`{ field: 'name', message }`). */
+		id?: string;
 		value?: string;
 		/** Help shown under the label, read before the error. */
 		hint?: string;
@@ -17,6 +19,7 @@
 	};
 
 	let {
+		id,
 		label,
 		value = $bindable(''),
 		hint,
@@ -28,9 +31,10 @@
 		...rest
 	}: Props = $props();
 
-	const uid = $props.id();
-	const hintId = `${uid}-hint`;
-	const errorId = `${uid}-error`;
+	const generated = $props.id();
+	const uid = $derived(id ?? generated);
+	const hintId = $derived(`${uid}-hint`);
+	const errorId = $derived(`${uid}-error`);
 	const describedBy = $derived([hint ? hintId : '', error ? errorId : '', extraDescribedBy ?? '']
 			.filter(Boolean)
 			.join(' '));

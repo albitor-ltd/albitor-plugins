@@ -50,6 +50,40 @@ a timer and each can be dismissed.
 Patterns (`references/patterns.md`) cover forms with validation, destructive confirmation, empty
 and error states.
 
+## Page templates
+
+Start every new page from the template that matches it. The templates are example files in
+`web/src/lib/kit/pages/` (import from `'../../lib/kit/pages'`): seeded once, then yours to edit.
+They are built from the kit's own pieces, so the header, the loading and failed states, the error
+summary and the labelling are already right and already audited (`pages/pages.test.ts` runs axe over
+every template in every state, in addition to the contrast test). Do not rebuild them by hand.
+
+| The page is | Start from | It gives you |
+|---|---|---|
+| A collection of records | `ListPage` | Header with actions, a filter group, `Table`, `EmptyState` with a next step, loading and failed states |
+| One record | `DetailPage` | Back link, actions, facts as a description list, related sections, loading and failed states |
+| Create or edit one record | `FormPage` | Labelled fields, a focused error summary, a named submit, cancel, a busy guard |
+| An overview | `DashboardPage` | Labelled headline figures, sections below, loading and failed states |
+| Preferences, in groups | `SettingsPage` with `SettingsSection` | Named groups, one save, the same error summary |
+| Sign in | `SignInPage` | Email and password with the right `autocomplete`, one alert for the failure; presentation only |
+
+`PageHeader` (the one `<h1>`, a description, a back link, actions) and `StateNotice` (loading
+`status`, failure `alert` with a retry) are the skeleton under every template; use them directly for
+a page that fits none of the above, such as a wizard step or an import report.
+
+How to use one:
+
+1. Copy the template's usage comment (the top of the file) into the route and fill in the props. A
+   page is still `web/src/routes/<name>/+page.svelte`; the template is a component inside it.
+2. Fetch in `+page.ts` or the page, and pass `status` (`loading`, `error`, `ready`) with `rows`,
+   `fields` or `stats`. Give `onretry` so a failed load can be tried again.
+3. Edit the template when the product needs something it lacks (a column with markup, a second
+   action). Keep its headings in order (one `<h1>`, then `<h2>`), and keep every control labelled.
+4. A destructive action opens a `Dialog`; it never fires on one click.
+5. `SignInPage` is presentation. Call the identity plugin's client from `onsubmit` and pass back a
+   plain `error` sentence. If the auth plugin already ships sign-in routes, restyle those with these
+   pieces instead of adding a second sign-in route.
+
 ## Theming
 
 Everything reads the custom properties in `tokens.css`, declared in the `albitor-kit` cascade layer so
