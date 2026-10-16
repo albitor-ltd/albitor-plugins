@@ -18,6 +18,7 @@ contributes, and the platform composer renders it into a new app.
 | `scripts/tf-unlock-stale.sh` | managed | Clears a stale same-account state lock before init |
 | `scripts/seed-platform-accounts.sh` | managed | Seeds the demo and verifier accounts into the pool, from the deploy job |
 | `scripts/invite-user.sh` | managed | Sends one invitation; the invite workflow runs it |
+| `docs/inviting-people.md` | example, held for handover | Tells the owner how to invite people; written into the repository at handover |
 
 It contributes the `github-actions` and `terraform` entries of the held `dependabot.yml`. The
 modules in `modules/{data,api,site,alarms,auth}` are not copied into the app: the root consumes them by
@@ -38,7 +39,9 @@ a composed root cannot `init` before it exists).
 - **No stored cloud key.** `deploy.yml` assumes the role in `env/<environment>.deploy.env` by OIDC.
   `id-token: write` is on the deploy job alone; triggers are `push` to main and `workflow_dispatch`
   (inputs `environment` and `ref`, as the platform dispatches it for a promotion). The `ship SPA`
-  job runs after a green apply and ends with the `deploy-receipt` notice the platform reads.
+  job runs after a green apply and ends with the `deploy-receipt` notice the platform reads: the
+  app url, the commit, and for an app with sign-in the user pool id, the app client id and what the
+  seed did (`seed_status`), which is how the platform knows which pool to sign in through.
   The platform writes the `env/` files and pins the role's trust to the repository and environment.
 - **State** is the S3 backend with native locking; the bucket and key come from
   `env/<environment>.s3.tfbackend` at `init`.
@@ -60,18 +63,25 @@ a composed root cannot `init` before it exists).
 under the deploy role: `demo@albitor-demo.invalid`, the owner's account for trying the app, and
 `verifier@albitor-verify.invalid`, which Albitor's checks sign in with. Each is created confirmed with
 a permanent password and no email. The passwords are Albitor's: it mints them and writes them to the
-app's own secret store (`/albitor/apps/<repository name>/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD` and
-`ALBITOR_VERIFIER_ACCOUNT_PASSWORD`), where the deploy role reads them. Nothing here is in the app's
+app's own secret store (`/albitor/apps/<segment>/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD` and
+`ALBITOR_VERIFIER_ACCOUNT_PASSWORD`), where the deploy role reads them. `<segment>` is the app's slug,
+which Albitor writes into `env/<environment>.deploy.env` as `ALBITOR_APP_SECRETS_SEGMENT`: it is not
+the repository name, so the seed never guesses it. Without that line the seed fails the deploy
+(`seed_status=failed:no_secrets_segment`) rather than skipping. Nothing here is in the app's
 Terraform or its function: the function holds no user-pool admin action. An app with no
 `services.auth` seeds nothing. A promotion to another environment seeds nothing, so a known account
 never reaches a place real users depend on. A missing parameter is a warning annotation naming it,
-not a failure; any other read failure fails the deploy.
+not a failure, and the receipt says so (`seed_status=skipped_unprovisioned:<accounts>`); any other
+read failure fails the deploy.
 
 **Inviting people.** Run the `invite` workflow from the repository's Actions tab with the person's
 email. The pool emails them a temporary password; at first sign-in the app asks them to choose their
 own (the `auth-cognito` plugin answers the `NEW_PASSWORD_REQUIRED` challenge), so no one else ever
 knows it. Running it again for someone who has not signed in yet resends the invitation; for someone
-who has, it changes nothing. The temporary password is valid for 7 days.
+who has, it changes nothing. The temporary password is valid for 7 days. The email names the app and,
+when the stack knows the address before the apply (a custom domain that is attached), where to sign
+in. Running the workflow takes write access to the repository. The handover delivers
+`docs/inviting-people.md`, which says all of this to the owner.
 
 ## Verification
 

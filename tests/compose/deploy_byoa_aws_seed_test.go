@@ -95,6 +95,10 @@ func (r *scriptRun) read(t *testing.T, name string) string {
 
 const testPool = "eu-west-2_AbCdEf123"
 
+// testSegment is deliberately not the repository name the harness sets (acme/tracker): the path
+// segment is what the platform wrote, not what GitHub calls the repository.
+const testSegment = "tracker-app"
+
 var bothPasswords = map[string]string{
 	"params/ALBITOR_DEMO_ACCOUNT_PASSWORD":     "demo-Pw-0123456789",
 	"params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "verifier-Pw-0123456789",
@@ -104,7 +108,7 @@ var bothPasswords = map[string]string{
 // seeding ADR-0071 asks of every deploy: both accounts created without email, each with its own
 // permanent password, and neither password in any argument another process could list.
 func TestSeedPlatformAccountsSeedsBothAccountsWithoutPuttingAPasswordOnACommandLine(t *testing.T) {
-	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool)
+	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment)
 	if r.err != nil {
 		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
 	}
@@ -121,8 +125,8 @@ func TestSeedPlatformAccountsSeedsBothAccountsWithoutPuttingAPasswordOnACommandL
 	if !strings.Contains(calls, "--message-action SUPPRESS") {
 		t.Errorf("an account was created without SUPPRESS, so the pool would email a reserved domain:\n%s", calls)
 	}
-	if !strings.Contains(calls, "/albitor/apps/tracker/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD") ||
-		!strings.Contains(calls, "/albitor/apps/tracker/secrets/ALBITOR_VERIFIER_ACCOUNT_PASSWORD") {
+	if !strings.Contains(calls, "/albitor/apps/tracker-app/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD") ||
+		!strings.Contains(calls, "/albitor/apps/tracker-app/secrets/ALBITOR_VERIFIER_ACCOUNT_PASSWORD") {
 		t.Errorf("a password was not read from the app's secret path:\n%s", calls)
 	}
 	for _, pw := range bothPasswords {
@@ -144,7 +148,7 @@ func TestSeedPlatformAccountsIsIdempotent(t *testing.T) {
 	for k, v := range bothPasswords {
 		files[k] = v
 	}
-	r := runScript(t, "seed-platform-accounts.sh", files, testPool)
+	r := runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment)
 	if r.err != nil || r.out != "seed_status=seeded" {
 		t.Fatalf("a second seed = %v %q\n%s", r.err, r.out, r.output)
 	}
@@ -156,7 +160,7 @@ func TestSeedPlatformAccountsIsIdempotent(t *testing.T) {
 // TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter pins the fail-closed split: no
 // parameter is a warning the app's owner cannot fix; every other read failure fails the deploy.
 func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
-	r := runScript(t, "seed-platform-accounts.sh", map[string]string{"params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}, testPool)
+	r := runScript(t, "seed-platform-accounts.sh", map[string]string{"params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}, testPool, testSegment)
 	if r.err != nil {
 		t.Fatalf("a missing demo parameter failed the deploy: %v\n%s", r.err, r.output)
 	}
@@ -168,7 +172,7 @@ func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
 	}
 
 	denied := map[string]string{"denied/ALBITOR_DEMO_ACCOUNT_PASSWORD": "", "params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}
-	r = runScript(t, "seed-platform-accounts.sh", denied, testPool)
+	r = runScript(t, "seed-platform-accounts.sh", denied, testPool, testSegment)
 	if r.err == nil {
 		t.Fatalf("a denied read was treated as a skip:\n%s", r.output)
 	}
@@ -177,7 +181,7 @@ func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
 	}
 
 	placeholder := map[string]string{"params/ALBITOR_DEMO_ACCOUNT_PASSWORD": "__albitor_pending__", "params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}
-	r = runScript(t, "seed-platform-accounts.sh", placeholder, testPool)
+	r = runScript(t, "seed-platform-accounts.sh", placeholder, testPool, testSegment)
 	if r.err != nil || r.out != "seed_status=skipped_unprovisioned:demo" || strings.Contains(r.read(t, "users"), "demo@") {
 		t.Errorf("the reservation placeholder was seeded as a password: %v %q", r.err, r.out)
 	}
@@ -186,13 +190,29 @@ func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
 // TestSeedPlatformAccountsNeedsNoPoolAndRefusesAnythingElse: an app without auth seeds nothing, and
 // a value that is not a pool id never reaches the cli.
 func TestSeedPlatformAccountsNeedsNoPoolAndRefusesAnythingElse(t *testing.T) {
-	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, "")
+	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, "", testSegment)
 	if r.err != nil || r.out != "seed_status=no_pool" || r.read(t, "calls.log") != "" {
 		t.Errorf("no pool = %v %q calls %q", r.err, r.out, r.read(t, "calls.log"))
 	}
-	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, "eu-west-2_x; echo pwned")
+	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, "eu-west-2_x; echo pwned", testSegment)
 	if r.err == nil || r.read(t, "calls.log") != "" {
 		t.Errorf("a malformed pool id reached the cli: %v", r.err)
+	}
+}
+
+// TestSeedPlatformAccountsFailsLoudlyWithoutTheSecretsSegment: the segment is what the platform
+// wrote into deploy.env. Falling back to the repository name would read another path, find no
+// parameter and skip quietly, so its absence is a reported failure instead.
+func TestSeedPlatformAccountsFailsLoudlyWithoutTheSecretsSegment(t *testing.T) {
+	for _, segment := range []string{"", "../escape", "a b", "x;id"} {
+		r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, segment)
+		if r.err == nil || r.out != "seed_status=failed:no_secrets_segment" || r.read(t, "calls.log") != "" {
+			t.Errorf("segment %q: err %v status %q calls %q, want a reported failure with no aws call", segment, r.err, r.out, r.read(t, "calls.log"))
+		}
+	}
+	// No pool is still no pool: the segment only matters when there is something to seed.
+	if r := runScript(t, "seed-platform-accounts.sh", bothPasswords, ""); r.err != nil || r.out != "seed_status=no_pool" {
+		t.Errorf("no pool and no segment = %v %q", r.err, r.out)
 	}
 }
 
@@ -203,6 +223,9 @@ func TestInviteUserSendsOneInvitationAndNeverTouchesAnAccountThatSignedIn(t *tes
 		t.Fatalf("invite failed: %v\n%s", r.err, r.output)
 	}
 	calls := r.read(t, "calls.log")
+	if !strings.Contains(calls, "--desired-delivery-mediums EMAIL") {
+		t.Errorf("the invitation does not name its delivery medium:\n%s", calls)
+	}
 	if !strings.Contains(calls, "admin-create-user") || !strings.Contains(calls, "--username ada.lovelace@example.com") {
 		t.Errorf("the address was not lowercased into one admin-create-user:\n%s", calls)
 	}
@@ -211,7 +234,7 @@ func TestInviteUserSendsOneInvitationAndNeverTouchesAnAccountThatSignedIn(t *tes
 	}
 
 	r = runScript(t, "invite-user.sh", map[string]string{"status/ada@example.com": "FORCE_CHANGE_PASSWORD"}, testPool, "ada@example.com")
-	if r.err != nil || !strings.Contains(r.read(t, "calls.log"), "--message-action RESEND") {
+	if r.err != nil || !strings.Contains(r.read(t, "calls.log"), "--message-action RESEND --desired-delivery-mediums EMAIL") {
 		t.Errorf("a pending invitation was not resent: %v\n%s", r.err, r.read(t, "calls.log"))
 	}
 
@@ -250,6 +273,9 @@ func TestDeployWorkflowSeedsOnlyAfterTheApplyAndOnlyOnDev(t *testing.T) {
 	if !strings.Contains(step, "scripts/seed-platform-accounts.sh") {
 		t.Error("the seed step does not run the managed script")
 	}
+	if !strings.Contains(step, "id: seed") {
+		t.Error("the seed step has no id, so its seed_status cannot reach the receipt")
+	}
 	if regexp.MustCompile(`(?i)password`).MatchString(step[strings.Index(step, "run:"):]) {
 		t.Error("the seed step handles a password itself; only the script may")
 	}
@@ -273,5 +299,38 @@ func TestInviteWorkflowKeepsTheEmailOutOfAnyScript(t *testing.T) {
 	}
 	if !strings.Contains(s, "github.event.repository.default_branch") {
 		t.Error("the invite is not limited to the default branch")
+	}
+}
+
+// TestDeployReceiptCarriesWhatThePlatformReads: the platform's sign-in check reads these keys from
+// the one receipt line (core.DeployReceipt: url, commit_sha, auth_user_pool_id, auth_client_id,
+// seed_status). A key dropped here reads as "no sign-in" and the check goes unverified, so each key
+// is pinned, and each reaches the receipt through a job output.
+func TestDeployReceiptCarriesWhatThePlatformReads(t *testing.T) {
+	sub := byoaSubject(t)
+	s := string(sub.Tree["templates/.github/workflows/deploy.yml"])
+	start := strings.Index(s, "printf '::notice title=deploy-receipt::")
+	if start < 0 {
+		t.Fatal("no deploy receipt")
+	}
+	receipt := s[start : start+strings.Index(s[start:], "\n")]
+	for _, key := range []string{"url", "commit_sha", "auth_user_pool_id", "auth_client_id", "seed_status"} {
+		if !strings.Contains(receipt, `"`+key+`"`) {
+			t.Errorf("the receipt does not carry %q:\n%s", key, receipt)
+		}
+	}
+	for _, out := range []string{"auth_user_pool_id", "auth_client_id", "seed_status"} {
+		if !strings.Contains(s, out+": ${{ steps.app_url.outputs."+out+" }}") {
+			t.Errorf("the deploy job does not expose %q as an output", out)
+		}
+		if !strings.Contains(s, "needs.deploy.outputs."+out) {
+			t.Errorf("the ship job does not read %q", out)
+		}
+	}
+	if !strings.Contains(s, "steps.seed.outputs.seed_status") {
+		t.Error("the receipt's seed_status is not the seed step's")
+	}
+	if !strings.Contains(s, "ALBITOR_APP_SECRETS_SEGMENT") || !strings.Contains(s, `"$SECRETS_SEGMENT"`) {
+		t.Error("the seed is not given the platform-written secrets segment")
 	}
 }

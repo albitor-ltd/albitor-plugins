@@ -42,7 +42,7 @@ if status="$(aws cognito-idp admin-get-user --user-pool-id "$pool_id" --username
   case "$status" in
     FORCE_CHANGE_PASSWORD)
       aws cognito-idp admin-create-user --user-pool-id "$pool_id" --username "$email" \
-        --message-action RESEND >/dev/null || { echo "::error::could not resend the invitation" >&2; exit 1; }
+        --message-action RESEND --desired-delivery-mediums EMAIL >/dev/null || { echo "::error::could not resend the invitation" >&2; exit 1; }
       echo "invitation sent again to ${email}"
       exit 0
       ;;

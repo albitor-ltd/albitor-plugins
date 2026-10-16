@@ -2,7 +2,7 @@
 # Managed by Albitor (deploy-byoa-aws). Seeds the app's two platform accounts into its Cognito user
 # pool, once per deploy, from the deploy job and never from the request-serving function.
 #
-#   scripts/seed-platform-accounts.sh <user-pool-id>
+#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment>
 #
 # Two accounts, one mechanism (Albitor's ADR-0071). The DEMO account is the app owner's: they sign
 # in with it to try the app on handover day. The VERIFIER account is Albitor's own: its checks sign
@@ -16,8 +16,13 @@
 # pool, so running the seed here adds no authority that did not exist.
 #
 # Each password was minted by Albitor and written to the app's own secret store:
-#   /albitor/apps/<repository name>/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD
-#   /albitor/apps/<repository name>/secrets/ALBITOR_VERIFIER_ACCOUNT_PASSWORD
+#   /albitor/apps/<secrets segment>/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD
+#   /albitor/apps/<secrets segment>/secrets/ALBITOR_VERIFIER_ACCOUNT_PASSWORD
+# The segment is what Albitor wrote the parameters under (the app's slug, core.AppSecretSegment). It
+# is not derivable from the repository name, which can differ from the slug, so the platform writes
+# it into env/<environment>.deploy.env as ALBITOR_APP_SECRETS_SEGMENT and deploy.yml passes it in.
+# Without it the seed cannot know where to read, and fails (seed_status=failed:no_secrets_segment)
+# rather than guessing: a guess would read as "no password" and skip silently.
 # The usernames are constants below (core.DemoAccountUsername, core.VerifierAccountUsername in
 # Albitor), not an input: nothing the app writes can name an identity or carry a password into here.
 #
@@ -30,6 +35,7 @@
 # red deploy is not something the app's owner can fix. Any other read failure (access denied, KMS,
 # throttling) is not "missing": it fails the step. $GITHUB_OUTPUT gets seed_status, one of
 #   seeded | no_pool | skipped_unprovisioned:<demo|verifier>[,<demo|verifier>]
+#   | failed:no_secrets_segment
 set -uo pipefail
 
 readonly demo_username="demo@albitor-demo.invalid"
@@ -37,6 +43,7 @@ readonly verifier_username="verifier@albitor-verify.invalid"
 readonly demo_display_name="Demo User"
 
 pool_id="${1:-}"
+secrets_segment="${2:-}"
 
 write_status() {
   if [ -n "${GITHUB_OUTPUT:-}" ]; then
@@ -58,10 +65,16 @@ if ! command -v aws >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; the
   exit 1
 fi
 
-# The parameter path segment is this repository's name, which GitHub sets.
-repo_name="${GITHUB_REPOSITORY#*/}"
-if ! printf '%s' "$repo_name" | grep -Eq '^[A-Za-z0-9._-]{1,100}$'; then
-  echo "::error::the repository name is not a plain token" >&2
+# The parameter path segment is the one Albitor wrote the parameters under, handed in by the
+# workflow from the platform-written deploy.env. Absent is a failure, not a skip.
+if [ -z "$secrets_segment" ]; then
+  echo "::error::env/<environment>.deploy.env carries no ALBITOR_APP_SECRETS_SEGMENT, so the seed cannot tell where the platform wrote the account passwords. Redeploy after the platform rewrites that file" >&2
+  write_status failed:no_secrets_segment
+  exit 1
+fi
+if ! printf '%s' "$secrets_segment" | grep -Eq '^[A-Za-z0-9._-]{1,100}$'; then
+  echo "::error::the secrets segment is not a plain token" >&2
+  write_status failed:no_secrets_segment
   exit 1
 fi
 
@@ -76,7 +89,7 @@ unprovisioned=()
 # seed_account <label> <short name> <username> <parameter name> [display name]
 seed_account() {
   local label="$1" short="$2" username="$3" param_name="$4" display_name="${5:-}"
-  local param="/albitor/apps/${repo_name}/secrets/${param_name}"
+  local param="/albitor/apps/${secrets_segment}/secrets/${param_name}"
   local password read_status create_out
   local -a attributes
 

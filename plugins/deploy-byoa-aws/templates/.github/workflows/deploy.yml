@@ -114,6 +114,9 @@ jobs:
     outputs:
       app_url: ${{ steps.app_url.outputs.app_url }}
       commit_sha: ${{ steps.app_url.outputs.commit_sha }}
+      auth_user_pool_id: ${{ steps.app_url.outputs.auth_user_pool_id }}
+      auth_client_id: ${{ steps.app_url.outputs.auth_client_id }}
+      seed_status: ${{ steps.app_url.outputs.seed_status }}
     permissions:
       contents: read
       id-token: write
@@ -188,6 +191,13 @@ jobs:
             echo "::error::bucket or key in $backend is not a plain value" >&2
             exit 1
           fi
+          # Where the platform wrote this app's secrets (the app's slug). Optional here: only the
+          # seed needs it, and it fails loudly when it is missing. A plain token or nothing.
+          segment="$(sed -n 's/^[[:space:]]*ALBITOR_APP_SECRETS_SEGMENT[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          if [ -n "$segment" ] && ! printf '%s' "$segment" | grep -Eq '^[A-Za-z0-9._-]{1,100}$'; then
+            echo "::error::ALBITOR_APP_SECRETS_SEGMENT in $cfg is not a plain token" >&2
+            exit 1
+          fi
           # The project name is the repository name, folded to what the stack accepts.
           project="$(printf '%s' "${GITHUB_REPOSITORY#*/}" | tr 'A-Z_.' 'a-z--' | tr -cd 'a-z0-9-' | cut -c1-31)"
           {
@@ -196,6 +206,7 @@ jobs:
             echo "bucket=$bucket"
             echo "key=$key"
             echo "project=$project"
+            echo "secrets_segment=$segment"
           } >>"$GITHUB_OUTPUT"
 
       - name: fetch the api build
@@ -253,11 +264,14 @@ jobs:
       # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
       # why this runs here and never in the function. An app with no user pool seeds nothing.
       - name: seed the platform accounts
+        id: seed
         if: ${{ env.ENVIRONMENT == 'dev' }}
+        env:
+          SECRETS_SEGMENT: ${{ steps.identity.outputs.secrets_segment }}
         run: |
           set -euo pipefail
           pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
-          bash ./scripts/seed-platform-accounts.sh "$pool"
+          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
 
       # Every output is read into a variable and checked before it is used: a failed read inside
       # `echo "$(...)"` would hand an empty value on and read as success.
@@ -280,12 +294,35 @@ jobs:
           invalidation="$(aws cloudfront create-invalidation --distribution-id "$distribution" --paths '/*' --query Invalidation.Id --output text)"
           aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$invalidation"
 
+      # The receipt carries what the platform's sign-in check needs: the pool, the client and what
+      # the seed did (#3022, #3354). Both ids are empty for an app with no sign-in.
       - name: print the app url
         id: app_url
+        env:
+          SEED_STATUS: ${{ steps.seed.outputs.seed_status }}
         run: |
           set -euo pipefail
           url="$(terraform output -raw app_url)"
+          pool="$(terraform output -raw auth_user_pool_id)"
+          client="$(terraform output -raw auth_client_id)"
           echo "$url"
+          if [ -n "$pool" ] && ! printf '%s' "$pool" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]_[A-Za-z0-9]{1,32}$'; then
+            echo "::error::auth_user_pool_id is not a user pool id" >&2
+            exit 1
+          fi
+          if [ -n "$client" ] && ! printf '%s' "$client" | grep -Eq '^[A-Za-z0-9]{1,128}$'; then
+            echo "::error::auth_client_id is not an app client id" >&2
+            exit 1
+          fi
+          # The seed runs on dev alone, so a promotion has no status of its own; an app with no
+          # pool says so either way.
+          if [ -z "$SEED_STATUS" ] && [ -z "$pool" ]; then
+            SEED_STATUS=no_pool
+          fi
+          if [ -n "$SEED_STATUS" ] && ! printf '%s' "$SEED_STATUS" | grep -Eq '^(seeded|no_pool|skipped_unprovisioned:(demo|verifier)(,(demo|verifier))?)$'; then
+            echo "::error::the seed reported a status the receipt cannot carry" >&2
+            exit 1
+          fi
           if [ -z "$url" ]; then
             echo "::error::the stack applied but exposes no app_url (no site and no API), so there is nothing to report" >&2
             exit 1
@@ -293,6 +330,9 @@ jobs:
           {
             echo "app_url=$url"
             echo "commit_sha=$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+            echo "auth_user_pool_id=$pool"
+            echo "auth_client_id=$client"
+            echo "seed_status=$SEED_STATUS"
           } >>"$GITHUB_OUTPUT"
         working-directory: infrastructure/aws
 
@@ -311,6 +351,9 @@ jobs:
         env:
           APP_URL: ${{ needs.deploy.outputs.app_url }}
           DEPLOY_SHA: ${{ needs.deploy.outputs.commit_sha }}
+          AUTH_USER_POOL_ID: ${{ needs.deploy.outputs.auth_user_pool_id }}
+          AUTH_CLIENT_ID: ${{ needs.deploy.outputs.auth_client_id }}
+          SEED_STATUS: ${{ needs.deploy.outputs.seed_status }}
         run: |
           set -euo pipefail
           if ! printf '%s' "$APP_URL" | grep -Eq '^https://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+$'; then
@@ -321,4 +364,17 @@ jobs:
             echo "::error::the deployed commit is not a full sha" >&2
             exit 1
           fi
-          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s"}\n' "$APP_URL" "$DEPLOY_SHA"
+          if [ -n "$AUTH_USER_POOL_ID" ] && ! printf '%s' "$AUTH_USER_POOL_ID" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]_[A-Za-z0-9]{1,32}$'; then
+            echo "::error::the user pool id is not a pool id" >&2
+            exit 1
+          fi
+          if [ -n "$AUTH_CLIENT_ID" ] && ! printf '%s' "$AUTH_CLIENT_ID" | grep -Eq '^[A-Za-z0-9]{1,128}$'; then
+            echo "::error::the app client id is not a client id" >&2
+            exit 1
+          fi
+          if [ -n "$SEED_STATUS" ] && ! printf '%s' "$SEED_STATUS" | grep -Eq '^(seeded|no_pool|skipped_unprovisioned:(demo|verifier)(,(demo|verifier))?)$'; then
+            echo "::error::the seed status is not one the receipt carries" >&2
+            exit 1
+          fi
+          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s"}\n' \
+            "$APP_URL" "$DEPLOY_SHA" "$AUTH_USER_POOL_ID" "$AUTH_CLIENT_ID" "$SEED_STATUS"

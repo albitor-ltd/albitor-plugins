@@ -34,7 +34,8 @@
       { "path": "infrastructure/aws/terraform.tfvars", "mode": "example" },
       { "path": "scripts/tf-unlock-stale.sh", "mode": "managed" },
       { "path": "scripts/seed-platform-accounts.sh", "mode": "managed" },
-      { "path": "scripts/invite-user.sh", "mode": "managed" }
+      { "path": "scripts/invite-user.sh", "mode": "managed" },
+      { "path": "docs/inviting-people.md", "mode": "example", "deliver": "handover" }
     ],
     "slots": {
       "repo.dependabot": [

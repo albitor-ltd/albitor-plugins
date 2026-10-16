@@ -80,6 +80,8 @@ module "auth" {
   count  = local.auth == null ? 0 : 1
 
   name_prefix         = local.name_prefix
+  app_name            = var.project_name
+  sign_in_url         = var.dns_mode != "none" && var.domain_name != "" && var.domain_ready ? "https://${var.domain_name}" : ""
   provider_name       = try(local.auth.provider, "")
   sign_up             = try(local.auth.sign_up, "invite_only")
   groups              = try(local.auth.groups, [])

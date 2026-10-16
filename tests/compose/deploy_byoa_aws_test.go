@@ -312,7 +312,7 @@ func TestDeployBYOAHonoursThePlatformDispatchContract(t *testing.T) {
 		t.Fatalf("no job named exactly %q that needs the deploy job", core.DeployReceiptJobName)
 	}
 	tail := s[idx[0]:]
-	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s"}`
+	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s"}`
 	if !strings.Contains(tail, notice) {
 		t.Errorf("the receipt job does not print %s", notice)
 	}

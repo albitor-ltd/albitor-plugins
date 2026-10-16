@@ -20,6 +20,14 @@ resource "aws_cognito_user_pool" "this" {
   # (the deploy seeds the platform accounts, and the invite workflow adds people; see the README).
   admin_create_user_config {
     allow_admin_create_user_only = var.sign_up == "invite_only"
+
+    # The invitation says what the app is and where to sign in: Cognito's default is a bare
+    # "Your username is {username} and temporary password is {####}" from nobody in particular.
+    invite_message_template {
+      email_subject = "You have been invited to ${var.app_name}"
+      email_message = "You have been invited to ${var.app_name}.${var.sign_in_url == "" ? "" : " Sign in at ${var.sign_in_url}."} Your username is {username} and your temporary password is {####}. You will be asked to choose a password of your own the first time you sign in. The temporary password expires in 7 days."
+      sms_message   = "${var.app_name}: your username is {username} and your temporary password is {####}."
+    }
   }
 
   password_policy {

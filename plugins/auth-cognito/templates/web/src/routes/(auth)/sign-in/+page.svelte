@@ -4,6 +4,7 @@
      the pool emailed) swaps the form for new-password-form, new-password-input and
      new-password-button, where they choose their own. -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { nextPath } from '../../../lib/auth/guard';
@@ -17,6 +18,15 @@
 	// Set once the pool asks an invited person for their own password; held in memory only.
 	let challengeSession = $state('');
 	let chosenPassword = $state('');
+	let heading: HTMLHeadingElement | undefined = $state();
+
+	// The form is swapped for another in place, so focus would be left on a removed button and a
+	// screen-reader or keyboard user would not know the page changed (WCAG 2.4.3, 3.2.2). Moving it
+	// to the new heading announces the step without jumping to a field they have not read about.
+	async function announceStep() {
+		await tick();
+		heading?.focus();
+	}
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
@@ -31,6 +41,7 @@
 		password = '';
 		if (result.code === 'new_password_required' && result.session) {
 			challengeSession = result.session;
+			await announceStep();
 			return;
 		}
 		if (result.code === 'not_confirmed') {
@@ -51,7 +62,12 @@
 			return;
 		}
 		chosenPassword = '';
-		if (result.code === 'session_expired') challengeSession = '';
+		if (result.code === 'session_expired') {
+			challengeSession = '';
+			error = result.message;
+			await announceStep();
+			return;
+		}
 		error = result.message;
 	}
 </script>
@@ -60,7 +76,7 @@
 	<title>Sign in</title>
 </svelte:head>
 
-<h1>{challengeSession ? 'Choose your password' : 'Sign in'}</h1>
+<h1 bind:this={heading} tabindex="-1">{challengeSession ? 'Choose your password' : 'Sign in'}</h1>
 
 {#if challengeSession}
 	<form data-testid="new-password-form" onsubmit={submitNewPassword} novalidate>
@@ -69,6 +85,7 @@
 			label="New password"
 			type="password"
 			autocomplete="new-password"
+			hint="At least 12 characters, with a lower-case letter, an upper-case letter and a number."
 			required
 			bind:value={chosenPassword}
 			data-testid="new-password-input"

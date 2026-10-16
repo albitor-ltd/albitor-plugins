@@ -37,7 +37,11 @@ Who can sign in is handled for you: every `dev` deploy seeds the demo and verifi
 and the owner invites everyone else by running the `invite` workflow (`.github/workflows/invite.yml`).
 Do not seed or create users in the app, in the stack or with a user-pool admin call: the function
 holds none, and the floor refuses a grant. The first sign-in of an invited person is the
-`auth-cognito` plugin's `new_password_required` step. See the README.
+`auth-cognito` plugin's `new_password_required` step. The seed reads the passwords from the path
+segment Albitor wrote into `env/<environment>.deploy.env` (`ALBITOR_APP_SECRETS_SEGMENT`), never from
+the repository name, and the deploy receipt reports the pool, the client and the seed's status.
+Inviting needs write access to the repository; `docs/inviting-people.md` is delivered at handover.
+See the README.
 
 ## Custom domains
 
