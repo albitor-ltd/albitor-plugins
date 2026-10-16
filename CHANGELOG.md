@@ -35,6 +35,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   bump, so they have no tag. The catalogue pins them once `<name>/v0.1.1` exists.
 - Release `web-svelte` `v0.1.2`: the build command is `npm install`, as the lockfile is the app's
   (#23). The catalogue pins it once `web-svelte/v0.1.2` exists.
+- Release `test-playwright` `v0.1.1`: the workflow installs the app's `web/` with `npm install` and the
+  skill says the same (#23 changed the template without a version bump, so `v0.1.0` still has
+  `npm ci` there and fails once the composer drops `web/package-lock.json`). `compose-check.sh` now
+  lints every shipped workflow: an `npm ci` step needs a lockfile shipped in its working directory.
+  The catalogue pins it once `test-playwright/v0.1.1` exists.
 - Release `deploy-byoa-aws` `v0.1.1` (albitor-ltd/albitor#3178): `deploy.yml` declares the
   `environment` and `ref` dispatch inputs the platform sends for a promotion, runs in the named
   GitHub Environment, and gains the `ship SPA` job that stamps the `deploy-receipt` notice the
