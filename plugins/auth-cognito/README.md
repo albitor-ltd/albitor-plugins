@@ -46,6 +46,18 @@ Terraform: the deploy target realises the pool and hands the function `AUTH_USER
   has not published yet is refused (401) but its cookies are kept, so a key rotation does not sign
   anyone out.
 
+## Invited people: the first sign-in
+
+A pool with `sign_up: invite_only` has people added by its owner (the deploy target's invite). Cognito
+emails them a temporary password and holds the account in `FORCE_CHANGE_PASSWORD`. Signing in with it
+answers `409 new_password_required` carrying the challenge `session`; the sign-in screen then asks
+for a password of their own and posts `{email, password, session}` to `POST /api/auth/new-password`,
+which answers the challenge (`RespondToAuthChallenge`) and sets the same session cookies as any
+sign-in. The session lives in the page's memory for the few minutes Cognito honours it, never in a
+URL or storage; a lapsed one answers `401 session_expired` and the person signs in again. A
+repeated challenge answers `challenge_unsupported` rather than looping the screen. The accounts a
+deploy seeds are permanent from the start and never meet this step.
+
 ## Requirements on the deploy target
 
 - **The pool must be realised from `services.auth` and its environment delivered.** A deployed app
@@ -63,7 +75,8 @@ Terraform: the deploy target realises the pool and hands the function `AUTH_USER
   plugin still ships the session, the guard and the API, so the guard sends a signed-out person to
   `/sign-in` and that screen has to be written by the build.
 - Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
-- No MFA, no challenge flows (a challenge answers 409 `challenge_unsupported`), no social sign-in.
+- No MFA, no social sign-in. The one challenge handled is `NEW_PASSWORD_REQUIRED` (below); any other
+  answers 409 `challenge_unsupported`.
 - Logic ships as managed files, not a versioned module (ADR-0090 amendment 3), so a fix reaches an
   app on a compose or upgrade, not silently.
 
@@ -71,7 +84,7 @@ Terraform: the deploy target realises the pool and hands the function `AUTH_USER
 
 The Terraform (`auth.tf`), the SSM auth-config parameter, the static `index.html` screens and
 `serve.mjs`, and the seeding script. Deployment is the deploy target's, the stack is Svelte, and
-the demo account is seeded by the deploy identity. The `auth` pack stays as released
+the demo account is seeded by the deploy identity (`deploy-byoa-aws`'s deploy step; the hosted pipeline on the hosted lane). The `auth` pack stays as released
 (`auth/v0.7.0`) for the engine that still uses it.
 
 ## Verification

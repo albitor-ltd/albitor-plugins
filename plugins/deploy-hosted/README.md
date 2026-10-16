@@ -18,6 +18,10 @@ It contributes the `github-actions` entry of the held `dependabot.yml`.
   compiles it (`core/manifest` `Compile`) and deploys. Nothing is rendered per app.
 - **No deploy identity, no secret.** `ci.yml` has `contents: read`, no `id-token`, and reads no
   secret or variable. Triggers are `pull_request`, `push` to main and `workflow_dispatch`.
+- **The platform seeds the accounts.** The demo and verifier accounts are created in the preview's
+  user pool by the platform's pinned pipeline on each preview deploy (Albitor's ADR-0071, 2026-10-03
+  entry), under a cell role, from passwords only Albitor writes. Nothing in this plugin or the
+  repository does, and a live deploy seeds none.
 - **Exactly one deploy target.** This plugin and `deploy-byoa-aws` both provide `deploy-target@1`;
   a profile names one of them.
 - **The manifest check is advisory.** The deploy validates `albitor.yaml` with the full validator.

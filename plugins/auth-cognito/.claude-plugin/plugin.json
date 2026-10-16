@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "auth-cognito",
   "displayName": "Auth (Amazon Cognito)",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "kind": "socket",
   "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
   "author": {

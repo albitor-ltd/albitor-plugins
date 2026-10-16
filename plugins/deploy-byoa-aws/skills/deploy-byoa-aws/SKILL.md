@@ -14,7 +14,8 @@ infrastructure.
 ## What is managed (never edit)
 
 `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `infrastructure/aws/*.tf`,
-`infrastructure/aws/.terraform.lock.hcl` and `scripts/tf-unlock-stale.sh`. A finding in them is the
+`infrastructure/aws/.terraform.lock.hcl`, `.github/workflows/invite.yml` and the three scripts under
+`scripts/`. A finding in them is the
 plugin's, not yours: a change to how the stack builds is a new release of the plugin, offered as an
 upgrade change request.
 
@@ -31,12 +32,12 @@ refuses, at plan time, a manifest that declares `services.objects`, `schedules` 
 other than `go`, or build outputs other than `web/build` and `api/dist`. Do not work around the
 refusal: remove the block or choose another deploy target.
 
-With `sign_up: invite_only` (the default) the pool starts empty and nothing seeds a user, so nobody
-can sign in until the operator creates one under their own AWS identity, with the email lowercased:
-`aws cognito-idp admin-create-user --user-pool-id <auth_user_pool_id output> --username <email>
---user-attributes Name=email,Value=<email> Name=email_verified,Value=true --message-action SUPPRESS`,
-then `aws cognito-idp admin-set-user-password ... --password <12+ chars> --permanent` (a user left in
-`FORCE_CHANGE_PASSWORD` cannot sign in through the app). See the README.
+Who can sign in is handled for you: every `dev` deploy seeds the demo and verifier accounts
+(`scripts/seed-platform-accounts.sh`, under the deploy role, passwords from the app's secret store),
+and the owner invites everyone else by running the `invite` workflow (`.github/workflows/invite.yml`).
+Do not seed or create users in the app, in the stack or with a user-pool admin call: the function
+holds none, and the floor refuses a grant. The first sign-in of an invited person is the
+`auth-cognito` plugin's `new_password_required` step. See the README.
 
 ## Custom domains
 

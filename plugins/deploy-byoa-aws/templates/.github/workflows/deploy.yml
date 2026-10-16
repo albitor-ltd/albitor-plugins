@@ -245,6 +245,20 @@ jobs:
         run: terraform apply -input=false -auto-approve -lock-timeout=300s
         working-directory: infrastructure/aws
 
+      # The app's two platform accounts: the owner's demo account (so there is a way in on handover
+      # day) and Albitor's verifier (so its checks can sign in). Seeded into the pool the apply just
+      # made, on the build target only (`dev`, Albitor's ADR-0085 P6): a promotion to another
+      # environment seeds nothing, because a known account with a password the platform holds would
+      # be a standing credential on a place real users depend on. Each password is read from the
+      # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
+      # why this runs here and never in the function. An app with no user pool seeds nothing.
+      - name: seed the platform accounts
+        if: ${{ env.ENVIRONMENT == 'dev' }}
+        run: |
+          set -euo pipefail
+          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
+          bash ./scripts/seed-platform-accounts.sh "$pool"
+
       # Every output is read into a variable and checked before it is used: a failed read inside
       # `echo "$(...)"` would hand an empty value on and read as success.
       - name: ship the web bundle

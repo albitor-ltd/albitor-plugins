@@ -17,7 +17,7 @@ resource "aws_cognito_user_pool" "this" {
   }
 
   # invite_only: the public SignUp call is refused, so accounts are created by an administrator
-  # (see the README for the operator path; the pool seeds none).
+  # (the deploy seeds the platform accounts, and the invite workflow adds people; see the README).
   admin_create_user_config {
     allow_admin_create_user_only = var.sign_up == "invite_only"
   }
