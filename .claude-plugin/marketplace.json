@@ -222,10 +222,10 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.2.0",
-        "sha": "74ec58b81da6abf9c120b621734190a8d2cc06ff"
+        "ref": "deploy-byoa-aws/v0.3.0",
+        "sha": "714d015f48bc04ca2ee865ff43536e63fb9a65af"
       },
-      "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, and the stale state-lock guard.",
+      "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
       "category": "development",
       "keywords": [
         "deploy-target",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.1.1",
-        "sha": "0b1517e98841a7671aafe6c197ae1ab65e5b3b4c"
+        "ref": "kit-shadcn/v0.2.0",
+        "sha": "e55f76a49869c47f5d6a9003c41b2ac5a4e9e304"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -305,8 +305,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.1.0",
-        "sha": "de7ba8c004e9443351d29f01f21c63231e7cc62f"
+        "ref": "auth-cognito/v0.2.0",
+        "sha": "714d015f48bc04ca2ee865ff43536e63fb9a65af"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
@@ -347,8 +347,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.1.1",
-        "sha": "0b1517e98841a7671aafe6c197ae1ab65e5b3b4c"
+        "ref": "kit-carbon/v0.2.0",
+        "sha": "e55f76a49869c47f5d6a9003c41b2ac5a4e9e304"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
