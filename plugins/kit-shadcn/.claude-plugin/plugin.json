@@ -37,9 +37,21 @@
       { "path": "web/src/lib/kit/Toaster.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/toast.svelte.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/index.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/PageHeader.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/StateNotice.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/ListPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/DetailPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/FormPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/DashboardPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/SettingsPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/SettingsSection.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/SignInPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/index.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/Showcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/kit.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/dialog.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } }
+      { "path": "web/src/lib/kit/dialog.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/PagesShowcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/pages.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } }
     ],
     "skills": ["kit-shadcn"]
   }

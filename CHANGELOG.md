@@ -74,6 +74,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   (`certification.Profiles()`) from the real plugin trees, with both data layers and every
   alternative plugin here, so this class cannot pass CI again.
 
+- `kit-shadcn` and `kit-carbon` gain page templates (albitor-ltd/albitor#2809, ADR-0090): example
+  files `ListPage`, `DetailPage`, `FormPage`, `DashboardPage`, `SettingsPage`/`SettingsSection` and
+  `SignInPage` over `PageHeader` and `StateNotice` in `web/src/lib/kit/pages/`, and managed
+  `PagesShowcase.svelte` and `pages.test.ts` that run axe over every template in every state. Proposed
+  release: both `v0.2.0` (a new file set, no change to existing files). The catalogue pins them once
+  `kit-shadcn/v0.2.0` and `kit-carbon/v0.2.0` exist.
+
 ### Removed
 
 - `client-online` and `client-offline`: folded into `web-svelte` `v0.2.0` with the `client-data@1`

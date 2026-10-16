@@ -22,6 +22,13 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and runs axe
   over them, plus behaviour checks (current page, label wiring, live regions, text not markup);
   `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
+- The page templates, `web/src/lib/kit/pages/` (`example`): `ListPage`, `DetailPage`, `FormPage`,
+  `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
+  `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
+  empty states, one `<h1>`, and form errors in a focused summary. `pages/PagesShowcase.svelte` and
+  `pages/pages.test.ts` (`managed`) render every template in every state and run axe over them
+  (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
+  skill, so a build does not rebuild the same list, form or settings page.
 - The `kit-shadcn` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG
   2.2 content belongs to `test-playwright`, so it is not carried here.
 
