@@ -32,3 +32,13 @@ output "alarm_topic_arn" {
   description = "The SNS topic every alarm notifies. Subscribe a chat webhook or a pager to it."
   value       = module.alarms.topic_arn
 }
+
+output "auth_user_pool_id" {
+  description = "The Cognito user pool id when the manifest declares services.auth, else empty. The function is handed it as AUTH_USER_POOL_ID."
+  value       = try(module.auth[0].user_pool_id, "")
+}
+
+output "auth_client_id" {
+  description = "The Cognito public app client id when the manifest declares services.auth, else empty. The function is handed it as AUTH_CLIENT_ID."
+  value       = try(module.auth[0].client_id, "")
+}

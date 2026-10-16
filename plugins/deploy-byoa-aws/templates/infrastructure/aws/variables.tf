@@ -74,7 +74,7 @@ variable "alarm_email" {
 }
 
 variable "deletion_protection" {
-  description = "Protect each DynamoDB table from deletion. Leave true: a table dropped from albitor.yaml then fails the apply instead of destroying its data."
+  description = "Protect each DynamoDB table and the Cognito user pool from deletion. Leave true: one dropped from albitor.yaml then fails the apply instead of destroying its data."
   type        = bool
   default     = true
 }

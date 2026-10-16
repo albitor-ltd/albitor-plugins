@@ -13,6 +13,7 @@ locals {
   site   = try(local.manifest.site, null)
   http   = try(local.manifest.http, null)
   tables = try(local.manifest.services.tables, [])
+  auth   = try(local.manifest.services.auth, null)
 
   # The manifest names where the built artefacts are; the pipeline ships exactly these two
   # directories (it builds, then deploys, in separate jobs), so the manifest has to agree.
@@ -27,7 +28,6 @@ locals {
   unsupported = [
     for k, v in {
       "services.objects" = try(local.manifest.services.objects, [])
-      "services.auth"    = try(local.manifest.services.auth, null)
       "schedules"        = try(local.manifest.schedules, [])
       "config"           = try(local.manifest.config, [])
     } : k if v != null && v != []
@@ -54,7 +54,7 @@ resource "terraform_data" "manifest" {
     }
     precondition {
       condition     = length(local.unsupported) == 0
-      error_message = "albitor.yaml declares ${join(", ", local.unsupported)}, which deploy-byoa-aws does not render yet. It renders site, http and services.tables. Remove the block, or switch to a deploy target that supports it."
+      error_message = "albitor.yaml declares ${join(", ", local.unsupported)}, which deploy-byoa-aws does not render yet. It renders site, http, services.tables and services.auth. Remove the block, or switch to a deploy target that supports it."
     }
     precondition {
       condition     = local.site == null || local.static_output == "web/build"
@@ -68,27 +68,38 @@ resource "terraform_data" "manifest" {
 }
 
 module "data" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.1.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.2.0"
 
   name_prefix         = local.name_prefix
   tables              = local.tables
   deletion_protection = var.deletion_protection
 }
 
+module "auth" {
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.2.0"
+  count  = local.auth == null ? 0 : 1
+
+  name_prefix         = local.name_prefix
+  provider_name       = try(local.auth.provider, "")
+  sign_up             = try(local.auth.sign_up, "invite_only")
+  groups              = try(local.auth.groups, [])
+  deletion_protection = var.deletion_protection
+}
+
 module "api" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.1.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.2.0"
   count  = local.http == null ? 0 : 1
 
   name_prefix = local.name_prefix
   region      = var.aws_region
   build_root  = var.build_root
   binary      = local.api_binary
-  environment = module.data.table_env
+  environment = merge(module.data.table_env, try(module.auth[0].env, {}))
   table_arns  = module.data.table_arns
 }
 
 module "site" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.1.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.2.0"
   count  = local.site == null ? 0 : 1
 
   providers = {
@@ -108,7 +119,7 @@ module "site" {
 }
 
 module "alarms" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.1.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.2.0"
 
   name_prefix   = local.name_prefix
   api_enabled   = local.http != null

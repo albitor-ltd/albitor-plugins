@@ -17,7 +17,7 @@ contributes, and the platform composer renders it into a new app.
 | `scripts/tf-unlock-stale.sh` | managed | Clears a stale same-account state lock before init |
 
 It contributes the `github-actions` and `terraform` entries of the held `dependabot.yml`. The
-modules in `modules/{data,api,site,alarms}` are not copied into the app: the root consumes them by
+modules in `modules/{data,api,site,alarms,auth}` are not copied into the app: the root consumes them by
 `git::` source at `?ref=deploy-byoa-aws/v<version>`, so a root and its modules always match. The
 ref is a literal, and a release moves it with `plugin.json`'s version (the tag is cut after merge;
 a composed root cannot `init` before it exists).
@@ -25,8 +25,8 @@ a composed root cannot `init` before it exists).
 ## Behaviour worth knowing
 
 - **One source of truth.** The root decodes `albitor.yaml` at plan time; nothing is generated per
-  app. It renders `site`, `http` and `services.tables`, and refuses a manifest that needs more
-  (`services.objects`, `services.auth`, `schedules`, `config`), rather than deploying without it.
+  app. It renders `site`, `http`, `services.tables` and `services.auth`, and refuses a manifest
+  that needs more (`services.objects`, `schedules`, `config`), rather than deploying without it.
 - **The manifest is not trusted.** It is agent-written. Every value that steers a resource passes a
   variable `validation` in its module (names, key types, paths, hosts) and is used only as an
   attribute value, never spliced into a policy, script or command.
@@ -39,7 +39,15 @@ a composed root cannot `init` before it exists).
   The platform writes the `env/` files and pins the role's trust to the repository and environment.
 - **State** is the S3 backend with native locking; the bucket and key come from
   `env/<environment>.s3.tfbackend` at `init`.
-- Deletion protection is on for every table.
+- Deletion protection is on for every table and for the user pool.
+- **`services.auth`** renders one Cognito user pool (the email address is the username), one public
+  app client (`USER_PASSWORD_AUTH` and refresh, no secret, `PreventUserExistenceErrors` on, which
+  the `auth-cognito` plugin requires) and one group per `groups` entry. `sign_up: invite_only` (the
+  default) lets only an administrator create accounts; `open` lets anyone register and confirm by
+  email. `posture` is enforced by the app and changes nothing in the infrastructure. The function
+  is handed `AUTH_USER_POOL_ID` and `AUTH_CLIENT_ID` (Lambda supplies `AWS_REGION`) and the root
+  outputs both ids as `auth_user_pool_id` and `auth_client_id`. Mail goes through Cognito's default
+  sender, which has a daily cap. Only `provider: cognito` is accepted; the module refuses the rest.
 
 ## Verification
 
@@ -51,5 +59,5 @@ deploy-target@1 conformance suite and the workflow lint over this plugin.
 
 ## Not in this plugin
 
-Previews, promotion between environments, schedules, object stores and Cognito (`services.auth`)
-are not rendered yet; the stack refuses them at plan time.
+Previews, promotion between environments, schedules, object stores and runtime `config` are not
+rendered yet; the stack refuses the manifest blocks at plan time.

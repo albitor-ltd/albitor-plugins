@@ -25,8 +25,9 @@ upgrade change request.
 | Add or change a table | `services.tables` in `albitor.yaml` (up to five; a table dropped from the manifest fails the apply while `deletion_protection` is on) |
 | Serve the site on a domain, or choose who hears about alarms | `infrastructure/aws/terraform.tfvars` (`dns_mode`, `domain_name`, `parent_zone_id`, `domain_ready`, `alarm_email`) |
 
-The stack renders `site`, `http` (runtime `go`) and `services.tables`. It refuses, at plan time,
-a manifest that declares `services.objects`, `services.auth`, `schedules` or `config`, a runtime
+The stack renders `site`, `http` (runtime `go`), `services.tables` and `services.auth` (a Cognito
+pool, public client and groups; the function gets `AUTH_USER_POOL_ID` and `AUTH_CLIENT_ID`). It
+refuses, at plan time, a manifest that declares `services.objects`, `schedules` or `config`, a runtime
 other than `go`, or build outputs other than `web/build` and `api/dist`. Do not work around the
 refusal: remove the block or choose another deploy target.
 

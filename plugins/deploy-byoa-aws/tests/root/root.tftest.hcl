@@ -115,12 +115,52 @@ run "an_unknown_dns_mode_is_refused" {
   expect_failures = [var.dns_mode]
 }
 
-run "a_manifest_that_needs_what_the_target_does_not_render_is_refused_auth" {
+run "services_auth_renders_a_user_pool_with_its_groups" {
   command = plan
   variables {
-    manifest_path = "fixtures/unsupported-auth.yaml"
+    manifest_path = "fixtures/auth.yaml"
   }
-  expect_failures = [terraform_data.manifest]
+
+  assert {
+    condition     = length(module.auth) == 1 && join(",", module.auth[0].groups) == "admin,reviewer"
+    error_message = "services.auth renders one pool with the declared groups"
+  }
+  assert {
+    condition     = !module.auth[0].invite_only
+    error_message = "sign_up: open reaches the pool"
+  }
+  assert {
+    condition     = length(module.api) == 1 && length(module.data.table_names) == 1
+    error_message = "auth renders beside the API and the tables"
+  }
+}
+
+run "sign_up_defaults_to_invite_only_and_posture_does_not_remove_the_pool" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-minimal.yaml"
+  }
+
+  assert {
+    condition     = length(module.auth) == 1 && length(module.auth[0].groups) == 0
+    error_message = "a public-posture app still has a pool"
+  }
+  assert {
+    condition     = module.auth[0].invite_only
+    error_message = "sign_up defaults to invite_only"
+  }
+}
+
+run "no_services_auth_renders_no_pool" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/full.yaml"
+  }
+
+  assert {
+    condition     = length(module.auth) == 0 && output.auth_user_pool_id == ""
+    error_message = "no services.auth, no pool"
+  }
 }
 
 run "a_manifest_that_needs_what_the_target_does_not_render_is_refused_objects" {

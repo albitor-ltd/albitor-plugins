@@ -1,0 +1,17 @@
+version: albitor/v1
+build:
+  static:
+    command: cd web && npm install && npm run build
+    output: web/build
+  api:
+    command: cd api && go build -o dist/api .
+    output: api/dist
+site:
+  spa: true
+http:
+  runtime: go
+  handler: api
+services:
+  auth:
+    provider: cognito
+    posture: public
