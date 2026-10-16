@@ -38,6 +38,25 @@ mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/auth" "$tmp/of
 
 (cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
 
+# Lint the shipped workflows: a step that runs `npm ci` needs a lockfile in its working-directory,
+# and the composer drops a plugin's lockfile when the npm merge changes package.json (web/ has none;
+# a plugin's own subdirectory, such as web/tests, keeps its own). The plugin must ship that lockfile.
+lint_npm_ci() {
+  local wf plugin dir status=0
+  for wf in "$root"/plugins/*/templates/.github/workflows/*.yml; do
+    [[ -e "$wf" ]] || continue
+    plugin="${wf%/templates/*}"
+    while IFS= read -r dir; do
+      if [[ ! -f "$plugin/templates/$dir/package-lock.json" ]]; then
+        echo "$wf: npm ci in '$dir' but the plugin ships no $dir/package-lock.json (use npm install)" >&2
+        status=1
+      fi
+    done < <(awk '/run: npm ci/ {ci=1; dir="."; next} ci && /working-directory:/ {dir=$2} ci && /^ *- / {print dir; ci=0} END {if (ci) print dir}' "$wf")
+  done
+  return $status
+}
+lint_npm_ci
+
 # The BYOA profile's composed tree: its rendered Terraform validates and plans offline against the
 # albitor.yaml the composer wrote (needs terraform; skipped with a note where there is none).
 if command -v terraform >/dev/null; then
