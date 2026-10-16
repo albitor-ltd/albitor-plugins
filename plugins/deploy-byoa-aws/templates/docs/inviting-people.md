@@ -11,6 +11,8 @@ can register themselves, so you add each person.
 2. Choose **Run workflow**, enter the person's email address and run it. You need write access to the
    repository to run a workflow; if the button is missing, ask a repository admin.
 3. The person receives an email with their username and a temporary password, valid for 7 days.
+   The email does not say where the app is. The run prints the app's address in its summary: send
+   it to them. (An app with its own domain is at that domain.)
 4. At their first sign-in the app asks them to choose a password of their own. Nobody else ever
    knows it.
 

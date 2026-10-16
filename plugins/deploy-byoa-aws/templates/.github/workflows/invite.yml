@@ -103,3 +103,27 @@ jobs:
           set -euo pipefail
           pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
           bash ./scripts/invite-user.sh "$pool" "$INVITE_EMAIL"
+
+      # The invitation email carries a username and a temporary password but, unless the app has
+      # its own domain, not the app's address (it is not known to the user pool). Print it so the
+      # owner can send it on.
+      - name: show the app address
+        run: |
+          set -euo pipefail
+          url="$(terraform -chdir=infrastructure/aws output -raw app_url 2>/dev/null || true)"
+          if [ -z "$url" ]; then
+            url="$(terraform -chdir=infrastructure/aws output -raw cloudfront_url 2>/dev/null || true)"
+          fi
+          if [ -z "$url" ]; then
+            echo "::warning::the app has no address yet: deploy it, then send the invited person its URL"
+            exit 0
+          fi
+          echo "::notice title=Send ${INVITE_EMAIL} the app's address::${url}"
+          {
+            echo "### Invitation sent"
+            echo
+            echo "The email carries a username and a temporary password but not the app's address."
+            echo "Send ${INVITE_EMAIL} this address to sign in at:"
+            echo
+            echo "${url}"
+          } >>"$GITHUB_STEP_SUMMARY"
