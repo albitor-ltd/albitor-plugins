@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.3.0",
-        "sha": "714d015f48bc04ca2ee865ff43536e63fb9a65af"
+        "ref": "deploy-byoa-aws/v0.3.1",
+        "sha": "2a00072f126a9a77f955039586aa806028cab433"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.1.0",
-        "sha": "86ef344d3f4b7e40e58b3b68f1f33c7f56cbe0f4"
+        "ref": "deploy-hosted/v0.1.1",
+        "sha": "2a00072f126a9a77f955039586aa806028cab433"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
