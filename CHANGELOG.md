@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - CI certifies every plugin into every certified profile with the platform's harness, `byoa-aws`
   included: composed `albitor.yaml` against the deploy target's `renders`, and `terraform validate`
   over each composed root (albitor-ltd/albitor#3333). `deploy-byoa-aws` and `deploy-hosted` now
-  declare `renders` in `plugin.json`; the next release of each carries it (no version bump here).
+  declare `renders` in `plugin.json`; released as `deploy-byoa-aws` `v0.3.1` and `deploy-hosted` `v0.1.1`.
 - Repository becomes the first-party plugin monorepo (albitor-ltd/albitor#3158): `plugins/<name>/`
   for auth, carbon, shadcn, mui, gds and docs, imported from each repo's `main`. The committed
   catalogue still points at the old repositories and tags until the switch-over (see README).
