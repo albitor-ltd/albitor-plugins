@@ -104,8 +104,7 @@ Pull requests run: manifest validation (JSON parses, `name` equals the directory
 lint, a `compose` job (the real manifest parser and composer from albitor-ltd/albitor over the
 schema-2 plugins, then `npm install`, check, test and build of the composed `web/`; it needs the
 `ALBITOR_REPO_TOKEN` secret and otherwise warns and skips, so run
-`scripts/compose-check.sh --build --journeys <albitor checkout>` locally; it also runs the `test-playwright` journeys in Chromium), and a placeholder `conformance` job reserved for the socket conformance and certification
-harness (albitor-ltd/albitor#3164). The `compose` job also runs `tests/compose/certify_test.go`: the
+`scripts/compose-check.sh --build --journeys <albitor checkout>` locally; it also runs the `test-playwright` journeys in Chromium). The `compose` job also runs `tests/compose/certify_test.go`: the
 platform's certification harness over every socket plugin and every certified profile (default,
 byoa-aws), with the deploy target required to declare `renders`, the composed `albitor.yaml` checked
 against it, and `terraform init -backend=false` plus `terraform validate` over each composed

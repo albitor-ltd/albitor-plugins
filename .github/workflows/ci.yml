@@ -172,12 +172,3 @@ jobs:
           terraform_wrapper: false
       - name: Format, validate and test the modules and the rendered root
         run: scripts/verify-deploy-byoa-aws.sh
-
-  # Placeholder for the socket conformance and certification harness
-  # (albitor-ltd/albitor#3164). Deliberately a no-op until that lands. It must NOT be a required
-  # check until then: a required no-op reads as a passing gate while checking nothing.
-  conformance:
-    name: conformance
-    runs-on: ubuntu-24.04
-    steps:
-      - run: echo "conformance harness not wired yet (albitor-ltd/albitor#3164)"
