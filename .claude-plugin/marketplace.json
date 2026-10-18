@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.3.2",
-        "sha": "6f57b3f93a6ea503510cf6c4e56444a14330496b"
+        "ref": "deploy-byoa-aws/v0.3.3",
+        "sha": "7be2045e2e0e08ff8e2425355b29e55318b2cdd3"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
       "category": "development",
@@ -263,8 +263,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/data-dynamodb",
-        "ref": "data-dynamodb/v0.1.0",
-        "sha": "b60d6f86d8fc7a0433062b19d58ab1c5b98071a0"
+        "ref": "data-dynamodb/v0.1.1",
+        "sha": "7be2045e2e0e08ff8e2425355b29e55318b2cdd3"
       },
       "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
       "category": "development",
