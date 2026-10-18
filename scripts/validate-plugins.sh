@@ -77,6 +77,19 @@ while IFS= read -r css; do
   fi
 done < <(grep -rl --include=tokens.css '@layer albitor-kit' "$root/plugins" || true)
 
+# A template is rendered into the customer's repository, whose readers cannot resolve the platform's
+# issue numbers, ADR ids or its core repository: keep the reason, drop the reference. A hash counts
+# as an issue only after a space, a bracket or a comma, as four or five digits with no leading zero,
+# and with no hex digit or ';' after them, so a hex colour (#000, #333, #767676, #ffffff80, #1234;)
+# or an id inside a string ("inv#009") is not one. The short form albitor#NNNN always is.
+templates=("$root"/plugins/*/templates)
+if [[ ${#templates[@]} -gt 0 ]]; then
+  while IFS= read -r hit; do
+    err "${hit#"$root"/}: a template cites an internal reference (issue, ADR or core repository)"
+  done < <(grep -rnEI 'ADR-[0-9]{4}|albitor-ltd/albitor([^-]|$)|albitor#[0-9]+|(^|[[:space:](,])#[1-9][0-9]{3,4}([^0-9A-Fa-f;]|$)' \
+    "${templates[@]}" 2>/dev/null || true)
+fi
+
 if [[ $fail -ne 0 ]]; then
   exit 1
 fi

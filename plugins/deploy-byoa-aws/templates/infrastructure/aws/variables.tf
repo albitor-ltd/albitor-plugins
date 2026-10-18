@@ -30,7 +30,7 @@ variable "aws_region" {
 variable "dns_mode" {
   description = <<-EOT
     How the app is served. No default: DNS is the biggest source of deploy pain and the one thing
-    that varies per deployment, so terraform.tfvars states it (ADR-0041).
+    that varies per deployment, so terraform.tfvars states it.
       - none               serve on the CloudFront URL; no Route 53, no ACM.
       - in_account         the parent zone is in this account: Terraform creates the child zone,
                            the certificate, its validation and the NS delegation.

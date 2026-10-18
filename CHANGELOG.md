@@ -18,6 +18,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   no build is refused); the deploy workflow copies the HTML the bucket serves into the apply, which
   admits that live shell too while the new bundle ships, now before the seed. The example
   `terraform.tfvars` no longer cites an ADR.
+- `deploy-byoa-aws` `0.3.3` and `data-dynamodb` `0.1.1` (albitor-ltd/albitor#3437): the rendered
+  templates carry no internal references. `deploy.yml`, the root `variables.tf`,
+  `seed-platform-accounts.sh` and the store's `sigv4.go` drop the issue numbers, ADR ids and core
+  repository slug their comments cited, keeping the reasons. `ALBITOR_APP_SECRETS_SEGMENT` keeps its
+  name: the platform writes it into the deploy environment file, and the core gate accepts it as an
+  identifier the pipeline resolves. `scripts/validate-plugins.sh` now refuses a template that cites
+  an issue, an ADR or the core repository.
 
 ### Changed
 
