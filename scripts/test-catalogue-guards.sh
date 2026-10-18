@@ -91,4 +91,15 @@ git -C "$work/notags" init -q
 CATALOGUE_TAG_REPO="$work/notags" expect_fail "build-catalogue.sh with a released plugin's tag missing" \
   "$work/r/scripts/build-catalogue.sh" --out "$work/cat.json"
 
+# 9. A template citing an internal reference is refused; colours and in-string ids are not one.
+fresh
+mkdir -p "$work/r/plugins/auth/templates"
+printf 'a { color: #000; border: 1px solid #333; background: #767676 }\nid = "inv#009"\n' \
+  >"$work/r/plugins/auth/templates/ok.css"
+"$work/r/scripts/validate-plugins.sh" >/dev/null || { echo "FAIL: a colour or an in-string id read as an issue" >&2; fail=1; }
+for ref in '# see #3022' '# ADR-0085' '# albitor#3178' '# albitor-ltd/albitor issue'; do
+  printf '%s\n' "$ref" >"$work/r/plugins/auth/templates/ref.sh"
+  expect_fail "validate-plugins.sh with a template citing '$ref'" "$work/r/scripts/validate-plugins.sh"
+done
+
 exit "$fail"
