@@ -24,6 +24,7 @@ var tokens = authtemplate.Values{
 	authtemplate.TokenProjectName: "plantrain",
 	authtemplate.TokenRepo:        "acme/plantrain",
 	composer.TokenDataLayer:       composer.DataLayerOnline,
+	composer.TokenAppName:         "Plan Train",
 }
 
 func repoRoot(t *testing.T) string {
@@ -260,5 +261,26 @@ func TestManagedAndExampleModes(t *testing.T) {
 	sort.Strings(pageTS)
 	if len(pageTS) != 0 {
 		t.Errorf("the shell seeds no +page.ts: %v", pageTS)
+	}
+}
+
+// The root layout hands the platform's app_name to the kit's AppShell as its title, so the header
+// names the app (albitor-ltd/albitor#3426); without the token the composition is refused.
+func TestRootLayoutTitlesTheShellWithTheAppName(t *testing.T) {
+	layout := string(compose(t, false).Files["web/src/routes/+layout.svelte"])
+	if !strings.Contains(layout, `title="Plan Train"`) || strings.Contains(layout, "{{") {
+		t.Errorf("+layout.svelte does not pass app_name to AppShell as its title:\n%s", layout)
+	}
+
+	root := repoRoot(t)
+	toks := authtemplate.Values{}
+	for k, v := range tokens {
+		if k != composer.TokenAppName {
+			toks[k] = v
+		}
+	}
+	plugins := append(stubs(t, root, false), loadDir(t, filepath.Join(root, "plugins", "web-svelte")))
+	if _, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: toks}); err == nil {
+		t.Fatal("web-svelte composed with no app_name token")
 	}
 }

@@ -21,6 +21,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `v0.3.0`: the managed root layout passes the platform's `app_name` token to the
+  kit's `AppShell` as `title`, so the header names the app instead of "App"
+  (albitor-ltd/albitor#3426). Needs an albitor composer that owns `app_name`
+  (albitor-ltd/albitor#3428); the `component-kit@1` contract now names `title: string`, which
+  `kit-shadcn` and `kit-carbon` already take.
+
 - CI certifies every plugin into every certified profile with the platform's harness, `byoa-aws`
   included: composed `albitor.yaml` against the deploy target's `renders`, and `terraform validate`
   over each composed root (albitor-ltd/albitor#3333). `deploy-byoa-aws` and `deploy-hosted` now

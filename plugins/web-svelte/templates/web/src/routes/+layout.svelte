@@ -1,5 +1,6 @@
 <!-- Managed by Albitor (web-svelte): the slot host. Providers wrap the kit's app shell, which
-     receives the nav. Per-area chrome belongs in a route group's own +layout.svelte. -->
+     receives the nav and the app's name (the platform's app_name token, sanitised for a quoted
+     attribute). Per-area chrome belongs in a route group's own +layout.svelte. -->
 <script lang="ts">
 	import '../lib/app/app.css';
 	import { page } from '$app/state';
@@ -14,7 +15,7 @@
 </script>
 
 <ShellProviders {providers}>
-	<AppShell nav={navGroups} path={page.url.pathname}>
+	<AppShell nav={navGroups} path={page.url.pathname} title="{{albitor.app_name}}">
 		<OfflineBanner />
 		{@render children()}
 	</AppShell>

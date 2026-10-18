@@ -42,7 +42,8 @@ client build.
 ## What it needs
 
 - `web-framework@1` (`web-svelte`). Every file is conditional on it (`when`), and the layout it
-  renders imports `web/src/lib/kit/AppShell.svelte` taking `nav`, `path` and `children`.
+  renders imports `web/src/lib/kit/AppShell.svelte` taking `nav`, `path`, `title` (the app's
+  name) and `children`.
 
 ## Known gaps
 

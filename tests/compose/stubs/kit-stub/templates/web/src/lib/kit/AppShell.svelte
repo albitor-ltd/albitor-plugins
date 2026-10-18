@@ -3,10 +3,16 @@
 	import type { Snippet } from 'svelte';
 	import type { NavGroup } from '../shell/types';
 
-	let { nav, path, children }: { nav: NavGroup[]; path: string; children: Snippet } = $props();
+	let {
+		nav,
+		path,
+		title,
+		children
+	}: { nav: NavGroup[]; path: string; title: string; children: Snippet } = $props();
 </script>
 
 <a href="#main">Skip to content</a>
+<header>{title}</header>
 <nav aria-label="Main">
 	{#each nav as group (group.id ?? '')}
 		<ul>
