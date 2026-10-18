@@ -40,25 +40,36 @@ locals {
   # about to be shipped, so it cannot go stale. Line endings are normalised first (the HTML parser
   # turns CRLF and CR into LF before a browser hashes a script's text); Terraform's file() and
   # base64sha256() otherwise hash the same UTF-8 bytes the browser does.
+  #
+  # The apply puts the new policy live before the bundle ships, and a bootstrap names its
+  # content-hashed chunks, so its hash changes every build. The shell actually being served (copied
+  # out of the site bucket by the deploy workflow, previous_web_build_dir) is hashed the same way
+  # and admitted beside the new one. It is what is live, not what an earlier plan expected, so a
+  # deploy that applied and then failed to ship cannot leave the next one admitting the wrong pair.
   web_build_dir = coalesce(var.web_build_dir, "${var.build_root}/web/build")
-  web_pages = local.site == null ? {} : {
-    for f in fileset(local.web_build_dir, "**/*.html") :
-    f => replace(replace(file("${local.web_build_dir}/${f}"), "\r\n", "\n"), "\r", "\n")
+  web_build_dirs = {
+    current  = local.web_build_dir
+    previous = var.previous_web_build_dir == null ? "" : var.previous_web_build_dir
+  }
+  web_pages = {
+    for k, dir in local.web_build_dirs : k => local.site == null || dir == "" ? {} : {
+      for f in fileset(dir, "**/*.html") :
+      f => replace(replace(file("${dir}/${f}"), "\r\n", "\n"), "\r", "\n")
+    }
   }
   # Inline scripts only: no src, not a JSON or importmap data block, not empty.
-  inline_scripts = distinct(flatten([
-    for f, html in local.web_pages : [
-      for m in regexall("(?is)<script(\\s[^>]*|)>(.*?)</script>", html) : m[1]
-      if !can(regex("(?i)(^|\\s)src\\s*=", m[0])) &&
-      !can(regex("(?i)type\\s*=\\s*[\"']?(application/(ld\\+)?json|importmap)", m[0])) &&
-      trimspace(m[1]) != ""
-    ]
-  ]))
-  # This build's hashes alone are the csp_script_hashes output, which the next deploy hands back as
-  # csp_previous_script_hashes: the policy admits two builds at most, never a growing history.
-  build_script_hashes = [for b in local.inline_scripts : "'sha256-${base64sha256(b)}'"]
+  script_hashes = {
+    for k, pages in local.web_pages : k => distinct(flatten([
+      for f, html in pages : [
+        for m in regexall("(?is)<script(\\s[^>]*|)>(.*?)</script>", html) : "'sha256-${base64sha256(m[1])}'"
+        if !can(regex("(?i)(^|\\s)src\\s*=", m[0])) &&
+        !can(regex("(?i)type\\s*=\\s*[\"']?(application/(ld\\+)?json|importmap)", m[0])) &&
+        trimspace(m[1]) != ""
+      ]
+    ]))
+  }
   csp_script_hashes = join(" ", distinct(concat(
-    local.build_script_hashes,
+    local.script_hashes.current,
     compact(split(" ", trimspace(var.csp_script_hashes))),
   )))
 }
@@ -71,7 +82,7 @@ resource "terraform_data" "manifest" {
     # would serve a CSP that blocks the bootstrap and blank the live app. An apply that stops here
     # leaves the running site as it was.
     precondition {
-      condition     = local.site == null || length(local.web_pages) > 0
+      condition     = local.site == null || length(local.web_pages.current) > 0
       error_message = "No built web shell under ${local.web_build_dir} (no *.html found). The site's CSP hashes its inline scripts from the build, so the build must be present when this stack is planned: build the web app and download it to web/build first."
     }
     precondition {
@@ -154,7 +165,7 @@ module "site" {
   domain_ready    = var.domain_ready
 
   csp_script_hashes          = local.csp_script_hashes
-  csp_previous_script_hashes = var.csp_previous_script_hashes
+  csp_previous_script_hashes = join(" ", local.script_hashes.previous)
   content_security_policy    = var.content_security_policy
   hsts_include_subdomains    = var.hsts_include_subdomains
   hsts_preload               = var.hsts_preload

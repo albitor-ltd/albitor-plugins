@@ -19,9 +19,9 @@ locals {
   #
   # A deploy changes the policy before it ships the bundle (the apply waits for the distribution,
   # then the workflow syncs S3 and invalidates), and a framework's inline bootstrap names its
-  # content-hashed chunks, so its hash changes every build. The previous build's hashes are
-  # therefore admitted beside the new ones for that one deploy: the shell already live, or cached,
-  # keeps running until the new one replaces it. They are best effort: when the union would pass
+  # content-hashed chunks, so its hash changes every build. The hashes of the shell being served
+  # (csp_previous_script_hashes) are therefore admitted beside the new ones for that deploy: the
+  # shell already live, or cached, keeps running until the new one replaces it. They are best effort: when the union would pass
   # CloudFront's limit on the header, the policy carries the current build's alone.
   csp_current_hashes  = compact(split(" ", trimspace(var.csp_script_hashes)))
   csp_previous_hashes = compact(split(" ", trimspace(var.csp_previous_script_hashes)))

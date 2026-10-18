@@ -44,13 +44,20 @@ a composed root cannot `init` before it exists).
   and admits its inline scripts by `sha256` hash, and refuses to plan a site whose build is absent
   rather than serve a CSP that blanks the app. A framework's inline bootstrap names its
   content-hashed chunks, so its hash changes every build, and the apply puts the new policy live
-  before the bundle ships. The deploy workflow therefore reads the live stack's `csp_script_hashes`
-  output (this build's hashes only) before the apply and hands it back as
-  `csp_previous_script_hashes`: the policy admits the live build and the new one, and two builds
-  at most. If the union would pass CloudFront's 1,783-character limit on the header, the previous
-  build's hashes are dropped; a build whose own hashes pass it is refused at plan. The browser only
-  calls its own origin (the API and sign-in go through `/api/*`), so `connect-src` is `'self'`; the
-  `content_security_policy` variable replaces the whole policy.
+  before the bundle ships. The deploy workflow therefore copies the HTML the site bucket serves
+  now into a temporary directory before the apply (`previous_web_build_dir`), and the stack hashes
+  it the same way: the policy admits the live shell and the new one. It is what is served, not
+  what an earlier plan expected, so a deploy that applied and failed to ship leaves the next one
+  correct. A first deploy has no bucket and copies nothing; a bucket that cannot be read stops the
+  deploy before the apply (the role needs `s3:ListBucket` and `s3:GetObject` on it). The browser
+  only calls its own origin (the API and sign-in go through `/api/*`), so `connect-src` is
+  `'self'`; the `content_security_policy` variable replaces the whole policy.
+- **The header limit.** CloudFront caps the Content-Security-Policy at 1,783 characters, which is
+  room for about 28 hashes. One bootstrap per build fits with ease; a prerendered multi-page build
+  whose pages each inline a distinct bootstrap can run out. If the live shell's hashes would pass
+  the limit, they are dropped and the policy carries the new build's alone (pages already open may
+  blank until reloaded); if the new build's own hashes pass it, the plan is refused and nothing
+  changes. Inline less, or set `content_security_policy`.
 
 - **One source of truth.** The root decodes `albitor.yaml` at plan time; nothing is generated per
   app. It renders `site`, `http`, `services.tables` and `services.auth`, and refuses a manifest

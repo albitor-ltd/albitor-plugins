@@ -249,20 +249,33 @@ jobs:
         working-directory: infrastructure/aws
 
       # The apply puts the new CSP live before the bundle ships, and the new build's inline bootstrap
-      # hashes differ from the live shell's. The stack's own record of the live build's hashes goes
-      # back in so the policy admits both builds for this deploy. A first deploy (no state) or a
-      # stack from before the output existed has none; any other failure to read the state stops.
-      - name: read the live shell's script hashes
-        id: live_csp
+      # hashes differ from the live shell's. The HTML the bucket serves now is copied out so the
+      # stack hashes it too and admits both shells for this deploy: what is live, not what an
+      # earlier plan expected. A first deploy has no bucket in the state and copies nothing; an
+      # empty bucket copies nothing; a bucket that cannot be read stops here, before anything
+      # changes, rather than blank the running site.
+      - name: copy the live shell
+        id: live_shell
         run: |
           set -euo pipefail
-          outputs="$(terraform output -json)"
-          hashes="$(printf '%s' "$outputs" | jq -r '.csp_script_hashes.value // ""')"
-          if [ -n "$hashes" ] && ! printf '%s' "$hashes" | grep -Eq "^'sha(256|384|512)-[A-Za-z0-9+/]+=*'( 'sha(256|384|512)-[A-Za-z0-9+/]+=*')*$"; then
-            echo "::warning::the live csp_script_hashes output is not a list of hash sources; ignoring it"
-            hashes=""
+          bucket="$(terraform output -json | jq -r '.spa_bucket.value // ""')"
+          if [ -z "$bucket" ]; then
+            echo "no site bucket in the state yet; nothing live to admit"
+            echo "dir=" >>"$GITHUB_OUTPUT"
+            exit 0
           fi
-          echo "hashes=$hashes" >>"$GITHUB_OUTPUT"
+          if ! [[ "$bucket" =~ ^[a-z0-9][a-z0-9.-]{2,62}$ ]]; then
+            echo "::error::the state's spa_bucket is not a bucket name" >&2
+            exit 1
+          fi
+          dir="$RUNNER_TEMP/live-shell"
+          rm -rf "$dir"
+          mkdir -p "$dir"
+          if ! aws s3 cp "s3://${bucket}" "$dir" --recursive --exclude '*' --include '*.html' --only-show-errors; then
+            echo "::error::could not copy the live shell's HTML from s3://${bucket} (the deploy role needs s3:ListBucket and s3:GetObject on it)" >&2
+            exit 1
+          fi
+          echo "dir=$dir" >>"$GITHUB_OUTPUT"
         working-directory: infrastructure/aws
 
       - name: terraform apply
@@ -270,7 +283,7 @@ jobs:
           TF_VAR_project_name: ${{ steps.identity.outputs.project }}
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
-          TF_VAR_csp_previous_script_hashes: ${{ steps.live_csp.outputs.hashes }}
+          TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}
         run: terraform apply -input=false -auto-approve -lock-timeout=300s
         working-directory: infrastructure/aws
 

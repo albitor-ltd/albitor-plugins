@@ -73,17 +73,6 @@ variable "csp_script_hashes" {
   default     = ""
 }
 
-variable "csp_previous_script_hashes" {
-  description = "Set by the deploy workflow, not here: the live stack's csp_script_hashes output read before the apply. The policy admits the previous build's shell beside the new one, so the site keeps working between the apply and the bundle landing."
-  type        = string
-  default     = ""
-
-  validation {
-    condition     = can(regex("^('sha(256|384|512)-[A-Za-z0-9+/]+=*'( +'sha(256|384|512)-[A-Za-z0-9+/]+=*')* *)?$", var.csp_previous_script_hashes))
-    error_message = "csp_previous_script_hashes must be space-separated quoted hash sources such as 'sha256-abc...='."
-  }
-}
-
 variable "content_security_policy" {
   description = "Replaces the whole Content-Security-Policy, script-src hashes included. Empty uses the closed default (same-origin only)."
   type        = string
@@ -132,6 +121,12 @@ variable "build_root" {
 
 variable "web_build_dir" {
   description = "Directory holding the built web bundle, relative to this directory. Null uses web/build under build_root. The stack hashes the inline scripts in its HTML for the CSP."
+  type        = string
+  default     = null
+}
+
+variable "previous_web_build_dir" {
+  description = "Set by the deploy workflow, not here: a copy of the HTML the site bucket serves now, taken before the apply. Its inline scripts are admitted beside the new build's, so the live shell keeps working until the new bundle lands. Null (a first deploy) admits the new build alone."
   type        = string
   default     = null
 }

@@ -60,7 +60,7 @@ variable "csp_script_hashes" {
 }
 
 variable "csp_previous_script_hashes" {
-  description = "The previous build's script hashes, in the same form, admitted beside csp_script_hashes for one deploy so the shell still live while the new bundle ships keeps working. Dropped from the policy when the union would pass CloudFront's header limit."
+  description = "The script hashes of the shell being served now (the root hashes a copy taken from the bucket before the apply), in the same form, admitted beside csp_script_hashes so it keeps working until the new bundle lands. Dropped from the policy when the union would pass CloudFront's header limit."
   type        = string
   default     = ""
 

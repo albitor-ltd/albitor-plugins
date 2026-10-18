@@ -245,28 +245,43 @@ run "the_shells_inline_scripts_are_hashed_into_the_csp" {
   }
 }
 
-run "the_live_builds_hashes_join_the_policy_but_not_the_output" {
+# The deploy workflow copies the shell the bucket serves now into previous_web_build_dir before the
+# apply: the policy must keep admitting it until the new bundle lands.
+run "the_live_shell_is_admitted_beside_the_new_build" {
   command = plan
   variables {
-    csp_previous_script_hashes = "'sha256-oldbuild0=' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='"
+    previous_web_build_dir = "fixtures/web/previous"
   }
 
   assert {
-    condition     = strcontains(module.site[0].content_security_policy, "script-src 'self' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE=' 'sha256-oldbuild0='; ")
-    error_message = "the policy admits the live build and the new one, a hash both share once"
+    condition     = strcontains(module.site[0].content_security_policy, "script-src 'self' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE=' 'sha256-U3600DrvYVKlsN4R5WPXjJ5b6vomWiMi5jUzpJa79Wk='; ")
+    error_message = "the policy admits the new build's bootstrap and the live one"
   }
   assert {
     condition     = output.csp_script_hashes == "'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='"
-    error_message = "the output is this build's alone, so the next deploy admits two builds, not a history"
+    error_message = "the output is the new build's alone"
   }
 }
 
-run "a_previous_hash_must_be_a_quoted_hash_source" {
+run "with_nothing_live_the_policy_admits_the_new_build_alone" {
+  command = plan
+
+  assert {
+    condition     = strcontains(module.site[0].content_security_policy, "script-src 'self' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='; ")
+    error_message = "a first deploy admits the new build alone, and reads no HTML from anywhere else"
+  }
+}
+
+run "a_live_copy_that_is_empty_admits_the_new_build_alone" {
   command = plan
   variables {
-    csp_previous_script_hashes = "'unsafe-inline'"
+    previous_web_build_dir = "fixtures/no-such-build"
   }
-  expect_failures = [var.csp_previous_script_hashes]
+
+  assert {
+    condition     = strcontains(module.site[0].content_security_policy, "script-src 'self' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='; ")
+    error_message = "an empty bucket copies nothing, and nothing extra is admitted"
+  }
 }
 
 run "a_site_with_no_built_shell_is_refused_not_served_a_blocking_csp" {

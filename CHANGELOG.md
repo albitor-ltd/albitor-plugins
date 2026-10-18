@@ -15,9 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   distribution-wide `custom_error_response`, so `/api/<unknown>` and a missing asset no longer
   return the shell (a route whose last segment has a dot is now treated as a file). The root stack
   hashes the built shell's inline scripts into `script-src` (never `'unsafe-inline'`; a site with
-  no build is refused), and the deploy workflow hands the live build's hashes back to the apply so
-  the policy admits both builds while the new bundle ships, which it now does before the seed. The
-  example `terraform.tfvars` no longer cites an ADR.
+  no build is refused); the deploy workflow copies the HTML the bucket serves into the apply, which
+  admits that live shell too while the new bundle ships, now before the seed. The example
+  `terraform.tfvars` no longer cites an ADR.
 
 ### Changed
 

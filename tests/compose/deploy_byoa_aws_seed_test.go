@@ -335,26 +335,29 @@ func TestDeployReceiptCarriesWhatThePlatformReads(t *testing.T) {
 	}
 }
 
-// TestDeployWorkflowHandsTheLiveHashesToTheApply: the apply changes the CSP before the bundle ships,
-// so the live shell's hashes (the stack's csp_script_hashes output, read before the apply and
-// tolerated absent) must reach it as csp_previous_script_hashes.
-func TestDeployWorkflowHandsTheLiveHashesToTheApply(t *testing.T) {
+// TestDeployWorkflowHandsTheLiveShellToTheApply: the apply changes the CSP before the bundle ships,
+// so the HTML the bucket serves now (not what an earlier plan expected) is copied out before the
+// apply and handed to it, with a first deploy (no bucket in the state) copying nothing.
+func TestDeployWorkflowHandsTheLiveShellToTheApply(t *testing.T) {
 	sub := byoaSubject(t)
 	s := string(sub.Tree["templates/.github/workflows/deploy.yml"])
-	read := strings.Index(s, "name: read the live shell's script hashes")
+	read := strings.Index(s, "name: copy the live shell")
 	if read < 0 {
-		t.Fatal("no step reads the live hashes")
+		t.Fatal("no step copies the live shell")
 	}
 	apply := strings.Index(s[read:], "- name: terraform apply\n")
 	if apply < 0 {
-		t.Fatal("no apply follows the read of the live hashes")
+		t.Fatal("no apply follows the copy of the live shell")
 	}
 	apply += read
 	step := s[read:apply]
-	if !strings.Contains(step, "terraform output -json") || !strings.Contains(step, `.csp_script_hashes.value // ""`) {
-		t.Error("the read does not take csp_script_hashes from the state, tolerating its absence")
+	if !strings.Contains(step, `.spa_bucket.value // ""`) || !strings.Contains(step, "--include '*.html'") {
+		t.Error("the copy does not take the bucket from the state, tolerating its absence, and copy its HTML")
 	}
-	if !strings.Contains(s[apply:], "TF_VAR_csp_previous_script_hashes: ${{ steps.live_csp.outputs.hashes }}") {
-		t.Error("the apply is not handed the live hashes")
+	if strings.Contains(step, "csp_script_hashes") {
+		t.Error("the live hashes come from what the state planned, not what the bucket serves")
+	}
+	if !strings.Contains(s[apply:], "TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}") {
+		t.Error("the apply is not handed the live shell")
 	}
 }
