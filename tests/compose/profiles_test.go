@@ -33,6 +33,7 @@ func profileTokens(layer string) authtemplate.Values {
 		composer.TokenEnvironment:     "dev",
 		composer.TokenPipelineTag:     "v0.0.0",
 		composer.TokenDataLayer:       layer,
+		composer.TokenAppName:         "Plan Train",
 	}
 }
 

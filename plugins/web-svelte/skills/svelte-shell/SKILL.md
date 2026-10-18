@@ -94,5 +94,5 @@ The generated slot files are managed: a plugin upgrade re-renders them from the 
 
 The shell imports `src/lib/kit/AppShell.svelte` from the component-kit plugin. It receives
 `nav: NavGroup[]` (ungrouped entries first, then each group), `path: string` (the current
-pathname, for the active link) and `children: Snippet`. It must render the landmarks: a nav, a
-`main` and a skip link.
+pathname, for the active link), `title: string` (the app's name, from the platform's `app_name`
+token) and `children: Snippet`. It must render the landmarks: a nav, a `main` and a skip link.

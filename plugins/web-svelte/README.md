@@ -8,7 +8,7 @@ dedicated shell, composed into a new app's `web/` by the platform's composer.
 
 - A SvelteKit static SPA build (`adapter-static`, fallback `index.html`, `ssr = false`).
 - The slot host: a managed root layout that nests `web.providers`, runs `web.route-guard` before
-  every navigation and hands the merged `web.nav` to the kit's `AppShell`.
+  every navigation and hands the merged `web.nav` and the app's name to the kit's `AppShell`.
 - Error, 404 and offline pages (seeded, app-owned) and a service worker that opens the built app
   offline.
 - A small API client (`src/lib/shell/api.ts`): app-relative paths to `/api`, JSON, bearer token source,
@@ -101,10 +101,12 @@ writes.
 ## What it needs from other plugins
 
 - `component-kit@1`: a `web/src/lib/kit/AppShell.svelte` taking `nav: NavGroup[]`,
-  `path: string` and `children: Snippet` (see the skill).
+  `path: string`, `title: string` and `children: Snippet` (see the skill).
 - `deploy-target@1`: only because this plugin contributes the npm entry for `repo.dependabot`.
-- From the platform: the `data_layer` token. A composer that does not own it refuses the
-  composition (`unknown_token`), so this version needs an albitor composer with the token.
+- From the platform: the `data_layer` and `app_name` tokens. A composer that does not own one
+  refuses the composition (`unknown_token`), so this version needs an albitor composer with both
+  (`app_name` from albitor-ltd/albitor#3428). The root layout passes `app_name` to `AppShell` as
+  its `title`, so the header names the app.
 
 ## Layout
 
