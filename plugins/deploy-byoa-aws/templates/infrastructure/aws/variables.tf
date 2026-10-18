@@ -65,6 +65,32 @@ variable "domain_ready" {
   default     = false
 }
 
+# --- Security headers --------------------------------------------------------
+
+variable "csp_script_hashes" {
+  description = "Extra CSP script sources ('sha256-...', quoted, space-separated), added to the hashes the stack computes itself from the inline scripts in the built web shell. Usually empty."
+  type        = string
+  default     = ""
+}
+
+variable "content_security_policy" {
+  description = "Replaces the whole Content-Security-Policy, script-src hashes included. Empty uses the closed default (same-origin only)."
+  type        = string
+  default     = ""
+}
+
+variable "hsts_include_subdomains" {
+  description = "Add includeSubDomains to Strict-Transport-Security. Off by default: other hosts under the app's domain may not be ready to be HTTPS-only."
+  type        = bool
+  default     = false
+}
+
+variable "hsts_preload" {
+  description = "Add preload to Strict-Transport-Security. Off by default: preloading is a decision for the domain's owner and slow to undo."
+  type        = bool
+  default     = false
+}
+
 # --- Operations --------------------------------------------------------------
 
 variable "alarm_email" {
@@ -91,4 +117,16 @@ variable "build_root" {
   description = "Directory the built artefacts sit under (api/dist/...), relative to this directory. The pipeline sets it to the downloaded build artefact."
   type        = string
   default     = "../.."
+}
+
+variable "web_build_dir" {
+  description = "Directory holding the built web bundle, relative to this directory. Null uses web/build under build_root. The stack hashes the inline scripts in its HTML for the CSP."
+  type        = string
+  default     = null
+}
+
+variable "previous_web_build_dir" {
+  description = "Set by the deploy workflow, not here: a copy of the HTML the site bucket serves now, taken before the apply. Its inline scripts are admitted beside the new build's, so the live shell keeps working until the new bundle lands. Null (a first deploy) admits the new build alone."
+  type        = string
+  default     = null
 }

@@ -10,6 +10,41 @@ locals {
   write_delegation = var.dns_mode == "in_account"
 
   has_api = var.api_enabled
+
+  # The default policy is closed: same-origin everything, no framing, scripts only from the bundle
+  # plus the inline bootstrap a framework build puts in its shell, named by hash rather than by
+  # 'unsafe-inline'. style-src-attr alone admits style="" attributes (headless UI libraries write
+  # them to lock scrolling behind a dialog); <style> elements and stylesheets stay on 'self'. The
+  # browser calls only its own origin: the API is reached through /api/* on this distribution.
+  #
+  # A deploy changes the policy before it ships the bundle (the apply waits for the distribution,
+  # then the workflow syncs S3 and invalidates), and a framework's inline bootstrap names its
+  # content-hashed chunks, so its hash changes every build. The hashes of the shell being served
+  # (csp_previous_script_hashes) are therefore admitted beside the new ones for that deploy: the
+  # shell already live, or cached, keeps running until the new one replaces it. They are best effort: when the union would pass
+  # CloudFront's limit on the header, the policy carries the current build's alone.
+  csp_current_hashes  = compact(split(" ", trimspace(var.csp_script_hashes)))
+  csp_previous_hashes = compact(split(" ", trimspace(var.csp_previous_script_hashes)))
+  csp_union_hashes    = distinct(concat(local.csp_current_hashes, local.csp_previous_hashes))
+  csp_other_directives = [
+    "style-src 'self'",
+    "style-src-attr 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ]
+  csp_with_previous = join("; ", concat(["default-src 'self'", join(" ", concat(["script-src 'self'"], local.csp_union_hashes))], local.csp_other_directives))
+  csp_current_only  = join("; ", concat(["default-src 'self'", join(" ", concat(["script-src 'self'"], local.csp_current_hashes))], local.csp_other_directives))
+  csp_default       = length(local.csp_with_previous) <= local.csp_max_length ? local.csp_with_previous : local.csp_current_only
+
+  content_security_policy = var.content_security_policy != "" ? var.content_security_policy : local.csp_default
+
+  # CloudFront's quota on a response headers policy's Content-Security-Policy value.
+  csp_max_length = 1783
 }
 
 # --- Bundle bucket (private; reached only through CloudFront) -----------------
@@ -41,6 +76,58 @@ resource "aws_cloudfront_origin_access_control" "spa" {
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
+}
+
+# --- Security headers ----------------------------------------------------------
+
+# Attached to BOTH behaviours: a policy on the site alone would leave every API response unheadered.
+resource "aws_cloudfront_response_headers_policy" "security" {
+  name    = "${var.name_prefix}-security-headers"
+  comment = "HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy"
+
+  lifecycle {
+    precondition {
+      condition     = length(local.content_security_policy) <= local.csp_max_length
+      error_message = "The Content-Security-Policy is ${length(local.content_security_policy)} characters; CloudFront allows ${local.csp_max_length}. The built shell has too many distinct inline scripts to admit by hash: inline fewer (one bootstrap per page), or set content_security_policy."
+    }
+  }
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = var.hsts_max_age_seconds
+      include_subdomains         = var.hsts_include_subdomains
+      preload                    = var.hsts_preload
+      override                   = true
+    }
+    content_security_policy {
+      content_security_policy = local.content_security_policy
+      override                = true
+    }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    content_type_options {
+      override = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+  }
+}
+
+# --- Single-page app routing at the edge ---------------------------------------
+
+# A function on the default behaviour, not a custom_error_response: that one is distribution-wide
+# and would return the shell for /api/<unknown> and for a missing asset. See functions/spa-router.js.
+resource "aws_cloudfront_function" "spa_router" {
+  count   = var.spa ? 1 : 0
+  name    = "${var.name_prefix}-spa-router"
+  runtime = "cloudfront-js-2.0"
+  comment = "Rewrite application routes to the index document; never touches /api/ or files"
+  publish = true
+  code    = templatefile("${path.module}/functions/spa-router.js", { index_path = var.index_document })
 }
 
 # --- CloudFront distribution ---------------------------------------------------
@@ -80,35 +167,36 @@ resource "aws_cloudfront_distribution" "this" {
     allowed_methods            = ["GET", "HEAD", "OPTIONS"]
     cached_methods             = ["GET", "HEAD"]
     cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Managed-CachingOptimized
-    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03" # Managed-SecurityHeadersPolicy
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
     compress                   = true
+
+    dynamic "function_association" {
+      for_each = var.spa ? [1] : []
+      content {
+        event_type   = "viewer-request"
+        function_arn = aws_cloudfront_function.spa_router[0].arn
+      }
+    }
   }
 
   # /api/* goes to API Gateway, uncached, forwarding everything except Host.
   dynamic "ordered_cache_behavior" {
     for_each = local.has_api ? [1] : []
     content {
-      path_pattern             = "/api/*"
-      target_origin_id         = "api"
-      viewer_protocol_policy   = "redirect-to-https"
-      allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-      cached_methods           = ["GET", "HEAD"]
-      cache_policy_id          = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # Managed-CachingDisabled
-      origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # Managed-AllViewerExceptHostHeader
-      compress                 = true
+      path_pattern               = "/api/*"
+      target_origin_id           = "api"
+      viewer_protocol_policy     = "redirect-to-https"
+      allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+      cached_methods             = ["GET", "HEAD"]
+      cache_policy_id            = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # Managed-CachingDisabled
+      origin_request_policy_id   = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # Managed-AllViewerExceptHostHeader
+      response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
+      compress                   = true
     }
   }
 
-  # Single-page app routing: a path the bucket does not hold returns the index, not S3's 403/404.
-  dynamic "custom_error_response" {
-    for_each = var.spa ? [403, 404] : []
-    content {
-      error_code            = custom_error_response.value
-      response_code         = 200
-      response_page_path    = "/${var.index_document}"
-      error_caching_min_ttl = 10
-    }
-  }
+  # Deliberately no custom_error_response: it is distribution-wide, so it would answer the shell
+  # for /api/<unknown> and for a missing asset. A missing file surfaces S3's own 403 or 404.
 
   restrictions {
     geo_restriction {

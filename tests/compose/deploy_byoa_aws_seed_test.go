@@ -257,16 +257,16 @@ func TestInviteUserRefusesWhatIsNotAPlainAddress(t *testing.T) {
 }
 
 // TestDeployWorkflowSeedsOnlyAfterTheApplyAndOnlyOnDev: the seed needs the pool the apply makes,
-// runs on the build target alone (Albitor's P6), and must not be able to break the shipped bundle's
-// ordering contract.
+// runs on the build target alone (Albitor's P6), and comes after the bundle ships, so a failed seed
+// cannot leave the new CSP fronting the old shell. The receipt that reports it comes last.
 func TestDeployWorkflowSeedsOnlyAfterTheApplyAndOnlyOnDev(t *testing.T) {
 	sub := byoaSubject(t)
 	s := string(sub.Tree["templates/.github/workflows/deploy.yml"])
-	apply, seed, ship := strings.Index(s, "name: terraform apply"), strings.Index(s, "name: seed the platform accounts"), strings.Index(s, "name: ship the web bundle")
-	if apply < 0 || seed < apply || ship < seed {
-		t.Fatalf("the seed must run after the apply and before the bundle ships (apply %d, seed %d, ship %d)", apply, seed, ship)
+	apply, ship, seed, receipt := strings.Index(s, "- name: terraform apply\n"), strings.Index(s, "name: ship the web bundle"), strings.Index(s, "name: seed the platform accounts"), strings.Index(s, "name: print the app url")
+	if apply < 0 || ship < apply || seed < ship || receipt < seed {
+		t.Fatalf("want apply, ship, seed, receipt in that order (apply %d, ship %d, seed %d, receipt %d)", apply, ship, seed, receipt)
 	}
-	step := s[seed:ship]
+	step := s[seed:receipt]
 	if !strings.Contains(step, "if: ${{ env.ENVIRONMENT == 'dev' }}") {
 		t.Error("the seed is not limited to the dev environment")
 	}
@@ -332,5 +332,32 @@ func TestDeployReceiptCarriesWhatThePlatformReads(t *testing.T) {
 	}
 	if !strings.Contains(s, "ALBITOR_APP_SECRETS_SEGMENT") || !strings.Contains(s, `"$SECRETS_SEGMENT"`) {
 		t.Error("the seed is not given the platform-written secrets segment")
+	}
+}
+
+// TestDeployWorkflowHandsTheLiveShellToTheApply: the apply changes the CSP before the bundle ships,
+// so the HTML the bucket serves now (not what an earlier plan expected) is copied out before the
+// apply and handed to it, with a first deploy (no bucket in the state) copying nothing.
+func TestDeployWorkflowHandsTheLiveShellToTheApply(t *testing.T) {
+	sub := byoaSubject(t)
+	s := string(sub.Tree["templates/.github/workflows/deploy.yml"])
+	read := strings.Index(s, "name: copy the live shell")
+	if read < 0 {
+		t.Fatal("no step copies the live shell")
+	}
+	apply := strings.Index(s[read:], "- name: terraform apply\n")
+	if apply < 0 {
+		t.Fatal("no apply follows the copy of the live shell")
+	}
+	apply += read
+	step := s[read:apply]
+	if !strings.Contains(step, `.spa_bucket.value // ""`) || !strings.Contains(step, "--include '*.html'") {
+		t.Error("the copy does not take the bucket from the state, tolerating its absence, and copy its HTML")
+	}
+	if strings.Contains(step, "csp_script_hashes") {
+		t.Error("the live hashes come from what the state planned, not what the bucket serves")
+	}
+	if !strings.Contains(s[apply:], "TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}") {
+		t.Error("the apply is not handed the live shell")
 	}
 }

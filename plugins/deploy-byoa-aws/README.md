@@ -28,6 +28,37 @@ a composed root cannot `init` before it exists).
 
 ## Behaviour worth knowing
 
+- **The site edge.** One response-headers policy of the module's own (HSTS, a same-origin
+  Content-Security-Policy, frame DENY, nosniff, strict referrer) sits on the site and on `/api/*`.
+  HSTS carries neither `includeSubDomains` nor `preload` unless `hsts_include_subdomains` or
+  `hsts_preload` is set in `terraform.tfvars`: both commit hosts beyond this app and are the domain
+  owner's call. There is no `custom_error_response`: `site.spa` is a viewer-request CloudFront
+  Function on the site behaviour. Application routes serve the index, while `/api/...` and any path
+  whose last segment has a dot pass through, so an unknown API path or a missing asset fails
+  honestly instead of returning the shell. **A route whose last segment has a dot is therefore
+  treated as a file**: `/users/jane.doe` reaches S3 and gets a 403. Keep dots out of the last
+  segment of a client-side route (`/users/jane.doe/`, or an id in place of the name). Matching only
+  known asset extensions was rejected: a real file with an unlisted extension would be rewritten to
+  the shell.
+- **Script hashes, not `'unsafe-inline'`.** The stack reads the HTML under `web/build` at plan time
+  and admits its inline scripts by `sha256` hash, and refuses to plan a site whose build is absent
+  rather than serve a CSP that blanks the app. A framework's inline bootstrap names its
+  content-hashed chunks, so its hash changes every build, and the apply puts the new policy live
+  before the bundle ships. The deploy workflow therefore copies the HTML the site bucket serves
+  now into a temporary directory before the apply (`previous_web_build_dir`), and the stack hashes
+  it the same way: the policy admits the live shell and the new one. It is what is served, not
+  what an earlier plan expected, so a deploy that applied and failed to ship leaves the next one
+  correct. A first deploy has no bucket and copies nothing; a bucket that cannot be read stops the
+  deploy before the apply (the role needs `s3:ListBucket` and `s3:GetObject` on it). The browser
+  only calls its own origin (the API and sign-in go through `/api/*`), so `connect-src` is
+  `'self'`; the `content_security_policy` variable replaces the whole policy.
+- **The header limit.** CloudFront caps the Content-Security-Policy at 1,783 characters, which is
+  room for about 28 hashes. One bootstrap per build fits with ease; a prerendered multi-page build
+  whose pages each inline a distinct bootstrap can run out. If the live shell's hashes would pass
+  the limit, they are dropped and the policy carries the new build's alone (pages already open may
+  blank until reloaded); if the new build's own hashes pass it, the plan is refused and nothing
+  changes. Inline less, or set `content_security_policy`.
+
 - **One source of truth.** The root decodes `albitor.yaml` at plan time; nothing is generated per
   app. It renders `site`, `http`, `services.tables` and `services.auth`, and refuses a manifest
   that needs more (`services.objects`, `schedules`, `config`), rather than deploying without it.

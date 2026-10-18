@@ -34,12 +34,57 @@ locals {
   ]
 
   name_prefix = "${var.project_name}-${var.environment}"
+
+  # The built shell, read at plan time. A framework build inlines a bootstrap script into its HTML;
+  # the site's CSP admits it by hash, never 'unsafe-inline', and the hash comes from the very files
+  # about to be shipped, so it cannot go stale. Line endings are normalised first (the HTML parser
+  # turns CRLF and CR into LF before a browser hashes a script's text); Terraform's file() and
+  # base64sha256() otherwise hash the same UTF-8 bytes the browser does.
+  #
+  # The apply puts the new policy live before the bundle ships, and a bootstrap names its
+  # content-hashed chunks, so its hash changes every build. The shell actually being served (copied
+  # out of the site bucket by the deploy workflow, previous_web_build_dir) is hashed the same way
+  # and admitted beside the new one. It is what is live, not what an earlier plan expected, so a
+  # deploy that applied and then failed to ship cannot leave the next one admitting the wrong pair.
+  web_build_dir = coalesce(var.web_build_dir, "${var.build_root}/web/build")
+  web_build_dirs = {
+    current  = local.web_build_dir
+    previous = var.previous_web_build_dir == null ? "" : var.previous_web_build_dir
+  }
+  web_pages = {
+    for k, dir in local.web_build_dirs : k => local.site == null || dir == "" ? {} : {
+      for f in fileset(dir, "**/*.html") :
+      f => replace(replace(file("${dir}/${f}"), "\r\n", "\n"), "\r", "\n")
+    }
+  }
+  # Inline scripts only: no src, not a JSON or importmap data block, not empty.
+  script_hashes = {
+    for k, pages in local.web_pages : k => distinct(flatten([
+      for f, html in pages : [
+        for m in regexall("(?is)<script(\\s[^>]*|)>(.*?)</script>", html) : "'sha256-${base64sha256(m[1])}'"
+        if !can(regex("(?i)(^|\\s)src\\s*=", m[0])) &&
+        !can(regex("(?i)type\\s*=\\s*[\"']?(application/(ld\\+)?json|importmap)", m[0])) &&
+        trimspace(m[1]) != ""
+      ]
+    ]))
+  }
+  csp_script_hashes = join(" ", distinct(concat(
+    local.script_hashes.current,
+    compact(split(" ", trimspace(var.csp_script_hashes))),
+  )))
 }
 
 # The manifest is not trusted: it is agent-written. Everything it steers is checked here or in the
 # module variable it feeds, and a failed check stops the plan.
 resource "terraform_data" "manifest" {
   lifecycle {
+    # Fail closed, and before anything changes: a site applied without its shell's script hashes
+    # would serve a CSP that blocks the bootstrap and blank the live app. An apply that stops here
+    # leaves the running site as it was.
+    precondition {
+      condition     = local.site == null || length(local.web_pages.current) > 0
+      error_message = "No built web shell under ${local.web_build_dir} (no *.html found). The site's CSP hashes its inline scripts from the build, so the build must be present when this stack is planned: build the web app and download it to web/build first."
+    }
     precondition {
       condition     = try(local.manifest.version, "") == "albitor/v1"
       error_message = "albitor.yaml must declare version: albitor/v1."
@@ -68,7 +113,7 @@ resource "terraform_data" "manifest" {
 }
 
 module "data" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.3.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.3.2"
 
   name_prefix         = local.name_prefix
   tables              = local.tables
@@ -76,7 +121,7 @@ module "data" {
 }
 
 module "auth" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.3.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.3.2"
   count  = local.auth == null ? 0 : 1
 
   name_prefix         = local.name_prefix
@@ -89,7 +134,7 @@ module "auth" {
 }
 
 module "api" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.3.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.3.2"
   count  = local.http == null ? 0 : 1
 
   name_prefix = local.name_prefix
@@ -101,7 +146,7 @@ module "api" {
 }
 
 module "site" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.3.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.3.2"
   count  = local.site == null ? 0 : 1
 
   providers = {
@@ -118,10 +163,16 @@ module "site" {
   domain_name     = var.domain_name
   parent_zone_id  = var.parent_zone_id
   domain_ready    = var.domain_ready
+
+  csp_script_hashes          = local.csp_script_hashes
+  csp_previous_script_hashes = join(" ", local.script_hashes.previous)
+  content_security_policy    = var.content_security_policy
+  hsts_include_subdomains    = var.hsts_include_subdomains
+  hsts_preload               = var.hsts_preload
 }
 
 module "alarms" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.3.1"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.3.2"
 
   name_prefix   = local.name_prefix
   api_enabled   = local.http != null

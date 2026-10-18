@@ -248,33 +248,50 @@ jobs:
         run: terraform init -input=false -lock-timeout=300s -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
         working-directory: infrastructure/aws
 
+      # The apply puts the new CSP live before the bundle ships, and the new build's inline bootstrap
+      # hashes differ from the live shell's. The HTML the bucket serves now is copied out so the
+      # stack hashes it too and admits both shells for this deploy: what is live, not what an
+      # earlier plan expected. A first deploy has no bucket in the state and copies nothing; an
+      # empty bucket copies nothing; a bucket that cannot be read stops here, before anything
+      # changes, rather than blank the running site.
+      - name: copy the live shell
+        id: live_shell
+        run: |
+          set -euo pipefail
+          bucket="$(terraform output -json | jq -r '.spa_bucket.value // ""')"
+          if [ -z "$bucket" ]; then
+            echo "no site bucket in the state yet; nothing live to admit"
+            echo "dir=" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! [[ "$bucket" =~ ^[a-z0-9][a-z0-9.-]{2,62}$ ]]; then
+            echo "::error::the state's spa_bucket is not a bucket name" >&2
+            exit 1
+          fi
+          dir="$RUNNER_TEMP/live-shell"
+          rm -rf "$dir"
+          mkdir -p "$dir"
+          if ! aws s3 cp "s3://${bucket}" "$dir" --recursive --exclude '*' --include '*.html' --only-show-errors; then
+            echo "::error::could not copy the live shell's HTML from s3://${bucket} (the deploy role needs s3:ListBucket and s3:GetObject on it)" >&2
+            exit 1
+          fi
+          echo "dir=$dir" >>"$GITHUB_OUTPUT"
+        working-directory: infrastructure/aws
+
       - name: terraform apply
         env:
           TF_VAR_project_name: ${{ steps.identity.outputs.project }}
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
+          TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}
         run: terraform apply -input=false -auto-approve -lock-timeout=300s
         working-directory: infrastructure/aws
 
-      # The app's two platform accounts: the owner's demo account (so there is a way in on handover
-      # day) and Albitor's verifier (so its checks can sign in). Seeded into the pool the apply just
-      # made, on the build target only (`dev`, Albitor's ADR-0085 P6): a promotion to another
-      # environment seeds nothing, because a known account with a password the platform holds would
-      # be a standing credential on a place real users depend on. Each password is read from the
-      # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
-      # why this runs here and never in the function. An app with no user pool seeds nothing.
-      - name: seed the platform accounts
-        id: seed
-        if: ${{ env.ENVIRONMENT == 'dev' }}
-        env:
-          SECRETS_SEGMENT: ${{ steps.identity.outputs.secrets_segment }}
-        run: |
-          set -euo pipefail
-          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
-          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
-
-      # Every output is read into a variable and checked before it is used: a failed read inside
-      # `echo "$(...)"` would hand an empty value on and read as success.
+      # The bundle ships straight after the apply, ahead of the seed: the window in which the new
+      # policy fronts the old shell stays as short as it can be, and a seed that fails cannot leave
+      # the stack applied with its bundle unshipped. Every output is read into a variable and
+      # checked before it is used: a failed read inside `echo "$(...)"` would hand an empty value
+      # on and read as success.
       - name: ship the web bundle
         run: |
           set -euo pipefail
@@ -293,6 +310,23 @@ jobs:
           aws s3 sync web/build "s3://${bucket}" --delete
           invalidation="$(aws cloudfront create-invalidation --distribution-id "$distribution" --paths '/*' --query Invalidation.Id --output text)"
           aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$invalidation"
+
+      # The app's two platform accounts: the owner's demo account (so there is a way in on handover
+      # day) and Albitor's verifier (so its checks can sign in). Seeded into the pool the apply just
+      # made, on the build target only (`dev`, Albitor's ADR-0085 P6): a promotion to another
+      # environment seeds nothing, because a known account with a password the platform holds would
+      # be a standing credential on a place real users depend on. Each password is read from the
+      # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
+      # why this runs here and never in the function. An app with no user pool seeds nothing.
+      - name: seed the platform accounts
+        id: seed
+        if: ${{ env.ENVIRONMENT == 'dev' }}
+        env:
+          SECRETS_SEGMENT: ${{ steps.identity.outputs.secrets_segment }}
+        run: |
+          set -euo pipefail
+          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
+          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
 
       # The receipt carries what the platform's sign-in check needs: the pool, the client and what
       # the seed did (#3022, #3354). Both ids are empty for an app with no sign-in.

@@ -22,6 +22,22 @@ override_resource {
 }
 
 override_resource {
+  target          = aws_cloudfront_response_headers_policy.security
+  override_during = plan
+  values = {
+    id = "hdrpolicy-security"
+  }
+}
+
+override_resource {
+  target          = aws_cloudfront_function.spa_router
+  override_during = plan
+  values = {
+    arn = "arn:aws:cloudfront::123456789012:function/plantrain-dev-spa-router"
+  }
+}
+
+override_resource {
   target          = aws_cloudfront_origin_access_control.spa
   override_during = plan
   values = {
@@ -122,16 +138,24 @@ run "a_site_with_no_api_has_no_api_behaviour" {
   }
 }
 
-run "a_single_page_app_rewrites_missing_paths_to_the_index" {
+run "a_single_page_app_routes_through_an_edge_function_not_error_rewrites" {
   command = plan
 
   assert {
-    condition     = length(aws_cloudfront_distribution.this.custom_error_response) == 2
-    error_message = "403 and 404 return the index document"
+    condition     = length(aws_cloudfront_distribution.this.custom_error_response) == 0
+    error_message = "custom_error_response is distribution-wide: it would answer the shell for /api/<unknown> and a missing asset"
   }
   assert {
-    condition     = alltrue([for e in aws_cloudfront_distribution.this.custom_error_response : e.response_code == 200 && e.response_page_path == "/index.html"])
-    error_message = "with status 200 and the index path"
+    condition     = length(aws_cloudfront_function.spa_router) == 1 && aws_cloudfront_function.spa_router[0].runtime == "cloudfront-js-2.0"
+    error_message = "the SPA router is a viewer-request function"
+  }
+  assert {
+    condition     = one(aws_cloudfront_distribution.this.default_cache_behavior[0].function_association).event_type == "viewer-request"
+    error_message = "associated on the default (site) behaviour at viewer-request"
+  }
+  assert {
+    condition     = strcontains(aws_cloudfront_function.spa_router[0].code, "request.uri = '/index.html';") && strcontains(aws_cloudfront_function.spa_router[0].code, "indexOf('/api/')") && strcontains(aws_cloudfront_function.spa_router[0].code, "indexOf('.')")
+    error_message = "the router rewrites to the index, and leaves /api/ and file-like paths alone"
   }
 }
 
@@ -143,12 +167,167 @@ run "spa_false_serves_real_404s_and_a_named_index" {
   }
 
   assert {
-    condition     = length(aws_cloudfront_distribution.this.custom_error_response) == 0
-    error_message = "no rewrite when the site is not a single-page app"
+    condition     = length(aws_cloudfront_distribution.this.custom_error_response) == 0 && length(aws_cloudfront_function.spa_router) == 0
+    error_message = "no rewrite at all when the site is not a single-page app"
+  }
+  assert {
+    condition     = length(aws_cloudfront_distribution.this.default_cache_behavior[0].function_association) == 0
+    error_message = "and no function association"
   }
   assert {
     condition     = aws_cloudfront_distribution.this.default_root_object == "home.html"
     error_message = "the index document is the manifest's"
+  }
+}
+
+run "the_router_rewrites_to_a_named_index" {
+  command = plan
+  variables {
+    index_document = "app/home.html"
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudfront_function.spa_router[0].code, "request.uri = '/app/home.html';")
+    error_message = "application routes serve the manifest's index document"
+  }
+}
+
+run "the_security_headers_policy_is_ours_and_closed" {
+  command = plan
+
+  assert {
+    condition     = strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "default-src 'self'") && strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "script-src 'self'") && strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "frame-ancestors 'none'")
+    error_message = "a CSP with default-src and script-src on 'self'"
+  }
+  assert {
+    condition     = alltrue([for d in split("; ", aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy) : !strcontains(d, "'unsafe-inline'") || startswith(d, "style-src-attr ")])
+    error_message = "no script 'unsafe-inline'"
+  }
+  assert {
+    condition     = strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "style-src-attr 'unsafe-inline'")
+    error_message = "inline style attributes only"
+  }
+  assert {
+    condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].frame_options[0].frame_option == "DENY" && aws_cloudfront_response_headers_policy.security.security_headers_config[0].referrer_policy[0].referrer_policy == "strict-origin-when-cross-origin" && length(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_type_options) == 1
+    error_message = "frame DENY, a strict referrer policy and nosniff"
+  }
+}
+
+run "the_policy_is_on_both_behaviours" {
+  command = plan
+  variables {
+    api_enabled     = true
+    api_origin_host = "abc123.execute-api.eu-west-2.amazonaws.com"
+  }
+
+  assert {
+    condition     = aws_cloudfront_distribution.this.default_cache_behavior[0].response_headers_policy_id == aws_cloudfront_response_headers_policy.security.id
+    error_message = "the site carries the policy"
+  }
+  assert {
+    condition     = one(aws_cloudfront_distribution.this.ordered_cache_behavior).response_headers_policy_id == aws_cloudfront_response_headers_policy.security.id
+    error_message = "so does /api/*: an unheadered API is the half-fix"
+  }
+  assert {
+    condition     = length(one(aws_cloudfront_distribution.this.ordered_cache_behavior).function_association) == 0
+    error_message = "the router is never attached to /api/*"
+  }
+}
+
+run "script_hashes_join_script_src_and_an_override_replaces_the_policy" {
+  command = plan
+  variables {
+    csp_script_hashes = "'sha256-abc123=' 'sha256-def456='"
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "script-src 'self' 'sha256-abc123=' 'sha256-def456='; ")
+    error_message = "the inline bootstrap is admitted by hash"
+  }
+}
+
+run "an_override_replaces_the_whole_policy" {
+  command = plan
+  variables {
+    content_security_policy = "default-src 'none'"
+  }
+
+  assert {
+    condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy == "default-src 'none'"
+    error_message = "an explicit policy wins outright"
+  }
+}
+
+run "a_script_hash_must_be_a_quoted_hash_source" {
+  command = plan
+  variables {
+    csp_script_hashes = "'unsafe-inline'"
+  }
+  expect_failures = [var.csp_script_hashes]
+}
+
+# A deploy changes the policy before the new bundle ships, so the shell still live must keep running.
+run "the_previous_builds_hashes_are_admitted_beside_the_new_ones_once" {
+  command = plan
+  variables {
+    csp_script_hashes          = "'sha256-new1=' 'sha256-both='"
+    csp_previous_script_hashes = "'sha256-old1=' 'sha256-both='"
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "script-src 'self' 'sha256-new1=' 'sha256-both=' 'sha256-old1='; ")
+    error_message = "old and new hashes are both admitted, the shared one once"
+  }
+  assert {
+    condition     = output.content_security_policy == aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy
+    error_message = "the output is the policy the edge serves"
+  }
+}
+
+run "previous_hashes_that_would_pass_the_header_limit_are_dropped_not_fatal" {
+  command = plan
+  variables {
+    csp_script_hashes          = join(" ", [for i in range(20) : "'sha256-${base64sha256("new${i}")}'"])
+    csp_previous_script_hashes = join(" ", [for i in range(20) : "'sha256-${base64sha256("old${i}")}'"])
+  }
+
+  assert {
+    condition     = length(output.content_security_policy) <= 1783
+    error_message = "the policy stays within CloudFront's limit"
+  }
+  assert {
+    condition     = strcontains(output.content_security_policy, base64sha256("new19")) && !strcontains(output.content_security_policy, base64sha256("old0"))
+    error_message = "the current build's hashes stay; the previous build's give way"
+  }
+}
+
+run "a_current_build_past_the_header_limit_is_refused" {
+  command = plan
+  variables {
+    csp_script_hashes = join(" ", [for i in range(40) : "'sha256-${base64sha256("new${i}")}'"])
+  }
+  expect_failures = [aws_cloudfront_response_headers_policy.security]
+}
+
+run "hsts_neither_preloads_nor_covers_subdomains_unless_asked" {
+  command = plan
+
+  assert {
+    condition     = !aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].preload && !aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].include_subdomains
+    error_message = "preload and includeSubDomains are the domain owner's call, off by default as in 0.3.1"
+  }
+}
+
+run "hsts_preload_and_subdomains_are_opt_in" {
+  command = plan
+  variables {
+    hsts_preload            = true
+    hsts_include_subdomains = true
+  }
+
+  assert {
+    condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].preload && aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].include_subdomains
+    error_message = "both can be turned on"
   }
 }
 

@@ -16,6 +16,8 @@ mock_provider "archive" {}
 
 variables {
   project_name = "plantrain"
+  # The composed tree has no build; the verify script lays a stand-in shell here.
+  web_build_dir = "tests/web/build"
 }
 
 run "the_composed_manifest_plans" {

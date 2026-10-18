@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `deploy-byoa-aws` `0.3.2` (albitor-ltd/albitor#3426): the site edge passes the preview floor.
+  Its own response-headers policy (HSTS, CSP, frame DENY, nosniff, strict referrer) sits on the
+  site and `/api/*`; HSTS `includeSubDomains` and `preload` stay off unless set, as in 0.3.1. The
+  SPA fallback is a viewer-request CloudFront Function on the site behaviour in place of the
+  distribution-wide `custom_error_response`, so `/api/<unknown>` and a missing asset no longer
+  return the shell (a route whose last segment has a dot is now treated as a file). The root stack
+  hashes the built shell's inline scripts into `script-src` (never `'unsafe-inline'`; a site with
+  no build is refused); the deploy workflow copies the HTML the bucket serves into the apply, which
+  admits that live shell too while the new bundle ships, now before the seed. The example
+  `terraform.tfvars` no longer cites an ADR.
+
 ### Changed
 
 - CI certifies every plugin into every certified profile with the platform's harness, `byoa-aws`
