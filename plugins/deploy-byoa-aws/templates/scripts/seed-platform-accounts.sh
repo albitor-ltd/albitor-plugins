@@ -4,7 +4,7 @@
 #
 #   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment>
 #
-# Two accounts, one mechanism (Albitor's ADR-0071). The DEMO account is the app owner's: they sign
+# Two accounts, one mechanism. The DEMO account is the app owner's: they sign
 # in with it to try the app on handover day. The VERIFIER account is Albitor's own: its checks sign
 # in with it to prove the signed-in journeys work. Both are created confirmed, with a permanent
 # password and no email (MessageAction SUPPRESS), so neither spends the default Cognito sender's

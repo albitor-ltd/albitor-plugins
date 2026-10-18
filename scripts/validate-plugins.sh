@@ -77,6 +77,15 @@ while IFS= read -r css; do
   fi
 done < <(grep -rl --include=tokens.css '@layer albitor-kit' "$root/plugins" || true)
 
+# A template is rendered into the customer's repository, whose readers cannot resolve the platform's
+# issue numbers, ADR ids or its core repository: keep the reason, drop the reference. A hex colour
+# or an id inside a string ("inv#009") is not an issue reference, so a hash counts only after a
+# space, a bracket or a comma, and only when no hex digit follows its three to five digits.
+while IFS= read -r hit; do
+  err "${hit#"$root"/}: a template cites an internal reference (issue, ADR or core repository)"
+done < <(grep -rnEI 'ADR-[0-9]{4}|albitor-ltd/albitor([^-]|$)|(^|[[:space:](,])#[0-9]{3,5}([^0-9A-Fa-f]|$)' \
+  "$root"/plugins/*/templates 2>/dev/null || true)
+
 if [[ $fail -ne 0 ]]; then
   exit 1
 fi

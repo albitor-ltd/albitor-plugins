@@ -26,7 +26,7 @@ var signedHeaders = []string{"content-type", "host", "x-amz-date", "x-amz-securi
 // signRequest adds AWS Signature Version 4 to req: X-Amz-Date, X-Amz-Security-
 // Token when there is a session token, and Authorization. The standard library
 // is enough for one signed POST, which keeps the generated module free of any
-// dependency (ADR-0090 amendment 3: logic ships as managed files for now).
+// dependency.
 //
 // req.URL must carry no query string, which is all DynamoDB's JSON API needs.
 func signRequest(req *http.Request, body []byte, c awsCredentials, region, service string, now time.Time) {

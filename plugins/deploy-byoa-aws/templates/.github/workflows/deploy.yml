@@ -13,8 +13,8 @@
 # The triggers are a push to main and a dispatch. Nothing triggered by a pull request, a fork or
 # another workflow can reach the deploy job.
 #
-# The platform dispatches this workflow to promote a commit, and reads the result back (Albitor's
-# deploy-receipt contract, albitor-ltd/albitor#3178):
+# The platform dispatches this workflow to promote a commit, and reads the result back (its
+# deploy-receipt contract):
 #   - the dispatch inputs `environment` and `ref` are declared (GitHub refuses undeclared ones);
 #   - a job named exactly `ship SPA` runs only after a green apply and ends with a
 #     `::notice title=deploy-receipt::{...}` step. The reader trusts that one job alone, so a run
@@ -312,8 +312,8 @@ jobs:
           aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$invalidation"
 
       # The app's two platform accounts: the owner's demo account (so there is a way in on handover
-      # day) and Albitor's verifier (so its checks can sign in). Seeded into the pool the apply just
-      # made, on the build target only (`dev`, Albitor's ADR-0085 P6): a promotion to another
+      # day) and the platform's verifier (so its checks can sign in). Seeded into the pool the apply
+      # just made, on the build target only (`dev`): a promotion to another
       # environment seeds nothing, because a known account with a password the platform holds would
       # be a standing credential on a place real users depend on. Each password is read from the
       # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
@@ -329,7 +329,7 @@ jobs:
           bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
 
       # The receipt carries what the platform's sign-in check needs: the pool, the client and what
-      # the seed did (#3022, #3354). Both ids are empty for an app with no sign-in.
+      # the seed did. Both ids are empty for an app with no sign-in.
       - name: print the app url
         id: app_url
         env:
