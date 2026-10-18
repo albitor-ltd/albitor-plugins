@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.2.0",
-        "sha": "60715e6ef4ff7a461bf9946683cb7d55def5139c"
+        "ref": "web-svelte/v0.3.0",
+        "sha": "6b7dab6cba92f90ebbdb6a753e390ed1e35a0891"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
       "category": "development",
@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.3.1",
-        "sha": "2a00072f126a9a77f955039586aa806028cab433"
+        "ref": "deploy-byoa-aws/v0.3.2",
+        "sha": "6f57b3f93a6ea503510cf6c4e56444a14330496b"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
       "category": "development",
