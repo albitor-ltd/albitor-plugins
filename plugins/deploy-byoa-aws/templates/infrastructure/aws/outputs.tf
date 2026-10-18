@@ -42,3 +42,8 @@ output "auth_client_id" {
   description = "The Cognito public app client id when the manifest declares services.auth, else empty. The function is handed it as AUTH_CLIENT_ID."
   value       = try(module.auth[0].client_id, "")
 }
+
+output "csp_script_hashes" {
+  description = "The CSP script sources the stack computed from the inline scripts in the built web shell (empty with no site)."
+  value       = local.csp_script_hashes
+}

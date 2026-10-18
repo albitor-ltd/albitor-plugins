@@ -20,6 +20,7 @@ variables {
   environment   = "dev"
   dns_mode      = "none"
   manifest_path = "fixtures/full.yaml"
+  web_build_dir = "fixtures/web/build"
 }
 
 run "a_full_manifest_renders_the_whole_stack" {
@@ -233,4 +234,34 @@ run "a_project_name_that_is_not_a_plain_name_is_refused" {
     project_name = "Plan Train;"
   }
   expect_failures = [var.project_name]
+}
+
+run "the_shells_inline_scripts_are_hashed_into_the_csp" {
+  command = plan
+
+  assert {
+    condition     = output.csp_script_hashes == "'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='"
+    error_message = "one hash: the src script and the JSON block are skipped, and the CRLF copy of the same script hashes as its LF form"
+  }
+}
+
+run "a_site_with_no_built_shell_is_refused_not_served_a_blocking_csp" {
+  command = plan
+  variables {
+    web_build_dir = "fixtures/no-such-build"
+  }
+  expect_failures = [terraform_data.manifest]
+}
+
+run "an_api_only_app_needs_no_web_build" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/api-only.yaml"
+    web_build_dir = "fixtures/no-such-build"
+  }
+
+  assert {
+    condition     = output.csp_script_hashes == ""
+    error_message = "no site, no hashes, no build required"
+  }
 }

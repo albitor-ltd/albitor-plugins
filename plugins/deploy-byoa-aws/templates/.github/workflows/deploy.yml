@@ -248,39 +248,8 @@ jobs:
         run: terraform init -input=false -lock-timeout=300s -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
         working-directory: infrastructure/aws
 
-      # A framework build inlines a bootstrap script into the web shell. The site's CSP admits it by
-      # hash (never 'unsafe-inline'), so the hash is taken from the bundle about to be shipped and
-      # applied with it. An app with no web build gets none.
-      - name: hash the inline scripts in the web shell
-        id: csp
-        run: |
-          set -euo pipefail
-          hashes=""
-          if [ -d web/build ]; then
-            hashes="$(python3 - <<'PY'
-          import base64, hashlib, pathlib, re
-          out = []
-          for page in sorted(pathlib.Path("web/build").rglob("*.html")):
-              html = page.read_text(encoding="utf-8")
-              for m in re.finditer(r"<script(?P<attrs>[^>]*)>(?P<body>.*?)</script>", html, re.S | re.I):
-                  attrs, body = m.group("attrs"), m.group("body")
-                  if re.search(r"\bsrc\s*=", attrs, re.I) or not body.strip():
-                      continue
-                  if re.search(r"type\s*=\s*[\"']?(application/(ld\+)?json|importmap)", attrs, re.I):
-                      continue
-                  h = "'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode() + "'"
-                  if h not in out:
-                      out.append(h)
-          print(" ".join(out))
-          PY
-            )"
-          fi
-          echo "hashes=$hashes" >>"$GITHUB_OUTPUT"
-          echo "inline script hashes: ${hashes:-none}"
-
       - name: terraform apply
         env:
-          TF_VAR_csp_script_hashes: ${{ steps.csp.outputs.hashes }}
           TF_VAR_project_name: ${{ steps.identity.outputs.project }}
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}

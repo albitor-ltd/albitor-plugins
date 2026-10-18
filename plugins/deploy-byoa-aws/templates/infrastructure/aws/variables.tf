@@ -68,7 +68,7 @@ variable "domain_ready" {
 # --- Security headers --------------------------------------------------------
 
 variable "csp_script_hashes" {
-  description = "CSP script sources ('sha256-...', quoted, space-separated) for the inline scripts in the built web shell. The deploy workflow computes them from web/build; leave empty."
+  description = "Extra CSP script sources ('sha256-...', quoted, space-separated), added to the hashes the stack computes itself from the inline scripts in the built web shell. Usually empty."
   type        = string
   default     = ""
 }
@@ -105,4 +105,10 @@ variable "build_root" {
   description = "Directory the built artefacts sit under (api/dist/...), relative to this directory. The pipeline sets it to the downloaded build artefact."
   type        = string
   default     = "../.."
+}
+
+variable "web_build_dir" {
+  description = "Directory holding the built web bundle, relative to this directory. Null uses web/build under build_root. The stack hashes the inline scripts in its HTML for the CSP."
+  type        = string
+  default     = null
 }

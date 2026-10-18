@@ -89,6 +89,9 @@ else
   cp "$composed/infrastructure/aws/terraform.tfvars" "$scratch/infrastructure/aws/terraform.tfvars"
   mkdir -p "$scratch/infrastructure/aws/tests"
   cp "$plugin/tests/root/composed.tftest.hcl" "$scratch/infrastructure/aws/tests/composed.tftest.hcl"
+  # The stack hashes the built shell's inline scripts; a composed tree has no build, so stand one in.
+  mkdir -p "$scratch/infrastructure/aws/tests/web"
+  cp -R "$plugin/tests/root/fixtures/web/build" "$scratch/infrastructure/aws/tests/web/build"
   (
     cd "$scratch/infrastructure/aws"
     terraform init -backend=false -input=false >/dev/null
