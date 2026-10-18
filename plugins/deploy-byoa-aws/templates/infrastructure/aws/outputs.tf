@@ -44,6 +44,6 @@ output "auth_client_id" {
 }
 
 output "csp_script_hashes" {
-  description = "The CSP script sources the stack computed from the inline scripts in the built web shell (empty with no site)."
-  value       = local.csp_script_hashes
+  description = "This build's inline-script hashes alone (empty with no site). The deploy workflow reads it before the next apply and passes it back as csp_previous_script_hashes."
+  value       = join(" ", local.build_script_hashes)
 }

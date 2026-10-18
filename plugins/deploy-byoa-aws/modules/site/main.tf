@@ -16,10 +16,17 @@ locals {
   # 'unsafe-inline'. style-src-attr alone admits style="" attributes (headless UI libraries write
   # them to lock scrolling behind a dialog); <style> elements and stylesheets stay on 'self'. The
   # browser calls only its own origin: the API is reached through /api/* on this distribution.
-  csp_script_src = trimspace("script-src 'self' ${trimspace(var.csp_script_hashes)}")
-  csp_directives = [
-    "default-src 'self'",
-    local.csp_script_src,
+  #
+  # A deploy changes the policy before it ships the bundle (the apply waits for the distribution,
+  # then the workflow syncs S3 and invalidates), and a framework's inline bootstrap names its
+  # content-hashed chunks, so its hash changes every build. The previous build's hashes are
+  # therefore admitted beside the new ones for that one deploy: the shell already live, or cached,
+  # keeps running until the new one replaces it. They are best effort: when the union would pass
+  # CloudFront's limit on the header, the policy carries the current build's alone.
+  csp_current_hashes  = compact(split(" ", trimspace(var.csp_script_hashes)))
+  csp_previous_hashes = compact(split(" ", trimspace(var.csp_previous_script_hashes)))
+  csp_union_hashes    = distinct(concat(local.csp_current_hashes, local.csp_previous_hashes))
+  csp_other_directives = [
     "style-src 'self'",
     "style-src-attr 'unsafe-inline'",
     "img-src 'self' data:",
@@ -30,7 +37,14 @@ locals {
     "form-action 'self'",
     "frame-ancestors 'none'",
   ]
-  content_security_policy = var.content_security_policy != "" ? var.content_security_policy : join("; ", local.csp_directives)
+  csp_with_previous = join("; ", concat(["default-src 'self'", join(" ", concat(["script-src 'self'"], local.csp_union_hashes))], local.csp_other_directives))
+  csp_current_only  = join("; ", concat(["default-src 'self'", join(" ", concat(["script-src 'self'"], local.csp_current_hashes))], local.csp_other_directives))
+  csp_default       = length(local.csp_with_previous) <= local.csp_max_length ? local.csp_with_previous : local.csp_current_only
+
+  content_security_policy = var.content_security_policy != "" ? var.content_security_policy : local.csp_default
+
+  # CloudFront's quota on a response headers policy's Content-Security-Policy value.
+  csp_max_length = 1783
 }
 
 # --- Bundle bucket (private; reached only through CloudFront) -----------------
@@ -71,11 +85,18 @@ resource "aws_cloudfront_response_headers_policy" "security" {
   name    = "${var.name_prefix}-security-headers"
   comment = "HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy"
 
+  lifecycle {
+    precondition {
+      condition     = length(local.content_security_policy) <= local.csp_max_length
+      error_message = "The Content-Security-Policy is ${length(local.content_security_policy)} characters; CloudFront allows ${local.csp_max_length}. The built shell has too many distinct inline scripts to admit by hash: inline fewer (one bootstrap per page), or set content_security_policy."
+    }
+  }
+
   security_headers_config {
     strict_transport_security {
       access_control_max_age_sec = var.hsts_max_age_seconds
-      include_subdomains         = true
-      preload                    = true
+      include_subdomains         = var.hsts_include_subdomains
+      preload                    = var.hsts_preload
       override                   = true
     }
     content_security_policy {

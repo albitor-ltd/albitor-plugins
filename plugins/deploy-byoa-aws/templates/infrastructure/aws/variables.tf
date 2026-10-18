@@ -73,10 +73,33 @@ variable "csp_script_hashes" {
   default     = ""
 }
 
+variable "csp_previous_script_hashes" {
+  description = "Set by the deploy workflow, not here: the live stack's csp_script_hashes output read before the apply. The policy admits the previous build's shell beside the new one, so the site keeps working between the apply and the bundle landing."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = can(regex("^('sha(256|384|512)-[A-Za-z0-9+/]+=*'( +'sha(256|384|512)-[A-Za-z0-9+/]+=*')* *)?$", var.csp_previous_script_hashes))
+    error_message = "csp_previous_script_hashes must be space-separated quoted hash sources such as 'sha256-abc...='."
+  }
+}
+
 variable "content_security_policy" {
   description = "Replaces the whole Content-Security-Policy, script-src hashes included. Empty uses the closed default (same-origin only)."
   type        = string
   default     = ""
+}
+
+variable "hsts_include_subdomains" {
+  description = "Add includeSubDomains to Strict-Transport-Security. Off by default: other hosts under the app's domain may not be ready to be HTTPS-only."
+  type        = bool
+  default     = false
+}
+
+variable "hsts_preload" {
+  description = "Add preload to Strict-Transport-Security. Off by default: preloading is a decision for the domain's owner and slow to undo."
+  type        = bool
+  default     = false
 }
 
 # --- Operations --------------------------------------------------------------

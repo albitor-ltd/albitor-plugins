@@ -22,3 +22,8 @@ output "route53_nameservers" {
   description = "For external_delegated: delegate the domain to these name servers from its parent zone, then apply again with domain_ready = true. Empty for dns_mode none."
   value       = local.custom_domain ? aws_route53_zone.app[0].name_servers : []
 }
+
+output "content_security_policy" {
+  description = "The Content-Security-Policy the edge serves on the site and /api/*."
+  value       = local.content_security_policy
+}

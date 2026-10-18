@@ -54,10 +54,13 @@ locals {
       trimspace(m[1]) != ""
     ]
   ]))
-  csp_script_hashes = join(" ", concat(
-    [for b in local.inline_scripts : "'sha256-${base64sha256(b)}'"],
-    compact([trimspace(var.csp_script_hashes)]),
-  ))
+  # This build's hashes alone are the csp_script_hashes output, which the next deploy hands back as
+  # csp_previous_script_hashes: the policy admits two builds at most, never a growing history.
+  build_script_hashes = [for b in local.inline_scripts : "'sha256-${base64sha256(b)}'"]
+  csp_script_hashes = join(" ", distinct(concat(
+    local.build_script_hashes,
+    compact(split(" ", trimspace(var.csp_script_hashes))),
+  )))
 }
 
 # The manifest is not trusted: it is agent-written. Everything it steers is checked here or in the
@@ -150,8 +153,11 @@ module "site" {
   parent_zone_id  = var.parent_zone_id
   domain_ready    = var.domain_ready
 
-  csp_script_hashes       = local.csp_script_hashes
-  content_security_policy = var.content_security_policy
+  csp_script_hashes          = local.csp_script_hashes
+  csp_previous_script_hashes = var.csp_previous_script_hashes
+  content_security_policy    = var.content_security_policy
+  hsts_include_subdomains    = var.hsts_include_subdomains
+  hsts_preload               = var.hsts_preload
 }
 
 module "alarms" {

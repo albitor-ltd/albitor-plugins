@@ -248,33 +248,37 @@ jobs:
         run: terraform init -input=false -lock-timeout=300s -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
         working-directory: infrastructure/aws
 
+      # The apply puts the new CSP live before the bundle ships, and the new build's inline bootstrap
+      # hashes differ from the live shell's. The stack's own record of the live build's hashes goes
+      # back in so the policy admits both builds for this deploy. A first deploy (no state) or a
+      # stack from before the output existed has none; any other failure to read the state stops.
+      - name: read the live shell's script hashes
+        id: live_csp
+        run: |
+          set -euo pipefail
+          outputs="$(terraform output -json)"
+          hashes="$(printf '%s' "$outputs" | jq -r '.csp_script_hashes.value // ""')"
+          if [ -n "$hashes" ] && ! printf '%s' "$hashes" | grep -Eq "^'sha(256|384|512)-[A-Za-z0-9+/]+=*'( 'sha(256|384|512)-[A-Za-z0-9+/]+=*')*$"; then
+            echo "::warning::the live csp_script_hashes output is not a list of hash sources; ignoring it"
+            hashes=""
+          fi
+          echo "hashes=$hashes" >>"$GITHUB_OUTPUT"
+        working-directory: infrastructure/aws
+
       - name: terraform apply
         env:
           TF_VAR_project_name: ${{ steps.identity.outputs.project }}
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
+          TF_VAR_csp_previous_script_hashes: ${{ steps.live_csp.outputs.hashes }}
         run: terraform apply -input=false -auto-approve -lock-timeout=300s
         working-directory: infrastructure/aws
 
-      # The app's two platform accounts: the owner's demo account (so there is a way in on handover
-      # day) and Albitor's verifier (so its checks can sign in). Seeded into the pool the apply just
-      # made, on the build target only (`dev`, Albitor's ADR-0085 P6): a promotion to another
-      # environment seeds nothing, because a known account with a password the platform holds would
-      # be a standing credential on a place real users depend on. Each password is read from the
-      # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
-      # why this runs here and never in the function. An app with no user pool seeds nothing.
-      - name: seed the platform accounts
-        id: seed
-        if: ${{ env.ENVIRONMENT == 'dev' }}
-        env:
-          SECRETS_SEGMENT: ${{ steps.identity.outputs.secrets_segment }}
-        run: |
-          set -euo pipefail
-          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
-          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
-
-      # Every output is read into a variable and checked before it is used: a failed read inside
-      # `echo "$(...)"` would hand an empty value on and read as success.
+      # The bundle ships straight after the apply, ahead of the seed: the window in which the new
+      # policy fronts the old shell stays as short as it can be, and a seed that fails cannot leave
+      # the stack applied with its bundle unshipped. Every output is read into a variable and
+      # checked before it is used: a failed read inside `echo "$(...)"` would hand an empty value
+      # on and read as success.
       - name: ship the web bundle
         run: |
           set -euo pipefail
@@ -293,6 +297,23 @@ jobs:
           aws s3 sync web/build "s3://${bucket}" --delete
           invalidation="$(aws cloudfront create-invalidation --distribution-id "$distribution" --paths '/*' --query Invalidation.Id --output text)"
           aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$invalidation"
+
+      # The app's two platform accounts: the owner's demo account (so there is a way in on handover
+      # day) and Albitor's verifier (so its checks can sign in). Seeded into the pool the apply just
+      # made, on the build target only (`dev`, Albitor's ADR-0085 P6): a promotion to another
+      # environment seeds nothing, because a known account with a password the platform holds would
+      # be a standing credential on a place real users depend on. Each password is read from the
+      # app's own secret store under this deploy identity; scripts/seed-platform-accounts.sh says
+      # why this runs here and never in the function. An app with no user pool seeds nothing.
+      - name: seed the platform accounts
+        id: seed
+        if: ${{ env.ENVIRONMENT == 'dev' }}
+        env:
+          SECRETS_SEGMENT: ${{ steps.identity.outputs.secrets_segment }}
+        run: |
+          set -euo pipefail
+          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
+          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
 
       # The receipt carries what the platform's sign-in check needs: the pool, the client and what
       # the seed did (#3022, #3354). Both ids are empty for an app with no sign-in.

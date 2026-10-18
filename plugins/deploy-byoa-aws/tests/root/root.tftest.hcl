@@ -245,6 +245,30 @@ run "the_shells_inline_scripts_are_hashed_into_the_csp" {
   }
 }
 
+run "the_live_builds_hashes_join_the_policy_but_not_the_output" {
+  command = plan
+  variables {
+    csp_previous_script_hashes = "'sha256-oldbuild0=' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='"
+  }
+
+  assert {
+    condition     = strcontains(module.site[0].content_security_policy, "script-src 'self' 'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE=' 'sha256-oldbuild0='; ")
+    error_message = "the policy admits the live build and the new one, a hash both share once"
+  }
+  assert {
+    condition     = output.csp_script_hashes == "'sha256-lfHsu+V7qELRQH2/CegWksFVFi6s8L0K+1qdkyeGoHE='"
+    error_message = "the output is this build's alone, so the next deploy admits two builds, not a history"
+  }
+}
+
+run "a_previous_hash_must_be_a_quoted_hash_source" {
+  command = plan
+  variables {
+    csp_previous_script_hashes = "'unsafe-inline'"
+  }
+  expect_failures = [var.csp_previous_script_hashes]
+}
+
 run "a_site_with_no_built_shell_is_refused_not_served_a_blocking_csp" {
   command = plan
   variables {

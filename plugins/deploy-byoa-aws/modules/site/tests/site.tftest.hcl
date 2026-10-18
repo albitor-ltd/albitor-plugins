@@ -266,6 +266,71 @@ run "a_script_hash_must_be_a_quoted_hash_source" {
   expect_failures = [var.csp_script_hashes]
 }
 
+# A deploy changes the policy before the new bundle ships, so the shell still live must keep running.
+run "the_previous_builds_hashes_are_admitted_beside_the_new_ones_once" {
+  command = plan
+  variables {
+    csp_script_hashes          = "'sha256-new1=' 'sha256-both='"
+    csp_previous_script_hashes = "'sha256-old1=' 'sha256-both='"
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy, "script-src 'self' 'sha256-new1=' 'sha256-both=' 'sha256-old1='; ")
+    error_message = "old and new hashes are both admitted, the shared one once"
+  }
+  assert {
+    condition     = output.content_security_policy == aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy
+    error_message = "the output is the policy the edge serves"
+  }
+}
+
+run "previous_hashes_that_would_pass_the_header_limit_are_dropped_not_fatal" {
+  command = plan
+  variables {
+    csp_script_hashes          = join(" ", [for i in range(20) : "'sha256-${base64sha256("new${i}")}'"])
+    csp_previous_script_hashes = join(" ", [for i in range(20) : "'sha256-${base64sha256("old${i}")}'"])
+  }
+
+  assert {
+    condition     = length(output.content_security_policy) <= 1783
+    error_message = "the policy stays within CloudFront's limit"
+  }
+  assert {
+    condition     = strcontains(output.content_security_policy, base64sha256("new19")) && !strcontains(output.content_security_policy, base64sha256("old0"))
+    error_message = "the current build's hashes stay; the previous build's give way"
+  }
+}
+
+run "a_current_build_past_the_header_limit_is_refused" {
+  command = plan
+  variables {
+    csp_script_hashes = join(" ", [for i in range(40) : "'sha256-${base64sha256("new${i}")}'"])
+  }
+  expect_failures = [aws_cloudfront_response_headers_policy.security]
+}
+
+run "hsts_neither_preloads_nor_covers_subdomains_unless_asked" {
+  command = plan
+
+  assert {
+    condition     = !aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].preload && !aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].include_subdomains
+    error_message = "preload and includeSubDomains are the domain owner's call, off by default as in 0.3.1"
+  }
+}
+
+run "hsts_preload_and_subdomains_are_opt_in" {
+  command = plan
+  variables {
+    hsts_preload            = true
+    hsts_include_subdomains = true
+  }
+
+  assert {
+    condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].preload && aws_cloudfront_response_headers_policy.security.security_headers_config[0].strict_transport_security[0].include_subdomains
+    error_message = "both can be turned on"
+  }
+}
+
 run "dns_none_creates_no_dns_or_certificate" {
   command = plan
 

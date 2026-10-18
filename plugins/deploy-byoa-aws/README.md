@@ -30,14 +30,27 @@ a composed root cannot `init` before it exists).
 
 - **The site edge.** One response-headers policy of the module's own (HSTS, a same-origin
   Content-Security-Policy, frame DENY, nosniff, strict referrer) sits on the site and on `/api/*`.
-  `site.spa` is a viewer-request CloudFront Function on the site behaviour: application routes serve
-  the index, while `/api/...` and any path whose last segment has a dot pass through, so an unknown
-  API path or a missing asset fails honestly instead of returning the shell. There is no
-  `custom_error_response`. The shell's inline bootstrap script is admitted by `sha256` hash, never
-  `'unsafe-inline'`: the stack reads the HTML under `web/build` at plan time and hashes its inline
-  scripts (so no workflow change is involved), and refuses to plan a site whose build is absent
-  rather than serve a CSP that blanks the app. The browser only calls its own origin (the API and
-  sign-in go through `/api/*`), so `connect-src` is `'self'`; the `content_security_policy` variable replaces the whole policy.
+  HSTS carries neither `includeSubDomains` nor `preload` unless `hsts_include_subdomains` or
+  `hsts_preload` is set in `terraform.tfvars`: both commit hosts beyond this app and are the domain
+  owner's call. There is no `custom_error_response`: `site.spa` is a viewer-request CloudFront
+  Function on the site behaviour. Application routes serve the index, while `/api/...` and any path
+  whose last segment has a dot pass through, so an unknown API path or a missing asset fails
+  honestly instead of returning the shell. **A route whose last segment has a dot is therefore
+  treated as a file**: `/users/jane.doe` reaches S3 and gets a 403. Keep dots out of the last
+  segment of a client-side route (`/users/jane.doe/`, or an id in place of the name). Matching only
+  known asset extensions was rejected: a real file with an unlisted extension would be rewritten to
+  the shell.
+- **Script hashes, not `'unsafe-inline'`.** The stack reads the HTML under `web/build` at plan time
+  and admits its inline scripts by `sha256` hash, and refuses to plan a site whose build is absent
+  rather than serve a CSP that blanks the app. A framework's inline bootstrap names its
+  content-hashed chunks, so its hash changes every build, and the apply puts the new policy live
+  before the bundle ships. The deploy workflow therefore reads the live stack's `csp_script_hashes`
+  output (this build's hashes only) before the apply and hands it back as
+  `csp_previous_script_hashes`: the policy admits the live build and the new one, and two builds
+  at most. If the union would pass CloudFront's 1,783-character limit on the header, the previous
+  build's hashes are dropped; a build whose own hashes pass it is refused at plan. The browser only
+  calls its own origin (the API and sign-in go through `/api/*`), so `connect-src` is `'self'`; the
+  `content_security_policy` variable replaces the whole policy.
 
 - **One source of truth.** The root decodes `albitor.yaml` at plan time; nothing is generated per
   app. It renders `site`, `http`, `services.tables` and `services.auth`, and refuses a manifest
