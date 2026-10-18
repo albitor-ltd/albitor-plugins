@@ -5,7 +5,7 @@
 # project_name and environment are set by the deploy workflow (from the repository name and the
 # `dev` GitHub environment); set either here to override.
 
-# How the app is served. There is no default: pick one (ADR-0041).
+# How the app is served. There is no default: pick one.
 #   none               the CloudFront URL, no Route 53 or ACM. Start here: zero DNS wiring.
 #   in_account         the parent zone is in this AWS account; Terraform wires everything, and
 #                      domain_ready may be true from the start.

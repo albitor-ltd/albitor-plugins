@@ -28,6 +28,16 @@ a composed root cannot `init` before it exists).
 
 ## Behaviour worth knowing
 
+- **The site edge.** One response-headers policy of the module's own (HSTS, a same-origin
+  Content-Security-Policy, frame DENY, nosniff, strict referrer) sits on the site and on `/api/*`.
+  `site.spa` is a viewer-request CloudFront Function on the site behaviour: application routes serve
+  the index, while `/api/...` and any path whose last segment has a dot pass through, so an unknown
+  API path or a missing asset fails honestly instead of returning the shell. There is no
+  `custom_error_response`. The shell's inline bootstrap script is admitted by `sha256` hash: the
+  deploy workflow hashes the inline scripts in `web/build` into `TF_VAR_csp_script_hashes`, never
+  `'unsafe-inline'`. The browser only calls its own origin (the API and sign-in go through `/api/*`),
+  so `connect-src` is `'self'`; the `content_security_policy` variable replaces the whole policy.
+
 - **One source of truth.** The root decodes `albitor.yaml` at plan time; nothing is generated per
   app. It renders `site`, `http`, `services.tables` and `services.auth`, and refuses a manifest
   that needs more (`services.objects`, `schedules`, `config`), rather than deploying without it.

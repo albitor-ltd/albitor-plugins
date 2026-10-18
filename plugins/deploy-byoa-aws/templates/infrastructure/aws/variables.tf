@@ -65,6 +65,20 @@ variable "domain_ready" {
   default     = false
 }
 
+# --- Security headers --------------------------------------------------------
+
+variable "csp_script_hashes" {
+  description = "CSP script sources ('sha256-...', quoted, space-separated) for the inline scripts in the built web shell. The deploy workflow computes them from web/build; leave empty."
+  type        = string
+  default     = ""
+}
+
+variable "content_security_policy" {
+  description = "Replaces the whole Content-Security-Policy, script-src hashes included. Empty uses the closed default (same-origin only)."
+  type        = string
+  default     = ""
+}
+
 # --- Operations --------------------------------------------------------------
 
 variable "alarm_email" {

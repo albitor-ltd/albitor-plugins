@@ -26,7 +26,7 @@ variable "api_origin_host" {
 }
 
 variable "spa" {
-  description = "site.spa: rewrite 403 and 404 to the index document so client-side routing resolves."
+  description = "site.spa: serve the index document for application routes (a viewer-request function on the site behaviour) so client-side routing resolves. Paths under /api/ and paths whose last segment has a dot are never rewritten."
   type        = bool
   default     = true
 }
@@ -44,6 +44,31 @@ variable "index_document" {
     )
     error_message = "index_document must be a clean relative path of letters, digits and _ . / - with no .. segment."
   }
+}
+
+# --- Security headers --------------------------------------------------------
+
+variable "csp_script_hashes" {
+  description = "Space-separated CSP script sources ('sha256-...' with quotes) for the inline scripts in the built shell. A framework build inlines a bootstrap script; without its hash the browser blocks it and the page is blank. The deploy workflow computes these from the built bundle."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = can(regex("^('sha(256|384|512)-[A-Za-z0-9+/]+=*'( +'sha(256|384|512)-[A-Za-z0-9+/]+=*')* *)?$", var.csp_script_hashes))
+    error_message = "csp_script_hashes must be space-separated quoted hash sources such as 'sha256-abc...='."
+  }
+}
+
+variable "content_security_policy" {
+  description = "Replaces the whole Content-Security-Policy, script-src included, so an override carries its own hashes. Empty uses the module's closed default."
+  type        = string
+  default     = ""
+}
+
+variable "hsts_max_age_seconds" {
+  description = "Strict-Transport-Security max-age."
+  type        = number
+  default     = 31536000
 }
 
 # --- DNS / custom domain -----------------------------------------------------
