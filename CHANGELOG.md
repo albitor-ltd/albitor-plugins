@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Removed
+
+- `catalogue/retired-entries.json` (albitor-ltd/albitor#3176, #3530): the five retired `visual-*`
+  entries are no longer carried through the legacy catalogue mode, which is now generated from
+  `catalogue/legacy-pins.json` alone. The monorepo catalogue is unchanged.
+
 ### Fixed
 
 - `deploy-byoa-aws` `0.3.2` (albitor-ltd/albitor#3426): the site edge passes the preview floor.
