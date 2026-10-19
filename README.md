@@ -20,7 +20,6 @@ plugins/<name>/                   one directory per first-party plugin
   .claude-plugin/plugin.json      the plugin manifest (name must equal <name>)
 catalogue/metadata.json           catalogue-facing description, category, keywords, licence
 catalogue/legacy-pins.json        old per-plugin repo and ref; history, used only by --mode legacy
-catalogue/retired-entries.json    retired entries carried through in legacy mode
 scripts/build-catalogue.sh        generates marketplace.json from the tree
 scripts/validate-plugins.sh       manifest validation (also run by CI)
 scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build and, with --journeys, the Playwright journeys
@@ -51,7 +50,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 `client-online` and `client-offline` (the retired `client-data@1` socket) folded into `web-svelte`
 0.2.0 (albitor-ltd/albitor ADR-0090 amendment of 2026-10-15); their `v0.1.0` tags stay for history.
 
-The old `visual-*` packs are not migrated; they are retired separately (albitor-ltd/albitor#3176).
+The old `visual-*` packs are not migrated; they are retired (albitor-ltd/albitor#3176, #3530).
 `mui` and `gds` are parked for the beta; `docs` stays a skill pack (ADR-0090 section 13).
 
 ## Tags and releasing a plugin
@@ -87,7 +86,7 @@ Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` 
   whose tag is missing is an error. Albitor's pin audit joins entries on
   repository and subdirectory.
 - `legacy`: `github` sources pointing at the old `albitor-plugin-<name>` repositories and tags
-  (`catalogue/legacy-pins.json`), plus the retired `visual-*` entries. Kept only so the old shape
+  (`catalogue/legacy-pins.json`). Kept only so the old shape
   can still be generated; nothing is committed in it.
 
 ### Switch-over

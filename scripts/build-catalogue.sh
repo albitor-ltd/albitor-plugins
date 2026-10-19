@@ -8,7 +8,7 @@
 #          and to the commit that tag resolves to (sha), so a moved tag fails --check. Needs the
 #          tags locally; CATALOGUE_TAG_REPO names another checkout to resolve them in.
 # legacy   each plugin points at its old albitor-plugin-<name> repo and ref from
-#          catalogue/legacy-pins.json, and the retired visual-* entries are carried through.
+#          catalogue/legacy-pins.json.
 # --check  write nothing; exit 1 if the output differs from the committed catalogue.
 #
 # Catalogue-facing metadata (description, category, keywords, license) lives in
@@ -86,8 +86,7 @@ render() {
     --argjson versions "$versions" \
     --argjson shas "$shas" \
     --slurpfile meta "$root/catalogue/metadata.json" \
-    --slurpfile pins "$root/catalogue/legacy-pins.json" \
-    --slurpfile retired "$root/catalogue/retired-entries.json" '
+    --slurpfile pins "$root/catalogue/legacy-pins.json" '
     def source($n):
       if $mode == "monorepo" then
         {source: "git-subdir", url: "albitor-ltd/albitor-plugins",
@@ -104,7 +103,6 @@ render() {
         [$meta[0] | to_entries[]
           | select(if $mode == "monorepo" then $versions[.key] != null else $pins[0][.key] != null end)
           | .key as $n | {name: $n, source: source($n)} + .value]
-        + (if $mode == "legacy" then $retired[0] else [] end)
       )
     }'
 }
