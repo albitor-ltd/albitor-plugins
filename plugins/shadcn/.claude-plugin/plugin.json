@@ -1,7 +1,7 @@
 {
   "name": "shadcn",
   "displayName": "shadcn/ui + Radix",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Build, audit, and preview modern web apps with shadcn/ui components on Radix UI primitives and Tailwind CSS, meeting WCAG 2.2 AA accessibility. The default design system for net-new SME and startup web apps.",
   "author": {
     "name": "Albitor Ltd",

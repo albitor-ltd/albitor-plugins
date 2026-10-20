@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `shadcn` `0.1.6`: secondary text passes AA on the muted surface. `text_secondary` in
+  `preview-tokens.json` and the preview page's light `--muted-foreground` move from zinc-500
+  (`#71717a`, 4.40:1 on `#f4f4f5`) to zinc-600 (`#52525b`, 7.03:1). Dark theme unchanged (5.81:1).
+  Untagged, so the catalogue still pins the previous version until released.
 - `kit-shadcn` `0.2.1`, `look-business`, `look-startup` and `look-consumer` `0.1.1`: mobile
   navigation guidance. The kit describes the bottom tab bar and the menu-button drawer (when to use
   which, a "More" overflow, toggle accessibility, 44px targets, safe-area inset); each look states
