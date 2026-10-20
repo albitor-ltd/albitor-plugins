@@ -224,5 +224,50 @@
       "accessibility"
     ],
     "license": "MIT"
+  },
+  "look-business": {
+    "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
+    "category": "development",
+    "keywords": [
+      "visual-language",
+      "look",
+      "design-tokens",
+      "preview-tokens",
+      "business",
+      "archetype",
+      "accessibility",
+      "wcag"
+    ],
+    "license": "MIT"
+  },
+  "look-startup": {
+    "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
+    "category": "development",
+    "keywords": [
+      "visual-language",
+      "look",
+      "design-tokens",
+      "preview-tokens",
+      "startup",
+      "archetype",
+      "accessibility",
+      "wcag"
+    ],
+    "license": "MIT"
+  },
+  "look-consumer": {
+    "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm cream palette with a berry accent, a few things at a time.",
+    "category": "development",
+    "keywords": [
+      "visual-language",
+      "look",
+      "design-tokens",
+      "preview-tokens",
+      "consumer",
+      "archetype",
+      "accessibility",
+      "wcag"
+    ],
+    "license": "MIT"
   }
 }

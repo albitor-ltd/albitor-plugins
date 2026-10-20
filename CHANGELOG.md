@@ -8,10 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `look-business`, `look-startup` and `look-consumer` `0.1.0` (albitor-ltd/albitor#3539): the three
+  archetype looks, each a `visual-language@1` plugin with a `preview-tokens.json` (tokens from the
+  approved looks mockup v4), a generic skill on applying the look (type, density, shape, dark mode,
+  the archetype it suits) and a seeded `web/src/lib/look/look.json`. Baseline is the existing
+  `shadcn` default; GOV.UK is not a look. Startup's `layered_shadow` is `elevation: "layered"` and
+  `-apple-system` is dropped from the font stacks, as the platform contract has neither. New and
+  untagged, so not in the catalogue until released.
 - CI validation of every pack's `preview-tokens.json` (`scripts/validate-preview-tokens.sh`, with
   refusal tests in `scripts/test-preview-tokens.sh`), mirroring the platform's strict
   `governance.PreviewTokens` contract: unknown keys, bad lengths, colours and enums are refused
   (albitor-ltd/albitor#3539). No plugin changed.
+- `look-consumer`: `dark_target: 5.0` added to `preview-tokens.json` and the seeded `look.json` (kept
+  identical), so its dark mode meets the platform's contrast target. CI now also checks each look
+  pack's seeded `look.json` equals its `preview-tokens.json`.
 
 ### Removed
 

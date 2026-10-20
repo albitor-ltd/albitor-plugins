@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "font_family": "ui-rounded, \"SF Pro Rounded\", \"Hiragino Maru Gothic ProN\", Nunito, \"Varela Round\", Quicksand, system-ui, sans-serif",
+  "heading_weight": 800,
+  "type_scale": {
+    "small": "0.9375rem",
+    "body": "1.0625rem",
+    "heading": "1.5rem",
+    "title": "2.5rem"
+  },
+  "radius": "24px",
+  "border_width": "2px",
+  "density": "spacious",
+  "elevation": "raised",
+  "min_target": "48px",
+  "focus_ring": "3px",
+  "dark_target": 5.0,
+  "colours": {
+    "text": "#2b160f",
+    "text_secondary": "#6e4533",
+    "border": "#f2c9a0",
+    "control_border": "#a97a50",
+    "surface": "#ffe8d1",
+    "background": "#fff7ee",
+    "accent": "#b0128f",
+    "on_accent": "#ffffff",
+    "danger": "#b3261e",
+    "success": "#1a6b3c",
+    "warning": "#7d4600"
+  }
+}

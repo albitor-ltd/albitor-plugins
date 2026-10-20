@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "font_family": "\"Segoe UI\", \"Helvetica Neue\", Arial, system-ui, Roboto, sans-serif",
+  "heading_weight": 600,
+  "type_scale": {
+    "small": "0.75rem",
+    "body": "0.8125rem",
+    "heading": "0.9375rem",
+    "title": "1.125rem"
+  },
+  "radius": "2px",
+  "border_width": "1px",
+  "density": "compact",
+  "elevation": "none",
+  "min_target": "28px",
+  "focus_ring": "2px",
+  "tabular_figures": true,
+  "colours": {
+    "text": "#0b1b33",
+    "text_secondary": "#44546a",
+    "border": "#aebbcc",
+    "control_border": "#7a8aa0",
+    "surface": "#e9eef5",
+    "background": "#f8fafc",
+    "accent": "#0b4f9e",
+    "on_accent": "#ffffff",
+    "danger": "#b3261e",
+    "success": "#1b6b3a",
+    "warning": "#7a5000"
+  }
+}

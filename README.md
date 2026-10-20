@@ -46,6 +46,9 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `deploy-hosted` | The `deploy-target@1` plugin for the hosted lane: no infrastructure in the repo, the platform compiles `albitor.yaml` and deploys; the managed CI workflow (manifest check, API and web build and test) |
 | `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-in screens per kit, `services.auth` |
 | `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
+| `look-business` | The `visual-language@1` look for enterprise and line-of-business apps: dense, navy neutrals, 2px corners, no elevation, tabular figures; ships `preview-tokens.json` |
+| `look-startup` | The `visual-language@1` look for SaaS and developer tools: near-neutral surfaces, one teal accent, 10px corners, hairline plus soft layered shadow; ships `preview-tokens.json` |
+| `look-consumer` | The `visual-language@1` look for mobile-first personal and lifestyle apps: warm cream and berry, rounded type, 24px corners, 48px targets; ships `preview-tokens.json` |
 
 `auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`).
 

@@ -101,5 +101,12 @@ for f in "${files[@]}"; do
     fail=1
   fi
 done
+# A look pack's seeded look.json must stay identical to its preview-tokens.json.
+for f in "${files[@]}"; do
+  seed="$(dirname "$f")/templates/web/src/lib/look/look.json"
+  if [[ -f "$seed" ]] && ! cmp -s "$f" "$seed"; then
+    echo "error: ${f#"$root"/}: differs from ${seed#"$root"/}" >&2; fail=1
+  fi
+done
 [[ $fail -eq 0 ]] && echo "preview-tokens: ${#files[@]} file(s) valid"
 exit "$fail"
