@@ -90,14 +90,13 @@ function shotName(step: number, name: string): string {
 // step could not see it. The gallery shows the top of a tall image and lets the
 // opened view scroll the rest.
 //
-// TWO KINDS OF LONG PAGE. A document that scrolls itself is measured by its
-// scrollHeight. But a common app shell is `h-screen` with `overflow-y: auto` on an
+// TWO KINDS OF LONG PAGE. A document that scrolls itself is photographed with
+// fullPage, which does not resize the viewport, so `100vh` sections keep their
+// height. But a common app shell is `h-screen` with `overflow-y: auto` on an
 // inner container: the document is exactly one viewport tall and fullPage would
-// capture nothing extra. So the needed height is the larger of the document's and
-// the viewport plus the biggest inner scroller's overflow, and the photograph is
-// taken by temporarily growing the VIEWPORT to that height, so the shell grows
-// and the inner container shows everything. The original viewport is always
-// restored.
+// capture nothing extra. There the photograph is taken by temporarily growing the
+// VIEWPORT to the viewport plus the inner overflow, so the shell grows and the
+// inner container shows everything. The original viewport is always restored.
 //
 // THE HEIGHT IS CAPPED AT MAX_CAPTURE_HEIGHT CSS PIXELS. The runner refuses any
 // one image over 8 MB, and a very long list photographed in full would be
@@ -120,7 +119,9 @@ function pngSize(buf: Buffer): { width: number; height: number } {
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
-async function neededHeight(page: Page): Promise<number> {
+// What the screen needs: the document's own height, and how far the biggest inner
+// scroller overflows its box.
+async function measure(page: Page): Promise<{ doc: number; inner: number; viewport: number }> {
   return page.evaluate(() => {
     const doc = Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0);
     let inner = 0;
@@ -130,7 +131,7 @@ async function neededHeight(page: Page): Promise<number> {
         inner = Math.max(inner, el.scrollHeight - el.clientHeight);
       }
     }
-    return Math.max(doc, window.innerHeight + inner);
+    return { doc, inner, viewport: window.innerHeight };
   });
 }
 
@@ -142,17 +143,19 @@ async function capture(page: Page, step: number, name: string): Promise<Capture 
   const path = join(shotDir, file);
   mkdirSync(shotDir, { recursive: true });
   const original = page.viewportSize();
-  let needed = 0;
+  let m: { doc: number; inner: number; viewport: number } | null = null;
   if (original) {
     try {
-      needed = Math.ceil(await neededHeight(page));
+      m = await measure(page);
     } catch {
       // No document to measure (mid-navigation): photograph the plain viewport.
     }
   }
   let buf: Buffer;
   let clipped = false;
-  if (original && needed > original.height) {
+  if (original && m && m.inner > 0 && m.viewport + m.inner > m.doc) {
+    // An inner container scrolls: grow the viewport so the shell grows with it.
+    const needed = Math.ceil(m.viewport + m.inner);
     clipped = needed > MAX_CAPTURE_HEIGHT;
     const height = Math.min(needed, MAX_CAPTURE_HEIGHT);
     try {
@@ -165,6 +168,16 @@ async function capture(page: Page, step: number, name: string): Promise<Capture 
     } finally {
       await page.setViewportSize(original);
     }
+  } else if (original && m && m.doc > original.height) {
+    // The document scrolls: Chromium captures beyond the viewport without resizing
+    // it, so 100vh sections keep their height.
+    const needed = Math.ceil(m.doc);
+    clipped = needed > MAX_CAPTURE_HEIGHT;
+    buf = await page.screenshot({
+      fullPage: true,
+      scale: "css",
+      clip: { x: 0, y: 0, width: original.width, height: Math.min(needed, MAX_CAPTURE_HEIGHT) },
+    });
   } else {
     buf = await page.screenshot({ scale: "css" });
   }
