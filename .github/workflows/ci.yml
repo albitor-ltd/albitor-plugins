@@ -28,6 +28,10 @@ jobs:
         run: scripts/validate-plugins.sh
       - name: The pin audit fails closed
         run: scripts/test-catalogue-guards.sh
+      - name: Preview tokens match the platform contract
+        run: scripts/validate-preview-tokens.sh
+      - name: The preview-tokens validator refuses bad files
+        run: scripts/test-preview-tokens.sh
 
   catalogue:
     name: catalogue

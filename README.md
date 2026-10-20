@@ -22,6 +22,8 @@ catalogue/metadata.json           catalogue-facing description, category, keywor
 catalogue/legacy-pins.json        old per-plugin repo and ref; history, used only by --mode legacy
 scripts/build-catalogue.sh        generates marketplace.json from the tree
 scripts/validate-plugins.sh       manifest validation (also run by CI)
+scripts/validate-preview-tokens.sh  every plugins/*/preview-tokens.json against the platform's contract
+scripts/test-preview-tokens.sh    accept/refuse cases for that validator (tests/preview-tokens/)
 scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build and, with --journeys, the Playwright journeys
 tests/compose/                    the Go test that script runs, with stub plugins
 ```
@@ -96,10 +98,26 @@ catalogue is in `monorepo` mode. Remaining, outside this repository: archive the
 `albitor-plugin-*` repositories with a pointer README once no tenant source points at them (keep
 their tags ingestible until then).
 
+## Preview tokens
+
+A design-system or visual-language pack may ship `preview-tokens.json` at its root: the small
+token set the platform paints a browser preview with. The platform reads it strictly
+(`governance.PreviewTokens` in albitor-ltd/albitor: unknown keys, an unread `version` or any value
+outside the allow-list make it ignore the whole file), so CI runs `scripts/validate-preview-tokens.sh`
+over every pack and fails on the same grounds. Required: `version` (1), `font_family`,
+`heading_weight` (100-900, hundreds), `type_scale` (`small`, `body`, `heading`, `title`), `radius`,
+`density` (`compact|comfortable|spacious`), `elevation` (`none|subtle|raised|layered`) and
+`colours` (`text`, `text_secondary`, `border`, `surface`, `background`, `accent`, `on_accent`, hex).
+Optional: `heading_font_family`, `border_width`, `min_target`, `focus_ring`, `heading_tracking`
+(`0` or `-0.02em`), `tabular_figures`, `dark_target` (0 or 4.5-7) and the colours `control_border`,
+`danger`, `success`, `warning`, `warning_alt`. Lengths are `0` or up to four decimals of `px`/`rem`;
+the file is at most 4 KiB. Run `scripts/validate-preview-tokens.sh` before opening a pull request.
+
 ## CI
 
 Pull requests run: manifest validation (JSON parses, `name` equals the directory, semver
-`version`, catalogue metadata present), catalogue reproducibility (`--check`), shellcheck and JSON
+`version`, catalogue metadata present), preview-token validation (`scripts/validate-preview-tokens.sh`
+and its refusal tests), catalogue reproducibility (`--check`), shellcheck and JSON
 lint, a `compose` job (the real manifest parser and composer from albitor-ltd/albitor over the
 schema-2 plugins, then `npm install`, check, test and build of the composed `web/`; it needs the
 `ALBITOR_REPO_TOKEN` secret and otherwise warns and skips, so run
