@@ -360,6 +360,75 @@
         "accessibility"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "look-business",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/look-business",
+        "ref": "look-business/v0.1.0",
+        "sha": "28e083e7cc788c496217ad6e19ca66e55f5d6cb6"
+      },
+      "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
+      "category": "development",
+      "keywords": [
+        "visual-language",
+        "look",
+        "design-tokens",
+        "preview-tokens",
+        "business",
+        "archetype",
+        "accessibility",
+        "wcag"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "look-startup",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/look-startup",
+        "ref": "look-startup/v0.1.0",
+        "sha": "28e083e7cc788c496217ad6e19ca66e55f5d6cb6"
+      },
+      "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
+      "category": "development",
+      "keywords": [
+        "visual-language",
+        "look",
+        "design-tokens",
+        "preview-tokens",
+        "startup",
+        "archetype",
+        "accessibility",
+        "wcag"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "look-consumer",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/look-consumer",
+        "ref": "look-consumer/v0.1.0",
+        "sha": "28e083e7cc788c496217ad6e19ca66e55f5d6cb6"
+      },
+      "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm cream palette with a berry accent, a few things at a time.",
+      "category": "development",
+      "keywords": [
+        "visual-language",
+        "look",
+        "design-tokens",
+        "preview-tokens",
+        "consumer",
+        "archetype",
+        "accessibility",
+        "wcag"
+      ],
+      "license": "MIT"
     }
   ]
 }
