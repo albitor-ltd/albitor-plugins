@@ -18,7 +18,8 @@ def hex: "\\A#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\\z";
 def len: "\\A(?:0|[0-9]{1,3}(?:\\.[0-9]{1,4})?(?:px|rem))\\z";
 def qfam: "\\A\"[A-Za-z0-9][A-Za-z0-9 \\-]{0,47}\"\\z";
 def bfam: "\\A[A-Za-z][A-Za-z0-9\\-]{0,31}(?: [A-Za-z0-9][A-Za-z0-9\\-]{0,31}){0,3}\\z";
-# Optional fields: absent, null or "" read as unset on the platform side.
+# Optional string fields: absent, null or "" read as unset on the platform side. dark_target is a
+# number, so only null is unset there (optn).
 def unset: . == null or . == "";
 def lenerr: if type != "string" then "must be a string" elif test(len) then empty else "is not a px or rem length" end;
 def hexerr: if type != "string" then "must be a string" elif test(hex) then empty else "is not a #rgb or #rrggbb colour" end;
@@ -34,6 +35,8 @@ def fam($required):
   end;
 def req(path; f): (try getpath(path) catch null) as $v
   | if $v == null then "\(path | join(".")) is required" else ($v | f | "\(path | join(".")) \(.)") end;
+def optn(path; f): (try getpath(path) catch null) as $v
+  | if $v == null then empty else ($v | f | "\(path | join(".")) \(.)") end;
 def opt(path; f): (try getpath(path) catch null) as $v
   | if ($v | unset) then empty else ($v | f | "\(path | join(".")) \(.)") end;
 def unknown(allowed; prefix): keys_unsorted[] | select(. as $k | allowed | index($k) | not) | "\(prefix)\(.): unknown field";
@@ -58,7 +61,7 @@ if (isobj | not) then "top level is not an object" else
       opt(["focus_ring"]; lenerr),
       opt(["heading_tracking"]; if type != "string" then "must be a string" elif test("\\A(?:0|-?0\\.[0-9]{1,3}em)\\z") then empty else "is not 0 or an em value such as -0.02em" end),
       (if ($d | has("tabular_figures")) and ($d.tabular_figures != null) and (($d.tabular_figures|type) != "boolean") then "tabular_figures must be a boolean" else empty end),
-      opt(["dark_target"]; if type != "number" then "must be a number" elif . == 0 or (. >= 4.5 and . <= 7) then empty else "is not 0 or between 4.5 and 7" end),
+      optn(["dark_target"]; if type != "number" then "must be a number" elif . == 0 or (. >= 4.5 and . <= 7) then empty else "is not 0 or between 4.5 and 7" end),
       (if ($d.colours|isobj) | not then "colours is required and must be an object" else empty end),
       (["text","text_secondary","border","surface","background","accent","on_accent"][] as $k | req(["colours",$k]; hexerr)),
       (["control_border","danger","success","warning","warning_alt"][] as $k | opt(["colours",$k]; hexerr))
@@ -80,8 +83,17 @@ for f in "${files[@]}"; do
   if [[ "$(wc -c <"$f")" -gt 4096 ]]; then
     echo "error: $rel: larger than 4096 bytes" >&2; fail=1; continue
   fi
-  if ! jq -e . "$f" >/dev/null 2>&1; then
+  if [[ "$(head -c3 "$f" | od -An -tx1 | tr -d ' \n')" == "efbbbf" ]]; then
+    echo "error: $rel: starts with a UTF-8 byte order mark" >&2; fail=1; continue
+  fi
+  if ! count="$(jq -s 'length' "$f" 2>/dev/null)"; then
     echo "error: $rel: not valid JSON" >&2; fail=1; continue
+  fi
+  if [[ "$count" != 1 ]]; then
+    echo "error: $rel: must hold exactly one JSON value" >&2; fail=1; continue
+  fi
+  if grep -Eq '"(version|heading_weight)"[[:space:]]*:[[:space:]]*-?[0-9]+[.eE]' "$f"; then
+    echo "error: $rel: version and heading_weight must be integer literals" >&2; fail=1; continue
   fi
   out="$(jq -r "$filter" "$f")"
   if [[ -n "$out" ]]; then
