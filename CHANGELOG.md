@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- `kit-shadcn` `0.2.1`, `look-business`, `look-startup` and `look-consumer` `0.1.1`: mobile
+  navigation guidance. The kit describes the bottom tab bar and the menu-button drawer (when to use
+  which, a "More" overflow, toggle accessibility, 44px targets, safe-area inset); each look states
+  its phone navigation preference. Guidance only; no tokens or components changed. Untagged, so the
+  catalogue still pins the previous versions until released.
+
 ### Added
 
 - `look-business`, `look-startup` and `look-consumer` `0.1.0` (albitor-ltd/albitor#3539): the three
