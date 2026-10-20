@@ -1,0 +1,31 @@
+albitor-plugin-gds
+==================
+
+This plugin's own code (the plugin manifest, skill wiring, commands, agent
+definition, and hook script) is licensed under the MIT Licence — see LICENCE.
+
+Bundled reference content
+-------------------------
+
+The reference material under `skills/*/references/` is distilled from public
+standards and government guidance. It is not original Albitor content and is
+redistributed under the licences of its sources:
+
+* GOV.UK Design System and GOV.UK Frontend
+  https://design-system.service.gov.uk/  and  https://frontend.design-system.service.gov.uk/
+  © Crown Copyright. Licensed under the Open Government Licence v3.0:
+  https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+
+* GOV.UK Service Manual and accessibility guidance
+  https://www.gov.uk/service-manual  and  https://www.gov.uk/guidance/accessibility-requirements-for-public-sector-websites-and-apps
+  © Crown Copyright. Licensed under the Open Government Licence v3.0.
+
+* Web Content Accessibility Guidelines (WCAG) 2.2
+  https://www.w3.org/TR/WCAG22/
+  © W3C. Used under the W3C Document Licence:
+  https://www.w3.org/copyright/document-license/
+
+The reference files are a distilled snapshot for convenience and may lag the
+live sources. Always confirm exact, current detail against the original URLs.
+Where this content is reused, the Open Government Licence requires attribution
+to the source and a link to the licence.

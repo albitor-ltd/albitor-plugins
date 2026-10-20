@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-gds` `0.1.0` (albitor-ltd/albitor#3563): a `component-kit@1` plugin for Svelte that absorbs
+  the `gds` pack. `AppShell` (text-only header, service navigation), `Button`, `Dialog` (a native
+  `<dialog>`), `Field` and `Table` in GOV.UK Frontend 6.4.0 markup and classes, compiled with `sass`
+  from `govuk-frontend@6.4.0`; no Crown, no GOV.UK logotype, no GDS Transport font. `themeable:
+  false`. Managed axe, dialog and contrast tests (colours read from the installed stylesheet), the
+  `govuk-design-system` and `govuk-accessibility` skills (each `metadata.capability:
+  design-system`, with the audit and statement procedures as references) and a
+  `preview-tokens.json`. `plugins/gds` is unchanged; its retirement is separate. New and untagged,
+  so not in the catalogue until released.
 - CI compose matrix: every component-kit plugin is composed with every visual-language plugin on
   each certified profile (`tests/compose/kit_look_test.go`, albitor#3568). A themeable kit must
   compose with the look; a kit that is not (`kit-carbon`) must be refused as `kit_not_themeable`,

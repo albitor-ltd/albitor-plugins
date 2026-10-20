@@ -34,9 +34,9 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
-mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/auth" "$tmp/offline" "$tmp/byoa"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/offline" "$tmp/byoa"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
 
 # Lint the shipped workflows: a step that runs `npm ci` needs a lockfile in its working-directory,
 # and the composer drops a plugin's lockfile when the npm merge changes package.json (web/ has none;
@@ -157,6 +157,22 @@ if [[ $build -eq 1 ]]; then
   grep -rlq -e '\[theme=g100\]' build/_app || { echo "kit-carbon: Carbon's g100 theme is not in the build" >&2; exit 1; }
   npm ls @ibm/telemetry-js | grep -q '@ibm/telemetry-js@1.11.0' || { echo "kit-carbon: @ibm/telemetry-js is not the pinned version" >&2; exit 1; }
   echo "composed web tree with kit-carbon builds, and its axe and contrast audits pass"
+fi
+
+# Same for kit-gds (govuk-frontend, compiled with sass, and axe-core and jsdom for its tests). Its
+# tests render the shell pieces, run axe over them and audit GOV.UK Frontend's colours, read from
+# the installed stylesheet, for WCAG 2.2 AA contrast. The build must carry GOV.UK's CSS and no
+# Crown: the stylesheet is compiled from the components the kit uses, never the branded header.
+if [[ $build -eq 1 ]]; then
+  cd "$tmp/kit-gds/web"
+  install_web
+  npm run check
+  npm test
+  npm run build
+  test -f build/index.html
+  grep -rlq -e 'govuk-button' build/_app || { echo "kit-gds: GOV.UK Frontend's CSS is not in the build" >&2; exit 1; }
+  if grep -rliq -e 'govuk-crest' build; then echo "kit-gds: the build carries the GOV.UK crest" >&2; exit 1; fi
+  echo "composed web tree with kit-gds builds, and its axe and contrast audits pass"
 fi
 
 # The default shell with auth-cognito: the composed API builds, vets and passes (the identity seam

@@ -1,0 +1,121 @@
+// Seeded by Albitor (kit-gds), then yours: the GOV.UK Frontend styles the kit's components wear,
+// compiled from the pinned govuk-frontend package (the components this kit uses, not the whole
+// library), except the service navigation, which is restated at the end of this file. It is generic GOV.UK styling for an app that is NOT on GOV.UK:
+//   - no GDS Transport font (licensed for GOV.UK services only): arial, which Frontend falls back
+//     to, so no font files are requested;
+//   - no header, footer or logo component: the kit's header is text only, and the Crown and the
+//     GOV.UK logotype are never used. Do not add them to an app that is not on a service.gov.uk or
+//     gov.uk domain.
+@use 'govuk-frontend/dist/govuk/settings' with (
+	$govuk-font-family: (arial, sans-serif),
+	$govuk-include-default-font-face: false
+);
+@use 'govuk-frontend/dist/govuk/core';
+@use 'govuk-frontend/dist/govuk/objects';
+@use 'govuk-frontend/dist/govuk/utilities';
+@use 'govuk-frontend/dist/govuk/components/button';
+@use 'govuk-frontend/dist/govuk/components/error-message';
+@use 'govuk-frontend/dist/govuk/components/hint';
+@use 'govuk-frontend/dist/govuk/components/input';
+@use 'govuk-frontend/dist/govuk/components/label';
+@use 'govuk-frontend/dist/govuk/components/skip-link';
+@use 'govuk-frontend/dist/govuk/components/table';
+@use 'govuk-frontend/dist/govuk/components/textarea';
+
+// The service navigation, as GOV.UK Frontend 6.4.0 styles it (the markup and class names are
+// Frontend's), restated here rather than imported: Frontend's own stylesheet for it carries the
+// Internet Explorer hack `@media (min-width: 0\0)`, which the app's CSS minifier (Lightning CSS)
+// refuses and the build fails. Without the menu toggle (no JavaScript), the list is always shown.
+$-link: var(--govuk-link-colour, #1a65a6);
+$-focus: var(--govuk-focus-colour, #fd0);
+$-focus-text: var(--govuk-focus-text-colour, #0b0c0c);
+$-tablet: 40.0625em;
+
+.govuk-service-navigation {
+	font-family: arial, sans-serif;
+	font-size: 1.1875rem;
+	line-height: 1.3157894737;
+	border-bottom: 1px solid var(--govuk-surface-border-colour, #8eb8dc);
+	color: var(--govuk-surface-text-colour, #0b0c0c);
+	background-color: var(--govuk-surface-background-colour, #f4f8fb);
+}
+.govuk-service-navigation__container {
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+	@media (min-width: $-tablet) {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+}
+.govuk-service-navigation__wrapper {
+	flex-grow: 1;
+}
+.govuk-service-navigation__list {
+	margin: 0 0 15px;
+	padding: 0;
+	list-style: none;
+	@media (min-width: $-tablet) {
+		display: flex;
+		flex-wrap: wrap;
+		margin-bottom: 0;
+	}
+}
+.govuk-service-navigation__item {
+	position: relative;
+	margin: 10px 0;
+	border: 0 solid $-link;
+	@media (min-width: $-tablet) {
+		display: inline-block;
+		margin-top: 0;
+		margin-bottom: 0;
+		padding: 15px 0;
+		line-height: 1.5263157895;
+		&:not(:last-child) {
+			margin-right: 30px;
+		}
+	}
+}
+.govuk-service-navigation__item--active {
+	@media (max-width: 40.0525em) {
+		margin-left: -15px;
+		padding-left: 10px;
+		border-left-width: 5px;
+	}
+	@media (min-width: $-tablet) {
+		padding-bottom: 10px;
+		border-bottom-width: 5px;
+	}
+}
+.govuk-service-navigation__link {
+	text-decoration: underline;
+	text-decoration-thickness: max(1px, 0.0625rem);
+	text-underline-offset: 0.1578em;
+	&:not(:hover):not(:active) {
+		text-decoration: none;
+	}
+	&:link,
+	&:visited {
+		color: $-link;
+	}
+	&:hover {
+		color: var(--govuk-link-hover-colour, #0f385c);
+		text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+		text-decoration-skip-ink: none;
+	}
+	&:active {
+		color: var(--govuk-link-active-colour, #0b0c0c);
+	}
+	&:focus {
+		outline: 3px solid transparent;
+		color: $-focus-text;
+		background-color: $-focus;
+		box-shadow:
+			0 -2px $-focus,
+			0 4px $-focus-text;
+		text-decoration: none;
+	}
+}
+.govuk-service-navigation__active-fallback {
+	font-weight: inherit;
+}
