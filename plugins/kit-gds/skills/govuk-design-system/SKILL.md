@@ -28,7 +28,7 @@ The rule "if not on GOV.UK you must still use the GOV.UK Design System, with the
 ## Core principles (apply these first)
 
 1. **Use a component if one exists.** The Design System has a vetted, accessible component for almost every common need. Reach for it before inventing markup. The full catalogue is in `references/components.md`.
-2. **Do not restyle components.** Keep the `govuk-*` classes and their meaning. Don't recolour buttons, change input borders, or repurpose the red error styling. Consistency across government is the point. (The one permitted change *off* GOV.UK is the brand colour — see the table above.)
+2. **Do not restyle components.** Keep the `govuk-*` classes and their meaning. Don't recolour buttons, change input borders, or repurpose the red error styling. Consistency across government is the point. (The one permitted change *off* GOV.UK is the brand colour — see the table above and "Brand colour" below.)
 3. **Build with progressive enhancement.** The non-JavaScript HTML must work on its own; JS only enhances it. Server-side validation is mandatory even when client-side validation exists.
 4. **Compose with patterns, not just components.** A "question page", "check your answers" page, or "ask for an address" flow is a *pattern* — a tested arrangement of components and content. See `references/patterns.md`.
 5. **Accessibility is not optional.** Every choice here exists partly for accessibility. Pair this with the `govuk-accessibility` skill when auditing.
@@ -46,9 +46,10 @@ These are distilled from the live GOV.UK Design System and GOV.UK Frontend (Crow
 
 ## Working rules
 
-- **Don't hardcode hex colours.** Use the `govuk-colour()` Sass function or the functional colour helpers so the build stays correct across brand updates. See `references/styles.md`.
+- **Don't hardcode hex colours.** Use the `govuk-colour()` Sass function or the functional colour helpers so the build stays correct across brand updates. See `references/styles.md`. The single exception is the brand colour, set once as a token (below), never as a hex in a component.
+- **Brand colour (in this kit's `govuk.scss`, `$govuk-brand-colour`).** On GOV.UK leave it at the default `#1d70b8`. Off GOV.UK set that one token to the app's own brand colour and change nothing else: the header follows it and the header text keeps AA contrast on it (`contrast.test.ts` checks the pair). Do not paint the brand colour onto components anywhere else.
 - **Prefer macros where the stack allows.** In Nunjucks/Node, use the official `govuk-frontend` macros — they keep markup correct as the library updates. In React/Svelte/etc., copy the component's HTML, keep every class, and port the JS behaviour (focus management, toggles) faithfully; note this is a maintenance cost you take on.
-- **Forms:** every input needs an associated `<label>` (or `<legend>` in a `<fieldset>` for grouped controls). Never use placeholder text as a label. On error, render the error summary at the top (focused on load), link each entry to its field, and add the inline error message + error modifier classes.
+- **Forms:** every input needs an associated `<label>` (or `<legend>` in a `<fieldset>` for grouped controls). Never use placeholder text as a label. On error, render the error summary (the kit's `ErrorSummary`) at the top (focused on load), link each entry to its field, and add the inline error message + error modifier classes.
 - **Page furniture:** `govuk-width-container` and a phase banner (Alpha/Beta) apply to any service. The **branded GOV.UK header and footer** (crown, OGL/licence links) are for services **on GOV.UK only** — off GOV.UK, build your own header/footer (see the table above).
 - When the user is starting a service, suggest the official **GOV.UK Prototype Kit** for prototyping but remind them production code should use `govuk-frontend` directly.
 

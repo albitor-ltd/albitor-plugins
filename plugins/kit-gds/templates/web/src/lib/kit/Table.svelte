@@ -27,9 +27,11 @@
 	<h2 class="govuk-heading-s">{emptyTitle}</h2>
 	{#if emptyDescription}<p class="govuk-body">{emptyDescription}</p>{/if}
 {:else}
-	<!-- A scrollable region must be reachable by keyboard, so it takes focus (axe: scrollable-region-focusable). -->
+	<!-- A scrollable region must be reachable by keyboard, so it takes focus (axe:
+	     scrollable-region-focusable). The table's own <caption> is its name; a second one here
+	     would be announced twice. -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-	<div class="kit-scroll" role="region" aria-label={caption} tabindex="0">
+	<div class="kit-scroll" tabindex="0">
 		<table class="govuk-table">
 			<caption class="govuk-table__caption govuk-table__caption--m">{caption}</caption>
 			<thead class="govuk-table__head">

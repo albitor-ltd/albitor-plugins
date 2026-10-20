@@ -6,21 +6,63 @@
 //   - no header, footer or logo component: the kit's header is text only, and the Crown and the
 //     GOV.UK logotype are never used. Do not add them to an app that is not on a service.gov.uk or
 //     gov.uk domain.
+@use 'sass:color';
+@use 'sass:math';
+
+// ===== BRAND COLOUR: the one token an app off GOV.UK sets =====================================
+// This is `$govuk-brand-colour`. In GOV.UK Frontend 6 that variable is deprecated and cannot be
+// configured, so the value is set where Frontend reads it: the `brand` functional colour below.
+//   - On GOV.UK (a service.gov.uk or gov.uk domain): leave it at #1d70b8, the GOV.UK brand colour.
+//   - Off GOV.UK: set it to the app's own brand colour, here and nowhere else. The header band, and
+//     anything else Frontend paints with `--govuk-brand-colour`, follow it. The header text is
+//     chosen below (white or near-black) so that it keeps WCAG AA contrast on whatever you set;
+//     contrast.test.ts checks the pair.
+$govuk-brand-colour: #1d70b8;
+// ===============================================================================================
+
 @use 'govuk-frontend/dist/govuk/settings' with (
 	$govuk-font-family: (arial, sans-serif),
-	$govuk-include-default-font-face: false
+	$govuk-include-default-font-face: false,
+	$govuk-functional-colours: (
+		brand: $govuk-brand-colour
+	)
 );
 @use 'govuk-frontend/dist/govuk/core';
 @use 'govuk-frontend/dist/govuk/objects';
 @use 'govuk-frontend/dist/govuk/utilities';
 @use 'govuk-frontend/dist/govuk/components/button';
 @use 'govuk-frontend/dist/govuk/components/error-message';
+@use 'govuk-frontend/dist/govuk/components/error-summary';
 @use 'govuk-frontend/dist/govuk/components/hint';
 @use 'govuk-frontend/dist/govuk/components/input';
 @use 'govuk-frontend/dist/govuk/components/label';
 @use 'govuk-frontend/dist/govuk/components/skip-link';
 @use 'govuk-frontend/dist/govuk/components/table';
 @use 'govuk-frontend/dist/govuk/components/textarea';
+
+// The header's text colour: white, or near-black where white would not reach 4.5:1 (WCAG 2.2 AA)
+// on the brand colour above. One of the two always does.
+@function -channel($v) {
+	$s: math.div($v, 255);
+	@if $s <= 0.03928 {
+		@return math.div($s, 12.92);
+	}
+	@return math.pow(math.div($s + 0.055, 1.055), 2.4);
+}
+@function -luminance($c) {
+	@return 0.2126 * -channel(color.channel($c, 'red', $space: rgb)) + 0.7152 *
+		-channel(color.channel($c, 'green', $space: rgb)) + 0.0722 *
+		-channel(color.channel($c, 'blue', $space: rgb));
+}
+@function -header-text($c) {
+	@if math.div(1.05, -luminance($c) + 0.05) >= 4.5 {
+		@return #fff;
+	}
+	@return #0b0c0c;
+}
+:root {
+	--kit-header-text: #{-header-text($govuk-brand-colour)};
+}
 
 // The service navigation, as GOV.UK Frontend 6.4.0 styles it (the markup and class names are
 // Frontend's), restated here rather than imported: Frontend's own stylesheet for it carries the
@@ -118,4 +160,88 @@ $-tablet: 40.0625em;
 }
 .govuk-service-navigation__active-fallback {
 	font-weight: inherit;
+}
+
+// The base layer: bare elements (the sign-in pages, a plain <a> or <h1> in your own markup) read as
+// GOV.UK without the govuk-* classes. Every selector is wrapped in :where(), so it has no
+// specificity and any class (govuk-link, govuk-button, the service navigation) still wins. Frontend's
+// own `$govuk-global-styles` is not used: it styles every <a> at class-like specificity and would
+// fight the buttons and the navigation.
+:where(body) {
+	margin: 0;
+	font-family: arial, sans-serif;
+	font-size: 1rem;
+	line-height: 1.25;
+	color: var(--govuk-text-colour, #0b0c0c);
+	background-color: var(--govuk-body-background-colour, #fff);
+	-webkit-font-smoothing: antialiased;
+	@media (min-width: $-tablet) {
+		font-size: 1.1875rem;
+		line-height: 1.3157894737;
+	}
+}
+:where(h1) {
+	margin: 0 0 20px;
+	font-size: 2rem;
+	font-weight: 700;
+	line-height: 1.09375;
+	@media (min-width: $-tablet) {
+		margin-bottom: 30px;
+		font-size: 2.25rem;
+		line-height: 1.1111111111;
+	}
+}
+:where(h2) {
+	margin: 0 0 15px;
+	font-size: 1.25rem;
+	font-weight: 700;
+	line-height: 1.1111111111;
+	@media (min-width: $-tablet) {
+		margin-bottom: 20px;
+		font-size: 1.5rem;
+		line-height: 1.25;
+	}
+}
+:where(h3) {
+	margin: 0 0 15px;
+	font-size: 1.125rem;
+	font-weight: 700;
+	line-height: 1.1111111111;
+	@media (min-width: $-tablet) {
+		margin-bottom: 20px;
+		font-size: 1.1875rem;
+		line-height: 1.3157894737;
+	}
+}
+:where(p) {
+	margin: 0 0 15px;
+	@media (min-width: $-tablet) {
+		margin-bottom: 20px;
+	}
+}
+:where(a:link, a:visited) {
+	color: $-link;
+	text-decoration: underline;
+	text-decoration-thickness: max(1px, 0.0625rem);
+	text-underline-offset: 0.1578em;
+}
+:where(a:visited) {
+	color: var(--govuk-link-visited-colour, #54319f);
+}
+:where(a:hover) {
+	color: var(--govuk-link-hover-colour, #0f385c);
+	text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+	text-decoration-skip-ink: none;
+}
+:where(a:active) {
+	color: var(--govuk-link-active-colour, #0b0c0c);
+}
+:where(a:focus) {
+	outline: 3px solid transparent;
+	color: $-focus-text;
+	background-color: $-focus;
+	box-shadow:
+		0 -2px $-focus,
+		0 4px $-focus-text;
+	text-decoration: none;
 }

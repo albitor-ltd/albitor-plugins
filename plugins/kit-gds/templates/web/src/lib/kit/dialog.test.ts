@@ -67,6 +67,14 @@ describe('Dialog', () => {
 		expect(isOpen()).toBe(false);
 	});
 
+	it('puts the first focus on the safe action, never the destructive one', async () => {
+		await show({ dialogOpen: true });
+		const focused = document.activeElement as HTMLElement | null;
+		expect(dialog()!.contains(focused)).toBe(true);
+		expect(focused?.textContent?.trim()).toBe('Close');
+		expect(focused?.className).not.toContain('govuk-button--warning');
+	});
+
 	it('has no axe violations while open', async () => {
 		await show({ dialogOpen: true });
 		expect(isOpen()).toBe(true);

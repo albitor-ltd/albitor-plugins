@@ -10,8 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - `kit-gds` `0.1.0` (albitor-ltd/albitor#3563): a `component-kit@1` plugin for Svelte that absorbs
   the `gds` pack. `AppShell` (text-only header, service navigation), `Button`, `Dialog` (a native
-  `<dialog>`), `Field` and `Table` in GOV.UK Frontend 6.4.0 markup and classes, compiled with `sass`
-  from `govuk-frontend@6.4.0`; no Crown, no GOV.UK logotype, no GDS Transport font. `themeable:
+  `<dialog>`), `Field`, `ErrorSummary` and `Table` in GOV.UK Frontend 6.4.0 markup and classes,
+  compiled with `sass` from `govuk-frontend@6.4.0`, with a `:where()` base layer so bare elements
+  read as GOV.UK and one brand-colour token for apps off GOV.UK; no Crown, no GOV.UK logotype, no GDS Transport font. `themeable:
   false`. Managed axe, dialog and contrast tests (colours read from the installed stylesheet), the
   `govuk-design-system` and `govuk-accessibility` skills (each `metadata.capability:
   design-system`, with the audit and statement procedures as references) and a

@@ -3,7 +3,7 @@
   "name": "kit-gds",
   "displayName": "Component kit (GOV.UK Frontend)",
   "version": "0.1.0",
-  "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
+  "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
   "author": {
     "name": "Albitor Ltd",
     "email": "jamie@albitor.com"
@@ -71,6 +71,13 @@
       },
       {
         "path": "web/src/lib/kit/Dialog.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/ErrorSummary.svelte",
         "mode": "example",
         "when": {
           "web-framework": "web-svelte"

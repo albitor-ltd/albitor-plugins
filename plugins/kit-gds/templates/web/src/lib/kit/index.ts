@@ -3,6 +3,7 @@
 export { default as AppShell } from './AppShell.svelte';
 export { default as Button } from './Button.svelte';
 export { default as Dialog } from './Dialog.svelte';
+export { default as ErrorSummary } from './ErrorSummary.svelte';
 export { default as Field } from './Field.svelte';
 export { default as Table } from './Table.svelte';
 export type { Column } from './Table.svelte';

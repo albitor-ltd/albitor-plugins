@@ -11,7 +11,14 @@
 		children: Snippet;
 	};
 
-	let { variant = 'primary', type = 'button', disabled, children, ...rest }: Props = $props();
+	let {
+		variant = 'primary',
+		type = 'button',
+		disabled,
+		class: className,
+		children,
+		...rest
+	}: Props = $props();
 
 	const modifier = $derived(
 		variant === 'destructive'
@@ -24,7 +31,7 @@
 
 <button
 	{type}
-	class={'govuk-button' + modifier}
+	class={'govuk-button' + modifier + (className ? ` ${className}` : '')}
 	{disabled}
 	aria-disabled={disabled ? 'true' : undefined}
 	data-module="govuk-button"

@@ -22,6 +22,7 @@
 
 	const uid = $props.id();
 	let el: HTMLDialogElement | null = $state(null);
+	let closeButton: HTMLButtonElement | null = $state(null);
 
 	$effect(() => {
 		if (!el) return;
@@ -29,6 +30,9 @@
 			// jsdom has no showModal; a real browser always does.
 			if (typeof el.showModal === 'function') el.showModal();
 			else el.setAttribute('open', '');
+			// Initial focus goes to the safe action: showModal() would otherwise focus the first
+			// control, which is the caller's action and may be destructive.
+			closeButton?.focus();
 		} else if (!open && el.open) {
 			if (typeof el.close === 'function') el.close();
 			else el.removeAttribute('open');
@@ -48,7 +52,12 @@
 	{#if children}{@render children()}{/if}
 	<div class="govuk-button-group">
 		{#if actions}{@render actions()}{/if}
-		<button type="button" class="govuk-button govuk-button--secondary" onclick={() => (open = false)}>
+		<button
+			type="button"
+			class="govuk-button govuk-button--secondary"
+			bind:this={closeButton}
+			onclick={() => (open = false)}
+		>
 			Close
 		</button>
 	</div>

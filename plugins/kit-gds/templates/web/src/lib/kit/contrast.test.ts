@@ -4,6 +4,8 @@
 // background pair the kit's components use must meet WCAG 2.2 AA. GOV.UK is not themeable, so the
 // shipped values are the effective values.
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import * as sass from 'sass';
 import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(
@@ -51,10 +53,25 @@ function ratio(a: string, b: string): number {
 	return (hi + 0.05) / (lo + 0.05);
 }
 
+// The kit's own stylesheet, compiled, for what the app sets there: the brand colour (the one token
+// an app off GOV.UK changes) and the header text colour chosen to sit on it.
+const kitCss = sass.compile(fileURLToPath(new URL('./govuk.scss', import.meta.url)), {
+	loadPaths: [fileURLToPath(new URL('../../../node_modules', import.meta.url))],
+	quietDeps: true,
+}).css;
+
+function kitProperty(name: string): string {
+	const m = new RegExp(`--${name}:\\s*(#[0-9a-f]{3,6})[;}]`, 'i').exec(kitCss);
+	if (!m) throw new Error(`govuk.scss compiles to no --${name}`);
+	return full(m[1]);
+}
+
+const brand = kitProperty('govuk-brand-colour');
+const headerText = kitProperty('kit-header-text');
+
 const text = colour('text-colour');
 const bg = colour('body-background-colour');
 const surface = colour('surface-background-colour');
-const white = '#ffffff';
 
 // [name, foreground, background, minimum ratio]: 4.5 for text, 3 for UI components (1.4.11).
 const pairs: Array<[string, string, string, number]> = [
@@ -77,8 +94,9 @@ const pairs: Array<[string, string, string, number]> = [
 		4.5
 	],
 	['secondary button text', text, ruleColour('.govuk-button--secondary', 'background-color'), 4.5],
-	// The kit's text-only header: white on the black band, in AppShell.svelte.
-	['header text on the band', white, '#0b0c0c', 4.5]
+	// The kit's text-only header, in AppShell.svelte: the header text on the brand colour. Whatever
+	// brand colour an app sets in govuk.scss, govuk.scss picks the header text to meet this.
+	['header text on the brand band', headerText, brand, 4.5]
 ];
 
 describe('GOV.UK colours', () => {

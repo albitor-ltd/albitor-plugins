@@ -4,9 +4,14 @@
 // server. jsdom has no layout, so colour contrast is audited from the tokens in contrast.test.ts
 // and switched off here.
 import axe from 'axe-core';
+import { fileURLToPath } from 'node:url';
+import * as sass from 'sass';
 import { JSDOM } from 'jsdom';
+import { createRawSnippet } from 'svelte';
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it } from 'vitest';
+import Button from './Button.svelte';
+import ErrorSummary from './ErrorSummary.svelte';
 import Showcase from './Showcase.svelte';
 
 let dom: JSDOM;
@@ -127,7 +132,10 @@ describe('Table empty state', () => {
 	it('says why there is nothing, with a heading, so the page is never blank', async () => {
 		const root = await mount({ empty: true });
 		expect(root.querySelector('table')).toBeNull();
-		expect(root.querySelector('h2')?.textContent).toContain('No reports yet');
+		expect(root.querySelector('main')?.textContent).toContain('No reports yet');
+		expect(
+			[...root.querySelectorAll('h2')].some((h) => h.textContent?.includes('No reports yet'))
+		).toBe(true);
 		expect(await audit()).toEqual([]);
 	});
 });
@@ -139,5 +147,89 @@ describe('GOV.UK branding', () => {
 		expect(header.textContent).toContain('Example app');
 		expect(header.querySelector('svg, img, picture')).toBeNull();
 		expect(root.innerHTML).not.toMatch(/crown|crest|logotype|GOV\.UK/i);
+	});
+});
+
+describe('ErrorSummary', () => {
+	it('links each entry to its field and is announced as an alert', async () => {
+		const root = await mount();
+		const summary = root.querySelector('.govuk-error-summary')!;
+		expect(summary.querySelector('[role="alert"] h2')?.textContent).toBe('There is a problem');
+		const link = summary.querySelector<HTMLAnchorElement>('a')!;
+		expect(link.getAttribute('href')).toBe('#email');
+		expect(root.querySelector('#email')).not.toBeNull();
+		// Focusable by script, not by tab: it takes focus when it appears.
+		expect(summary.getAttribute('tabindex')).toBe('-1');
+	});
+
+	it('renders a message as text, and an entry with no field as plain text', async () => {
+		const { body } = render(ErrorSummary, {
+			props: { errors: [{ message: '<img src=x onerror=alert(1)>' }] }
+		});
+		expect(body).not.toContain('<img');
+		expect(body).not.toContain('<a');
+	});
+});
+
+describe('Button', () => {
+	const children = createRawSnippet(() => ({ render: () => '<span>Go</span>' }));
+
+	it('merges a caller\'s class with govuk-button instead of replacing it', () => {
+		const { body } = render(Button, { props: { class: 'my-extra', variant: 'destructive', children } });
+		expect(body).toMatch(/class="govuk-button govuk-button--warning my-extra"/);
+	});
+
+	it('keeps govuk-button with no caller class', () => {
+		const { body } = render(Button, { props: { children } });
+		expect(body).toMatch(/class="govuk-button"/);
+	});
+});
+
+describe('Table accessible name', () => {
+	it('is named once, by its caption, not by a second region label', async () => {
+		const root = await mount();
+		expect(root.querySelector('[role="region"]')).toBeNull();
+		expect(root.querySelector('.kit-scroll')?.hasAttribute('aria-label')).toBe(false);
+	});
+});
+
+// The base layer in govuk.scss: bare elements, with no govuk-* class, read as GOV.UK. This is what
+// the auth-cognito sign-in pages are. The stylesheet is compiled from the kit's own file and put in
+// a page of bare elements; jsdom cascades the type and spacing. It does not resolve var() or match
+// :link, so the link and focus rules are read from the compiled CSS.
+describe('base typography', () => {
+	const css = sass.compile(fileURLToPath(new URL('./govuk.scss', import.meta.url)), {
+		loadPaths: [fileURLToPath(new URL('../../../node_modules', import.meta.url))],
+		quietDeps: true,
+		
+	}).css;
+
+	function bare(html: string): Document {
+		const d = new JSDOM(
+			`<!doctype html><html lang="en"><head><style>${css}</style></head><body>${html}</body></html>`
+		);
+		dom = d;
+		return d.window.document;
+	}
+
+	it('styles a bare heading, paragraph and link as GOV.UK', () => {
+		const doc = bare('<h1>Sign in</h1><p>Enter your details.</p><a href="/x">Forgotten?</a>');
+		const style = (sel: string) => dom.window.getComputedStyle(doc.querySelector(sel)!);
+		expect(style('h1').fontWeight).toBe('700');
+		expect(style('h1').fontFamily).toMatch(/arial/i);
+		expect(style('h1').marginBottom).toBe('20px');
+		expect(style('p').marginBottom).toBe('15px');
+		expect(style('body').fontFamily).toMatch(/arial/i);
+		// jsdom does not resolve var(), so the colour is read from the rule itself.
+		expect(css).toMatch(/:where\(a:link, a:visited\)\s*\{[^}]*color:\s*var\(--govuk-link-colour, #1a65a6\)/);
+		expect(css).toMatch(/:where\(a:link, a:visited\)\s*\{[^}]*text-decoration:\s*underline/);
+		expect(css).toMatch(/:where\(a:focus\)\s*\{[^}]*background-color:\s*var\(--govuk-focus-colour, #fd0\)/);
+	});
+
+	it('keeps the base layer below every class, so components are not overridden', () => {
+		// :where() gives the layer no specificity; a .govuk-* class always wins.
+		const bareRules = css.match(/:where\([^)]*\)\s*\{/g) ?? [];
+		expect(bareRules.length).toBeGreaterThanOrEqual(6);
+		expect(css).not.toMatch(/(^|\})\s*(a|p|h1|h2|h3|body)(:[a-z]+)?\s*[,{]/);
 	});
 });

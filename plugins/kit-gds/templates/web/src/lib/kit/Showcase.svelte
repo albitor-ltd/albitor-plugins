@@ -5,6 +5,7 @@
 	import AppShell from './AppShell.svelte';
 	import Button from './Button.svelte';
 	import Dialog from './Dialog.svelte';
+	import ErrorSummary from './ErrorSummary.svelte';
 	import Field from './Field.svelte';
 	import Table from './Table.svelte';
 	import type { NavGroup } from '../shell/types';
@@ -40,10 +41,13 @@
 </script>
 
 <AppShell {nav} {path} title="Example app">
+	<ErrorSummary errors={[{ field: 'email', message: 'Enter an email address, like name@example.com' }]} />
+
 	<h1 class="govuk-heading-l">Reports</h1>
 
 	<form onsubmit={(e) => e.preventDefault()}>
 		<Field
+			id="email"
 			label="Email address"
 			type="email"
 			bind:value={email}

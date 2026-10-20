@@ -1,8 +1,8 @@
-albitor-plugin-gds
-==================
+kit-gds
+=======
 
-This plugin's own code (the plugin manifest, skill wiring, commands, agent
-definition, and hook script) is licensed under the MIT Licence — see LICENCE.
+This plugin's own code (the plugin manifest, skill wiring, and component kit
+files) is licensed under the MIT Licence — see LICENCE.
 
 Bundled reference content
 -------------------------

@@ -66,12 +66,13 @@
 </div>
 
 <style>
-	/* A plain black band carrying the service name as text: GOV.UK's header colours, none of its
-	   branding. White on #0b0c0c is 19.3:1. */
+	/* A text-only band in the brand colour (`$govuk-brand-colour` in govuk.scss, the GOV.UK blue
+	   unless the app is off GOV.UK and set its own): GOV.UK's header shape, none of its branding.
+	   The text colour is chosen in govuk.scss to keep AA contrast on that colour. */
 	.kit-header {
-		background: #0b0c0c;
-		color: #fff;
-		border-bottom: 10px solid #1d70b8;
+		background: var(--govuk-brand-colour, #1d70b8);
+		color: var(--kit-header-text, #fff);
+		border-bottom: 10px solid #0b0c0c;
 		padding: 15px 0 10px;
 	}
 	.kit-header__name {
@@ -80,8 +81,12 @@
 		font-weight: 700;
 		line-height: 1.1;
 	}
-	:global(.govuk-service-navigation__list) {
-		margin-block: 0;
+	/* Only from tablet up, where the items sit in a row: on mobile the stylesheet's bottom margin
+	   spaces the stacked lists. */
+	@media (min-width: 40.0625em) {
+		:global(.govuk-service-navigation__list) {
+			margin-block: 0;
+		}
 	}
 	:global(main:focus) {
 		outline: none;
