@@ -38,8 +38,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/shadcn",
-        "ref": "shadcn/v0.1.5",
-        "sha": "f5f76d09f9e76b240e761b2b18339e0f18b675bb"
+        "ref": "shadcn/v0.1.6",
+        "sha": "ad022768703607b51de0eb4e347964c6fd34b808"
       },
       "description": "Build, audit, and preview modern web apps with shadcn/ui components on Radix UI primitives and Tailwind CSS, meeting WCAG 2.2 AA accessibility. The default design system for net-new SME and startup web apps.",
       "category": "development",
