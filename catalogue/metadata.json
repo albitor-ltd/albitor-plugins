@@ -226,6 +226,24 @@
     ],
     "license": "MIT"
   },
+  "kit-gds": {
+    "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
+    "category": "development",
+    "keywords": [
+      "component-kit",
+      "design-system",
+      "gds",
+      "gov.uk",
+      "govuk",
+      "govuk-frontend",
+      "svelte",
+      "accessibility",
+      "wcag",
+      "a11y",
+      "public-sector"
+    ],
+    "license": "MIT"
+  },
   "look-business": {
     "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
     "category": "development",

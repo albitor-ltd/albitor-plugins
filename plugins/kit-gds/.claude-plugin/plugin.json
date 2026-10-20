@@ -1,0 +1,141 @@
+{
+  "schema": 2,
+  "name": "kit-gds",
+  "displayName": "Component kit (GOV.UK Frontend)",
+  "version": "0.1.0",
+  "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "component-kit",
+    "design-system",
+    "gds",
+    "gov.uk",
+    "govuk",
+    "govuk-frontend",
+    "svelte",
+    "accessibility",
+    "wcag",
+    "a11y",
+    "public-sector"
+  ],
+  "themeable": false,
+  "kind": "socket",
+  "provides": [
+    "component-kit@1"
+  ],
+  "requires": [
+    "web-framework@1"
+  ],
+  "contributes": {
+    "dependencies": {
+      "npm": [
+        "govuk-frontend@6.4.0",
+        "sass@1.105.2",
+        "axe-core@4.13.0",
+        "jsdom@30.1.1",
+        "@types/jsdom@30.0.0"
+      ]
+    },
+    "files": [
+      {
+        "path": "web/vitest.config.ts",
+        "mode": "managed",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/contrast.test.ts",
+        "mode": "managed",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/AppShell.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/Button.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/Dialog.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/ErrorSummary.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/Field.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/Table.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/govuk.scss",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/index.ts",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/Showcase.svelte",
+        "mode": "managed",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/kit.test.ts",
+        "mode": "managed",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
+        "path": "web/src/lib/kit/dialog.test.ts",
+        "mode": "managed",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      }
+    ],
+    "skills": [
+      "govuk-design-system",
+      "govuk-accessibility"
+    ]
+  }
+}
