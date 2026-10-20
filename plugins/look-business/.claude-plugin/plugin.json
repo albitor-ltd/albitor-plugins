@@ -1,0 +1,37 @@
+{
+  "schema": 2,
+  "name": "look-business",
+  "displayName": "Look: Business",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "visual-language",
+    "look",
+    "design-tokens",
+    "preview-tokens",
+    "business",
+    "archetype",
+    "accessibility",
+    "wcag"
+  ],
+  "provides": [
+    "visual-language@1"
+  ],
+  "contributes": {
+    "skills": [
+      "look-business"
+    ],
+    "files": [
+      {
+        "path": "web/src/lib/look/look.json",
+        "mode": "example"
+      }
+    ]
+  }
+}

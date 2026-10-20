@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "font_family": "Inter, Geist, \"SF Pro Text\", \"Segoe UI\", system-ui, sans-serif",
+  "heading_font_family": "\"Inter Display\", Inter, Geist, \"SF Pro Display\", \"Segoe UI\", system-ui, sans-serif",
+  "heading_weight": 600,
+  "type_scale": {
+    "small": "0.8125rem",
+    "body": "0.9375rem",
+    "heading": "1.125rem",
+    "title": "1.75rem"
+  },
+  "radius": "10px",
+  "border_width": "1px",
+  "density": "comfortable",
+  "elevation": "layered",
+  "heading_tracking": "-0.02em",
+  "min_target": "36px",
+  "focus_ring": "2px",
+  "colours": {
+    "text": "#0d1013",
+    "text_secondary": "#565d68",
+    "border": "#e3e6eb",
+    "control_border": "#858c9a",
+    "surface": "#ffffff",
+    "background": "#f7f8fa",
+    "accent": "#0a7f8f",
+    "on_accent": "#ffffff",
+    "danger": "#c62a35",
+    "success": "#177a4a",
+    "warning": "#8a5a00"
+  }
+}

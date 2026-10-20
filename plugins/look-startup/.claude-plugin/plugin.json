@@ -1,0 +1,37 @@
+{
+  "schema": 2,
+  "name": "look-startup",
+  "displayName": "Look: Startup",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "visual-language",
+    "look",
+    "design-tokens",
+    "preview-tokens",
+    "startup",
+    "archetype",
+    "accessibility",
+    "wcag"
+  ],
+  "provides": [
+    "visual-language@1"
+  ],
+  "contributes": {
+    "skills": [
+      "look-startup"
+    ],
+    "files": [
+      {
+        "path": "web/src/lib/look/look.json",
+        "mode": "example"
+      }
+    ]
+  }
+}

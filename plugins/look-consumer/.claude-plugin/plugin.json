@@ -1,0 +1,37 @@
+{
+  "schema": 2,
+  "name": "look-consumer",
+  "displayName": "Look: Consumer",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm cream palette with a berry accent, a few things at a time.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "visual-language",
+    "look",
+    "design-tokens",
+    "preview-tokens",
+    "consumer",
+    "archetype",
+    "accessibility",
+    "wcag"
+  ],
+  "provides": [
+    "visual-language@1"
+  ],
+  "contributes": {
+    "skills": [
+      "look-consumer"
+    ],
+    "files": [
+      {
+        "path": "web/src/lib/look/look.json",
+        "mode": "example"
+      }
+    ]
+  }
+}
