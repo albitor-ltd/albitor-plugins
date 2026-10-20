@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   refusal tests in `scripts/test-preview-tokens.sh`), mirroring the platform's strict
   `governance.PreviewTokens` contract: unknown keys, bad lengths, colours and enums are refused
   (albitor-ltd/albitor#3539). No plugin changed.
+- `look-consumer`: `dark_target: 5.0` added to `preview-tokens.json` and the seeded `look.json` (kept
+  identical), so its dark mode meets the platform's contrast target. CI now also checks each look
+  pack's seeded `look.json` equals its `preview-tokens.json`.
 
 ### Removed
 

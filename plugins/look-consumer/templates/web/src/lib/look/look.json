@@ -14,6 +14,7 @@
   "elevation": "raised",
   "min_target": "48px",
   "focus_ring": "3px",
+  "dark_target": 5.0,
   "colours": {
     "text": "#2b160f",
     "text_secondary": "#6e4533",

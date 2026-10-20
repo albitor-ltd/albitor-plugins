@@ -12,3 +12,5 @@ themeable component kit.
 
 See `skills/look-consumer/SKILL.md` for typography, density, shape, elevation, colour and dark-mode guidance.
 Validate the tokens with `scripts/validate-preview-tokens.sh` from the repository root.
+
+Notes. `-apple-system` is deliberately omitted from the font stacks: the platform's bare-family check refuses it (`system-ui` covers the same face). A look only applies to a component kit that is `themeable: true`.
