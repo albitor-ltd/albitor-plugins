@@ -85,23 +85,61 @@ function shotName(step: number, name: string): string {
   return `step-${String(step).padStart(2, "0")}-${slug}.png`;
 }
 
-// The capture is one fixed viewport, never fullPage: the app is reviewed at the
-// size a person sees it, and a full-page image of a long list is not that screen.
-async function capture(page: Page, step: number, name: string): Promise<string> {
+// The capture is the WHOLE PAGE, top to bottom, not the fixed viewport: a viewport
+// photograph cut off whatever sat below the fold, and the owner reviewing the
+// step could not see it. The gallery shows the top of a tall image and lets the
+// opened view scroll the rest.
+//
+// THE HEIGHT IS CAPPED AT MAX_CAPTURE_HEIGHT CSS PIXELS. The runner refuses any
+// one image over 8 MB, and a very long list photographed in full would be
+// dropped altogether — worse than a cut-off one. 6000px of a typical page is
+// well under that. `scale: "css"` keeps one image pixel per CSS pixel whatever
+// the project's deviceScaleFactor, so a high-density phone project cannot
+// multiply the file size past the cap. A page taller than the cap is clipped and
+// the ledger line says so (`clipped: true`), so a reader knows the picture is not
+// the whole page. Width stays the viewport's: horizontal overflow is a layout
+// fault the checks above report, not part of the screen.
+const MAX_CAPTURE_HEIGHT = 6000;
+
+type Capture = { file: string; width: number; height: number; clipped: boolean };
+
+async function capture(page: Page, step: number, name: string): Promise<Capture | null> {
   if (!shotDir) {
-    return "";
+    return null;
   }
   const file = shotName(step, name);
   mkdirSync(shotDir, { recursive: true });
-  await page.screenshot({ path: join(shotDir, file) });
-  return file;
+  const width = page.viewportSize()?.width ?? 0;
+  let pageHeight = 0;
+  try {
+    pageHeight = await page.evaluate(() =>
+      Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0),
+    );
+  } catch {
+    // No document to measure (mid-navigation): fall back to the viewport.
+  }
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  const full = Math.max(Math.ceil(pageHeight), viewportHeight);
+  const height = Math.min(full, MAX_CAPTURE_HEIGHT);
+  const clipped = full > MAX_CAPTURE_HEIGHT;
+  if (width > 0 && height > 0) {
+    await page.screenshot({
+      path: join(shotDir, file),
+      fullPage: true,
+      scale: "css",
+      clip: { x: 0, y: 0, width, height },
+    });
+    return { file, width, height, clipped };
+  }
+  await page.screenshot({ path: join(shotDir, file), fullPage: true, scale: "css" });
+  return { file, width, height: viewportHeight, clipped: false };
 }
 
 // One ledger line per completed step. `route` is the path the step ended on and
 // must start with "/" — that is what labels the tile — and `file` is the bare
 // image name in the screenshot directory.
-function record(page: Page, step: number, name: string, file: string): void {
-  if (!ledgerPath || !file) {
+function record(page: Page, step: number, name: string, shot: Capture | null): void {
+  if (!ledgerPath || !shot) {
     return;
   }
   let route = "/";
@@ -111,16 +149,18 @@ function record(page: Page, step: number, name: string, file: string): void {
     // A page that never navigated has no URL to read; the landing route is the
     // honest fallback and keeps the line renderable.
   }
-  const viewport = page.viewportSize();
   appendFileSync(
     ledgerPath,
     `${JSON.stringify({
       step,
       route,
       title: name,
-      file,
-      width: viewport?.width ?? 0,
-      height: viewport?.height ?? 0,
+      file: shot.file,
+      // The image's own pixel size, which is the page's height up to the cap.
+      width: shot.width,
+      height: shot.height,
+      // Additive: present only when the page was taller than the cap.
+      ...(shot.clipped ? { clipped: true } : {}),
     })}\n`,
   );
 }
