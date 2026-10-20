@@ -284,13 +284,14 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.2.1",
-        "sha": "232fde2df72f9673a9b48637e7563d57b0754d03"
+        "ref": "kit-shadcn/v0.3.0",
+        "sha": "f0546606bf25748e235e02b219e0567234e71e35"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
       "keywords": [
         "component-kit",
+        "design-system",
         "shadcn",
         "shadcn-svelte",
         "bits-ui",
@@ -358,6 +359,32 @@
         "carbon-components-svelte",
         "svelte",
         "accessibility"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "kit-gds",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/kit-gds",
+        "ref": "kit-gds/v0.1.0",
+        "sha": "a1332b38098e98ec14051e64d82975d41c5da30c"
+      },
+      "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
+      "category": "development",
+      "keywords": [
+        "component-kit",
+        "design-system",
+        "gds",
+        "gov.uk",
+        "govuk",
+        "govuk-frontend",
+        "svelte",
+        "accessibility",
+        "wcag",
+        "a11y",
+        "public-sector"
       ],
       "license": "MIT"
     },
