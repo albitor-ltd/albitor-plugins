@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- CI compose matrix: every component-kit plugin is composed with every visual-language plugin on
+  each certified profile (`tests/compose/kit_look_test.go`, albitor#3568). A themeable kit must
+  compose with the look; a kit that is not (`kit-carbon`) must be refused as `kit_not_themeable`,
+  the answer the platform gives before it places an app's look on the socket. No plugin changed.
+
 ### Changed
 
 - `shadcn` `0.1.6`: secondary text passes AA on the muted surface. `text_secondary` in
