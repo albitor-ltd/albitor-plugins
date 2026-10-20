@@ -22,7 +22,8 @@ function colour(name: string): string {
 
 /** The `property` of the first `selector{...}` rule that sets it, as #rrggbb. */
 function ruleColour(selector: string, property: string): string {
-	const re = new RegExp(`${selector.replace(/[.]/g, '\\.')}\\{(?:[^}]*;)?${property}:(#[0-9a-f]{3,6})`, 'i');
+	const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	const re = new RegExp(`${escaped}\\{(?:[^}]*;)?${property}:(#[0-9a-f]{3,6})`, 'i');
 	const m = re.exec(css);
 	if (!m) throw new Error(`govuk-frontend.min.css has no ${selector} ${property}`);
 	return full(m[1]);
