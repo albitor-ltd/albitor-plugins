@@ -1,5 +1,5 @@
 // Managed by Albitor (test-playwright).
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test as base, type BrowserContext, type Page } from "@playwright/test";
 import { expectNoA11yViolations, type A11yOptions } from "./a11y";
@@ -85,54 +85,92 @@ function shotName(step: number, name: string): string {
   return `step-${String(step).padStart(2, "0")}-${slug}.png`;
 }
 
-// The capture is the WHOLE PAGE, top to bottom, not the fixed viewport: a viewport
+// The capture is the WHOLE SCREEN, top to bottom, not the fixed viewport: a viewport
 // photograph cut off whatever sat below the fold, and the owner reviewing the
 // step could not see it. The gallery shows the top of a tall image and lets the
 // opened view scroll the rest.
 //
+// TWO KINDS OF LONG PAGE. A document that scrolls itself is measured by its
+// scrollHeight. But a common app shell is `h-screen` with `overflow-y: auto` on an
+// inner container: the document is exactly one viewport tall and fullPage would
+// capture nothing extra. So the needed height is the larger of the document's and
+// the viewport plus the biggest inner scroller's overflow, and the photograph is
+// taken by temporarily growing the VIEWPORT to that height, so the shell grows
+// and the inner container shows everything. The original viewport is always
+// restored.
+//
 // THE HEIGHT IS CAPPED AT MAX_CAPTURE_HEIGHT CSS PIXELS. The runner refuses any
 // one image over 8 MB, and a very long list photographed in full would be
-// dropped altogether — worse than a cut-off one. 6000px of a typical page is
-// well under that. `scale: "css"` keeps one image pixel per CSS pixel whatever
-// the project's deviceScaleFactor, so a high-density phone project cannot
-// multiply the file size past the cap. A page taller than the cap is clipped and
-// the ledger line says so (`clipped: true`), so a reader knows the picture is not
-// the whole page. Width stays the viewport's: horizontal overflow is a layout
-// fault the checks above report, not part of the screen.
+// dropped altogether — worse than a cut-off one. `scale: "css"` keeps one image
+// pixel per CSS pixel whatever the project's deviceScaleFactor, so a
+// high-density phone project cannot multiply the file size past the cap. A page
+// needing more than the cap is clipped and the ledger line says so
+// (`clipped: true`). Width stays the viewport's. When the viewport or the
+// measurement is unavailable the plain viewport is photographed, never an
+// uncapped full page.
 const MAX_CAPTURE_HEIGHT = 6000;
 
 type Capture = { file: string; width: number; height: number; clipped: boolean };
+
+// The PNG's own pixel size from its IHDR chunk (big-endian, bytes 16-23).
+function pngSize(buf: Buffer): { width: number; height: number } {
+  if (buf.length < 24) {
+    return { width: 0, height: 0 };
+  }
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+async function neededHeight(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const doc = Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0);
+    let inner = 0;
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("*"))) {
+      const oy = getComputedStyle(el).overflowY;
+      if (oy === "auto" || oy === "scroll") {
+        inner = Math.max(inner, el.scrollHeight - el.clientHeight);
+      }
+    }
+    return Math.max(doc, window.innerHeight + inner);
+  });
+}
 
 async function capture(page: Page, step: number, name: string): Promise<Capture | null> {
   if (!shotDir) {
     return null;
   }
   const file = shotName(step, name);
+  const path = join(shotDir, file);
   mkdirSync(shotDir, { recursive: true });
-  const width = page.viewportSize()?.width ?? 0;
-  let pageHeight = 0;
-  try {
-    pageHeight = await page.evaluate(() =>
-      Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0),
-    );
-  } catch {
-    // No document to measure (mid-navigation): fall back to the viewport.
+  const original = page.viewportSize();
+  let needed = 0;
+  if (original) {
+    try {
+      needed = Math.ceil(await neededHeight(page));
+    } catch {
+      // No document to measure (mid-navigation): photograph the plain viewport.
+    }
   }
-  const viewportHeight = page.viewportSize()?.height ?? 0;
-  const full = Math.max(Math.ceil(pageHeight), viewportHeight);
-  const height = Math.min(full, MAX_CAPTURE_HEIGHT);
-  const clipped = full > MAX_CAPTURE_HEIGHT;
-  if (width > 0 && height > 0) {
-    await page.screenshot({
-      path: join(shotDir, file),
-      fullPage: true,
-      scale: "css",
-      clip: { x: 0, y: 0, width, height },
-    });
-    return { file, width, height, clipped };
+  let buf: Buffer;
+  let clipped = false;
+  if (original && needed > original.height) {
+    clipped = needed > MAX_CAPTURE_HEIGHT;
+    const height = Math.min(needed, MAX_CAPTURE_HEIGHT);
+    try {
+      await page.setViewportSize({ width: original.width, height });
+      await page.evaluate(
+        () => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+      );
+      await page.waitForLoadState("networkidle", { timeout: 2000 }).catch(() => undefined);
+      buf = await page.screenshot({ scale: "css", clip: { x: 0, y: 0, width: original.width, height } });
+    } finally {
+      await page.setViewportSize(original);
+    }
+  } else {
+    buf = await page.screenshot({ scale: "css" });
   }
-  await page.screenshot({ path: join(shotDir, file), fullPage: true, scale: "css" });
-  return { file, width, height: viewportHeight, clipped: false };
+  writeFileSync(path, buf);
+  const size = pngSize(buf);
+  return { file, width: size.width, height: size.height, clipped };
 }
 
 // One ledger line per completed step. `route` is the path the step ended on and

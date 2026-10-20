@@ -16,10 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 
 - `test-playwright` `0.1.2` (albitor-ltd/albitor#3588): `journeyStep` photographs the whole page
-  rather than the viewport. The image is capped at 6000 CSS px tall (`scale: "css"`, so device
-  scale factor cannot inflate it past the runner's 8 MB per-file cap); a taller page is clipped and
-  its ledger line gains `clipped: true`. The ledger `height` is now the image's own height. Untagged,
-  so the catalogue still pins the previous version until released.
+  rather than the viewport, including `h-screen` shells that scroll an inner container (the
+  viewport is temporarily grown to the needed height, then restored). The image is capped at 6000
+  CSS px tall (`scale: "css"`, so device scale factor cannot inflate it past the runner's 8 MB
+  per-file cap); a taller page is clipped and its ledger line gains `clipped: true`. Ledger
+  `width`/`height` are read from the PNG itself. Without a viewport or measurement it falls back
+  to the plain viewport shot, never an uncapped full page. Untagged, so the catalogue still pins
+  the previous version until released.
 - `shadcn` `0.1.6`: secondary text passes AA on the muted surface. `text_secondary` in
   `preview-tokens.json` and the preview page's light `--muted-foreground` move from zinc-500
   (`#71717a`, 4.40:1 on `#f4f4f5`) to zinc-600 (`#52525b`, 7.03:1). Dark theme unchanged (5.81:1).
