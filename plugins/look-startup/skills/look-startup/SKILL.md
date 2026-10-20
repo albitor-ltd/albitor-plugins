@@ -53,6 +53,28 @@ The authored light palette: text `#0d1013`, secondary text `#565d68`, border
 `#f7f8fa`, accent `#0a7f8f` with `#ffffff` on it. The accent is a default:
 the app's own brand colour replaces it and the platform recalculates the dependent shades.
 
+## Phone navigation
+
+Stance: lean towards a bottom tab bar when the product has 2 to 5 core destinations, and a
+menu button and drawer when it has more.
+
+Rule (shared with the kit): 2 to 5 frequent top-level destinations use a bottom tab bar; more than
+5 use a menu button and drawer, or, where this look prefers a tab bar, 4 tabs plus a "More" tab that
+opens the rest as a list. Pick one per app, never a tab bar and a menu button carrying the same
+destinations. This is a preference, not a mandate. Follow the kit's guidance on markup and behaviour.
+
+- Menu button: a `Dialog.Trigger` (real `<button>`, accessible name, `aria-expanded` and
+  `aria-controls` wired by Bits) opening a modal drawer with a `Dialog.Title`, containing a `<nav>`.
+  Focus moves in on open; Escape closes and returns focus to the button; focus is trapped and the
+  background inert.
+- Tab bar: a labelled `<nav>`, `aria-current="page"` on the current tab, targets at least 44x44 CSS px
+  (WCAG 2.2 2.5.8 requires 24x24; 44 is the house recommendation) and
+  `env(safe-area-inset-bottom)` padding.
+- More: never `aria-current` on the More button; keep it on the item in the opened list, and mark
+  More visually plus with hidden text such as "(current page is in More)".
+- Never hide a control: every desktop nav destination stays reachable on phone. Test at 390px.
+- Use a hairline top border (a border token) as the separator; the teal accent marks the current tab.
+
 ## Dark mode
 
 - Cool near-black page, panels one step lighter with a 1px hairline, like Linear, Vercel and Supabase dark themes: dark is the native design, not an inverted light one.

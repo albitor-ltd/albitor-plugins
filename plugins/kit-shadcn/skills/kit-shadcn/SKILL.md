@@ -48,7 +48,8 @@ from `Showcase.svelte`, which is every piece on one page and what `kit.test.ts` 
 a timer and each can be dismissed.
 
 Patterns (`references/patterns.md`) cover forms with validation, destructive confirmation, empty
-and error states.
+and error states, and navigation on a phone (bottom tab bar versus a menu-button drawer, overflow,
+focus and ARIA).
 
 ## Page templates
 

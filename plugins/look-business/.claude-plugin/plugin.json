@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "look-business",
   "displayName": "Look: Business",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
   "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
   "author": {
