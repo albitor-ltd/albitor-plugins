@@ -100,8 +100,9 @@ text, 3:1 for the control border, focus ring and primary fill) for every pair th
 in light and dark. `kit.test.ts` renders the shell pieces and runs axe on them; axe cannot judge
 contrast without a layout engine, which is why the contrast test exists.
 
-The general WCAG 2.2 AA content (criteria, audits, accessibility statements) lives in the
-`test-playwright` plugin, not here.
+Accessibility statements and VPAT/ACR (when one is needed, what it contains, a fill-in template) are
+in `references/accessibility-statement.md`. The wider WCAG 2.2 AA audit content lives in the
+`test-playwright` plugin.
 
 ## Accessibility built in
 

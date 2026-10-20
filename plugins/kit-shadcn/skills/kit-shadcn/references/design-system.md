@@ -46,8 +46,9 @@ restyle to one file and keeps the contrast audit's list of pairs complete.
 
 Every interactive element shows a visible focus indicator. Use `:focus-visible`, so keyboard users
 see it and a mouse click does not trigger it. Removing an outline is safe only when a replacement is
-at least as visible. `--ring` must keep 3:1 against the background and against `--primary`
-(`contrast.test.ts` checks both); a changed ring colour is re-checked in both schemes.
+at least as visible. `--ring` must keep 3:1 against `--background` (`contrast.test.ts` checks that pair, in both
+schemes); a changed ring colour is re-checked there. The test does not compare the ring with
+`--primary`, so check a ring that sits on a primary fill by eye.
 
 ## Contrast traps
 
