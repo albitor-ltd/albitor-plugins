@@ -1,5 +1,5 @@
 // Managed by Albitor (test-playwright).
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test as base, type BrowserContext, type Page } from "@playwright/test";
 import { expectNoA11yViolations, type A11yOptions } from "./a11y";
@@ -85,23 +85,112 @@ function shotName(step: number, name: string): string {
   return `step-${String(step).padStart(2, "0")}-${slug}.png`;
 }
 
-// The capture is one fixed viewport, never fullPage: the app is reviewed at the
-// size a person sees it, and a full-page image of a long list is not that screen.
-async function capture(page: Page, step: number, name: string): Promise<string> {
+// The capture is the WHOLE SCREEN, top to bottom, not the fixed viewport: a viewport
+// photograph cut off whatever sat below the fold, and the owner reviewing the
+// step could not see it. The gallery shows the top of a tall image and lets the
+// opened view scroll the rest.
+//
+// TWO KINDS OF LONG PAGE. A document that scrolls itself is photographed with
+// fullPage, which does not resize the viewport, so `100vh` sections keep their
+// height. But a common app shell is `h-screen` with `overflow-y: auto` on an
+// inner container: the document is exactly one viewport tall and fullPage would
+// capture nothing extra. There the photograph is taken by temporarily growing the
+// VIEWPORT to the viewport plus the inner overflow, so the shell grows and the
+// inner container shows everything. The original viewport is always restored.
+//
+// THE HEIGHT IS CAPPED AT MAX_CAPTURE_HEIGHT CSS PIXELS. The runner refuses any
+// one image over 8 MB, and a very long list photographed in full would be
+// dropped altogether — worse than a cut-off one. `scale: "css"` keeps one image
+// pixel per CSS pixel whatever the project's deviceScaleFactor, so a
+// high-density phone project cannot multiply the file size past the cap. A page
+// needing more than the cap is clipped and the ledger line says so
+// (`clipped: true`). Width stays the viewport's. When the viewport or the
+// measurement is unavailable the plain viewport is photographed, never an
+// uncapped full page.
+const MAX_CAPTURE_HEIGHT = 6000;
+
+type Capture = { file: string; width: number; height: number; clipped: boolean };
+
+// The PNG's own pixel size from its IHDR chunk (big-endian, bytes 16-23).
+function pngSize(buf: Buffer): { width: number; height: number } {
+  if (buf.length < 24) {
+    return { width: 0, height: 0 };
+  }
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+}
+
+// What the screen needs: the document's own height, and how far the biggest inner
+// scroller overflows its box.
+async function measure(page: Page): Promise<{ doc: number; inner: number; viewport: number }> {
+  return page.evaluate(() => {
+    const doc = Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight ?? 0);
+    let inner = 0;
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>("*"))) {
+      const oy = getComputedStyle(el).overflowY;
+      if (oy === "auto" || oy === "scroll") {
+        inner = Math.max(inner, el.scrollHeight - el.clientHeight);
+      }
+    }
+    return { doc, inner, viewport: window.innerHeight };
+  });
+}
+
+async function capture(page: Page, step: number, name: string): Promise<Capture | null> {
   if (!shotDir) {
-    return "";
+    return null;
   }
   const file = shotName(step, name);
+  const path = join(shotDir, file);
   mkdirSync(shotDir, { recursive: true });
-  await page.screenshot({ path: join(shotDir, file) });
-  return file;
+  const original = page.viewportSize();
+  let m: { doc: number; inner: number; viewport: number } | null = null;
+  if (original) {
+    try {
+      m = await measure(page);
+    } catch {
+      // No document to measure (mid-navigation): photograph the plain viewport.
+    }
+  }
+  let buf: Buffer;
+  let clipped = false;
+  if (original && m && m.inner > 0 && m.viewport + m.inner > m.doc) {
+    // An inner container scrolls: grow the viewport so the shell grows with it.
+    const needed = Math.ceil(m.viewport + m.inner);
+    clipped = needed > MAX_CAPTURE_HEIGHT;
+    const height = Math.min(needed, MAX_CAPTURE_HEIGHT);
+    try {
+      await page.setViewportSize({ width: original.width, height });
+      await page.evaluate(
+        () => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+      );
+      await page.waitForLoadState("networkidle", { timeout: 2000 }).catch(() => undefined);
+      buf = await page.screenshot({ scale: "css", clip: { x: 0, y: 0, width: original.width, height } });
+    } finally {
+      await page.setViewportSize(original);
+    }
+  } else if (original && m && m.doc > original.height) {
+    // The document scrolls: Chromium captures beyond the viewport without resizing
+    // it, so 100vh sections keep their height.
+    const needed = Math.ceil(m.doc);
+    clipped = needed > MAX_CAPTURE_HEIGHT;
+    buf = await page.screenshot({
+      fullPage: true,
+      scale: "css",
+      clip: { x: 0, y: 0, width: original.width, height: Math.min(needed, MAX_CAPTURE_HEIGHT) },
+    });
+  } else {
+    buf = await page.screenshot({ scale: "css" });
+  }
+  writeFileSync(path, buf);
+  const size = pngSize(buf);
+  return { file, width: size.width, height: size.height, clipped };
 }
 
 // One ledger line per completed step. `route` is the path the step ended on and
 // must start with "/" — that is what labels the tile — and `file` is the bare
 // image name in the screenshot directory.
-function record(page: Page, step: number, name: string, file: string): void {
-  if (!ledgerPath || !file) {
+function record(page: Page, step: number, name: string, shot: Capture | null): void {
+  if (!ledgerPath || !shot) {
     return;
   }
   let route = "/";
@@ -111,16 +200,18 @@ function record(page: Page, step: number, name: string, file: string): void {
     // A page that never navigated has no URL to read; the landing route is the
     // honest fallback and keeps the line renderable.
   }
-  const viewport = page.viewportSize();
   appendFileSync(
     ledgerPath,
     `${JSON.stringify({
       step,
       route,
       title: name,
-      file,
-      width: viewport?.width ?? 0,
-      height: viewport?.height ?? 0,
+      file: shot.file,
+      // The image's own pixel size, which is the page's height up to the cap.
+      width: shot.width,
+      height: shot.height,
+      // Additive: present only when the page was taller than the cap.
+      ...(shot.clipped ? { clipped: true } : {}),
     })}\n`,
   );
 }
