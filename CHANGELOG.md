@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- CI validation of every pack's `preview-tokens.json` (`scripts/validate-preview-tokens.sh`, with
+  refusal tests in `scripts/test-preview-tokens.sh`), mirroring the platform's strict
+  `governance.PreviewTokens` contract: unknown keys, bad lengths, colours and enums are refused
+  (albitor-ltd/albitor#3539). No plugin changed.
+
 ### Removed
 
 - `catalogue/retired-entries.json` (albitor-ltd/albitor#3176, #3530): the five retired `visual-*`
