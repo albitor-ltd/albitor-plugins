@@ -1,6 +1,8 @@
 ---
 name: kit-shadcn
-description: How to build pages from the kit-shadcn component kit on a SvelteKit app composed from web-svelte (shadcn-style components on Bits UI, one token set). Use when a build adds or changes a page, form, table, dialog, toast or empty state under web/src, themes the app, or touches web/src/lib/kit.
+description: How to build pages from the kit-shadcn component kit on a SvelteKit app composed from web-svelte (shadcn-style components on Bits UI, one token set), the design system the app's UI is built and reviewed against. Use when a build adds or changes a page, form, table, dialog, toast or empty state under web/src, themes the app, or touches web/src/lib/kit.
+metadata:
+  capability: design-system
 ---
 
 # kit-shadcn: the component kit
@@ -98,8 +100,9 @@ text, 3:1 for the control border, focus ring and primary fill) for every pair th
 in light and dark. `kit.test.ts` renders the shell pieces and runs axe on them; axe cannot judge
 contrast without a layout engine, which is why the contrast test exists.
 
-The general WCAG 2.2 AA content (criteria, audits, accessibility statements) lives in the
-`test-playwright` plugin, not here.
+Accessibility statements and VPAT/ACR (when one is needed, what it contains, a fill-in template) are
+in `references/accessibility-statement.md`. The wider WCAG 2.2 AA audit content lives in the
+`test-playwright` plugin.
 
 ## Accessibility built in
 
@@ -110,6 +113,22 @@ The general WCAG 2.2 AA content (criteria, audits, accessibility statements) liv
 | `Table` | A caption, `scope` on every header, a keyboard-focusable scroll region |
 | `Dialog` | Named by its title, described by its description, focus trapped and returned (Bits UI) |
 | `Toaster` | Always-present `status` (polite) and `alert` (assertive, for errors) regions |
+
+## Design principles
+
+These carry from the shadcn design system and hold for every screen, kit piece or not. The
+detail, and the map from other shadcn components to their Bits UI primitive, is in
+`references/design-system.md`.
+
+- **The kit is the inventory.** A screen is built from kit components and Bits UI primitives. A
+  hand-rolled dialog, menu, tabs or select is an ad-hoc component and a defect.
+- **Semantic tokens only.** Roles (`--primary`, `--muted-foreground`), never a hex or a raw size.
+  Every colour is a pair: text and its surface are chosen together.
+- **Variants, not one-offs.** A new look is a new `variant` in the component, not a long style
+  override at each call site.
+- **Never remove the focus ring.** Replace an outline only with an equally visible indicator that
+  keeps 3:1 against its neighbours.
+- **Colour is never the only signal.** Pair a destructive or success colour with text or an icon.
 
 ## Do not
 

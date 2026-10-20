@@ -19,9 +19,9 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - Colour contrast that passes out of the box: `contrast.test.ts` computes WCAG 2.2 AA ratios for
   every foreground and background pair the components use, in both schemes, from the shipped
   tokens (axe cannot judge contrast without layout).
-- Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and runs axe
-  over them, plus behaviour checks (current page, label wiring, live regions, text not markup);
-  `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
+- Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and
+  runs axe over them, plus behaviour checks (current page, label wiring, live regions, text not
+  markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
 - The page templates, `web/src/lib/kit/pages/` (`example`): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
@@ -29,8 +29,12 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   `pages/pages.test.ts` (`managed`) render every template in every state and run axe over them
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
-- The `kit-shadcn` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG
-  2.2 content belongs to `test-playwright`, so it is not carried here.
+- The `kit-shadcn` skill: rules, components, patterns, tokens and design-system notes (the Bits
+  UI primitive for each shadcn component, variants, focus, contrast traps), Svelte-first. It
+  declares `metadata.capability: design-system` and the plugin carries the `design-system`
+  keyword, so the platform lists the kit as a design system and can select its skill on that
+  axis. It also carries `references/accessibility-statement.md` (statement and VPAT/ACR template,
+  EAA/ADA/508 guidance); the wider WCAG 2.2 audit content belongs to `test-playwright`.
 
 ## Ownership
 

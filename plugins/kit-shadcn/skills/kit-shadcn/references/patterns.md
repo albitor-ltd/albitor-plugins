@@ -97,3 +97,21 @@ directly for a left- or right-anchored panel:
 
 Test at 390px wide: every desktop destination is reachable, nothing overflows horizontally, and
 keyboard and screen reader users can open, use and close the navigation.
+
+## Smaller patterns
+
+- **Human labels, not raw IDs.** Show "Speaker 1", not `spk_0`. Keep the identifier for the URL,
+  the `{#each}` key and the API call, never as visible text.
+- **Keep `document.title` in sync.** Set it per route with `<svelte:head><title>…</title></svelte:head>`
+  (include the record's name on a detail page) so the tab and history entry match the page.
+- **Async status without a refresh.** When a record moves from "processing" to "done", poll or
+  subscribe and update the row in place; nobody should have to reload. Announce the change in a
+  polite live region (`toast.push` with `tone: 'success'` or `'error'` does this) and update any
+  status badge (WCAG 4.1.3).
+- **Input types.** Set `type` and `autocomplete` so browsers and password managers help:
+  `type="password"` with `autocomplete="current-password"` or `"new-password"` (allow paste);
+  `type="tel"` with `autocomplete="tel"`; `autocomplete="cc-number"`, `"cc-exp"`, `"cc-csc"` for card
+  fields, though a payment provider's hosted fields are better than raw card inputs.
+- **Command palette.** Add one only when navigation or actions outgrow the shell. Build it on the
+  Bits UI `Command` primitive inside a `Dialog`; a shortcut such as Ctrl/Cmd+K is an extra, so the
+  same actions stay reachable through visible controls.

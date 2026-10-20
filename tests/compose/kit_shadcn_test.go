@@ -331,6 +331,16 @@ func TestKitShadcnSkill(t *testing.T) {
 	if !strings.HasPrefix(s, "---\nname: kit-shadcn\ndescription: ") {
 		t.Error("SKILL.md needs front matter naming kit-shadcn")
 	}
+	// The skill is what makes the kit a design system on the platform: DetectKind reads the
+	// plugin keyword, and the skill scan reads metadata.capability (albitor#3563).
+	if !strings.Contains(strings.SplitN(s, "\n---\n", 2)[0], "metadata:\n  capability: design-system") {
+		t.Error("SKILL.md front matter must declare metadata.capability: design-system")
+	}
+	if pj, err := os.ReadFile(filepath.Join(kitDir(t, "kit-shadcn"), ".claude-plugin", "plugin.json")); err != nil {
+		t.Fatal(err)
+	} else if !strings.Contains(string(pj), `"design-system"`) {
+		t.Error("plugin.json keywords need design-system so the kit is detected as a design system")
+	}
 	// Svelte-first: the React-only advice of the shadcn plugin must not carry over.
 	for _, banned := range []string{"use client", "Next.js", "npx shadcn@latest", "React Hook Form"} {
 		if strings.Contains(s, banned) {
