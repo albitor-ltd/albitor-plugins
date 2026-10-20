@@ -29,7 +29,10 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   `pages/pages.test.ts` (`managed`) render every template in every state and run axe over them
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
-- The `kit-shadcn` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG
+- The `kit-shadcn` skill: rules, components, patterns, tokens and design-system notes (the Bits
+  UI primitive for each shadcn component, variants, focus, contrast traps), Svelte-first. It
+  declares `metadata.capability: design-system` and the plugin carries the `design-system`
+  keyword, so the platform lists the kit as a design system and can select its skill on that axis. The shared WCAG
   2.2 content belongs to `test-playwright`, so it is not carried here.
 
 ## Ownership

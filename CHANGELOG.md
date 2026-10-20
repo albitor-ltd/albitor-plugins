@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `kit-shadcn` `0.3.0` (albitor-ltd/albitor#3563): the kit's skill takes over the `shadcn`
+  pack's design-system role. `SKILL.md` declares `metadata.capability: design-system`, the plugin
+  gains the `design-system` keyword (so `DetectKind` lists it as a design system), and a new
+  `references/design-system.md` carries what still applies to a Svelte-first kit: the Bits UI
+  primitive for each shadcn component, variants, focus, contrast traps and icons. The React and
+  Tailwind content (CLI, `cn()`, `cva`, Radix, `components.json`) and `shadcn-accessibility`
+  (shared WCAG content, owned by `test-playwright`) are not carried. `shadcn` is untouched until
+  it is retired. Untagged, so the catalogue still pins the previous version until released.
 - `test-playwright` `0.1.2` (albitor-ltd/albitor#3588): `journeyStep` photographs the whole page
   rather than the viewport, including `h-screen` shells that scroll an inner container (the
   viewport is temporarily grown to the needed height, then restored). The image is capped at 6000
