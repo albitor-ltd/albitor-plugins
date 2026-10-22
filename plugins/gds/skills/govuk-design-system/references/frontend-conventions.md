@@ -102,16 +102,16 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
 
 ## Minimal working page template (plain HTML)
 
+This is the default, **crownless** template: use it unless the build explicitly states the service is on GOV.UK. It has no crown, no GOV.UK logotype, no OGL or Crown copyright, no GDS Transport and no crown favicon. The service name goes in Service navigation, and the title has no "GOV.UK" suffix.
+
 ```html
 <!DOCTYPE html>
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Page title - Service name - GOV.UK</title>
+    <title>Page title - Service name</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0b0c0c">
-    <link rel="stylesheet" href="/assets/govuk-frontend.min.css">
-    <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
+    <link rel="stylesheet" href="/assets/app.css"><!-- GOV.UK Frontend compiled with $govuk-include-default-font-face: false; $govuk-font-family: arial, sans-serif -->
   </head>
   <body class="govuk-template__body">
     <script>
@@ -121,8 +121,11 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
     <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
 
     <header class="govuk-header" data-module="govuk-header">
-      <!-- govukHeader markup: crown logo + GOV.UK -->
+      <div class="govuk-header__container govuk-width-container">
+        <span class="govuk-header__link">Organisation name</span><!-- your organisation's name, no crown or logotype -->
+      </div>
     </header>
+    <!-- govukServiceNavigation markup: service name and links -->
 
     <div class="govuk-width-container">
       <a href="/previous-page" class="govuk-back-link">Back</a>
@@ -138,7 +141,9 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
     </div>
 
     <footer class="govuk-footer">
-      <!-- govukFooter markup: OGL + Crown copyright -->
+      <div class="govuk-width-container">
+        <!-- plain footer: your own links (accessibility statement, cookies, privacy), no OGL or Crown copyright -->
+      </div>
     </footer>
 
     <script type="module">
@@ -148,6 +153,8 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
   </body>
 </html>
 ```
+
+**Only when the build states the service is on GOV.UK**, change these parts: the title suffix `Page title - Service name - GOV.UK`; the favicon `<link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">`; the header (`govukHeader` markup: crown logo + GOV.UK); the footer (`govukFooter` markup: OGL + Crown copyright); and the GOV.UK Frontend stylesheet with GDS Transport served from your own assets.
 
 In Nunjucks this is far shorter — extend the supplied template and fill blocks:
 
