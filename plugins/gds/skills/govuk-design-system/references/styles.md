@@ -53,7 +53,7 @@ GDS Transport (also called "New Transport" / `nta`) is the GOV.UK typeface. **It
   ```scss
   // settings, before @use "govuk-frontend":
   $govuk-include-default-font-face: false;           // don't emit the GDS Transport @font-face
-  $govuk-font-family: arial, helvetica, sans-serif;  // or your own brand stack
+  $govuk-font-family: arial, sans-serif;
   ```
 
   Everything else in the Design System (the type scale, weights, spacing, components) is unchanged — only the typeface differs. Do not deploy the `govuk-frontend` font assets (`/assets/fonts/*`) for an off-GOV.UK build; if they are absent the browser uses the stack above. (A common deployment bug is an SPA catch-all serving `index.html` for missing `/assets/fonts/*`, which then fails to decode as a font — drop the font references entirely instead.)
@@ -136,11 +136,11 @@ A single responsive spacing scale of points 0–9. Points 0–3 are constant; po
 
 The page template provides the outer HTML skeleton. Top to bottom:
 1. `<!DOCTYPE html>` with `<html lang="en" class="govuk-template">`.
-2. `<head>`: charset, viewport, `<title>`, theme-color, links to the compiled CSS, and favicon/touch-icon assets shipped with Frontend.
+2. `<head>`: charset, viewport, `<title>`, links to the compiled CSS, and favicon/icons. Use your own icons and no GOV.UK theme-color/crown icons; the favicon/touch-icon assets shipped with Frontend only when the build states the service is on GOV.UK.
 3. `<body class="govuk-template__body">` with a tiny inline script that swaps a `govuk-frontend-supported`/`js-enabled` class onto `<html>` so CSS/JS enhancements only apply when JS is available.
-4. Skip link (`govukSkipLink`) → GOV.UK header (`govukHeader`) → optional Service navigation / Phase banner.
+4. Skip link (`govukSkipLink`) → your own organisation-name header (the GOV.UK header, `govukHeader`, only when the build states the service is on GOV.UK) → optional Service navigation / Phase banner.
 5. `<div class="govuk-width-container">` containing Back link/breadcrumbs and `<main class="govuk-main-wrapper" id="main-content" role="main">` with the page content (usually inside a `govuk-grid-row` + `govuk-grid-column-two-thirds`).
-6. GOV.UK footer (`govukFooter`).
+6. A plain footer with your own links (the GOV.UK footer, `govukFooter`, only when the build states the service is on GOV.UK).
 7. Script that runs `initAll()` to initialise JS components.
 
 (A concrete minimal template is in frontend-conventions.md.)

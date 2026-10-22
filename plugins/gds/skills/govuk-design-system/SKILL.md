@@ -21,7 +21,7 @@ GOV.UK branding follows one decision, and that decision is **stated explicitly b
 | --- | --- | --- |
 | Crown logo / GOV.UK logotype | ✅ Use it | ❌ **Never** — and don't imply you're part of GOV.UK or use the "GOV.UK" name |
 | GOV.UK header & footer components | ✅ Use the branded ones (keep OGL + Crown copyright) | ❌ Don't use them — build your **own** header/footer |
-| GDS Transport typeface | ✅ Use it (serve from your own assets) | ❌ Licensed for GOV.UK only — fall back to **Arial / Helvetica** |
+| GDS Transport typeface | ✅ Use it (serve from your own assets) | ❌ Licensed for GOV.UK only — fall back to **Arial** (`$govuk-font-family: arial, sans-serif`) |
 | Brand colour | ✅ Keep the GOV.UK brand colour | ✅ Use your **own** brand colour and logo |
 | Components, patterns, grid/layout, spacing & type scale, functional colours (error red, focus yellow, link/button states) | ✅ Use them all | ✅ Use them all — the Design System is required *minus* the branding |
 
