@@ -74,7 +74,7 @@ Only require an account when there's a genuine need (e.g. to return later, see h
 Where a username is needed, prefer email address as the identifier. If a separate username is required, give rules up front, validate clearly, and don't impose arbitrary restrictions.
 
 ### Navigate a service
-Use consistent navigation: GOV.UK header, Service navigation for service-wide links, Back link within linear journeys, Breadcrumbs only for hierarchical/browse structures. Don't mix Back link and Breadcrumbs.
+Use consistent navigation: an organisation-name header by default (the GOV.UK header only when the build states the service is on GOV.UK), Service navigation for service-wide links, Back link within linear journeys, Breadcrumbs only for hierarchical/browse structures. Don't mix Back link and Breadcrumbs.
 - **Human labels over raw identifiers:** in page content, service navigation, and check-answers rows, show friendly, human-readable names ("Speaker 1", not `spk_0`); keep the raw reference for the URL or back-end call, never as the label the user reads.
 - **Keep the page title accurate on every route:** each page needs a unique, descriptive `<title>` (2.4.2), prefixed with "Error: " on a validation error. Where the service enhances navigation client-side, keep `document.title` in sync as the route changes so the browser tab and history reflect the current page, not the one first loaded.
 

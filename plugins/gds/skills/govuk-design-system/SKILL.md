@@ -7,7 +7,7 @@ metadata:
 
 # GOV.UK Design System
 
-Help developers build interfaces that follow the GOV.UK Design System so they look and behave like a real GOV.UK service and pass a service assessment.
+Help developers build interfaces that follow the GOV.UK Design System so they follow GOV.UK Design System patterns and pass a service assessment, with branding per the stated on/not-on GOV.UK answer.
 
 ## First: is this service on GOV.UK? (decides what you may use)
 
