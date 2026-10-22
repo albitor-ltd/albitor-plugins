@@ -7,19 +7,21 @@ metadata:
 
 # GOV.UK Design System
 
-Help developers build interfaces that follow the GOV.UK Design System so they look and behave like a real GOV.UK service and pass a service assessment.
+Help developers build interfaces that follow the GOV.UK Design System so they follow GOV.UK Design System patterns and pass a service assessment, with branding per the stated on/not-on GOV.UK answer.
 
 ## First: is this service on GOV.UK? (decides what you may use)
 
-A service is **"on GOV.UK" only if it is published on a `service.gov.uk` (or `gov.uk`) domain.** Everything else — internal government tools, council / NHS / arms-length-body sites, and commercial or public-sector builds on any other domain — is **not** on GOV.UK. This distinction governs the GOV.UK *brand*, and getting it wrong is a Crown-branding and font-licensing breach, not a style nit.
+GOV.UK branding follows one decision, and that decision is **stated explicitly by the build**: whether the service is published on GOV.UK (`*.service.gov.uk`). Albitor states it in the build prompt as "The person also said where the service will be published: on GOV.UK, on a `service.gov.uk` domain" or "…: not on GOV.UK: it is an internal service, or one on another domain". The domain wording inside that sentence is the statement itself, not an inference; only a domain you guess from elsewhere (a URL, the audience) is an inference. Getting it wrong is a Crown-branding and font-licensing breach, not a style nit.
 
-**If you do not know which case applies, ask the user before generating any header, footer, logo, or font setup.** Do not assume.
+- **Apply GOV.UK branding only when the build explicitly states the service is on GOV.UK.**
+- **If the build states "not on GOV.UK", or does not state it at all, use the crownless pattern**: no crown, no GOV.UK logotype, no OGL, no Crown copyright, no GDS Transport. Follow the GOV.UK Frontend guidance for services not on GOV.UK: your organisation's name in the header (the service name goes in Service navigation, not the header), and the Arial font stack: `$govuk-font-family: (arial, sans-serif)` with `$govuk-include-default-font-face: false`, set in the `@use "govuk-frontend/dist/govuk" as * with (...)` rule.
+- **Never infer it** from the domain, the audience, the organisation type or the words "public sector", "council", "NHS" or "government". An internal council tool on a CloudFront URL is crownless unless the build says it is on GOV.UK. If the statement is missing, default to crownless; do not guess and do not add branding.
 
-| | **On GOV.UK** (`*.service.gov.uk`) | **Not on GOV.UK** (any other domain) |
+| | **Stated on GOV.UK** (`*.service.gov.uk`) | **Stated not on GOV.UK, or not stated** |
 | --- | --- | --- |
 | Crown logo / GOV.UK logotype | ✅ Use it | ❌ **Never** — and don't imply you're part of GOV.UK or use the "GOV.UK" name |
 | GOV.UK header & footer components | ✅ Use the branded ones (keep OGL + Crown copyright) | ❌ Don't use them — build your **own** header/footer |
-| GDS Transport typeface | ✅ Use it (serve from your own assets) | ❌ Licensed for GOV.UK only — fall back to **Arial / Helvetica** |
+| GDS Transport typeface | ✅ Use it (serve from your own assets) | ❌ Licensed for GOV.UK only — fall back to **Arial** (`$govuk-font-family: (arial, sans-serif)`) |
 | Brand colour | ✅ Keep the GOV.UK brand colour | ✅ Use your **own** brand colour and logo |
 | Components, patterns, grid/layout, spacing & type scale, functional colours (error red, focus yellow, link/button states) | ✅ Use them all | ✅ Use them all — the Design System is required *minus* the branding |
 
@@ -49,7 +51,7 @@ These are distilled from the live GOV.UK Design System and GOV.UK Frontend (Crow
 - **Don't hardcode hex colours.** Use the `govuk-colour()` Sass function or the functional colour helpers so the build stays correct across brand updates. See `references/styles.md`.
 - **Prefer macros where the stack allows.** In Nunjucks/Node, use the official `govuk-frontend` macros — they keep markup correct as the library updates. In React/Svelte/etc., copy the component's HTML, keep every class, and port the JS behaviour (focus management, toggles) faithfully; note this is a maintenance cost you take on.
 - **Forms:** every input needs an associated `<label>` (or `<legend>` in a `<fieldset>` for grouped controls). Never use placeholder text as a label. On error, render the error summary at the top (focused on load), link each entry to its field, and add the inline error message + error modifier classes.
-- **Page furniture:** `govuk-width-container` and a phase banner (Alpha/Beta) apply to any service. The **branded GOV.UK header and footer** (crown, OGL/licence links) are for services **on GOV.UK only** — off GOV.UK, build your own header/footer (see the table above).
+- **Page furniture:** `govuk-width-container` and a phase banner (Alpha/Beta) apply to any service. The **branded GOV.UK header and footer** (crown, OGL/licence links) are for services **the build states are on GOV.UK only** — off GOV.UK, build your own header/footer (see the table above).
 - When the user is starting a service, suggest the official **GOV.UK Prototype Kit** for prototyping but remind them production code should use `govuk-frontend` directly.
 
 ## Related

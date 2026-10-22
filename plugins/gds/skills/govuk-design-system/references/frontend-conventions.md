@@ -10,16 +10,29 @@ GOV.UK Frontend (npm package **`govuk-frontend`**) provides the CSS, JavaScript,
 npm install govuk-frontend
 ```
 
+These examples target GOV.UK Frontend 5.x and later (`dist/govuk` paths, `govukServiceNavigation`). Header and footer markup changes between majors (v6 included), so check the markup against the installed version before copying it.
+
 Two consumption modes:
 
-1. **Precompiled / "dist" files** — copy the compiled `govuk-frontend.min.css`, `govuk-frontend.min.js` and the `assets/` folder (fonts, images, favicons). Simplest; no build step. You cannot selectively include components or customise Sass settings.
+1. **Precompiled / "dist" files** — copy the compiled `govuk-frontend.min.css`, `govuk-frontend.min.js` and the `assets/` folder (fonts, images, favicons). Simplest; no build step. You cannot selectively include components or customise Sass settings. **Only when the build states the service is on GOV.UK**: the compiled CSS emits the GDS Transport `@font-face` and the assets folder holds the GDS Transport fonts, crown images and GOV.UK favicons.
 2. **npm + your own build** — import the Sass and JS into your pipeline. Lets you selectively include component CSS/JS, use the Sass mixins/functions, override settings (colours, page width, font path), and use the Nunjucks template/macros.
 
-Either way you must serve the **assets** (fonts and images). With a bundler, copy `node_modules/govuk-frontend/dist/govuk/assets` into your public assets path, or point the Sass `$govuk-assets-path` setting at where you serve them.
+**Crownless (the default: the build states not on GOV.UK, or does not say) requires mode 2**, configured in the `@use ... with (...)` rule: `$govuk-include-default-font-face: false` and `$govuk-font-family: (arial, sans-serif)`. Do not use the precompiled CSS, and do not copy or serve the GOV.UK fonts, crown images or favicons.
+
+When the build states the service is on GOV.UK, serve the **assets** (fonts and images). With a bundler, copy `node_modules/govuk-frontend/dist/govuk/assets` into your public assets path, or point the Sass `$govuk-assets-path` setting at where you serve them.
 
 ## Importing the styles (Sass)
 
-Import everything:
+Import everything (crownless default, which suppresses the GDS Transport `@font-face`):
+
+```scss
+@use "govuk-frontend/dist/govuk" as * with (
+  $govuk-include-default-font-face: false,
+  $govuk-font-family: (arial, sans-serif)
+);
+```
+
+Only when the build states the service is on GOV.UK, the bare form (which emits GDS Transport) is correct:
 
 ```scss
 @use "govuk-frontend/dist/govuk" as *;
@@ -30,25 +43,42 @@ Import everything:
 Selectively include components (only what you use) by importing the base plus individual component partials, e.g.:
 
 ```scss
+// crownless default: legacy @import is configured by variables set before it
+$govuk-include-default-font-face: false;
+$govuk-font-family: arial, sans-serif;
+// (omit both lines only when the build states the service is on GOV.UK)
 @import "govuk-frontend/govuk/base";
 @import "govuk-frontend/govuk/components/button/button";
 ```
 
 ### Sass settings / overrides
-Override settings **before** importing the library by setting the `$govuk-*` variables, e.g.:
+With `@use`, set the `$govuk-*` settings by configuring the module in the `@use` rule itself. Variables set in the importing file before `@use` do NOT configure the module. For example:
 
 ```scss
-$govuk-page-width: 1100px;            // widen the container
-$govuk-assets-path: "/assets/";       // where fonts/images are served
-$govuk-global-styles: true;           // apply base styles to bare elements
-$govuk-new-typography-scale: true;    // opt into the updated type scale
-@use "govuk-frontend/dist/govuk" as *;
+@use "govuk-frontend/dist/govuk" as * with (
+  $govuk-page-width: 1100px,            // widen the container
+  $govuk-assets-path: "/assets/",       // where fonts/images are served (on GOV.UK builds only; crownless builds serve no GOV.UK fonts or images)
+  $govuk-global-styles: true,           // apply base styles to bare elements
+  $govuk-include-default-font-face: false,  // crownless: no GDS Transport @font-face
+  $govuk-font-family: (arial, sans-serif)   // crownless: Arial stack
+);
 ```
+
+For the crownless default, the configuration is at minimum:
+
+```scss
+@use "govuk-frontend/dist/govuk" as * with (
+  $govuk-include-default-font-face: false,
+  $govuk-font-family: (arial, sans-serif)
+);
+```
+
+(With the older `@import` syntax, variables set before the `@import` do configure it.)
 
 Use the provided functions/mixins (`govuk-colour()`, `govuk-spacing()`, `govuk-font()`, `govuk-responsive-margin()`) rather than hardcoding values, so your service tracks palette/scale changes.
 
-### Off-GOV.UK setup
-`govuk-template` and the components are fine to use off GOV.UK, but the GDS Transport typeface and the GOV.UK branding are not (licensing, not style — see the "is this service on GOV.UK?" table in `SKILL.md`). For an off-GOV.UK build, apply the Sass settings from `styles.md` (`$govuk-include-default-font-face: false` and a system `$govuk-font-family` such as `arial, helvetica, sans-serif`), do not deploy the `/assets/fonts/*` files, and replace the branded header/footer (crown logo, "GOV.UK" name, OGL, Crown copyright) with your own.
+### Off-GOV.UK setup (also the default when the build does not say)
+`govuk-template` and the components are fine to use off GOV.UK, but the GDS Transport typeface and the GOV.UK branding are not (licensing, not style — see the "is this service on GOV.UK?" table in `SKILL.md`). For an off-GOV.UK build, apply the Sass settings from `styles.md` (`$govuk-include-default-font-face: false` and a system `$govuk-font-family` such as `arial, sans-serif`), do not deploy the `/assets/fonts/*` files, and replace the branded header/footer (crown logo, "GOV.UK" name, OGL, Crown copyright) with your own.
 
 ## Initialising JavaScript (`initAll`)
 
@@ -102,16 +132,16 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
 
 ## Minimal working page template (plain HTML)
 
+This is the default, **crownless** template: use it unless the build explicitly states the service is on GOV.UK. It has no crown, no GOV.UK logotype, no OGL or Crown copyright, no GDS Transport and no crown favicon. The service name goes in Service navigation, and the title has no "GOV.UK" suffix.
+
 ```html
 <!DOCTYPE html>
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Page title - Service name - GOV.UK</title>
+    <title>Page title - Service name</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0b0c0c">
-    <link rel="stylesheet" href="/assets/govuk-frontend.min.css">
-    <link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">
+    <link rel="stylesheet" href="/assets/app.css"><!-- GOV.UK Frontend compiled with $govuk-include-default-font-face: false; $govuk-font-family: (arial, sans-serif) -->
   </head>
   <body class="govuk-template__body">
     <script>
@@ -120,9 +150,15 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
 
     <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
 
-    <header class="govuk-header" data-module="govuk-header">
-      <!-- govukHeader markup: crown logo + GOV.UK -->
+    <header class="govuk-header">
+      <div class="govuk-header__container govuk-width-container">
+        <div class="govuk-header__logo">
+          <a href="/" class="govuk-header__link govuk-header__link--homepage">Organisation name</a>
+        </div>
+      </div>
     </header>
+    <!-- text link only, no logo. Default when there is no organisation URL: a custom app-header (your own class, e.g. app-header) without govuk-header__link* classes -->
+    <!-- govukServiceNavigation markup: service name and links -->
 
     <div class="govuk-width-container">
       <a href="/previous-page" class="govuk-back-link">Back</a>
@@ -138,7 +174,9 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
     </div>
 
     <footer class="govuk-footer">
-      <!-- govukFooter markup: OGL + Crown copyright -->
+      <div class="govuk-width-container">
+        <!-- plain footer: your own links (accessibility statement, cookies, privacy), no OGL or Crown copyright -->
+      </div>
     </footer>
 
     <script type="module">
@@ -149,13 +187,45 @@ Macro names map to components as `govuk<Name>` (e.g. `govukButton`, `govukErrorS
 </html>
 ```
 
+**Only when the build states the service is on GOV.UK**, change these parts: the title suffix `Page title - Service name - GOV.UK`; the favicon `<link rel="icon" sizes="48x48" href="/assets/images/favicon.ico">`; the header (`govukHeader` markup: crown logo + GOV.UK); the footer (`govukFooter` markup: OGL + Crown copyright); and the GOV.UK Frontend stylesheet with GDS Transport served from your own assets.
+
 In Nunjucks this is far shorter — extend the supplied template and fill blocks:
 
 ```njk
 {% extends "govuk/template.njk" %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 
-{% block pageTitle %}Page title - Service name - GOV.UK{% endblock %}
+{# Crownless default. govuk/template.njk renders the crown header, OGL footer
+   and crown favicons unless the header, footer and headIcons blocks are
+   overridden. Its theme-color meta sits outside any block, so set themeColor
+   (below) rather than overriding a block. Overriding `header` also drops the
+   template's govuk-template__header wrapper, which is fine. #}
+{% set themeColor = "<your brand colour>" %}{# the app's own brand colour as stated in the build. template.njk outputs <meta name="theme-color"> outside any block. #1d70b8 and #0b0c0c are GOV.UK colours: do not use them off GOV.UK. #}
+{% block pageTitle %}Page title - Service name{% endblock %}
+
+{% block headIcons %}
+  <link rel="icon" href="/assets/own-favicon.ico">{# your own icons, not the GOV.UK crown ones #}
+{% endblock %}
+
+{% block header %}
+  <header class="govuk-header">
+    <div class="govuk-header__container govuk-width-container">
+      <div class="govuk-header__logo">
+        <a href="/" class="govuk-header__link govuk-header__link--homepage">Organisation name</a>
+      </div>
+    </div>
+  </header>
+  {{ govukServiceNavigation({ serviceName: "Service name", serviceUrl: "/" }) }}
+{% endblock %}
+
+{% block footer %}
+  <footer class="govuk-footer">
+    <div class="govuk-width-container">
+      {# plain footer: your own links, no OGL or Crown copyright #}
+    </div>
+  </footer>
+{% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -166,6 +236,8 @@ In Nunjucks this is far shorter — extend the supplied template and fill blocks
   </div>
 {% endblock %}
 ```
+
+**Only when the build states the service is on GOV.UK**, drop the `headIcons`, `header` and `footer` overrides (the template's crown header, OGL and Crown copyright footer and crown icons are then correct) and use `{% block pageTitle %}Page title - Service name - GOV.UK{% endblock %}`.
 
 ## Prototype Kit vs production
 
@@ -181,7 +253,7 @@ GOV.UK services follow the Service Standard's "make all new source code open" po
 GOV.UK Frontend's contract is its **HTML structure + classes + ARIA + behaviour**, not Nunjucks. To use it from React/Svelte/Vue/etc:
 
 1. **Copy the component HTML** from the Design System component page (or render the Nunjucks macro once and copy its output) into your framework component. Keep the exact class names, element structure, `id`/`name`/`for` wiring, `aria-*` attributes and `data-module` values — these are the contract.
-2. **Keep the GOV.UK CSS**: import the GOV.UK Frontend Sass/CSS into your build so the copied classes resolve. Serve the fonts/images assets.
+2. **Keep the GOV.UK CSS**: import the GOV.UK Frontend Sass/CSS into your build so the copied classes resolve. Serve the fonts/images assets only when the build states the service is on GOV.UK; crownless builds serve none of the GOV.UK fonts, crown images or favicons.
 3. **Port the JS behaviour**: GOV.UK's JS finds elements by `data-module` and enhances them. Two options:
    - Re-use GOV.UK Frontend's own JS by importing the component class and instantiating it against your rendered DOM node (e.g. in a React `useEffect`/Svelte `onMount`, `new Button(node)` or `initAll()` scoped to a ref). Tear it down on unmount where needed.
    - Or re-implement the same behaviour natively in your framework, preserving the same DOM changes, ARIA states and keyboard interactions.
