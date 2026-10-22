@@ -45,10 +45,10 @@ Meet WCAG 2.2 level AA, success criterion 1.4.3: text and interactive elements n
 
 ### Typeface — GDS Transport is GOV.UK-only
 
-GDS Transport (also called "New Transport" / `nta`) is the GOV.UK typeface. **Its licence only permits use on services published on GOV.UK** (`*.service.gov.uk` / `gov.uk`). Using it anywhere else — internal tools, council/NHS/ALB sites, or commercial builds — is a font-licensing breach. This is not a style preference; it is a legal constraint (see the "is this service on GOV.UK?" table in `SKILL.md`).
+GDS Transport (also called "New Transport" / `nta`) is the GOV.UK typeface. **Its licence only permits use on services published on GOV.UK** (`*.service.gov.uk`), and you use it only when the build explicitly states the service is on GOV.UK (never infer it from domain or audience). Using it anywhere else, or where it is not stated — internal tools, council/NHS/ALB sites, or commercial builds — is a font-licensing breach. This is not a style preference; it is a legal constraint (see the "is this service on GOV.UK?" table in `SKILL.md`).
 
-- **On GOV.UK:** use GDS Transport. Serve the font files from your own assets (they ship with GOV.UK Frontend; do not hotlink). Keep the default `$govuk-font-family` and let `$govuk-include-default-font-face` stay `true` so the `@font-face` rules are emitted.
-- **Not on GOV.UK:** do **not** ship or reference the GDS Transport files. Override the font to a system stack and suppress the bundled `@font-face`:
+- **Stated on GOV.UK:** use GDS Transport. Serve the font files from your own assets (they ship with GOV.UK Frontend; do not hotlink). Keep the default `$govuk-font-family` and let `$govuk-include-default-font-face` stay `true` so the `@font-face` rules are emitted.
+- **Stated not on GOV.UK, or not stated:** do **not** ship or reference the GDS Transport files. Override the font to a system stack and suppress the bundled `@font-face`:
 
   ```scss
   // settings, before @use "govuk-frontend":

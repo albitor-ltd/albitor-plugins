@@ -47,7 +47,7 @@ $govuk-new-typography-scale: true;    // opt into the updated type scale
 
 Use the provided functions/mixins (`govuk-colour()`, `govuk-spacing()`, `govuk-font()`, `govuk-responsive-margin()`) rather than hardcoding values, so your service tracks palette/scale changes.
 
-### Off-GOV.UK setup
+### Off-GOV.UK setup (also the default when the build does not say)
 `govuk-template` and the components are fine to use off GOV.UK, but the GDS Transport typeface and the GOV.UK branding are not (licensing, not style — see the "is this service on GOV.UK?" table in `SKILL.md`). For an off-GOV.UK build, apply the Sass settings from `styles.md` (`$govuk-include-default-font-face: false` and a system `$govuk-font-family` such as `arial, helvetica, sans-serif`), do not deploy the `/assets/fonts/*` files, and replace the branded header/footer (crown logo, "GOV.UK" name, OGL, Crown copyright) with your own.
 
 ## Initialising JavaScript (`initAll`)

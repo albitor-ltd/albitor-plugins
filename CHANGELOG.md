@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `gds` `0.1.8` (albitor-ltd/albitor-plugins#68): GOV.UK branding (crown, GOV.UK logotype, OGL,
+  Crown copyright, GDS Transport) now keys on the build's explicit "on GOV.UK" statement, never on
+  the domain or audience. Not stated or "not on GOV.UK" gives the crownless pattern (organisation
+  name header, system font stack). Skill, auditor agent and references updated consistently.
+
 ### Added
 
 - `kit-gds` `0.1.0` (albitor-ltd/albitor#3563): a `component-kit@1` plugin for Svelte that absorbs

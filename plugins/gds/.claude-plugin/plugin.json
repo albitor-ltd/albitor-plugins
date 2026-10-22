@@ -1,7 +1,7 @@
 {
   "name": "gds",
   "displayName": "GDS standards (GOV.UK)",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
   "author": {
     "name": "Albitor Ltd",
