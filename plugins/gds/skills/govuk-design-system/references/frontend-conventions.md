@@ -23,7 +23,16 @@ When the build states the service is on GOV.UK, serve the **assets** (fonts and 
 
 ## Importing the styles (Sass)
 
-Import everything:
+Import everything (crownless default, which suppresses the GDS Transport `@font-face`):
+
+```scss
+@use "govuk-frontend/dist/govuk" as * with (
+  $govuk-include-default-font-face: false,
+  $govuk-font-family: (arial, sans-serif)
+);
+```
+
+Only when the build states the service is on GOV.UK, the bare form (which emits GDS Transport) is correct:
 
 ```scss
 @use "govuk-frontend/dist/govuk" as *;
@@ -34,6 +43,10 @@ Import everything:
 Selectively include components (only what you use) by importing the base plus individual component partials, e.g.:
 
 ```scss
+// crownless default: legacy @import is configured by variables set before it
+$govuk-include-default-font-face: false;
+$govuk-font-family: arial, sans-serif;
+// (omit both lines only when the build states the service is on GOV.UK)
 @import "govuk-frontend/govuk/base";
 @import "govuk-frontend/govuk/components/button/button";
 ```
