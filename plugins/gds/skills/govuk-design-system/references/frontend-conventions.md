@@ -17,7 +17,7 @@ Two consumption modes:
 1. **Precompiled / "dist" files** — copy the compiled `govuk-frontend.min.css`, `govuk-frontend.min.js` and the `assets/` folder (fonts, images, favicons). Simplest; no build step. You cannot selectively include components or customise Sass settings. **Only when the build states the service is on GOV.UK**: the compiled CSS emits the GDS Transport `@font-face` and the assets folder holds the GDS Transport fonts, crown images and GOV.UK favicons.
 2. **npm + your own build** — import the Sass and JS into your pipeline. Lets you selectively include component CSS/JS, use the Sass mixins/functions, override settings (colours, page width, font path), and use the Nunjucks template/macros.
 
-**Crownless (the default: the build states not on GOV.UK, or does not say) requires mode 2**, with `$govuk-include-default-font-face: false` and `$govuk-font-family: arial, sans-serif` set before importing the styles. Do not use the precompiled CSS, and do not copy or serve the GOV.UK fonts, crown images or favicons.
+**Crownless (the default: the build states not on GOV.UK, or does not say) requires mode 2**, configured in the `@use ... with (...)` rule: `$govuk-include-default-font-face: false` and `$govuk-font-family: (arial, sans-serif)`. Do not use the precompiled CSS, and do not copy or serve the GOV.UK fonts, crown images or favicons.
 
 When the build states the service is on GOV.UK, serve the **assets** (fonts and images). With a bundler, copy `node_modules/govuk-frontend/dist/govuk/assets` into your public assets path, or point the Sass `$govuk-assets-path` setting at where you serve them.
 
@@ -39,15 +39,28 @@ Selectively include components (only what you use) by importing the base plus in
 ```
 
 ### Sass settings / overrides
-Override settings **before** importing the library by setting the `$govuk-*` variables, e.g.:
+With `@use`, set the `$govuk-*` settings by configuring the module in the `@use` rule itself. Variables set in the importing file before `@use` do NOT configure the module. For example:
 
 ```scss
-$govuk-page-width: 1100px;            // widen the container
-$govuk-assets-path: "/assets/";       // where fonts/images are served
-$govuk-global-styles: true;           // apply base styles to bare elements
-$govuk-new-typography-scale: true;    // opt into the updated type scale
-@use "govuk-frontend/dist/govuk" as *;
+@use "govuk-frontend/dist/govuk" as * with (
+  $govuk-page-width: 1100px,            // widen the container
+  $govuk-assets-path: "/assets/",       // where fonts/images are served (on GOV.UK builds only; crownless builds serve no GOV.UK fonts or images)
+  $govuk-global-styles: true,           // apply base styles to bare elements
+  $govuk-include-default-font-face: false,  // crownless: no GDS Transport @font-face
+  $govuk-font-family: (arial, sans-serif)   // crownless: Arial stack
+);
 ```
+
+For the crownless default, the configuration is at minimum:
+
+```scss
+@use "govuk-frontend/dist/govuk" as * with (
+  $govuk-include-default-font-face: false,
+  $govuk-font-family: (arial, sans-serif)
+);
+```
+
+(With the older `@import` syntax, variables set before the `@import` do configure it.)
 
 Use the provided functions/mixins (`govuk-colour()`, `govuk-spacing()`, `govuk-font()`, `govuk-responsive-margin()`) rather than hardcoding values, so your service tracks palette/scale changes.
 
@@ -115,7 +128,7 @@ This is the default, **crownless** template: use it unless the build explicitly 
     <meta charset="utf-8">
     <title>Page title - Service name</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/assets/app.css"><!-- GOV.UK Frontend compiled with $govuk-include-default-font-face: false; $govuk-font-family: arial, sans-serif -->
+    <link rel="stylesheet" href="/assets/app.css"><!-- GOV.UK Frontend compiled with $govuk-include-default-font-face: false; $govuk-font-family: (arial, sans-serif) -->
   </head>
   <body class="govuk-template__body">
     <script>
@@ -131,7 +144,7 @@ This is the default, **crownless** template: use it unless the build explicitly 
         </div>
       </div>
     </header>
-    <!-- default when there is no organisation URL: a custom app-header (your own class, e.g. app-header) without govuk-header__link* classes -->
+    <!-- text link only, no logo. Default when there is no organisation URL: a custom app-header (your own class, e.g. app-header) without govuk-header__link* classes -->
     <!-- govukServiceNavigation markup: service name and links -->
 
     <div class="govuk-width-container">
@@ -175,7 +188,7 @@ In Nunjucks this is far shorter — extend the supplied template and fill blocks
    overridden. Its theme-color meta sits outside any block, so set themeColor
    (below) rather than overriding a block. Overriding `header` also drops the
    template's govuk-template__header wrapper, which is fine. #}
-{% set themeColor = "#1d70b8" %}{# your own colour: template.njk outputs <meta name="theme-color"> outside any block #}
+{% set themeColor = "<your brand colour>" %}{# the app's own brand colour as stated in the build. template.njk outputs <meta name="theme-color"> outside any block. #1d70b8 and #0b0c0c are GOV.UK colours: do not use them off GOV.UK. #}
 {% block pageTitle %}Page title - Service name{% endblock %}
 
 {% block headIcons %}

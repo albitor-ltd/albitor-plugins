@@ -14,14 +14,14 @@ Help developers build interfaces that follow the GOV.UK Design System so they fo
 GOV.UK branding follows one decision, and that decision is **stated explicitly by the build**: whether the service is published on GOV.UK (`*.service.gov.uk`). Albitor states it in the build prompt as "The person also said where the service will be published: on GOV.UK, on a `service.gov.uk` domain" or "…: not on GOV.UK: it is an internal service, or one on another domain". The domain wording inside that sentence is the statement itself, not an inference; only a domain you guess from elsewhere (a URL, the audience) is an inference. Getting it wrong is a Crown-branding and font-licensing breach, not a style nit.
 
 - **Apply GOV.UK branding only when the build explicitly states the service is on GOV.UK.**
-- **If the build states "not on GOV.UK", or does not state it at all, use the crownless pattern**: no crown, no GOV.UK logotype, no OGL, no Crown copyright, no GDS Transport. Follow the GOV.UK Frontend guidance for services not on GOV.UK: your organisation's name in the header (the service name goes in Service navigation, not the header), and the Arial font stack: `$govuk-font-family: arial, sans-serif` with `$govuk-include-default-font-face: false`.
+- **If the build states "not on GOV.UK", or does not state it at all, use the crownless pattern**: no crown, no GOV.UK logotype, no OGL, no Crown copyright, no GDS Transport. Follow the GOV.UK Frontend guidance for services not on GOV.UK: your organisation's name in the header (the service name goes in Service navigation, not the header), and the Arial font stack: `$govuk-font-family: (arial, sans-serif)` with `$govuk-include-default-font-face: false`, set in the `@use "govuk-frontend/dist/govuk" as * with (...)` rule.
 - **Never infer it** from the domain, the audience, the organisation type or the words "public sector", "council", "NHS" or "government". An internal council tool on a CloudFront URL is crownless unless the build says it is on GOV.UK. If the statement is missing, default to crownless; do not guess and do not add branding.
 
 | | **Stated on GOV.UK** (`*.service.gov.uk`) | **Stated not on GOV.UK, or not stated** |
 | --- | --- | --- |
 | Crown logo / GOV.UK logotype | ✅ Use it | ❌ **Never** — and don't imply you're part of GOV.UK or use the "GOV.UK" name |
 | GOV.UK header & footer components | ✅ Use the branded ones (keep OGL + Crown copyright) | ❌ Don't use them — build your **own** header/footer |
-| GDS Transport typeface | ✅ Use it (serve from your own assets) | ❌ Licensed for GOV.UK only — fall back to **Arial** (`$govuk-font-family: arial, sans-serif`) |
+| GDS Transport typeface | ✅ Use it (serve from your own assets) | ❌ Licensed for GOV.UK only — fall back to **Arial** (`$govuk-font-family: (arial, sans-serif)`) |
 | Brand colour | ✅ Keep the GOV.UK brand colour | ✅ Use your **own** brand colour and logo |
 | Components, patterns, grid/layout, spacing & type scale, functional colours (error red, focus yellow, link/button states) | ✅ Use them all | ✅ Use them all — the Design System is required *minus* the branding |
 

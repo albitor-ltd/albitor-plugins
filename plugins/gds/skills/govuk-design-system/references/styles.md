@@ -51,9 +51,11 @@ GDS Transport (also called "New Transport" / `nta`) is the GOV.UK typeface. **It
 - **Stated not on GOV.UK, or not stated:** do **not** ship or reference the GDS Transport files. Override the font to a system stack and suppress the bundled `@font-face`:
 
   ```scss
-  // settings, before @use "govuk-frontend":
-  $govuk-include-default-font-face: false;           // don't emit the GDS Transport @font-face
-  $govuk-font-family: arial, sans-serif;
+  // configure the module in the @use rule (variables set before @use do not apply):
+  @use "govuk-frontend/dist/govuk" as * with (
+    $govuk-include-default-font-face: false,  // don't emit the GDS Transport @font-face
+    $govuk-font-family: (arial, sans-serif)
+  );
   ```
 
   Everything else in the Design System (the type scale, weights, spacing, components) is unchanged — only the typeface differs. Do not deploy the `govuk-frontend` font assets (`/assets/fonts/*`) for an off-GOV.UK build; if they are absent the browser uses the stack above. (A common deployment bug is an SPA catch-all serving `index.html` for missing `/assets/fonts/*`, which then fails to decode as a font — drop the font references entirely instead.)
