@@ -81,7 +81,7 @@ cursor back; a server that hangs for ever pauses the queue without counting atte
 |---|---|
 | routes | App-owned SvelteKit files under `web/src/routes/`. No slot, no managed file to edit |
 | `web.nav` | A route adds a sibling `nav.ts` exporting `nav = { label, order, group }`; the managed `nav.generated.ts` collects them with `import.meta.glob('/src/routes/**/nav.ts')` and merges plugin entries. A plugin entry has no target: its link is the label slug (`Sign in` is `/sign-in`) |
-| `web.root-classes` | The managed `src/app.html` is an `html` slot template: `<html class="{{albitor.slot.web.root-classes.html}}">` and `<body class="{{albitor.slot.web.root-classes.body}}">`. A kit or style contributes `{target: "html"\|"body", class}` entries; the composer sorts and dedupes them. No entries renders `class=""`. `app.html` is no longer app-owned: edit root classes through the slot, not the file |
+| `web.root-classes` | The managed `src/app.html` is an `html` slot template: `<html class="{{albitor.slot.web.root-classes.html}}">` and `<body class="{{albitor.slot.web.root-classes.body}}">`. A kit or style contributes `{target: "html"\|"body", class}` entries; the composer sorts and dedupes them. No entries renders `class=""`. `app.html` is no longer app-owned: edit root classes through the slot, not the file. Migration: an app that edited `app.html` (favicon, meta, attributes) loses those edits on upgrade; move head content to `<svelte:head>` in a layout |
 | `web.providers`, `web.route-guard` | A plugin ships a module in `web/src/lib/shell/scope.d/` exporting the identifier it declared; the managed `providers.generated.ts` resolves it |
 
 ## Dependency pins
