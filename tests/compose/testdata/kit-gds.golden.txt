@@ -31,6 +31,7 @@
 === web/src/lib/kit/govuk.scss ===
 === web/src/lib/kit/index.ts ===
 === web/src/lib/kit/kit.test.ts ===
+=== web/src/lib/kit/rootclasses.test.ts ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===
 === web/src/lib/shell/api.test.ts ===
