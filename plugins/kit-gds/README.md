@@ -41,9 +41,9 @@ web-svelte 0.4.0 or later, which hosts the slot in `app.html`.
 
 Frontend's template also runs an inline script first in `<body>` that adds `js-enabled` and
 `govuk-frontend-supported` (when `noModule` is supported) to the body. This is a client-rendered
-SPA, so `AppShell` does it in `onMount` instead and removes only what it added on unmount. No
+SPA, so `AppShell` does it instead (in its script body, before children mount) and removes only what it added on destroy. No
 inline script means no CSP `script-src` exception; the classes gate only JS-enhanced styling, so
-a page without JS is the plain one. `rootclasses.test.ts` (managed) covers it.
+a page without JS is the plain one. `rootclasses.test.ts` (managed) covers it. The classes are set while `AppShell` initialises, before any child mounts, so a component that calls `initAll()` in its own `onMount` already sees them.
 
 ## Brand colour
 

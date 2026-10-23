@@ -5,6 +5,7 @@
 import { flushSync, mount, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import Showcase from './Showcase.svelte';
+import Probe from './RootClassesProbe.svelte';
 
 let app: ReturnType<typeof mount> | undefined;
 
@@ -47,5 +48,12 @@ describe('GOV.UK Frontend body classes', () => {
 		expect(document.body.classList.contains('govuk-template__body')).toBe(true);
 		expect(document.body.classList.contains('js-enabled')).toBe(true);
 		expect(document.body.classList.contains('govuk-frontend-supported')).toBe(false);
+	});
+
+	it('is in place before a child component runs its own onMount', () => {
+		supportModules();
+		app = mount(Probe, { target: document.body });
+		flushSync();
+		expect(document.body.dataset.seen).toContain('govuk-frontend-supported');
 	});
 });

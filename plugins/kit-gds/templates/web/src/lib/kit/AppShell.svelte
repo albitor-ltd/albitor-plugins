@@ -4,7 +4,7 @@
      The header is TEXT ONLY: no Crown, no GOV.UK logotype (they are for services on GOV.UK only). -->
 <script lang="ts">
 	import './govuk.scss';
-	import { onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { NavGroup } from '../shell/types';
 
@@ -17,15 +17,24 @@
 
 	// GOV.UK Frontend's page template runs an inline script as the first thing in <body> that adds
 	// `js-enabled` (and `govuk-frontend-supported` when the browser passes its feature check). This
-	// app is a client-rendered SPA, so the same check runs here on mount instead: no inline script,
-	// so no CSP exception. The two classes only gate JS-enhanced styling; without them (no JS) the
-	// page is the plain one. Cleanup removes what this added, so the shell can be mounted in tests.
-	onMount(() => {
-		const added = ['js-enabled'];
-		if ('noModule' in HTMLScriptElement.prototype) added.push('govuk-frontend-supported');
-		const fresh = added.filter((c) => !document.body.classList.contains(c));
-		document.body.classList.add(...added);
-		return () => document.body.classList.remove(...fresh);
+	// app is a client-rendered SPA, so the same check runs here instead: no inline script, so no CSP
+	// exception. It runs in the script body, not onMount, because Svelte mounts children first and
+	// a child calling initAll() or new Button() in its own onMount must already see the classes.
+	// The classes only gate JS-enhanced styling; without JS the page is the plain one. Only what
+	// this added is removed on destroy.
+	const added: string[] = [];
+	if (typeof document !== 'undefined') {
+		const wanted = ['js-enabled'];
+		if ('noModule' in HTMLScriptElement.prototype) wanted.push('govuk-frontend-supported');
+		for (const c of wanted) {
+			if (!document.body.classList.contains(c)) {
+				document.body.classList.add(c);
+				added.push(c);
+			}
+		}
+	}
+	onDestroy(() => {
+		if (typeof document !== 'undefined') document.body.classList.remove(...added);
 	});
 
 	function normal(p: string): string {

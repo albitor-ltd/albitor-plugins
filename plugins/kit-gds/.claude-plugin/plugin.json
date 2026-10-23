@@ -126,6 +126,13 @@
         }
       },
       {
+        "path": "web/src/lib/kit/RootClassesProbe.svelte",
+        "mode": "managed",
+        "when": {
+          "web-framework": "web-svelte"
+        }
+      },
+      {
         "path": "web/src/lib/kit/rootclasses.test.ts",
         "mode": "managed",
         "when": {
