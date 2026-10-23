@@ -66,6 +66,10 @@ place.
 `package.json` and its lockfile, and `src/lib/sync/collections.ts` (the synced collections, read
 only by the offline data layer).
 
+`src/app.html` is managed (a slot template), not yours: an edit is overwritten on upgrade. Put head
+content (favicon, meta) in `<svelte:head>` in a layout, and root `html`/`body` classes in a plugin's
+`web.root-classes` slot.
+
 ## Plugins: providers and the route guard
 
 A plugin that fills `web.providers` or `web.route-guard` names an identifier and ships a module in
