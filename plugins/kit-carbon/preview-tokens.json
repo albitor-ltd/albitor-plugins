@@ -19,5 +19,13 @@
     "background": "#ffffff",
     "accent": "#0f62fe",
     "on_accent": "#ffffff"
+  },
+  "roles": {
+    "header": {
+      "background": "#161616",
+      "foreground": "#ffffff"
+    },
+    "link": "#0f62fe",
+    "focus": "#0f62fe"
   }
 }

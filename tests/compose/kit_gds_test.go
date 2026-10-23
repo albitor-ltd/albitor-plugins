@@ -182,4 +182,19 @@ func TestKitGDSPreviewTokens(t *testing.T) {
 			t.Errorf("preview colour %s is %s, GOV.UK Frontend 6.4.0 says %s", name, got, want)
 		}
 	}
+	// roles (#3710): off GOV.UK the header is never the GOV.UK blue; that blue is the band only
+	// where the brand colour is withdrawn, and the focus is the yellow fill with black text.
+	r := tok.Roles
+	if r == nil || r.Header == nil || r.HeaderWithdrawn == nil {
+		t.Fatalf("roles lack a header and a withdrawn header: %+v", r)
+	}
+	if strings.EqualFold(r.Header.Background, "#1d70b8") {
+		t.Errorf("roles.header is the GOV.UK blue %s; off GOV.UK the band must be neutral", r.Header.Background)
+	}
+	if !strings.EqualFold(r.HeaderWithdrawn.Background, "#1d70b8") {
+		t.Errorf("roles.header_withdrawn is %s, want #1d70b8", r.HeaderWithdrawn.Background)
+	}
+	if !strings.EqualFold(r.Focus, "#ffdd00") || !strings.EqualFold(r.FocusInk, "#0b0c0c") {
+		t.Errorf("roles focus = %s on %s, want #ffdd00 on #0b0c0c", r.Focus, r.FocusInk)
+	}
 }

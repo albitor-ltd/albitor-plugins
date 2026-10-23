@@ -150,6 +150,18 @@ func TestKitCarbonPreviewTokens(t *testing.T) {
 			t.Errorf("preview colour %s is %s, Carbon white says %s", name, pair[0], pair[1])
 		}
 	}
+	// roles (#3710): the non-GOV.UK proof. A header, a link and a focus ring; no withdrawn band
+	// (Carbon always offers a colour) and no focus fill.
+	r := tok.Roles
+	if r == nil || r.Header == nil {
+		t.Fatalf("roles lack a header: %+v", r)
+	}
+	if !strings.EqualFold(r.Header.Background, "#161616") || !strings.EqualFold(r.Link, "#0f62fe") || !strings.EqualFold(r.Focus, "#0f62fe") {
+		t.Errorf("roles = %+v header %+v, want header #161616, link and focus #0f62fe", r, r.Header)
+	}
+	if r.HeaderWithdrawn != nil || r.FocusInk != "" {
+		t.Errorf("roles carry a withdrawn header or focus ink: %+v", r)
+	}
 }
 
 func TestKitCarbonSkill(t *testing.T) {

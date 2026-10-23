@@ -44,7 +44,7 @@ def enum(vals): if type != "string" then "must be a string" elif IN(vals[]) then
 
 if (isobj | not) then "top level is not an object" else
   . as $d
-  | ( unknown(["version","font_family","heading_font_family","heading_weight","type_scale","radius","density","elevation","border_width","min_target","heading_tracking","focus_ring","tabular_figures","dark_target","colours"]; ""),
+  | ( unknown(["version","font_family","heading_font_family","heading_weight","type_scale","radius","density","elevation","border_width","min_target","heading_tracking","focus_ring","tabular_figures","dark_target","colours","roles"]; ""),
       (if ($d.type_scale|isobj) then ($d.type_scale | unknown(["small","body","heading","title"]; "type_scale.")) else empty end),
       (if ($d.colours|isobj) then ($d.colours | unknown(["text","text_secondary","border","surface","background","accent","on_accent","control_border","danger","success","warning","warning_alt"]; "colours.")) else empty end),
       req(["version"]; if . == 1 then empty else "is not 1" end),
@@ -62,6 +62,20 @@ if (isobj | not) then "top level is not an object" else
       opt(["heading_tracking"]; if type != "string" then "must be a string" elif test("\\A(?:0|-?0\\.[0-9]{1,3}em)\\z") then empty else "is not 0 or an em value such as -0.02em" end),
       (if ($d | has("tabular_figures")) and ($d.tabular_figures != null) and (($d.tabular_figures|type) != "boolean") then "tabular_figures must be a boolean" else empty end),
       optn(["dark_target"]; if type != "number" then "must be a number" elif . == 0 or (. >= 4.5 and . <= 7) then empty else "is not 0 or between 4.5 and 7" end),
+      # roles (#3710): optional; null reads as absent on the platform side.
+      (if ($d | has("roles")) and ($d.roles != null) then
+         (if ($d.roles|isobj) | not then "roles must be an object" else
+            ($d.roles | unknown(["header","header_withdrawn","link","focus","focus_ink"]; "roles.")),
+            (["header","header_withdrawn"][] as $b
+              | (try ($d.roles[$b]) catch null) as $band
+              | if $band == null then empty
+                elif ($band|isobj) | not then "roles.\($b) must be an object"
+                else ($band | unknown(["background","foreground"]; "roles.\($b).")),
+                     (["background","foreground"][] as $k | req(["roles",$b,$k]; hexerr))
+                end),
+            (["link","focus","focus_ink"][] as $k | opt(["roles",$k]; hexerr))
+          end)
+       else empty end),
       (if ($d.colours|isobj) | not then "colours is required and must be an object" else empty end),
       (["text","text_secondary","border","surface","background","accent","on_accent"][] as $k | req(["colours",$k]; hexerr)),
       (["control_border","danger","success","warning","warning_alt"][] as $k | opt(["colours",$k]; hexerr))
