@@ -62,7 +62,7 @@ place.
 ## Seeded files you own
 
 `src/routes/+error.svelte` (error and 404), `src/routes/offline/+page.svelte`,
-`src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`, `src/app.html`,
+`src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`,
 `package.json` and its lockfile, and `src/lib/sync/collections.ts` (the synced collections, read
 only by the offline data layer).
 

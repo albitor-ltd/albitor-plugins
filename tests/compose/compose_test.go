@@ -155,7 +155,7 @@ func TestWebSvelteComposesWithStubKit(t *testing.T) {
 			b.WriteString("=== " + p + " (not shown) ===\n")
 			continue
 		}
-		if strings.HasSuffix(p, ".generated.ts") || p == "albitor.yaml" || p == ".albitor/shell.json" {
+		if strings.HasSuffix(p, ".generated.ts") || p == "web/src/app.html" || p == "albitor.yaml" || p == ".albitor/shell.json" {
 			b.WriteString("=== " + p + " ===\n" + string(res.Files[p]) + "\n")
 			continue
 		}

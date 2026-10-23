@@ -6,7 +6,7 @@
     {
       "socket": "web-framework",
       "plugin": "web-svelte",
-      "version": "0.3.0"
+      "version": "0.4.0"
     },
     {
       "socket": "component-kit",
@@ -96,7 +96,7 @@
     },
     {
       "path": "web/src/app.html",
-      "mode": "example",
+      "mode": "managed",
       "plugins": "web-svelte"
     },
     {
@@ -432,6 +432,18 @@ site:
 === web/scripts/local-serve.mjs ===
 === web/src/app.d.ts ===
 === web/src/app.html ===
+<!doctype html>
+<html lang="en" class="">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		%sveltekit.head%
+	</head>
+	<body class="" data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
+
 === web/src/lib/app/app.css ===
 === web/src/lib/data-layer/index.ts ===
 === web/src/lib/data-layer/offline.ts ===
