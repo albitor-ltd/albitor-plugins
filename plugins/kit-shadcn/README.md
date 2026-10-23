@@ -7,6 +7,10 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 
 ## What it provides
 
+- The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
+  `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark) and `SignInPage`
+  (re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
+  `ContractProbe.svelte` (managed) audit it.
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
   (on [Bits UI](https://bits-ui.com)), `Toaster` and `toast`, `EmptyState`.
@@ -39,7 +43,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 ## Ownership
 
 The components are `example` files: seeded once, then the app's, which is shadcn's model. The
-tokens, the contrast test and `web/vitest.config.ts` are `managed`. The vitest config extends
+tokens, the contrast test and `web/vitest.config.ts` are `managed`. `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are `managed` and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The vitest config extends
 web-svelte's `vite.config.ts` so Bits UI's `.svelte` files compile and `mount` resolves to the
 client build.
 

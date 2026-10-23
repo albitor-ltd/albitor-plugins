@@ -40,9 +40,9 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 | `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow |
 | `data-dynamodb` | The `data-store@1` plugin: `Store` over one DynamoDB table, in-memory fake, conformance suite, `services.tables` fragment |
-| `kit-shadcn` | The `component-kit@1` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
-| `kit-carbon` | The `component-kit@1` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
-| `kit-gds` | The `component-kit@1` plugin for Svelte in GOV.UK Design System style: GOV.UK Frontend v6 markup, a text-only header (no Crown or logotype), the GOV.UK design-system and accessibility skills, contrast and axe audits that ship with the app; not themeable |
+| `kit-shadcn` | The `component-kit@1` plugin (and the component-kit@2 shell contract) for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
+| `kit-carbon` | The `component-kit@1` plugin (and the component-kit@2 shell contract) for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
+| `kit-gds` | The `component-kit@1` plugin (and the component-kit@2 shell contract) for Svelte in GOV.UK Design System style: GOV.UK Frontend v6 markup, a text-only header (no Crown or logotype), the GOV.UK design-system and accessibility skills, contrast and axe audits that ship with the app; not themeable |
 | `deploy-byoa-aws` | The `deploy-target@1` plugin for a customer's own AWS account: Terraform rendered from `albitor.yaml` (site, API, tables, alarms, DNS) from versioned modules, the CI and deploy workflows (OIDC), the stale state-lock guard |
 | `deploy-hosted` | The `deploy-target@1` plugin for the hosted lane: no infrastructure in the repo, the platform compiles `albitor.yaml` and deploys; the managed CI workflow (manifest check, API and web build and test) |
 | `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-in screens per kit, `services.auth` |
@@ -101,6 +101,46 @@ Done: every first-party plugin is tagged `<name>/vX.Y.Z` from this repository, a
 catalogue is in `monorepo` mode. Remaining, outside this repository: archive the old
 `albitor-plugin-*` repositories with a pointer README once no tenant source points at them (keep
 their tags ingestible until then).
+
+## The `component-kit@2` contract
+
+A kit that follows the `component-kit@2` contract (ADR-0095 section 6) exports three standard shell components from
+`web/src/lib/kit/index.ts`, with the same names and props in every kit. A plugin that renders
+screens (an auth plugin, a page template) imports them from `../lib/kit` and never branches on which
+kit is installed. The contract names no Style; each kit draws the pieces in its own idiom.
+
+```ts
+import { AppShell, Footer, SignInPage } from '../lib/kit';
+import type { FooterLink } from '../lib/kit';
+```
+
+| Export | Props | Landmarks and behaviour |
+| --- | --- | --- |
+| `AppShell` | `nav: NavGroup[]`, `path: string`, `title?: string` (the app's name), `footer?: Snippet`, `children: Snippet` | Skip link first and pointed at the one `<main>`; one `<nav aria-label="Main">`; `aria-current="page"` on the current link and `"true"` inside its section; renders `footer` after `<main>`, outside it. web-svelte's root layout renders it. |
+| `Footer` | `links?: FooterLink[]` (`{ href, label }`), `children?: Snippet` (free text) | One `<footer>` (the contentinfo landmark), never inside `<main>`; links in `<nav aria-label="Footer">`; labels and text rendered as text; renders nothing when given neither. Pass it through `AppShell`'s `footer`. |
+| `SignInPage` | `title?: string`, `error?: string`, `busy?: boolean`, `resetHref?: string`, `signUpHref?: string`, `onsubmit(email, password)` | Presentation only: the auth plugin decides what signing in means. One `<h1>`; labelled email (`autocomplete="username"`) and password (`autocomplete="current-password"`) fields; a failure is one focused alert carrying the `error` sentence (which never says which field was wrong); the button is disabled while `busy`. |
+
+```svelte
+{#snippet footer()}<Footer links={[{ href: '/privacy', label: 'Privacy' }]}>Example Ltd</Footer>{/snippet}
+<AppShell {nav} {path} {title} {footer}>
+  <SignInPage {error} {busy} resetHref="/reset" onsubmit={(email, password) => signIn(email, password)} />
+</AppShell>
+```
+
+Each kit ships `contract.test.ts` and `ContractProbe.svelte` (managed): the exports exist, the
+landmarks above hold, the sign-in page and the footer pass axe. A kit's other pieces (`Button`,
+`Field`, `Table`, ...) stay kit-specific in props that match across kits where they can, but only
+these three are the contract. **Upgrading an existing app.** The managed
+tests import the kit's `index.ts`, which is the app's after the first compose, so the new tests fail
+until the app adopts the exports: take the kit's new `Footer.svelte` and its changed `SignInPage.svelte` (kit-shadcn and
+kit-carbon: `pages/SignInPage.svelte`, whose error-focus effect changed, so `signin.test.ts` fails
+against the old one; kit-gds: a new file) from `templates/web/src/lib/kit/`. They are `example`
+files, and what compose does with them on an upgrade is under review in albitor-ltd/albitor#3722, so
+check your `web/src/lib/kit/` files after upgrading rather than relying on either behaviour. Also
+add `Footer`, `FooterLink` and `SignInPage` to `index.ts`, and add the optional `footer` snippet to `AppShell.svelte`, rendered after `<main>`. **Declaration.** The platform's socket registry does not yet accept major 2, so the real parser
+refuses `provides: ["component-kit@2"]` (`unsupported_socket_major`). Until it does, the three kits
+keep `provides: ["component-kit@1"]` and ship the contract as exports alongside the existing ones. When the registry gains major 2, each kit's `provides`
+moves to `component-kit@2` and a consumer can then `requires` it.
 
 ## Preview tokens
 

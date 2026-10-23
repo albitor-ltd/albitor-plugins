@@ -1,6 +1,7 @@
 <!-- Seeded by Albitor (kit-carbon), then yours: the page frame, Carbon's UI shell (header, side nav,
      content). web-svelte's root layout renders it with the merged nav and the current path. Keep
-     the skip link first, one labelled nav and one main landmark. -->
+     the skip link first, one labelled nav and one main landmark. `footer` is an optional snippet
+     rendered after <main>, outside it, normally `<Footer>`. -->
 <script lang="ts">
 	import 'carbon-components-svelte/css/all.css';
 	import {
@@ -23,8 +24,15 @@
 		nav,
 		path,
 		title = 'App',
+		footer,
 		children
-	}: { nav: NavGroup[]; path: string; title?: string; children: Snippet } = $props();
+	}: {
+		nav: NavGroup[];
+		path: string;
+		title?: string;
+		footer?: Snippet;
+		children: Snippet;
+	} = $props();
 
 	let theme: CarbonTheme = $state('white');
 	let sideNavOpen = $state(true);
@@ -81,4 +89,18 @@
 <Content tabindex={-1}>
 	{@render children()}
 </Content>
+{#if footer}
+	<!-- Carbon's Content is always a <main>, so the footer is its sibling. It takes the same
+	     left margin Carbon gives Content beside an expanded side nav (16rem), and none when the
+	     nav is closed or overlays the page (below the lg breakpoint, 66rem). -->
+	<div class="footer-offset">{@render footer()}</div>
+{/if}
 <Toaster />
+
+<style>
+	@media (min-width: 66rem) {
+		:global(.bx--side-nav.bx--side-nav--expanded) ~ .footer-offset {
+			margin-left: 16rem;
+		}
+	}
+</style>
