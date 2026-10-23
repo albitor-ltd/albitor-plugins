@@ -13,8 +13,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/gds",
-        "ref": "gds/v0.1.7",
-        "sha": "f5f76d09f9e76b240e761b2b18339e0f18b675bb"
+        "ref": "gds/v0.1.8",
+        "sha": "ce54224a9f6dd1f2e58fa39026d48a80616e57d3"
       },
       "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
       "category": "development",
@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.3.0",
-        "sha": "6b7dab6cba92f90ebbdb6a753e390ed1e35a0891"
+        "ref": "web-svelte/v0.4.0",
+        "sha": "67fc93d6dc312d5bb2d16ad06a54d411a4463b32"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
       "category": "development",
@@ -368,8 +368,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.1.0",
-        "sha": "a1332b38098e98ec14051e64d82975d41c5da30c"
+        "ref": "kit-gds/v0.2.0",
+        "sha": "f98b49b367ccf6eef6ca7816bb352244c0675f23"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
