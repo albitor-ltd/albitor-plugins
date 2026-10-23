@@ -20,17 +20,18 @@ base.describe("signed out", () => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/sign-in\?next=%2F$/);
     await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
-    await expect(page.getByTestId("sign-in-form")).toBeVisible();
-    await expect(page.getByTestId("sign-in-email")).toBeVisible();
-    await expect(page.getByTestId("sign-in-password")).toBeVisible();
-    await expect(page.getByTestId("sign-in-button")).toBeVisible();
+    // Role and label locators, not test ids: the form is the kit's SignInPage, which differs in
+    // markup (and a little in wording) from kit to kit.
+    await expect(page.getByLabel(/^Email/)).toBeVisible();
+    await expect(page.getByLabel(/^Password/)).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Sign in/ })).toBeVisible();
     await expectNoA11yViolations(page);
 
     // Another page of the app is remembered, and only a path on this origin is.
     await page.goto("/reports?tab=2");
     await expect(page).toHaveURL(/\/sign-in\?next=%2Freports%3Ftab%3D2$/);
     await page.goto("/sign-in?next=%2F%2Fevil.example");
-    await expect(page.getByTestId("sign-in-form")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
   });
 
   base("the sign-up, confirm and reset screens are one click from sign-in and from each other", async ({ page, request }) => {
@@ -38,13 +39,13 @@ base.describe("signed out", () => {
     base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
 
     await page.goto("/sign-in");
-    await page.getByTestId("sign-in-sign-up-link").click();
+    await page.getByRole("link", { name: "Create an account" }).click();
     await expect(page).toHaveURL(/\/sign-up$/);
     await expect(page.getByTestId("sign-up-form")).toBeVisible();
     await expectNoA11yViolations(page);
 
     await page.getByTestId("sign-up-sign-in-link").click();
-    await page.getByTestId("sign-in-reset-link").click();
+    await page.getByRole("link", { name: "Forgot your password?" }).click();
     await expect(page).toHaveURL(/\/reset$/);
     await expect(page.getByTestId("reset-request-form")).toBeVisible();
     await expectNoA11yViolations(page);

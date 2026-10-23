@@ -40,9 +40,9 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 | `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow |
 | `data-dynamodb` | The `data-store@1` plugin: `Store` over one DynamoDB table, in-memory fake, conformance suite, `services.tables` fragment |
-| `kit-shadcn` | The `component-kit@1` plugin (and the component-kit@2 shell contract) for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
-| `kit-carbon` | The `component-kit@1` plugin (and the component-kit@2 shell contract) for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
-| `kit-gds` | The `component-kit@1` plugin (and the component-kit@2 shell contract) for Svelte in GOV.UK Design System style: GOV.UK Frontend v6 markup, a text-only header (no Crown or logotype), the GOV.UK design-system and accessibility skills, contrast and axe audits that ship with the app; not themeable |
+| `kit-shadcn` | The `component-kit@1` and `component-kit@2` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
+| `kit-carbon` | The `component-kit@1` and `component-kit@2` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
+| `kit-gds` | The `component-kit@1` and `component-kit@2` plugin for Svelte in GOV.UK Design System style: GOV.UK Frontend v6 markup, a text-only header (no Crown or logotype), the GOV.UK design-system and accessibility skills, contrast and axe audits that ship with the app; not themeable |
 | `deploy-byoa-aws` | The `deploy-target@1` plugin for a customer's own AWS account: Terraform rendered from `albitor.yaml` (site, API, tables, alarms, DNS) from versioned modules, the CI and deploy workflows (OIDC), the stale state-lock guard |
 | `deploy-hosted` | The `deploy-target@1` plugin for the hosted lane: no infrastructure in the repo, the platform compiles `albitor.yaml` and deploys; the managed CI workflow (manifest check, API and web build and test) |
 | `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-in screens per kit, `services.auth` |
@@ -137,10 +137,9 @@ kit-carbon: `pages/SignInPage.svelte`, whose error-focus effect changed, so `sig
 against the old one; kit-gds: a new file) from `templates/web/src/lib/kit/`. They are `example`
 files, and what compose does with them on an upgrade is under review in albitor-ltd/albitor#3722, so
 check your `web/src/lib/kit/` files after upgrading rather than relying on either behaviour. Also
-add `Footer`, `FooterLink` and `SignInPage` to `index.ts`, and add the optional `footer` snippet to `AppShell.svelte`, rendered after `<main>`. **Declaration.** The platform's socket registry does not yet accept major 2, so the real parser
-refuses `provides: ["component-kit@2"]` (`unsupported_socket_major`). Until it does, the three kits
-keep `provides: ["component-kit@1"]` and ship the contract as exports alongside the existing ones. When the registry gains major 2, each kit's `provides`
-moves to `component-kit@2` and a consumer can then `requires` it.
+add `Footer`, `FooterLink` and `SignInPage` to `index.ts`, and add the optional `footer` snippet to `AppShell.svelte`, rendered after `<main>`. **Declaration.** The platform registry accepts major 2 (albitor-ltd/albitor#3746), so each kit declares both
+majors, `provides: ["component-kit@1", "component-kit@2"]`: a consumer's `requires` resolves against an exact major, and
+web-svelte still requires `component-kit@1`. A consumer of the standard shell (`auth-cognito`) requires `component-kit@2`.
 
 ## Preview tokens
 

@@ -9,5 +9,5 @@ export { default as ListPage } from './ListPage.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as SettingsPage } from './SettingsPage.svelte';
 export { default as SettingsSection } from './SettingsSection.svelte';
-export { default as SignInPage } from './SignInPage.svelte';
+export { default as SignInPage } from '../SignInPage.svelte';
 export { default as StateNotice } from './StateNotice.svelte';

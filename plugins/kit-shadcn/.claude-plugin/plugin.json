@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "kit-shadcn",
   "displayName": "Component kit (shadcn-svelte)",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
   "author": {
     "name": "Albitor Ltd",
@@ -12,7 +12,7 @@
   "keywords": ["component-kit", "design-system", "shadcn", "shadcn-svelte", "bits-ui", "svelte", "accessibility"],
   "themeable": true,
   "kind": "socket",
-  "provides": ["component-kit@1"],
+  "provides": ["component-kit@1", "component-kit@2"],
   "requires": ["web-framework@1"],
   "contributes": {
     "dependencies": {
@@ -46,7 +46,7 @@
       { "path": "web/src/lib/kit/pages/DashboardPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/pages/SettingsPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/pages/SettingsSection.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/pages/SignInPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/SignInPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/pages/index.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/Showcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/kit.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },

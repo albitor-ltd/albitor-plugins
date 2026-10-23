@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -198,10 +199,95 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 	}
 }
 
-// TestAuthCognitoScreensAreSeededPerKit: the screens are written against kit-shadcn, so another
-// kit gets the session, the guard and the API, and no screens (the guard would then send people to
-// a /sign-in that has to be written).
-func TestAuthCognitoScreensAreSeededPerKit(t *testing.T) {
+// TestAuthCognitoScreensComposeOnEveryComponentKit2Kit: the screens are written against the
+// component-kit@2 standard exports, not a named kit, so every kit that provides that major gets
+// the same screens, and a kit that provides only component-kit@1 is refused (no implicit
+// compatibility). kit-carbon is the non-GDS proof beside kit-shadcn and kit-gds.
+func TestAuthCognitoScreensComposeOnEveryComponentKit2Kit(t *testing.T) {
+	root := repoRoot(t)
+	peers := authPeers(t)
+	for _, kit := range []string{"kit-shadcn", "kit-carbon", "kit-gds"} {
+		t.Run(kit, func(t *testing.T) {
+			plugins := []composer.Plugin{
+				loadDir(t, authDir(t, "auth-cognito")),
+				loadDir(t, filepath.Join(root, "plugins", kit)),
+				peers["web-svelte"], peers["api-go"], peers["test-playwright"], peers["deploy-stub"],
+			}
+			out, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
+			if err != nil {
+				t.Fatalf("auth-cognito does not compose on %s: %v", kit, composer.Problems(err))
+			}
+			for _, p := range []string{
+				"web/src/routes/(auth)/sign-in/+page.svelte",
+				"web/src/routes/(auth)/sign-up/+page.svelte",
+				"web/src/routes/(auth)/confirm/+page.svelte",
+				"web/src/routes/(auth)/reset/+page.svelte",
+				"web/src/routes/(auth)/sign-out/+page.svelte",
+				"web/src/lib/kit/index.ts",
+			} {
+				if _, ok := out.Files[p]; !ok {
+					t.Errorf("%s: %s was not written", kit, p)
+				}
+			}
+			// The kit's own barrel exports what the sign-in screen imports.
+			index := string(out.Files["web/src/lib/kit/index.ts"])
+			signIn := string(out.Files["web/src/routes/(auth)/sign-in/+page.svelte"])
+			if !strings.Contains(signIn, "SignInPage") {
+				t.Error("the sign-in screen must render the kit's SignInPage")
+			}
+			for _, name := range []string{"SignInPage", "Field", "Button"} {
+				if !strings.Contains(index, name) {
+					t.Errorf("%s's index.ts does not export %s, which the screens import", kit, name)
+				}
+			}
+			if modes := lockModes(t, out); modes["web/src/routes/(auth)/sign-in/+page.svelte"] != "example" {
+				t.Errorf("the sign-in screen should be an app-owned example, got %q", modes["web/src/routes/(auth)/sign-in/+page.svelte"])
+			}
+		})
+	}
+}
+
+// TestAuthCognitoNamesNoKit: no condition in the manifest and no screen mentions a kit by name
+// (the plan's genericity check), and the plugin requires the exact major.
+func TestAuthCognitoNamesNoKit(t *testing.T) {
+	p := loadDir(t, authDir(t, "auth-cognito"))
+	for _, f := range p.Manifest.Contributes.Files {
+		for _, sel := range f.When {
+			if sel.Socket == core.SocketComponentKit {
+				t.Errorf("%s is conditional on a component-kit (%s)", f.Path, sel.Plugin)
+			}
+		}
+	}
+	found := false
+	for _, r := range p.Manifest.Requires {
+		if r.Socket == core.SocketComponentKit && r.Major == 2 {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("auth-cognito must require component-kit@2, requires %v", p.Manifest.Requires)
+	}
+	err := filepath.WalkDir(filepath.Join(authDir(t, "auth-cognito"), "templates", "web", "src", "routes"), func(path string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		b, rerr := os.ReadFile(path)
+		if rerr != nil {
+			return rerr
+		}
+		if m := regexp.MustCompile(`(?i)kit-(shadcn|carbon|gds)`).Find(b); m != nil {
+			t.Errorf("%s names a kit (%s)", path, m)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestAuthCognitoRefusesAComponentKit1OnlyKit: a kit that provides only major 1 does not satisfy
+// auth-cognito's requires; there is no implicit compatibility.
+func TestAuthCognitoRefusesAComponentKit1OnlyKit(t *testing.T) {
 	root := repoRoot(t)
 	peers := authPeers(t)
 	plugins := []composer.Plugin{
@@ -209,17 +295,8 @@ func TestAuthCognitoScreensAreSeededPerKit(t *testing.T) {
 		loadDir(t, filepath.Join(root, "tests", "compose", "stubs", "kit-stub")),
 		peers["web-svelte"], peers["api-go"], peers["test-playwright"], peers["deploy-stub"],
 	}
-	out, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
-	if err != nil {
-		t.Fatalf("auth-cognito does not compose with another kit: %v", composer.Problems(err))
-	}
-	for path := range out.Files {
-		if strings.HasPrefix(path, "web/src/routes/(auth)/") {
-			t.Errorf("screens were seeded without kit-shadcn: %s", path)
-		}
-	}
-	if _, ok := out.Files["web/src/lib/auth/guard.ts"]; !ok {
-		t.Error("the guard is the plugin's, whatever the kit")
+	if _, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens}); err == nil {
+		t.Fatal("auth-cognito composed with a kit that provides only component-kit@1")
 	}
 }
 

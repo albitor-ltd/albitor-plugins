@@ -10,8 +10,8 @@
                    resetHref="/reset" signUpHref="/sign-up" /> -->
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import Button from '../Button.svelte';
-	import Field from '../Field.svelte';
+	import Button from './Button.svelte';
+	import Field from './Field.svelte';
 
 	let {
 		title = 'Sign in',

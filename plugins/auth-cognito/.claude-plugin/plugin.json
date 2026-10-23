@@ -2,9 +2,9 @@
   "schema": 2,
   "name": "auth-cognito",
   "displayName": "Auth (Amazon Cognito)",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "kind": "socket",
-  "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
+  "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
   "author": {
     "name": "Albitor Ltd",
     "email": "jamie@albitor.com"
@@ -21,7 +21,7 @@
     "route-guard"
   ],
   "provides": ["auth@1"],
-  "requires": ["api-runtime@1", "web-framework@1"],
+  "requires": ["api-runtime@1", "web-framework@1", "component-kit@2"],
   "contributes": {
     "files": [
       { "path": "api/internal/identity/identity.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
@@ -41,7 +41,7 @@
       {
         "path": "web/src/routes/(auth)/**",
         "mode": "example",
-        "when": { "web-framework": "web-svelte", "component-kit": "kit-shadcn" }
+        "when": { "web-framework": "web-svelte" }
       },
       {
         "path": "web/tests/journeys/sign-in.spec.ts",

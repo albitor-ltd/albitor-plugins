@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-cognito, kit-shadcn), then yours. Two steps on one page: ask for a code,
+<!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. Two steps on one page: ask for a code,
      then set a new password with it. Keep the data-testid values. -->
 <script lang="ts">
 	import { goto } from '$app/navigation';

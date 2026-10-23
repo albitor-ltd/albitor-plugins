@@ -1,6 +1,6 @@
 # kit-gds
 
-The `component-kit@1` plugin for Svelte in the GOV.UK Design System style
+The `component-kit@1` and `component-kit@2` plugin for Svelte in the GOV.UK Design System style
 (albitor-ltd/albitor#3563). It absorbs the `gds` pack: the GOV.UK skills travel with the kit, and
 the kit makes the components follow them. It composes into a new app's `web/` beside `web-svelte`,
 whose root layout renders the kit's `AppShell`.

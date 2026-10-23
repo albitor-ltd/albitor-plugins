@@ -35,8 +35,8 @@ readable by page script. A script or test client may send `Authorization: Bearer
   owner from a body or a query parameter.
 - **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them,
   add sign-up fields (and the field in `client.ts`'s call), but **keep the `data-testid` values**
-  (`sign-in-form`, `sign-in-email`, `sign-in-password`, `sign-in-button`, and the sign-up, confirm and
-  reset ones): the journey harness signs in through them. `sign-out/nav.ts` puts "Sign out" in the
+  on the sign-up, confirm, reset and new-password forms. The sign-in form is the kit's `SignInPage`
+  (component-kit@2), found by role and label; keep it rather than rebuilding it. `sign-out/nav.ts` puts "Sign out" in the
   nav; delete it to take it out.
 - **Public pages.** `PUBLIC_PATHS` in `guard.ts` is managed. A page that must be public (a landing
   page, say) means ejecting `guard.ts` and adding the path: say why in the delivery record. The

@@ -1,18 +1,17 @@
-<!-- Seeded by Albitor (auth-cognito, kit-shadcn), then yours. Restyle and reword freely, but keep the
-     data-testid values: the journey harness signs in through sign-in-form, sign-in-email,
-     sign-in-password and sign-in-button. An invited person's first sign-in (the temporary password
-     the pool emailed) swaps the form for new-password-form, new-password-input and
-     new-password-button, where they choose their own. -->
+<!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. The sign-in form is the kit's
+     `SignInPage` (the same props in every kit), so it takes the kit's look and its error handling.
+     Restyle and reword freely. A person's first sign-in with the temporary password the pool
+     emailed swaps it for a short form of kit `Field`s and `Button`, where they choose their own
+     password (data-testid new-password-form, new-password-input, new-password-button). -->
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { nextPath } from '../../../lib/auth/guard';
 	import { newPassword, signIn } from '../../../lib/auth/client';
-	import { Button, Field } from '../../../lib/kit';
+	import { Button, Field, SignInPage } from '../../../lib/kit';
 
-	let email = $state(page.url.searchParams.get('email') ?? '');
-	let password = $state('');
+	let email = '';
 	let error = $state('');
 	let busy = $state(false);
 	// Set once the pool asks an invited person for their own password; held in memory only.
@@ -28,8 +27,8 @@
 		heading?.focus();
 	}
 
-	async function submit(event: SubmitEvent) {
-		event.preventDefault();
+	async function submit(enteredEmail: string, password: string) {
+		email = enteredEmail;
 		error = '';
 		busy = true;
 		const result = await signIn(email, password);
@@ -38,7 +37,6 @@
 			await goto(nextPath(page.url.searchParams.get('next')));
 			return;
 		}
-		password = '';
 		if (result.code === 'new_password_required' && result.session) {
 			challengeSession = result.session;
 			await announceStep();
@@ -76,9 +74,8 @@
 	<title>Sign in</title>
 </svelte:head>
 
-<h1 bind:this={heading} tabindex="-1">{challengeSession ? 'Choose your password' : 'Sign in'}</h1>
-
 {#if challengeSession}
+	<h1 bind:this={heading} tabindex="-1">Choose your password</h1>
 	<form data-testid="new-password-form" onsubmit={submitNewPassword} novalidate>
 		<p>Choose a password of your own to finish signing in.</p>
 		<Field
@@ -96,32 +93,5 @@
 		<Button type="submit" disabled={busy} data-testid="new-password-button">Set password and sign in</Button>
 	</form>
 {:else}
-<form data-testid="sign-in-form" onsubmit={submit} novalidate>
-	<Field
-		label="Email"
-		type="email"
-		autocomplete="email"
-		required
-		bind:value={email}
-		data-testid="sign-in-email"
-	/>
-	<Field
-		label="Password"
-		type="password"
-		autocomplete="current-password"
-		required
-		bind:value={password}
-		data-testid="sign-in-password"
-	/>
-	{#if error}
-		<p role="alert" data-testid="sign-in-error">{error}</p>
-	{/if}
-	<Button type="submit" disabled={busy} data-testid="sign-in-button">Sign in</Button>
-</form>
+	<SignInPage {error} {busy} onsubmit={submit} resetHref="/reset" signUpHref="/sign-up" />
 {/if}
-
-<p>
-	<a href="/sign-up" data-testid="sign-in-sign-up-link">Create an account</a>
-	<span aria-hidden="true">·</span>
-	<a href="/reset" data-testid="sign-in-reset-link">Forgot your password?</a>
-</p>
