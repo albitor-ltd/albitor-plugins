@@ -1,6 +1,6 @@
 // Managed by Albitor (test-playwright).
 import { type Dirent, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { expect, type Locator, test as setup } from "@playwright/test";
 import { readCredentials } from "./helpers/credentials";
 import {
@@ -141,7 +141,8 @@ const SCAN_SKIP_DIRS = new Set([
 const SCAN_MAX_BYTES = 2 * 1024 * 1024;
 
 function namesSignInScreen(path: string): boolean {
-  if (relative(WEB_ROOT, path).startsWith(KIT_DIR)) {
+  const rel = relative(WEB_ROOT, path);
+  if (rel === KIT_DIR || rel.startsWith(KIT_DIR + sep)) {
     return false;
   }
   const text = readFileSync(path, "utf8");
@@ -283,6 +284,9 @@ setup("sign in once as the demo account", async ({ page }) => {
     // and a plain Error is thrown, so the snapshot Playwright writes for the failed test is taken
     // after.
     await passwordField.waitFor({ state: "hidden", timeout: SIGN_IN_STEP_MS });
+    // The password field going away is not enough: a challenge step (a new password) or a landing
+    // page with a field of its own would pass. Signed in means the page left the sign-in route.
+    await page.waitForURL((u) => u.pathname !== new URL(signInRoute, u).pathname, { timeout: SIGN_IN_STEP_MS });
   } catch (err) {
     await fillSecret(passwordField, "").catch(() => {});
     throw new Error(`the demo account did not sign in at ${signInRoute}: ${err instanceof Error ? err.name : "failed"}`);

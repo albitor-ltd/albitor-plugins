@@ -38,8 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   (with its `sign-in-*` test ids) and the old spec, though what compose does with example files on an upgrade
   is under review in albitor-ltd/albitor#3722, so check them after upgrading; to adopt the kit's `SignInPage`, take the new
   `(auth)/sign-in/+page.svelte` and `tests/journeys/sign-in.spec.ts` together (the spec now finds the form
-  by role and label, as `SignInPage` takes no test ids). The form-level error on sign-up, confirm, reset and the
-  new-password step is now the last field's `error` (the kit's own error styling) instead of a bare alert. `SignInPage` gains an optional `email` prop (the
+  by role and label, as `SignInPage` takes no test ids). `SignInPage` gains an optional `email` prop (the
   email field's initial value) in all three kits, which auth-cognito fills from `?email=`. On kit-shadcn and kit-carbon, an app that already has
   `pages/SignInPage.svelte` should move it to `lib/kit/SignInPage.svelte`, then point both `index.ts` and
   `pages/index.ts` (and `pages/PagesShowcase.svelte`, which now imports from `../index`) at it; whether

@@ -62,6 +62,7 @@ input.addEventListener('input', () => {
 document.querySelector('#sign-in-button').addEventListener('click', () => {
 	if (state === ${JSON.stringify(SENTINEL)}) {
 		document.cookie = 'session=ok; path=/';
+		history.pushState({}, '', '/done');
 		document.querySelector('#sign-in-form').remove();
 	}
 });

@@ -88,8 +88,10 @@
 			required
 			bind:value={chosenPassword}
 			data-testid="new-password-input"
-			error={error || undefined}
 		/>
+		{#if error}
+			<p role="alert" data-testid="new-password-error">{error}</p>
+		{/if}
 		<Button type="submit" disabled={busy} data-testid="new-password-button">Set password and sign in</Button>
 	</form>
 {:else}
