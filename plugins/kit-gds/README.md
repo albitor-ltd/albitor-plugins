@@ -33,6 +33,18 @@ whose root layout renders the kit's `AppShell`.
   audit and statement procedures), each tagged `metadata.capability: design-system`.
 - `preview-tokens.json`: GOV.UK Frontend 6.4.0's palette for the build preview.
 
+## Root element classes
+
+The kit fills web-svelte's `web.root-classes` slot (albitor#3707) with GOV.UK Frontend's page
+template classes: `govuk-template` on `<html>` and `govuk-template__body` on `<body>`. These need
+web-svelte 0.4.0 or later, which hosts the slot in `app.html`.
+
+Frontend's template also runs an inline script first in `<body>` that adds `js-enabled` and
+`govuk-frontend-supported` (when `noModule` is supported) to the body. This is a client-rendered
+SPA, so `AppShell` does it instead (in its script body, before children mount) and removes only what it added on destroy. No
+inline script means no CSP `script-src` exception; the classes gate only JS-enhanced styling, so
+a page without JS is the plain one. `rootclasses.test.ts` (managed) covers it. The classes are set while `AppShell` initialises, before any child mounts, so a component that calls `initAll()` in its own `onMount` already sees them.
+
 ## Brand colour
 
 The one token an app sets, in `govuk.scss` (`$govuk-brand-colour`, marked at the top of the file):

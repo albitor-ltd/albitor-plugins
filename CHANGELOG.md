@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-gds` `0.2.0` (albitor-ltd/albitor-plugins#65, albitor-ltd/albitor#3707): fills `web.root-classes`
+  with `govuk-template` (html) and `govuk-template__body` (body). `AppShell` adds `js-enabled` and
+  `govuk-frontend-supported` to the body while it initialises, before children mount (instead of Frontend's inline script, so no CSP
+  exception) and removes only those on destroy; new managed `rootclasses.test.ts` and fixture. Needs `web-svelte`
+  0.4.0; merge after it. Still no Crown or GOV.UK logotype.
+
 - `web-svelte` `0.4.0` (albitor-ltd/albitor-plugins#65, albitor-ltd/albitor#3707): hosts the `web.root-classes`
   slot. `web/src/app.html` is now a managed `html` slot template with
   `{{albitor.slot.web.root-classes.html}}` on `<html>` and `{{albitor.slot.web.root-classes.body}}`

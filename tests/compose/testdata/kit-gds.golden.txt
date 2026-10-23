@@ -24,6 +24,7 @@
 === web/src/lib/kit/Dialog.svelte ===
 === web/src/lib/kit/ErrorSummary.svelte ===
 === web/src/lib/kit/Field.svelte ===
+=== web/src/lib/kit/RootClassesProbe.svelte ===
 === web/src/lib/kit/Showcase.svelte ===
 === web/src/lib/kit/Table.svelte ===
 === web/src/lib/kit/contrast.test.ts ===
@@ -31,6 +32,7 @@
 === web/src/lib/kit/govuk.scss ===
 === web/src/lib/kit/index.ts ===
 === web/src/lib/kit/kit.test.ts ===
+=== web/src/lib/kit/rootclasses.test.ts ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===
 === web/src/lib/shell/api.test.ts ===

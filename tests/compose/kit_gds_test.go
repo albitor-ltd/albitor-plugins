@@ -72,6 +72,18 @@ func TestKitGDSIsTheGOVUKKit(t *testing.T) {
 	}
 }
 
+// TestKitGDSSetsRootClasses: the kit fills web.root-classes and web-svelte's app.html carries the
+// GOV.UK template classes on <html> and <body>.
+func TestKitGDSSetsRootClasses(t *testing.T) {
+	res := composeKit(t, gds)
+	html := string(res.Files["web/src/app.html"])
+	for _, want := range []string{`<html lang="en" class="govuk-template">`, `<body class="govuk-template__body" `} {
+		if !strings.Contains(html, want) {
+			t.Errorf("app.html lacks %q:\n%s", want, html)
+		}
+	}
+}
+
 func TestKitGDSFileModes(t *testing.T) {
 	res := composeKit(t, gds)
 	var lock composer.Lock
