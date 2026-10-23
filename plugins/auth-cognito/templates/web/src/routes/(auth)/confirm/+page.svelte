@@ -55,10 +55,8 @@
 		required
 		bind:value={code}
 		data-testid="confirm-code"
+		error={error || undefined}
 	/>
-	{#if error}
-		<p role="alert" data-testid="confirm-error">{error}</p>
-	{/if}
 	{#if notice}
 		<p role="status" data-testid="confirm-notice">{notice}</p>
 	{/if}

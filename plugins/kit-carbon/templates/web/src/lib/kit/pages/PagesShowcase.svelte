@@ -13,7 +13,7 @@
 	import ListPage from './ListPage.svelte';
 	import SettingsPage from './SettingsPage.svelte';
 	import SettingsSection from './SettingsSection.svelte';
-	import SignInPage from '../SignInPage.svelte';
+	import { SignInPage } from '../index';
 
 	let {
 		page,

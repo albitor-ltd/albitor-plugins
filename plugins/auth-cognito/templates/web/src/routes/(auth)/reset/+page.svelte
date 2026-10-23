@@ -51,10 +51,8 @@
 			required
 			bind:value={email}
 			data-testid="reset-email"
+			error={error || undefined}
 		/>
-		{#if error}
-			<p role="alert" data-testid="reset-error">{error}</p>
-		{/if}
 		<Button type="submit" disabled={busy} data-testid="reset-request-button">Send a code</Button>
 	</form>
 {:else}
@@ -76,10 +74,8 @@
 			required
 			bind:value={password}
 			data-testid="reset-password"
+			error={error || undefined}
 		/>
-		{#if error}
-			<p role="alert" data-testid="reset-error">{error}</p>
-		{/if}
 		<Button type="submit" disabled={busy} data-testid="reset-button">Set new password</Button>
 	</form>
 {/if}

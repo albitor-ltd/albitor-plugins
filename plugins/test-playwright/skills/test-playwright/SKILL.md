@@ -65,8 +65,8 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   `walkMailboxAvailable`, `walkAccount`, `awaitVerification`). It starts signed out
   (`test.use({ storageState: EMPTY_STORAGE_STATE })`), signs up with `walkAccount()`'s address and
   password exactly, and never deletes the account.
-- `auth.setup.ts` signs in through test ids `sign-in-form`, `sign-in-email`, `sign-in-password` and
-  `sign-in-button`. An app with no password provisioned runs signed out, and specs that need a
+- `auth.setup.ts` signs in by role and label (the kit's `SignInPage`): a field labelled "Email...", a field
+  labelled "Password" and a button named "Sign in". An app with no password provisioned runs signed out, and specs that need a
   session skip themselves with `test.skip(!hasDemoSession(), ...)` in a `beforeEach`.
 
 ## Running

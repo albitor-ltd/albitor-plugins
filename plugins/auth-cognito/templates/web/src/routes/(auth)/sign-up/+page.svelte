@@ -51,10 +51,8 @@
 		required
 		bind:value={password}
 		data-testid="sign-up-password"
+		error={error || undefined}
 	/>
-	{#if error}
-		<p role="alert" data-testid="sign-up-error">{error}</p>
-	{/if}
 	<Button type="submit" disabled={busy} data-testid="sign-up-button">Create account</Button>
 </form>
 

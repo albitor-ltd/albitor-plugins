@@ -19,6 +19,7 @@
 		busy = false,
 		resetHref,
 		signUpHref,
+		email: initialEmail = '',
 		onsubmit
 	}: {
 		title?: string;
@@ -27,10 +28,13 @@
 		busy?: boolean;
 		resetHref?: string;
 		signUpHref?: string;
+		/** The email field's initial value, for a person returning from sign-up or confirm. */
+		email?: string;
 		onsubmit: (email: string, password: string) => void | Promise<void>;
 	} = $props();
 
-	let email = $state('');
+	// An initial value only: the person's typing wins, and a later prop change does not overwrite it.
+	let email = $state(untrack(() => initialEmail));
 	let password = $state('');
 	let alertBox: HTMLElement | undefined = $state();
 

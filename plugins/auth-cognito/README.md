@@ -72,22 +72,24 @@ deploy seeds are permanent from the start and never meet this step.
 
 ## Known gaps
 
-- `SignInPage` has no initial-email prop, so `/sign-in?email=...` (sent after sign-up and confirm)
-  no longer prefills the field. The page frame (`AppShell`, and its optional `footer`) is web-svelte's
-  root layout, not this plugin's; the screens add no footer of their own.
-
-## Upgrading from 0.2.0
-
-0.3.0 requires `component-kit@2`, so the kit must be `kit-shadcn`, `kit-carbon` or `kit-gds` at 0.5.0
-or later (they declare both majors). The screens are app-owned examples, so an existing app keeps
-its 0.2.0 sign-in page: it keeps working (the `kit/index.ts` exports it uses are unchanged) but
-carries the old `sign-in-*` test ids, which the new journey spec no longer looks for. Take the new
-`(auth)/sign-in/+page.svelte` and `tests/journeys/sign-in.spec.ts`, or keep both old.
+- The page frame (`AppShell`, and its optional `footer`) is web-svelte's root layout, not this
+  plugin's; the screens add no footer of their own.
 - Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
 - No MFA, no social sign-in. The one challenge handled is `NEW_PASSWORD_REQUIRED` (below); any other
   answers 409 `challenge_unsupported`.
 - Logic ships as managed files, not a versioned module (ADR-0090 amendment 3), so a fix reaches an
   app on a compose or upgrade, not silently.
+
+## Upgrading from 0.2.0
+
+0.3.0 requires `component-kit@2`, so the kit must be `kit-shadcn`, `kit-carbon` or `kit-gds` at 0.5.0
+or later (they declare both majors). The screens are app-owned examples, so an existing app should
+keep its 0.2.0 sign-in page, which keeps working (the `kit/index.ts` exports it uses are unchanged)
+but carries the old `sign-in-*` test ids. What compose does with example files on an upgrade is under
+review in albitor-ltd/albitor#3722, so check `web/src/routes/(auth)/` after upgrading rather than
+relying on either behaviour. `test-playwright` 0.2.0 signs in by role and label, not those test ids,
+so an app on the old page needs that plugin at the old version, or the new sign-in page and
+`tests/journeys/sign-in.spec.ts` together.
 
 ## Not carried over from the `auth` pack
 

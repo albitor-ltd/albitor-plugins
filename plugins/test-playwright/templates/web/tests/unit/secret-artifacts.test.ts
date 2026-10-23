@@ -27,12 +27,12 @@ const SENTINEL = "SENTINEL-pw-8841";
 //   /overlay   something covers the button, so click() waits for it until its timeout
 //   /bound     a controlled input in the style of a UI framework (see below) that DOES sign in
 const FIELDS = (extra: string) => `<!doctype html><title>Sign in</title><main><h1>Sign in</h1>
-<form data-testid="sign-in-form" onsubmit="return false">
-<label>Email <input data-testid="sign-in-email" type="email"></label>
-<label>Password <input data-testid="sign-in-password" type="password"></label>
+<form id="sign-in-form" onsubmit="return false">
+<label>Email address <input id="sign-in-email" type="email"></label>
+<label>Password <input id="sign-in-password" type="password"></label>
 ${extra}</form></main>`;
 
-const BUTTON = '<button data-testid="sign-in-button" type="button">Sign in</button>';
+const BUTTON = '<button id="sign-in-button" type="button">Sign in</button>';
 
 const PAGES: Record<string, string> = {
 	"/never": FIELDS(BUTTON),
@@ -47,7 +47,7 @@ const PAGES: Record<string, string> = {
 	// dispatching "input" is what satisfies it. The button signs in only with the right password.
 	"/bound": `${FIELDS(BUTTON)}
 <script>
-const input = document.querySelector('[data-testid=sign-in-password]');
+const input = document.querySelector('#sign-in-password');
 const proto = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
 let tracked = '';
 Object.defineProperty(input, 'value', {
@@ -59,10 +59,10 @@ let state = '';
 input.addEventListener('input', () => {
 	if (proto.get.call(input) !== tracked) { state = proto.get.call(input); tracked = state; }
 });
-document.querySelector('[data-testid=sign-in-button]').addEventListener('click', () => {
+document.querySelector('#sign-in-button').addEventListener('click', () => {
 	if (state === ${JSON.stringify(SENTINEL)}) {
 		document.cookie = 'session=ok; path=/';
-		document.querySelector('[data-testid=sign-in-form]').remove();
+		document.querySelector('#sign-in-form').remove();
 	}
 });
 </script>`,
@@ -241,8 +241,8 @@ export default defineConfig({ testDir: ".", testMatch: /control\\.spec\\.ts/, re
 				`import { test } from "@playwright/test";
 test("fill() prints the password", async ({ page }) => {
   await page.goto("/never");
-  await page.getByTestId("sign-in-password").fill(${JSON.stringify(SENTINEL)});
-  await page.getByTestId("sign-in-form").waitFor({ state: "hidden", timeout: 1000 });
+  await page.getByLabel(/^password/i).fill(${JSON.stringify(SENTINEL)});
+  await page.getByLabel(/^password/i).waitFor({ state: "hidden", timeout: 1000 });
 });
 `,
 			);

@@ -57,9 +57,10 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
 
 ## Contracts it leaves to other plugins
 
-- The auth plugin's sign-in screen carries the test ids `sign-in-form`, `sign-in-email`,
-  `sign-in-password` and `sign-in-button`, and may set `ALBITOR_SIGN_IN_SCREEN=1` for the run so the
-  setup is strict about it (a front end that names `sign-in-email` makes it strict already).
+- The auth plugin's sign-in screen is the component-kit@2 `SignInPage`, found by role and label, not
+  test ids: a field labelled "Email...", a field labelled "Password" and a button named "Sign in". It
+  may set `ALBITOR_SIGN_IN_SCREEN=1` for the run so the setup is strict about it (a front end that
+  renders `SignInPage` outside the kit's own files, or names `sign-in-email`, makes it strict already).
 - The api-runtime plugin's local issuer lives at `/api/_local/auth` (`api-go` provides it).
 - The web-framework plugin has an `npm run local` that serves the build on `PORT` with `/api`
   forwarded to `ALBITOR_API_ORIGIN` and `/healthz` answering (`web-svelte` does).

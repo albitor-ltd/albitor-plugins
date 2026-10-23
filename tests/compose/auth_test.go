@@ -21,7 +21,7 @@ func authPeers(t *testing.T) catalogue {
 	t.Helper()
 	root := repoRoot(t)
 	c := catalogue{}
-	for _, n := range []string{"web-svelte", "kit-shadcn", "api-go", "test-playwright"} {
+	for _, n := range []string{"web-svelte", "kit-shadcn", "kit-carbon", "kit-gds", "api-go", "test-playwright"} {
 		c[n] = loadDir(t, filepath.Join(root, "plugins", n))
 	}
 	c["deploy-stub"] = inline(t, `{"schema":2,"name":"deploy-stub","kind":"socket","provides":["deploy-target@1"]}`)
@@ -295,8 +295,18 @@ func TestAuthCognitoRefusesAComponentKit1OnlyKit(t *testing.T) {
 		loadDir(t, filepath.Join(root, "tests", "compose", "stubs", "kit-stub")),
 		peers["web-svelte"], peers["api-go"], peers["test-playwright"], peers["deploy-stub"],
 	}
-	if _, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens}); err == nil {
+	_, err := composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
+	if err == nil {
 		t.Fatal("auth-cognito composed with a kit that provides only component-kit@1")
+	}
+	found := false
+	for _, p := range composer.Problems(err) {
+		if p.Code == composer.CodeUnmetRequires && strings.Contains(p.Message, "auth-cognito requires component-kit@2") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("want an unmet_requires problem for auth-cognito's component-kit@2, got: %v", composer.Problems(err))
 	}
 }
 
@@ -374,24 +384,33 @@ func TestAuthPluginsStayInTheirDirectories(t *testing.T) {
 	}
 }
 
-// TestAuthCognitoWritesTreeForBuild writes the composed default shell for the build step, when
-// COMPOSE_OUT_AUTH is set.
+// TestAuthCognitoWritesTreeForBuild writes the composed default shell with auth-cognito, once per
+// kit, for the build step: COMPOSE_OUT_AUTH (kit-shadcn), COMPOSE_OUT_AUTH_CARBON and
+// COMPOSE_OUT_AUTH_GDS, each when set.
 func TestAuthCognitoWritesTreeForBuild(t *testing.T) {
-	out := os.Getenv("COMPOSE_OUT_AUTH")
-	if out == "" {
-		t.Skip("COMPOSE_OUT_AUTH not set")
-	}
-	res, err := composeAuth(t, "auth-cognito")
-	if err != nil {
-		t.Fatal(composer.Problems(err))
-	}
-	for path, content := range res.Files {
-		dst := filepath.Join(out, filepath.FromSlash(path))
-		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(dst, content, 0o644); err != nil {
-			t.Fatal(err)
-		}
+	for kit, env := range map[string]string{
+		"kit-shadcn": "COMPOSE_OUT_AUTH",
+		"kit-carbon": "COMPOSE_OUT_AUTH_CARBON",
+		"kit-gds":    "COMPOSE_OUT_AUTH_GDS",
+	} {
+		t.Run(kit, func(t *testing.T) {
+			out := os.Getenv(env)
+			if out == "" {
+				t.Skipf("%s not set", env)
+			}
+			res, err := composeAuth(t, "auth-cognito", "web-svelte", kit, "api-go", "test-playwright", "deploy-stub")
+			if err != nil {
+				t.Fatal(composer.Problems(err))
+			}
+			for path, content := range res.Files {
+				dst := filepath.Join(out, filepath.FromSlash(path))
+				if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(dst, content, 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+		})
 	}
 }

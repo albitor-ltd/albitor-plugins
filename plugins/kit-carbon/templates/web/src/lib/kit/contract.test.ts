@@ -113,6 +113,12 @@ describe('SignInPage', () => {
 		}
 	});
 
+	it('starts the email field from the email it is given, and empty without one', () => {
+		const given = mount({ email: 'a@example.test' });
+		expect((given.querySelector('input[type=email]') as HTMLInputElement).value).toBe('a@example.test');
+		expect((mount().querySelector('input[type=email]') as HTMLInputElement).value).toBe('');
+	});
+
 	it('announces a failure once, as an alert, in the words it was given', () => {
 		const root = mount({ error: 'Email or password is incorrect' });
 		expect(filled(root)).toHaveLength(1);
