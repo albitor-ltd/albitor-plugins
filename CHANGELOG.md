@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-gds` `0.4.0`, `gds` `0.1.9`, `kit-carbon` `0.4.0` (albitor-ltd/albitor#3710): the
+  preview-tokens contract gains an optional `roles` block (`header` and `header_withdrawn` as
+  `background`/`foreground`, `link`, `focus`), so the structure preview draws the header band, link
+  and focus colour. `kit-gds` and `gds` ship a neutral `header` (used off GOV.UK, where the buyer's
+  brand colour paints the band instead; never the GOV.UK blue) and the GOV.UK blue as
+  `header_withdrawn`, used only where the brand colour is withdrawn. `kit-carbon` ships its own
+  roles as the non-GOV.UK proof. `validate-preview-tokens.sh` and its tests know the block.
+
 - `kit-shadcn` `0.4.0`, `kit-carbon` `0.3.0`, `kit-gds` `0.3.0` (albitor-ltd/albitor-plugins#62): ship
   the `component-kit@2` standard shell contract (ADR-0095 section 6) as exports; they
   still declare `provides: ["component-kit@1"]` because the platform registry rejects major 2. Each kit exports `AppShell`,

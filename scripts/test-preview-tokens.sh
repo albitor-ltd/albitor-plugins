@@ -26,6 +26,16 @@ check() { # check accept|refuse <name> <file> [error substring]
 "$validator" "$base" >/dev/null || { echo "FAIL: valid.json refused" >&2; fail=1; }
 expect accept "no-op" '.'
 expect accept "all optionals" '. + {heading_font_family:"Georgia, serif",border_width:"2px",min_target:"24px",heading_tracking:"-0.02em",focus_ring:"3px",tabular_figures:true,dark_target:7} | .elevation="layered" | .colours += {control_border:"#777",danger:"#d4351c",success:"#00703c",warning:"#ffdd00",warning_alt:"#f47738"}'
+expect accept "roles" '. + {roles:{header:{background:"#161616",foreground:"#fff"},header_withdrawn:{background:"#1d70b8",foreground:"#ffffff"},link:"#0f62fe",focus:"#ffdd00"}}'
+expect accept "roles link only" '. + {roles:{link:"#0f62fe"}}'
+expect accept "roles null" '. + {roles:null}'
+expect refuse "roles not an object" '. + {roles:"x"}' "roles must be an object"
+expect refuse "roles unknown key" '. + {roles:{sidebar:"#fff"}}' "roles.sidebar: unknown field"
+expect refuse "roles bad link" '. + {roles:{link:"blue"}}' "roles.link is not a #rgb"
+expect refuse "roles css injection" '. + {roles:{focus:"#fff;}"}}' "roles.focus is not a #rgb"
+expect refuse "roles header without foreground" '. + {roles:{header:{background:"#000"}}}' "roles.header.foreground is required"
+expect refuse "roles withdrawn bad bg" '. + {roles:{header_withdrawn:{background:"url(x)",foreground:"#fff"}}}' "roles.header_withdrawn.background is not a #rgb"
+expect refuse "roles header unknown member" '. + {roles:{header:{background:"#000",foreground:"#fff",x:"#fff"}}}' "roles.header.x: unknown field"
 expect accept "tracking zero" '.heading_tracking="0"'
 expect accept "4 decimals" '.radius="0.1234rem"'
 expect accept "dark_target zero" '.dark_target=0'
