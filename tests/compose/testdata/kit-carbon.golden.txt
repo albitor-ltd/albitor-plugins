@@ -21,12 +21,16 @@
 === web/src/lib/data/state.ts ===
 === web/src/lib/kit/AppShell.svelte ===
 === web/src/lib/kit/Button.svelte ===
+=== web/src/lib/kit/ContractProbe.svelte ===
 === web/src/lib/kit/Dialog.svelte ===
 === web/src/lib/kit/EmptyState.svelte ===
 === web/src/lib/kit/Field.svelte ===
+=== web/src/lib/kit/Footer.svelte ===
 === web/src/lib/kit/Showcase.svelte ===
+=== web/src/lib/kit/SignInHarness.svelte ===
 === web/src/lib/kit/Table.svelte ===
 === web/src/lib/kit/Toaster.svelte ===
+=== web/src/lib/kit/contract.test.ts ===
 === web/src/lib/kit/contrast.test.ts ===
 === web/src/lib/kit/dialog.test.ts ===
 === web/src/lib/kit/index.ts ===
@@ -44,6 +48,7 @@
 === web/src/lib/kit/pages/index.ts ===
 === web/src/lib/kit/pages/pages.test.ts ===
 === web/src/lib/kit/shell.test.ts ===
+=== web/src/lib/kit/signin.test.ts ===
 === web/src/lib/kit/theme.ts ===
 === web/src/lib/kit/toast.svelte.ts ===
 === web/src/lib/shell/OfflineBanner.svelte ===

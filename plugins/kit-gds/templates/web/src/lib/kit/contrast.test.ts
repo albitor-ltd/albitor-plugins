@@ -97,7 +97,10 @@ const pairs: Array<[string, string, string, number]> = [
 	['secondary button text', text, ruleColour('.govuk-button--secondary', 'background-color'), 4.5],
 	// The kit's text-only header, in AppShell.svelte: the header text on the brand colour. Whatever
 	// brand colour an app sets in govuk.scss, govuk.scss picks the header text to meet this.
-	['header text on the brand band', headerText, brand, 4.5]
+	['header text on the brand band', headerText, brand, 4.5],
+	// The footer band in Footer.svelte (#f3f3f3, GOV.UK's footer background): text and links on it.
+	['text on the footer band', text, '#f3f3f3', 4.5],
+	['link on the footer band', colour('link-colour'), '#f3f3f3', 4.5]
 ];
 
 describe('GOV.UK colours', () => {

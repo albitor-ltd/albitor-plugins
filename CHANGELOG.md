@@ -15,6 +15,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.4.0`, `kit-carbon` `0.3.0`, `kit-gds` `0.3.0` (albitor-ltd/albitor-plugins#62): ship
+  the `component-kit@2` standard shell contract (ADR-0095 section 6) as exports; they
+  still declare `provides: ["component-kit@1"]` because the platform registry rejects major 2. Each kit exports `AppShell`,
+  `Footer` and `SignInPage` from `web/src/lib/kit/index.ts` with the same props: `AppShell` gains an
+  optional `footer` snippet rendered after `<main>`, `Footer` is new (`links`, `children`; one
+  `contentinfo` landmark), and `SignInPage` is exported from the kit root (new in kit-gds; re-exported
+  from `pages/` in the other two). New managed `contract.test.ts`, `ContractProbe.svelte`,
+  `signin.test.ts` and `SignInHarness.svelte`. `SignInPage` behaves the same in all three: the error
+  stays until the next attempt's result and takes focus on every failed attempt, a repeated sentence
+  included (kit-gds no longer hides it while `busy`); `Footer` keys its links by position, so two
+  links to one address render. The contract is in the README.
+  Migration: this is not a drop-in upgrade. The managed tests import `index.ts`, which is the app's
+  after the first compose, so an existing app must add the exports to its `index.ts` (`Footer`,
+  `FooterLink`, `SignInPage`) and the `footer` snippet to its `AppShell.svelte` (rendered after
+  `<main>`), or `contract.test.ts` fails. Copy the kit's new `Footer.svelte`, and its changed
+  `SignInPage.svelte` (kit-shadcn and kit-carbon: `pages/SignInPage.svelte`, whose error-focus
+  effect changed, so `signin.test.ts` fails against the old one; kit-gds: new), from the kit's
+  `templates/web/src/lib/kit/`. They are `example` files; what compose does with them on an upgrade
+  is under review in albitor-ltd/albitor#3722, so check your `web/src/lib/kit/` files after
+  upgrading rather than relying on either behaviour.
+
 - `kit-gds` `0.2.0` (albitor-ltd/albitor-plugins#65, albitor-ltd/albitor#3707): fills `web.root-classes`
   with `govuk-template` (html) and `govuk-template__body` (body). `AppShell` adds `js-enabled` and
   `govuk-frontend-supported` to the body while it initialises, before children mount (instead of Frontend's inline script, so no CSP

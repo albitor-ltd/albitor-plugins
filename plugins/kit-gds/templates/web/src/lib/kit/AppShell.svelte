@@ -1,6 +1,7 @@
 <!-- Seeded by Albitor (kit-gds), then yours: the page frame in GOV.UK Frontend v6 markup. web-svelte's
      root layout renders it with the merged nav and the current path. Keep the skip link first, one
-     labelled nav and one main landmark.
+     labelled nav and one main landmark. `footer` is an optional snippet rendered after <main>,
+     outside it, normally `<Footer>`.
      The header is TEXT ONLY: no Crown, no GOV.UK logotype (they are for services on GOV.UK only). -->
 <script lang="ts">
 	import './govuk.scss';
@@ -12,8 +13,15 @@
 		nav,
 		path,
 		title = 'App',
+		footer,
 		children
-	}: { nav: NavGroup[]; path: string; title?: string; children: Snippet } = $props();
+	}: {
+		nav: NavGroup[];
+		path: string;
+		title?: string;
+		footer?: Snippet;
+		children: Snippet;
+	} = $props();
 
 	// GOV.UK Frontend's page template runs an inline script as the first thing in <body> that adds
 	// `js-enabled` (and `govuk-frontend-supported` when the browser passes its feature check). This
@@ -87,6 +95,7 @@
 		{@render children()}
 	</main>
 </div>
+{@render footer?.()}
 
 <style>
 	/* A text-only band in the brand colour (`$govuk-brand-colour` in govuk.scss, the GOV.UK blue

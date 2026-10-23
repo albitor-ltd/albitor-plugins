@@ -7,6 +7,11 @@ whose root layout renders the kit's `AppShell`.
 
 ## What it provides
 
+- The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
+  `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark, GOV.UK footer
+  colours; not GOV.UK's footer component, so no Crown copyright, OGL line or crest) and `SignInPage`
+  (new: GOV.UK error summary linked to the email field, then the fields). The contract is in the
+  repository README; `contract.test.ts` and `ContractProbe.svelte` (managed) audit it.
 - The shell pieces in [GOV.UK Frontend](https://frontend.design-system.service.gov.uk/) v6.4.0
   markup and classes: `AppShell` (skip link, a text-only header, service navigation with the
   current page marked, one `main`), `Button`, `Field` (label, hint and error tied to the control),
@@ -68,5 +73,5 @@ recognises the kit as GOV.UK by its name and keywords (`core.IsGOVUKDesignSystem
 ## Ownership
 
 The components and `govuk.scss` are `example` files: seeded once, then the app's. The contrast and
-axe tests, `Showcase.svelte` and `web/vitest.config.ts` are `managed`. The `gds` plugin is
+axe tests, `Showcase.svelte` and `web/vitest.config.ts` are `managed`. `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are `managed` and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The `gds` plugin is
 unchanged and is retired separately.

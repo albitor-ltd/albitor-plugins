@@ -9,6 +9,7 @@
        <SignInPage {error} {busy} onsubmit={(email, password) => signIn(email, password)}
                    resetHref="/reset" signUpHref="/sign-up" /> -->
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Button from '../Button.svelte';
 	import Field from '../Field.svelte';
 
@@ -33,8 +34,17 @@
 	let password = $state('');
 	let alertBox: HTMLElement | undefined = $state();
 
+	// The error stays in the page until the next attempt's result replaces it, and takes focus on
+	// every failed attempt, a repeated sentence included: when the error changes while idle, or when
+	// `busy` falls with an error set.
+	let wasBusy = false;
+	let shown: string | undefined;
 	$effect(() => {
-		if (error) alertBox?.focus();
+		const settled = wasBusy && !busy;
+		const changed = error !== shown;
+		wasBusy = busy;
+		shown = error;
+		if (error && !busy && (settled || changed)) untrack(() => alertBox)?.focus();
 	});
 
 	function handle(event: SubmitEvent) {

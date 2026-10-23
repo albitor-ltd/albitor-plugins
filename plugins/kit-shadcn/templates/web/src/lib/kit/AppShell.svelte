@@ -1,5 +1,7 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: the page frame. web-svelte's root layout renders it
-     with the merged nav and the current path. Keep the skip link first and one main landmark. -->
+<!-- Seeded by Albitor (kit-shadcn), then yours: the page frame (component-kit@2 `AppShell`).
+     web-svelte's root layout renders it with the merged nav and the current path. Keep the skip
+     link first and one main landmark. `footer` is an optional snippet rendered after <main>,
+     outside it, normally `<Footer>`. -->
 <script lang="ts">
 	import './tokens.css';
 	import type { Snippet } from 'svelte';
@@ -10,8 +12,15 @@
 		nav,
 		path,
 		title = 'App',
+		footer,
 		children
-	}: { nav: NavGroup[]; path: string; title?: string; children: Snippet } = $props();
+	}: {
+		nav: NavGroup[];
+		path: string;
+		title?: string;
+		footer?: Snippet;
+		children: Snippet;
+	} = $props();
 
 	function normal(p: string): string {
 		return p.length > 1 ? p.replace(/\/+$/, '') : p;
@@ -46,6 +55,7 @@
 	<main id="main" tabindex="-1">
 		{@render children()}
 	</main>
+	{@render footer?.()}
 </div>
 <Toaster />
 

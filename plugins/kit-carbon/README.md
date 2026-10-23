@@ -10,6 +10,11 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
 
 ## What it provides
 
+- The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
+  `footer` snippet, placed beside the side nav the way Carbon places `Content`), `Footer` (new, in
+  Carbon's tokens: links and text in a `contentinfo` landmark) and `SignInPage` (re-exported from
+  `pages/`). The contract is in the repository README; `contract.test.ts` and
+  `ContractProbe.svelte` (managed) audit it.
 - The styled shell pieces in the Carbon style: `AppShell` (Carbon's UI shell: header, skip link,
   a labelled side nav with the current page marked, one `main`), `Button`, `Field` (label, hint and
   error tied to the control), `Table`, `Dialog` (on Carbon's `Modal`), `Toaster` and `toast`,
@@ -50,8 +55,8 @@ pairing today.
 ## Ownership
 
 The components and `theme.ts` are `example` files: seeded once, then the app's. The contrast test,
-the Showcase, the three test files and `web/vitest.config.ts` are `managed`. No managed file imports
-an `example` file by name except the Showcase (which renders the components); the theme tests check
+the Showcase, the three test files, `contract.test.ts`, `signin.test.ts`, their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) and `web/vitest.config.ts` are `managed`. No managed file imports
+an `example` file by name except the Showcase (which renders the components) and the contract tests and probes, which import the kit's `index.ts` (the `component-kit@2` exports, the app's: removing one fails them); the theme tests check
 the `theme` attribute Carbon puts on `<html>` through the mounted shell, so an app may rewrite
 `theme.ts` and keep the gate as long as the page still follows the preference and `data-theme`. The vitest config extends
 web-svelte's `vite.config.ts` and inlines `carbon-components-svelte` so its `.svelte` files compile,
