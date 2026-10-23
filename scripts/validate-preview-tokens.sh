@@ -65,7 +65,7 @@ if (isobj | not) then "top level is not an object" else
       # roles (#3710): optional; null reads as absent on the platform side.
       (if ($d | has("roles")) and ($d.roles != null) then
          (if ($d.roles|isobj) | not then "roles must be an object" else
-            ($d.roles | unknown(["header","header_withdrawn","link","focus"]; "roles.")),
+            ($d.roles | unknown(["header","header_withdrawn","link","focus","focus_ink"]; "roles.")),
             (["header","header_withdrawn"][] as $b
               | (try ($d.roles[$b]) catch null) as $band
               | if $band == null then empty
@@ -73,7 +73,7 @@ if (isobj | not) then "top level is not an object" else
                 else ($band | unknown(["background","foreground"]; "roles.\($b).")),
                      (["background","foreground"][] as $k | req(["roles",$b,$k]; hexerr))
                 end),
-            (["link","focus"][] as $k | opt(["roles",$k]; hexerr))
+            (["link","focus","focus_ink"][] as $k | opt(["roles",$k]; hexerr))
           end)
        else empty end),
       (if ($d.colours|isobj) | not then "colours is required and must be an object" else empty end),

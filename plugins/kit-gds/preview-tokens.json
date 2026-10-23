@@ -30,6 +30,7 @@
       "foreground": "#ffffff"
     },
     "link": "#1a65a6",
-    "focus": "#ffdd00"
+    "focus": "#ffdd00",
+    "focus_ink": "#0b0c0c"
   }
 }

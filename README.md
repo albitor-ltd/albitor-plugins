@@ -154,7 +154,12 @@ over every pack and fails on the same grounds. Required: `version` (1), `font_fa
 `colours` (`text`, `text_secondary`, `border`, `surface`, `background`, `accent`, `on_accent`, hex).
 Optional: `heading_font_family`, `border_width`, `min_target`, `focus_ring`, `heading_tracking`
 (`0` or `-0.02em`), `tabular_figures`, `dark_target` (0 or 4.5-7) and the colours `control_border`,
-`danger`, `success`, `warning`, `warning_alt`. Lengths are `0` or up to four decimals of `px`/`rem`;
+`danger`, `success`, `warning`, `warning_alt`. An optional `roles` block names colours kept apart
+from the action colour (all hex, all optional): `header` (`background` and `foreground`, which travel
+together), `header_withdrawn` (the same, used only where the platform withdraws the buyer's brand
+colour; a brand colour the buyer set paints the header instead, else `header`), `link`, `focus` and
+`focus_ink` (text on a focus fill: with it the focus indicator is a `focus` fill with `focus_ink`
+text and underline, without it a `focus` ring). Lengths are `0` or up to four decimals of `px`/`rem`;
 the file is at most 4 KiB. Run `scripts/validate-preview-tokens.sh` before opening a pull request.
 
 ## CI
