@@ -81,6 +81,7 @@ cursor back; a server that hangs for ever pauses the queue without counting atte
 |---|---|
 | routes | App-owned SvelteKit files under `web/src/routes/`. No slot, no managed file to edit |
 | `web.nav` | A route adds a sibling `nav.ts` exporting `nav = { label, order, group }`; the managed `nav.generated.ts` collects them with `import.meta.glob('/src/routes/**/nav.ts')` and merges plugin entries. A plugin entry has no target: its link is the label slug (`Sign in` is `/sign-in`) |
+| `web.root-classes` | The managed `src/app.html` is an `html` slot template: `<html class="{{albitor.slot.web.root-classes.html}}">` and `<body class="{{albitor.slot.web.root-classes.body}}">`. A kit or style contributes `{target: "html"\|"body", class}` entries; the composer sorts and dedupes them. No entries renders `class=""`. `app.html` is no longer app-owned: edit root classes through the slot, not the file. Migration: an app that edited `app.html` (favicon, meta, attributes) loses those edits on upgrade; move head content to `<svelte:head>` in a layout |
 | `web.providers`, `web.route-guard` | A plugin ships a module in `web/src/lib/shell/scope.d/` exporting the identifier it declared; the managed `providers.generated.ts` resolves it |
 
 ## Dependency pins
@@ -113,14 +114,15 @@ writes.
 ```text
 .claude-plugin/plugin.json   schema-2 manifest
 templates/web/**             the files composed into the app, at their repository paths; the
-                             two generated slot files (src/lib/shell/nav.generated.ts and
-                             providers.generated.ts) are slot-template entries in plugin.json
+                             three generated slot files (src/lib/shell/nav.generated.ts,
+                             providers.generated.ts and src/app.html) are slot-template entries
+                             in plugin.json
 skills/svelte-shell/         the shell skill
 skills/data-online/          the online data layer skill
 skills/data-offline/         the offline data layer skill
 ```
 
-Slot templates are declared in the manifest (`mode: "slot-template"`, `syntax: "ts"`; ADR-0090
+Slot templates are declared in the manifest (`mode: "slot-template"`, `syntax: "ts"`, or `"html"` for `app.html`; ADR-0090
 amendment of 2026-10-14, item 1); the old `slot-templates.json` sidecar is gone, because the
 platform never read it (dev build 63716a5c refused to compose with `no_slot_template`). A route guard is a convenience, not access control: the API must check
 the caller. The guard runs in `+layout.ts` `load` before providers mount, so there is no

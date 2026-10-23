@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `web-svelte` `0.4.0` (albitor-ltd/albitor-plugins#65, albitor-ltd/albitor#3707): hosts the `web.root-classes`
+  slot. `web/src/app.html` is now a managed `html` slot template with
+  `{{albitor.slot.web.root-classes.html}}` on `<html>` and `{{albitor.slot.web.root-classes.body}}`
+  on `<body>` (existing attributes kept), so a kit or style can set root classes. No entries renders
+  `class=""`. `app.html` moves from app-owned to managed. Merge before any kit fills the slot.
+  Migration: an app that edited `app.html` (favicon, meta tags, attributes) loses those edits on
+  upgrade. Move head content to `<svelte:head>` in a layout; root classes go through `web.root-classes`.
+
 - `kit-gds` `0.1.0` (albitor-ltd/albitor#3563): a `component-kit@1` plugin for Svelte that absorbs
   the `gds` pack. `AppShell` (text-only header, service navigation), `Button`, `Dialog` (a native
   `<dialog>`), `Field`, `ErrorSummary` and `Table` in GOV.UK Frontend 6.4.0 markup and classes,

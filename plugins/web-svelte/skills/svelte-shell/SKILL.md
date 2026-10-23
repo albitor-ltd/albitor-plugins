@@ -62,9 +62,13 @@ place.
 ## Seeded files you own
 
 `src/routes/+error.svelte` (error and 404), `src/routes/offline/+page.svelte`,
-`src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`, `src/app.html`,
+`src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`,
 `package.json` and its lockfile, and `src/lib/sync/collections.ts` (the synced collections, read
 only by the offline data layer).
+
+`src/app.html` is managed (a slot template), not yours: an edit is overwritten on upgrade. Put head
+content (favicon, meta) in `<svelte:head>` in a layout, and root `html`/`body` classes in a plugin's
+`web.root-classes` slot.
 
 ## Plugins: providers and the route guard
 
