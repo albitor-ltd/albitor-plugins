@@ -14,10 +14,10 @@ provides, requires and contributes, and the platform composer renders it into a 
 | `api/internal/shell/identity_cognito.go` | managed | Pool from the environment, the sign-in calls, the session cookies |
 | `web/src/lib/auth/` | managed | `getSession()`, the `requireSession` route guard, the sign-in client, and their tests |
 | `web/src/lib/shell/scope.d/auth-cognito.ts` | managed | Exports the name `web.route-guard` resolves to |
-| `web/src/routes/(auth)/` | example, per kit | Sign-in, sign-up, confirm, reset and sign-out screens, written against `kit-shadcn` |
+| `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset and sign-out screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: redirect, screens, local identity |
 
-It requires `api-runtime@1` and `web-framework@1`, so an API-less profile uses `auth-none`. It
+It requires `api-runtime@1`, `web-framework@1` and `component-kit@2` (an exact major: a kit that provides only `component-kit@1` does not satisfy it), so an API-less profile uses `auth-none`. It
 contributes `services.auth` (`provider: cognito`, `posture: private`, `sign_up: open`) and no
 Terraform: the deploy target realises the pool and hands the function `AUTH_USER_POOL_ID`,
 `AUTH_CLIENT_ID` and `AWS_REGION`. The module stays stdlib-only, because `api/go.mod` is `api-go`'s
@@ -37,8 +37,9 @@ Terraform: the deploy target realises the pool and hands the function `AUTH_USER
 - The route guard reads `getSession()`, which asks `GET /api/me`: a 401 is "nobody", anything else
   is thrown rather than read as signed out. The guard never depends on a provider (the shell runs it
   before any provider mounts), and ships no provider because nothing needs one.
-- The screens carry the test ids the `test-playwright` sign-in setup targets (`sign-in-form`,
-  `sign-in-email`, `sign-in-password`, `sign-in-button`).
+- The sign-in form is the kit's `SignInPage`, which takes no test ids, so the journey spec finds it by
+  role and label. The sign-up, confirm and reset forms and the new-password step keep their
+  `data-testid` values.
 
 - The pool's keys (JWKS) are fetched outside any lock the other requests wait on, an unknown `kid`
   refetches at most every 5 minutes, and a failed fetch is remembered for 10 seconds. A pool that
@@ -71,14 +72,25 @@ deploy seeds are permanent from the start and never meet this step.
 
 ## Known gaps
 
-- The screens (`web/src/routes/(auth)/`) are written for `kit-shadcn` only. With another kit the
-  plugin still ships the session, the guard and the API, so the guard sends a signed-out person to
-  `/sign-in` and that screen has to be written by the build.
+- The page frame (`AppShell`, and its optional `footer`) is web-svelte's root layout, not this
+  plugin's; the screens add no footer of their own.
 - Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
 - No MFA, no social sign-in. The one challenge handled is `NEW_PASSWORD_REQUIRED` (below); any other
   answers 409 `challenge_unsupported`.
 - Logic ships as managed files, not a versioned module (ADR-0090 amendment 3), so a fix reaches an
   app on a compose or upgrade, not silently.
+
+## Upgrading from 0.2.0
+
+0.3.0 requires `component-kit@2`, so the kit must be `kit-shadcn`, `kit-carbon` or `kit-gds` at 0.5.0
+or later (they declare both majors). The screens are app-owned examples, so an existing app keeps its 0.2.0 pages, and an app keeping
+the 0.2.0 sign-in page needs nothing more: it keeps working (the `kit/index.ts` exports it uses are
+unchanged) but carries the old `sign-in-*` test ids. Adopting the new page means taking the new spec:
+`(auth)/sign-in/+page.svelte` and `tests/journeys/sign-in.spec.ts` together, since the spec no longer
+looks for the old test ids. What compose does with example files on an upgrade is under review in
+albitor-ltd/albitor#3722, so check `web/src/routes/(auth)/` after upgrading rather than relying on
+either behaviour. `test-playwright` 0.2.0 finds the sign-in form by label and role ("Email...",
+"Password", "Sign in"), which the 0.2.0 page's labels already satisfy.
 
 ## Not carried over from the `auth` pack
 

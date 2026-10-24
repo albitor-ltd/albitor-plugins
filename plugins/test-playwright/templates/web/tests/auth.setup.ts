@@ -1,8 +1,8 @@
 // Managed by Albitor (test-playwright).
 import { type Dirent, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { expect, type Locator, test as setup } from "@playwright/test";
-import { readCredentials } from "./helpers/credentials";
+import { leftSignInRoute, readCredentials } from "./helpers/credentials";
 import {
   DEMO_STORAGE_STATE,
   EMPTY_STORAGE_STATE,
@@ -59,16 +59,29 @@ const { username, password, signInRoute } = readCredentials(process.env);
 //
 // This file is managed: no builder can flip a flag in it. The answer is true when the platform
 // says so (ALBITOR_SIGN_IN_SCREEN=1, set by an auth plugin that ships a sign-in screen) or when the
-// app's own front end anywhere under web/ names the sign-in field's test id. Once it is true the
+// app's own front end anywhere under web/ renders the kit's SignInPage (outside the kit itself).
+// Once it is true the
 // setup no longer looks first: it signs in, a sign-in screen that has gone missing fails the run,
 // and so does a deployed run with no password to sign in with. Neither can then skip every
 // signed-in spec, green.
 //
 // While it is false (an app with no sign-in, or a password provisioned before the screen exists)
-// the setup looks for the screen first; found under other test ids, it fails rather than running
-// signed out, so a renamed screen cannot hide behind the leniency.
-// The test id the setup types the username into, and looks for.
-const SIGN_IN_EMAIL_ID = "sign-in-email";
+// the setup looks for the screen first; a password field with no email field beside it fails
+// rather than running signed out, so an unlabelled screen cannot hide behind the leniency.
+//
+// THE SCREEN IS FOUND BY ROLE AND LABEL, not test ids, because the standard sign-in screen is the
+// component-kit@2 SignInPage, which is the same in every kit and carries none: a field labelled
+// "Email..." (the kit's wording is "Email address"), a field labelled "Password", and a button
+// named "Sign in".
+const EMAIL_LABEL = /^email/i;
+const PASSWORD_LABEL = /^password/i;
+const SIGN_IN_BUTTON = /^sign in/i;
+
+// What a front end that renders the sign-in screen names in its source: the kit's component, or
+// the old test id of a hand-written screen. The kit's own files (web/src/lib/kit) hold the former
+// whatever the app, so they are not evidence of a screen.
+const SIGN_IN_MARKERS = ["SignInPage", "sign-in-email"];
+const KIT_DIR = join("src", "lib", "kit");
 
 // How long each step of typing the password and signing in may take: well under the test timeout,
 // so a stuck step fails into the catch that empties the password field.
@@ -110,7 +123,7 @@ async function signInScreenAppears(field: Locator): Promise<boolean> {
 }
 
 // Directories under web/ the source scan never enters: dependencies, this test
-// suite (which names the test id itself), and build and report output.
+// suite (which names the screen itself), and build and report output.
 const SCAN_SKIP_DIRS = new Set([
   "node_modules",
   "dist",
@@ -127,8 +140,17 @@ const SCAN_SKIP_DIRS = new Set([
 // A file larger than this is a bundle or an asset, not a screen's source.
 const SCAN_MAX_BYTES = 2 * 1024 * 1024;
 
+function namesSignInScreen(path: string): boolean {
+  const rel = relative(WEB_ROOT, path);
+  if (rel === KIT_DIR || rel.startsWith(KIT_DIR + sep)) {
+    return false;
+  }
+  const text = readFileSync(path, "utf8");
+  return SIGN_IN_MARKERS.some((m) => text.includes(m));
+}
+
 // sourceNamingSignInField returns the first file of the app's own front end that
-// names the sign-in field's test id, or "" when none does.
+// renders the sign-in screen (see SIGN_IN_MARKERS), or "" when none does.
 //
 // IT SCANS ALL OF web/, not one conventional directory. This template's front
 // end is web/public/index.html and app.js, with no web/src at all; a framework
@@ -159,7 +181,7 @@ function sourceNamingSignInField(): string {
         continue;
       }
       try {
-        if (statSync(path).size <= SCAN_MAX_BYTES && readFileSync(path, "utf8").includes(SIGN_IN_EMAIL_ID)) {
+        if (statSync(path).size <= SCAN_MAX_BYTES && namesSignInScreen(path)) {
           return join("web", relative(WEB_ROOT, path));
         }
       } catch {
@@ -214,24 +236,26 @@ setup("sign in once as the demo account", async ({ page }) => {
     return;
   }
 
-  // THE SIGN-IN SCREEN'S CONTRACT: the auth plugin's screen carries the test ids
-  // sign-in-form, sign-in-email, sign-in-password and sign-in-button. A screen that names
-  // them differently is the auth plugin's defect to fix, not a reason to edit this file.
+  // THE SIGN-IN SCREEN'S CONTRACT: an email field labelled "Email...", a password field labelled
+  // "Password" and a button named "Sign in" (the kit's SignInPage). A screen that labels them
+  // differently is the auth plugin's defect to fix, not a reason to edit this file.
   // THE PASSWORD ONLY GOES IN WITH HEADROOM. Everything before the try below is bounded (the probe
-  // 10s, goto 15s, the email 5s) and the test timeout is raised to cover them plus three steps and
+  // 10s, goto 15s, the email 5s) and the test timeout is raised to cover them plus five steps and
   // the clean-up, so the test timeout can never fire while the password is in the field: a timeout
   // never reaches the catch that empties it.
   setup.setTimeout(SIGN_IN_PRELUDE_MS + 5 * SIGN_IN_STEP_MS + 10_000);
   await page.goto(signInRoute, { timeout: SIGN_IN_GOTO_MS });
-  const emailField = page.getByTestId(SIGN_IN_EMAIL_ID);
+  // Where the sign-in page actually is (it may have redirected): signed in means leaving this.
+  const signInURL = new URL(page.url());
+  const emailField = page.getByLabel(EMAIL_LABEL);
 
   if (!signInScreenExists && !(await signInScreenAppears(emailField))) {
-    // Something sign-in shaped IS on the page: the screen exists under other
-    // test ids. Running signed out would hide that.
-    if ((await page.locator('input[type="password"], [data-testid^="sign-in"]').count()) > 0) {
+    // Something sign-in shaped IS on the page: the screen exists but is not labelled
+    // as the contract says. Running signed out would hide that.
+    if ((await page.locator('input[type="password"]').count()) > 0) {
       throw new Error(
-        `${signInRoute} shows a password field or a "sign-in" test id but no "${SIGN_IN_EMAIL_ID}": ` +
-          "the sign-in screen must carry the test ids sign-in-form, sign-in-email, sign-in-password and sign-in-button",
+        `${signInRoute} shows a password field but no field labelled "Email...": ` +
+          'the sign-in screen must label its fields "Email...", "Password" and its button "Sign in"',
       );
     }
     runSignedOut(`no sign-in screen at ${signInRoute} yet`);
@@ -239,7 +263,7 @@ setup("sign in once as the demo account", async ({ page }) => {
   }
 
   await emailField.fill(username, { timeout: SIGN_IN_STEP_MS });
-  const passwordField = page.getByTestId("sign-in-password");
+  const passwordField = page.getByLabel(PASSWORD_LABEL);
   // THE PASSWORD MUST NOT OUTLIVE THE SIGN-IN IN ANYTHING A FAILURE LEAVES BEHIND. Playwright
   // writes a page snapshot (error-context.md) for a failed test, and CI uploads the HTML report; a
   // password sitting in the field at that moment, or printed in a `fill("...")` step title, would
@@ -251,7 +275,7 @@ setup("sign in once as the demo account", async ({ page }) => {
   // catch: the snapshot is taken with the password still in the field.
   try {
     await fillSecret(passwordField, password);
-    await page.getByTestId("sign-in-button").click({ timeout: SIGN_IN_STEP_MS });
+    await page.getByRole("button", { name: SIGN_IN_BUTTON }).click({ timeout: SIGN_IN_STEP_MS });
 
     // Prove the sign-in worked before saving it. A saved session that is not a
     // session turns every later spec red on its first assertion, one screen away
@@ -261,7 +285,12 @@ setup("sign in once as the demo account", async ({ page }) => {
     // fails, with the password still in the field. waitFor fails first, the field is emptied,
     // and a plain Error is thrown, so the snapshot Playwright writes for the failed test is taken
     // after.
-    await page.getByTestId("sign-in-form").waitFor({ state: "hidden", timeout: SIGN_IN_STEP_MS });
+    await passwordField.waitFor({ state: "hidden", timeout: SIGN_IN_STEP_MS });
+    // The password field going away is not enough: a challenge step (a new password) or a landing
+    // page with a field of its own would pass. Signed in means the page left the sign-in route
+    // (pathname, plus the hash under hash routing). "commit": a slow full-navigation landing page
+    // must not fail a good sign-in; the URL changing is all that is asked here.
+    await page.waitForURL((u) => leftSignInRoute(signInURL, u), { timeout: SIGN_IN_STEP_MS, waitUntil: "commit" });
   } catch (err) {
     await fillSecret(passwordField, "").catch(() => {});
     throw new Error(`the demo account did not sign in at ${signInRoute}: ${err instanceof Error ? err.name : "failed"}`);

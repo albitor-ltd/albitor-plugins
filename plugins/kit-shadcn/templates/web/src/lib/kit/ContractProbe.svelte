@@ -9,10 +9,11 @@
 	let {
 		withFooter = true,
 		error,
+		email,
 		busy = false,
 		extraLink,
 		repeatLink = false
-	}: { withFooter?: boolean; error?: string; busy?: boolean; extraLink?: string; repeatLink?: boolean } = $props();
+	}: { withFooter?: boolean; error?: string; email?: string; busy?: boolean; extraLink?: string; repeatLink?: boolean } = $props();
 
 	const nav: NavGroup[] = [
 		{ id: null, items: [{ label: 'Home', order: 0, href: '/' }] }
@@ -33,5 +34,5 @@
 {/snippet}
 
 <AppShell {nav} path="/" title="Example app" footer={withFooter ? footer : undefined}>
-	<SignInPage {error} {busy} resetHref="/reset" signUpHref="/sign-up" onsubmit={() => {}} />
+	<SignInPage {error} {email} {busy} resetHref="/reset" signUpHref="/sign-up" onsubmit={() => {}} />
 </AppShell>

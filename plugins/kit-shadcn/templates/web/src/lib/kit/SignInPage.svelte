@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: a sign-in screen. It is presentation only: the
+<!-- Seeded by Albitor (kit-shadcn), then yours: a sign-in screen. It is presentation only: the
      identity plugin (auth@1) decides what signing in means, so call its client from `onsubmit` and
      pass back a plain `error` sentence. Say "Email or password is incorrect" and never which one,
      keep the password field `autocomplete="current-password"` so a password manager works, and do
@@ -10,8 +10,8 @@
                    resetHref="/reset" signUpHref="/sign-up" /> -->
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import Button from '../Button.svelte';
-	import Field from '../Field.svelte';
+	import Button from './Button.svelte';
+	import Field from './Field.svelte';
 
 	let {
 		title = 'Sign in',
@@ -19,6 +19,7 @@
 		busy = false,
 		resetHref,
 		signUpHref,
+		email: initialEmail = '',
 		onsubmit
 	}: {
 		title?: string;
@@ -27,10 +28,13 @@
 		busy?: boolean;
 		resetHref?: string;
 		signUpHref?: string;
+		/** The email field's initial value, for a person returning from sign-up or confirm. */
+		email?: string;
 		onsubmit: (email: string, password: string) => void | Promise<void>;
 	} = $props();
 
-	let email = $state('');
+	// An initial value only: the person's typing wins, and a later prop change does not overwrite it.
+	let email = $state(untrack(() => initialEmail));
 	let password = $state('');
 	let alertBox: HTMLElement | undefined = $state();
 
@@ -86,18 +90,18 @@
 	}
 	h1 {
 		margin: 0 0 1rem;
-		font-size: 2rem;
+		font-size: var(--text-title);
 	}
 	.error {
 		margin: 0 0 1rem;
 		padding: 0.75rem 1rem;
-		border: 2px solid var(--cds-text-error);
-		border-radius: 0;
-		color: var(--cds-text-error);
+		border: 2px solid var(--destructive);
+		border-radius: var(--radius);
+		color: var(--destructive);
 		font-weight: 600;
 	}
 	.error:focus-visible {
-		outline: 2px solid var(--cds-focus);
+		outline: 2px solid var(--ring);
 		outline-offset: 2px;
 	}
 	.sr {
@@ -115,6 +119,6 @@
 		margin-top: 1rem;
 	}
 	.links a {
-		color: var(--cds-link-primary);
+		color: var(--link);
 	}
 </style>

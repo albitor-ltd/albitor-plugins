@@ -15,6 +15,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `test-playwright` `0.2.0` (albitor-ltd/albitor-plugins#63): the managed `auth.setup.ts` signs in by role and
+  label, not test ids, because the standard sign-in screen is the component-kit@2 `SignInPage`, which carries
+  none: a field labelled `Email...`, a field labelled `Password`, a button named `Sign in`. The "a password
+  field but no email field" defect check is kept in that form. The source scan that makes the setup strict now
+  looks for `SignInPage` (outside `web/src/lib/kit`) or the old `sign-in-email`. Migration: an app whose sign-in
+  page still carries only the old test ids and unlabelled fields must label them, or stay on 0.1.2. Companion
+  albitor change: the test-id contract in `docs/reference/web-app-architecture.md` and runner testdata.
+  Signed in now also means the page has left the sign-in route: after `goto`, the setup records the sign-in
+  URL (so a redirect to `/login` is the route) and waits, with `waitUntil: "commit"`, for the pathname (the
+  pathname plus hash under hash routing) to change. A same-route challenge page, such as a new-password
+  step, fails the setup instead of saving a session that is not one.
+
+- `auth-cognito` `0.3.0`, `kit-shadcn` `0.5.0`, `kit-carbon` `0.5.0`, `kit-gds` `0.5.0`
+  (albitor-ltd/albitor-plugins#63; needs albitor core with component-kit@2, albitor-ltd/albitor#3746): the
+  three kits declare `provides: ["component-kit@1", "component-kit@2"]` (a `requires` resolves against an
+  exact major, and web-svelte still requires `@1`). kit-shadcn and kit-carbon move `SignInPage.svelte` from
+  `web/src/lib/kit/pages/` to `web/src/lib/kit/` (certification of a kit listing `@2` requires the file there,
+  as kit-gds already had it); `pages/index.ts` still re-exports it. `auth-cognito` now
+  `requires` `component-kit@2` and its `(auth)` screens no longer carry `when component-kit: kit-shadcn`, so
+  they are seeded on every `@2` kit (kit-carbon and kit-gds included, proved in `tests/compose/auth_test.go`).
+  Its sign-in screen renders the kit's `SignInPage`; the new-password step and the sign-up, confirm and
+  reset screens use the kit's `Field` and `Button`.
+  Migration (documented breakage): an app needs a kit at `0.5.0` before `auth-cognito` `0.3.0` will compose.
+  The screens and `sign-in.spec.ts` are app-owned examples, so an existing app should keep its old sign-in page
+  (with its `sign-in-*` test ids) and the old spec, though what compose does with example files on an upgrade
+  is under review in albitor-ltd/albitor#3722, so check them after upgrading; to adopt the kit's `SignInPage`, take the new
+  `(auth)/sign-in/+page.svelte` and `tests/journeys/sign-in.spec.ts` together (the spec now finds the form
+  by role and label, as `SignInPage` takes no test ids). `SignInPage` gains an optional `email` prop (the
+  email field's initial value) in all three kits, which auth-cognito fills from `?email=`. On kit-shadcn and kit-carbon, an app that already has
+  `pages/SignInPage.svelte` should move it to `lib/kit/SignInPage.svelte`, then point both `index.ts` and
+  `pages/index.ts` (and `pages/PagesShowcase.svelte`, which now imports from `../index`) at it; whether
+  compose seeds the new file over an old app's `index.ts` is the question in albitor-ltd/albitor#3722, so check
+  `web/src/lib/kit/` after upgrading.
 - `kit-gds` `0.4.0`, `gds` `0.1.9`, `kit-carbon` `0.4.0` (albitor-ltd/albitor#3710): the
   preview-tokens contract gains an optional `roles` block (`header` and `header_withdrawn` as
   `background`/`foreground`, `link`, `focus`), so the structure preview draws the header band, link

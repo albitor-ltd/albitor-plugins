@@ -55,3 +55,16 @@ export function readCredentials(env: Record<string, string | undefined>): DemoCr
 		return fromEnv;
 	}
 }
+
+/**
+ * Whether the page has left the sign-in route. `signIn` is the URL recorded right after the
+ * sign-in page loaded (so a redirect to /login is the route), `now` the current one. Query strings
+ * do not count (a challenge page on the same route often adds one); under hash routing
+ * (`#/sign-in`) the hash is part of the route. A same-route challenge page is not signed in.
+ */
+export function leftSignInRoute(signIn: URL, now: URL): boolean {
+	if (now.origin !== signIn.origin) return true;
+	const hashRouted = signIn.hash.startsWith("#/");
+	const route = (u: URL) => (hashRouted ? u.pathname + u.hash : u.pathname);
+	return route(now) !== route(signIn);
+}

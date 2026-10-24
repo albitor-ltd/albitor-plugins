@@ -3,12 +3,13 @@
 <script lang="ts">
 	import { SignInPage } from './index';
 
-	let view = $state<{ error?: string; busy: boolean }>({ busy: false });
+	let { initial = {} }: { initial?: { email?: string } } = $props();
+	let view = $state<{ error?: string; email?: string; busy: boolean }>({ busy: false, email: initial.email });
 
 	/** Change the props the page is given, as the owning route would between attempts. */
-	export function set(next: { error?: string; busy?: boolean }): void {
+	export function set(next: { error?: string; email?: string; busy?: boolean }): void {
 		view = { ...view, ...next };
 	}
 </script>
 
-<SignInPage error={view.error} busy={view.busy} onsubmit={() => {}} />
+<SignInPage email={view.email} error={view.error} busy={view.busy} onsubmit={() => {}} />

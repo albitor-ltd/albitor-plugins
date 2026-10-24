@@ -7,7 +7,7 @@ import { flushSync, mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import SignInHarness from './SignInHarness.svelte';
 
-let app: (ReturnType<typeof mount> & { set(next: { error?: string; busy?: boolean }): void }) | undefined;
+let app: (ReturnType<typeof mount> & { set(next: { error?: string; email?: string; busy?: boolean }): void }) | undefined;
 
 afterEach(() => {
 	if (app) unmount(app);
@@ -21,7 +21,7 @@ async function show() {
 	await tick();
 }
 
-async function set(next: { error?: string; busy?: boolean }) {
+async function set(next: { error?: string; email?: string; busy?: boolean }) {
 	app!.set(next);
 	flushSync();
 	await tick();
@@ -106,5 +106,22 @@ describe('SignInPage errors', () => {
 		email().focus();
 		await set({ error: SAME });
 		expect(alertHasFocus()).toBe(false);
+	});
+});
+
+describe('SignInPage email prop', () => {
+	it('pre-fills the field', async () => {
+		app = mount(SignInHarness, { target: document.body, props: { initial: { email: 'start@example.test' } } }) as typeof app;
+		flushSync();
+		await tick();
+		expect(email().value).toBe('start@example.test');
+	});
+
+	it('is an initial value: a later change to it does not overwrite what was typed', async () => {
+		await show();
+		email().value = 'typed@example.test';
+		email().dispatchEvent(new Event('input', { bubbles: true }));
+		await set({ email: 'later@example.test' });
+		expect(email().value).toBe('typed@example.test');
 	});
 });

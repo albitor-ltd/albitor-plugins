@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-cognito, kit-shadcn), then yours: signs the person out and sends them to
+<!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours: signs the person out and sends them to
      the sign-in screen. Its nav.ts puts "Sign out" in the nav; delete nav.ts to take it out. -->
 <script lang="ts">
 	import { goto } from '$app/navigation';

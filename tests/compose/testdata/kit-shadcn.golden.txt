@@ -28,6 +28,7 @@
 === web/src/lib/kit/Footer.svelte ===
 === web/src/lib/kit/Showcase.svelte ===
 === web/src/lib/kit/SignInHarness.svelte ===
+=== web/src/lib/kit/SignInPage.svelte ===
 === web/src/lib/kit/Table.svelte ===
 === web/src/lib/kit/Toaster.svelte ===
 === web/src/lib/kit/contract.test.ts ===
@@ -43,7 +44,6 @@
 === web/src/lib/kit/pages/PagesShowcase.svelte ===
 === web/src/lib/kit/pages/SettingsPage.svelte ===
 === web/src/lib/kit/pages/SettingsSection.svelte ===
-=== web/src/lib/kit/pages/SignInPage.svelte ===
 === web/src/lib/kit/pages/StateNotice.svelte ===
 === web/src/lib/kit/pages/index.ts ===
 === web/src/lib/kit/pages/pages.test.ts ===

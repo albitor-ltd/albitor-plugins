@@ -1,6 +1,6 @@
 # kit-carbon
 
-The `component-kit@1` plugin for Svelte in the IBM Carbon style
+The `component-kit@1` and `component-kit@2` plugin for Svelte in the IBM Carbon style
 ([ADR-0090](https://github.com/albitor-ltd/albitor) sections 2 and 13, albitor-ltd/albitor#3167): a
 rewrite of the React and web-component `carbon` plugin as a Svelte-first kit on
 [carbon-components-svelte](https://svelte.carbondesignsystem.com) and
@@ -12,8 +12,8 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
 
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet, placed beside the side nav the way Carbon places `Content`), `Footer` (new, in
-  Carbon's tokens: links and text in a `contentinfo` landmark) and `SignInPage` (re-exported from
-  `pages/`). The contract is in the repository README; `contract.test.ts` and
+  Carbon's tokens: links and text in a `contentinfo` landmark) and `SignInPage` (its own file,
+  `SignInPage.svelte`, also re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
   `ContractProbe.svelte` (managed) audit it.
 - The styled shell pieces in the Carbon style: `AppShell` (Carbon's UI shell: header, skip link,
   a labelled side nav with the current page marked, one `main`), `Button`, `Field` (label, hint and

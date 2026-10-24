@@ -12,6 +12,7 @@
      A failure shows GOV.UK's error summary (focused, linked to the email field) above the heading;
      the fields carry no message of their own, because the failure is about the pair. -->
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import Button from './Button.svelte';
 	import ErrorSummary from './ErrorSummary.svelte';
 	import Field from './Field.svelte';
@@ -22,6 +23,7 @@
 		busy = false,
 		resetHref,
 		signUpHref,
+		email: initialEmail = '',
 		onsubmit
 	}: {
 		title?: string;
@@ -30,10 +32,13 @@
 		busy?: boolean;
 		resetHref?: string;
 		signUpHref?: string;
+		/** The email field's initial value, for a person returning from sign-up or confirm. */
+		email?: string;
 		onsubmit: (email: string, password: string) => void | Promise<void>;
 	} = $props();
 
-	let email = $state('');
+	// An initial value only: the person's typing wins, and a later prop change does not overwrite it.
+	let email = $state(untrack(() => initialEmail));
 	let password = $state('');
 
 	// The error stays in the page until the next attempt's result replaces it. The summary takes

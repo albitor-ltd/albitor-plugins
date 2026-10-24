@@ -1,6 +1,6 @@
 # kit-shadcn
 
-The `component-kit@1` plugin for Svelte
+The `component-kit@1` and `component-kit@2` plugin for Svelte
 ([ADR-0090](https://github.com/albitor-ltd/albitor) sections 2 and 13, albitor-ltd/albitor#3166): a
 rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes into a new app's
 `web/` beside `web-svelte`, whose root layout renders the kit's `AppShell`.
@@ -9,7 +9,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark) and `SignInPage`
-  (re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
+  (its own file, `SignInPage.svelte`, also re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
   `ContractProbe.svelte` (managed) audit it.
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
