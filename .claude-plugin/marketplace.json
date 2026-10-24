@@ -13,8 +13,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/gds",
-        "ref": "gds/v0.1.8",
-        "sha": "ce54224a9f6dd1f2e58fa39026d48a80616e57d3"
+        "ref": "gds/v0.1.9",
+        "sha": "ea7b964eb0af72f1e3b75d274c64a74ecd11096a"
       },
       "description": "Build and audit GOV.UK-compliant services: GOV.UK Design System components, patterns and styles, plus WCAG 2.2 AA accessibility and the public sector accessibility regulations.",
       "category": "development",
@@ -348,8 +348,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.3.0",
-        "sha": "1bf926b9024b003535dd59cbc2bbbd7293240ae8"
+        "ref": "kit-carbon/v0.4.0",
+        "sha": "ea7b964eb0af72f1e3b75d274c64a74ecd11096a"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -368,8 +368,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.3.0",
-        "sha": "1bf926b9024b003535dd59cbc2bbbd7293240ae8"
+        "ref": "kit-gds/v0.4.0",
+        "sha": "ea7b964eb0af72f1e3b75d274c64a74ecd11096a"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
