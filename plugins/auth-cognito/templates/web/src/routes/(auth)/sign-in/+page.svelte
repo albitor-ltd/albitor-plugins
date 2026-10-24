@@ -16,6 +16,14 @@
 	let email = $state(page.url.searchParams.get('email') ?? '');
 	let error = $state('');
 	let busy = $state(false);
+	let alertBox: HTMLElement | undefined = $state();
+
+	// The button is disabled while busy, which drops focus to <body>; a failure takes it back, on the alert.
+	async function fail(message: string) {
+		error = message;
+		await tick();
+		alertBox?.focus();
+	}
 	// Set once the pool asks an invited person for their own password; held in memory only.
 	let challengeSession = $state('');
 	let chosenPassword = $state('');
@@ -48,7 +56,7 @@
 			await goto(`/confirm?email=${encodeURIComponent(email)}`);
 			return;
 		}
-		error = result.message;
+		void fail(result.message);
 	}
 
 	async function submitNewPassword(event: SubmitEvent) {
@@ -64,11 +72,11 @@
 		chosenPassword = '';
 		if (result.code === 'session_expired') {
 			challengeSession = '';
-			error = result.message;
+			void fail(result.message);
 			await announceStep();
 			return;
 		}
-		error = result.message;
+		void fail(result.message);
 	}
 </script>
 
@@ -90,7 +98,7 @@
 			data-testid="new-password-input"
 		/>
 		{#if error}
-			<p role="alert" data-testid="new-password-error">{error}</p>
+			<p role="alert" tabindex="-1" bind:this={alertBox} data-testid="new-password-error">{error}</p>
 		{/if}
 		<Button type="submit" disabled={busy} data-testid="new-password-button">Set password and sign in</Button>
 	</form>

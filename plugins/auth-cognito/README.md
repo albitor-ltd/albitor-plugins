@@ -83,13 +83,14 @@ deploy seeds are permanent from the start and never meet this step.
 ## Upgrading from 0.2.0
 
 0.3.0 requires `component-kit@2`, so the kit must be `kit-shadcn`, `kit-carbon` or `kit-gds` at 0.5.0
-or later (they declare both majors). The screens are app-owned examples, so an existing app should
-keep its 0.2.0 sign-in page, which keeps working (the `kit/index.ts` exports it uses are unchanged)
-but carries the old `sign-in-*` test ids. What compose does with example files on an upgrade is under
-review in albitor-ltd/albitor#3722, so check `web/src/routes/(auth)/` after upgrading rather than
-relying on either behaviour. `test-playwright` 0.2.0 finds the sign-in form by label and role
-("Email...", "Password", "Sign in"), which the 0.2.0 page's labels already satisfy; only
-`tests/journeys/sign-in.spec.ts` needs the new version, since it no longer looks for the old test ids.
+or later (they declare both majors). The screens are app-owned examples, so an existing app keeps its 0.2.0 pages, and an app keeping
+the 0.2.0 sign-in page needs nothing more: it keeps working (the `kit/index.ts` exports it uses are
+unchanged) but carries the old `sign-in-*` test ids. Adopting the new page means taking the new spec:
+`(auth)/sign-in/+page.svelte` and `tests/journeys/sign-in.spec.ts` together, since the spec no longer
+looks for the old test ids. What compose does with example files on an upgrade is under review in
+albitor-ltd/albitor#3722, so check `web/src/routes/(auth)/` after upgrading rather than relying on
+either behaviour. `test-playwright` 0.2.0 finds the sign-in form by label and role ("Email...",
+"Password", "Sign in"), which the 0.2.0 page's labels already satisfy.
 
 ## Not carried over from the `auth` pack
 

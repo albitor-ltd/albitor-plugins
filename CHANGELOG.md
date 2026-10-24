@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   looks for `SignInPage` (outside `web/src/lib/kit`) or the old `sign-in-email`. Migration: an app whose sign-in
   page still carries only the old test ids and unlabelled fields must label them, or stay on 0.1.2. Companion
   albitor change: the test-id contract in `docs/reference/web-app-architecture.md` and runner testdata.
+  Signed in now also means the page has left the sign-in route: after `goto`, the setup records the sign-in
+  URL (so a redirect to `/login` is the route) and waits, with `waitUntil: "commit"`, for the pathname (the
+  pathname plus hash under hash routing) to change. A same-route challenge page, such as a new-password
+  step, fails the setup instead of saving a session that is not one.
 
 - `auth-cognito` `0.3.0`, `kit-shadcn` `0.5.0`, `kit-carbon` `0.5.0`, `kit-gds` `0.5.0`
   (albitor-ltd/albitor-plugins#63; needs albitor core with component-kit@2, albitor-ltd/albitor#3746): the

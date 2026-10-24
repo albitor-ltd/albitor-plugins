@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { readCredentials } from "../helpers/credentials.ts";
+import { leftSignInRoute, readCredentials } from "../helpers/credentials.ts";
 import { parseVerification } from "../helpers/mailbox-contract.ts";
 import { DEMO_STORAGE_STATE, sessionSaved } from "../helpers/storage-state.ts";
 
@@ -61,5 +61,22 @@ describe("parseVerification", () => {
 		assert.throws(() => parseVerification("{}", 2), /email 2/);
 		assert.throws(() => parseVerification('{"open":"//evil.example"}', 3), /email 3/);
 		assert.throws(() => parseVerification("not json", 4), /email 4/);
+	});
+});
+
+describe("leftSignInRoute", () => {
+	const at = (p: string) => new URL(p, "https://app.example.test");
+	it("is false for a challenge page on the same route, query or not", () => {
+		assert.equal(leftSignInRoute(at("/sign-in"), at("/sign-in")), false);
+		assert.equal(leftSignInRoute(at("/sign-in"), at("/sign-in?challenge=new-password")), false);
+	});
+	it("is true once the path changes, including from a redirected sign-in page", () => {
+		assert.equal(leftSignInRoute(at("/sign-in"), at("/")), true);
+		assert.equal(leftSignInRoute(at("/login"), at("/dashboard")), true);
+	});
+	it("uses the hash under hash routing", () => {
+		assert.equal(leftSignInRoute(at("/#/sign-in"), at("/#/sign-in")), false);
+		assert.equal(leftSignInRoute(at("/#/sign-in"), at("/#/new-password")), true);
+		assert.equal(leftSignInRoute(at("/#/sign-in"), at("/#/")), true);
 	});
 });

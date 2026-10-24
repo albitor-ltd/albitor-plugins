@@ -2,7 +2,7 @@
 import { type Dirent, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { expect, type Locator, test as setup } from "@playwright/test";
-import { readCredentials } from "./helpers/credentials";
+import { leftSignInRoute, readCredentials } from "./helpers/credentials";
 import {
   DEMO_STORAGE_STATE,
   EMPTY_STORAGE_STATE,
@@ -240,11 +240,13 @@ setup("sign in once as the demo account", async ({ page }) => {
   // "Password" and a button named "Sign in" (the kit's SignInPage). A screen that labels them
   // differently is the auth plugin's defect to fix, not a reason to edit this file.
   // THE PASSWORD ONLY GOES IN WITH HEADROOM. Everything before the try below is bounded (the probe
-  // 10s, goto 15s, the email 5s) and the test timeout is raised to cover them plus three steps and
+  // 10s, goto 15s, the email 5s) and the test timeout is raised to cover them plus five steps and
   // the clean-up, so the test timeout can never fire while the password is in the field: a timeout
   // never reaches the catch that empties it.
   setup.setTimeout(SIGN_IN_PRELUDE_MS + 5 * SIGN_IN_STEP_MS + 10_000);
   await page.goto(signInRoute, { timeout: SIGN_IN_GOTO_MS });
+  // Where the sign-in page actually is (it may have redirected): signed in means leaving this.
+  const signInURL = new URL(page.url());
   const emailField = page.getByLabel(EMAIL_LABEL);
 
   if (!signInScreenExists && !(await signInScreenAppears(emailField))) {
@@ -285,8 +287,10 @@ setup("sign in once as the demo account", async ({ page }) => {
     // after.
     await passwordField.waitFor({ state: "hidden", timeout: SIGN_IN_STEP_MS });
     // The password field going away is not enough: a challenge step (a new password) or a landing
-    // page with a field of its own would pass. Signed in means the page left the sign-in route.
-    await page.waitForURL((u) => u.pathname !== new URL(signInRoute, u).pathname, { timeout: SIGN_IN_STEP_MS });
+    // page with a field of its own would pass. Signed in means the page left the sign-in route
+    // (pathname, plus the hash under hash routing). "commit": a slow full-navigation landing page
+    // must not fail a good sign-in; the URL changing is all that is asked here.
+    await page.waitForURL((u) => leftSignInRoute(signInURL, u), { timeout: SIGN_IN_STEP_MS, waitUntil: "commit" });
   } catch (err) {
     await fillSecret(passwordField, "").catch(() => {});
     throw new Error(`the demo account did not sign in at ${signInRoute}: ${err instanceof Error ? err.name : "failed"}`);

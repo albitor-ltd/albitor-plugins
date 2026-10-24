@@ -110,6 +110,13 @@ describe('SignInPage errors', () => {
 });
 
 describe('SignInPage email prop', () => {
+	it('pre-fills the field', async () => {
+		app = mount(SignInHarness, { target: document.body, props: { initial: { email: 'start@example.test' } } }) as typeof app;
+		flushSync();
+		await tick();
+		expect(email().value).toBe('start@example.test');
+	});
+
 	it('is an initial value: a later change to it does not overwrite what was typed', async () => {
 		await show();
 		email().value = 'typed@example.test';

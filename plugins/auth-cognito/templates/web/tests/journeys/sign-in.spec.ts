@@ -3,7 +3,7 @@
 // visitor is sent to the sign-in screen and can reach the sign-up and reset screens from it, and a
 // local test identity (alice, from api-go's local issuer) reaches the app. Signing in with a
 // password needs a user pool, so a deployed run's sign-in is the suite's one auth.setup.ts.
-import { expect, test as base } from "@playwright/test";
+import { expect, type Page, test as base } from "@playwright/test";
 import { expectNoA11yViolations } from "../helpers/a11y";
 import { test as journey } from "../helpers/journey";
 import { authHeader, localIssuerRunning, localTokens } from "../helpers/local-auth";
@@ -54,6 +54,82 @@ base.describe("signed out", () => {
     await expect(page.getByTestId("confirm-form")).toBeVisible();
     await expect(page.getByTestId("confirm-email")).toHaveValue("a@example.test");
     await expectNoA11yViolations(page);
+  });
+});
+
+base.describe("a refused call is announced as an alert, not hung on a field", () => {
+  base.use({ storageState: EMPTY_STORAGE_STATE });
+
+  // A failure that is not about one field (the wrong password, an unreachable service) is a
+  // role="alert" region, never a field's `error`, which would mark that field aria-invalid and, on
+  // some kits, is not a live region at all (WCAG 3.3.1, 4.1.3). Proved in the browser by refusing
+  // every auth call, so it holds for any kit and however a screen spells its error markup.
+  const refuse = async (page: Page, except?: string) => {
+    await page.route("**/api/auth/**", (route) =>
+      except && route.request().url().endsWith(except)
+        ? route.fulfill({ status: 200, contentType: "application/json", body: "{}" })
+        : route.fulfill({
+            status: 400,
+            contentType: "application/json",
+            body: JSON.stringify({ code: "refused", error: "That did not work." }),
+          }),
+    );
+  };
+  // The shell may hold other, empty alert regions (a toaster), so the one that carries the message.
+  const refusal = (page: Page) => page.getByRole("alert").filter({ hasText: "That did not work." });
+  const expectAlert = async (page: Page) => {
+    await expect(refusal(page)).toBeVisible();
+    await expect(page.locator("[aria-invalid=true]")).toHaveCount(0);
+  };
+
+  base("sign-in", async ({ page }) => {
+    await refuse(page);
+    await page.goto("/sign-in");
+    await page.getByLabel(/^Email/).fill("a@example.test");
+    await page.getByLabel(/^Password/).fill("not-a-real-password");
+    await page.getByRole("button", { name: /^Sign in/ }).click();
+    await expectAlert(page);
+  });
+
+  base("sign-up", async ({ page }) => {
+    await refuse(page);
+    await page.goto("/sign-up");
+    await page.getByLabel(/^Email/).fill("a@example.test");
+    await page.getByLabel(/^Password/).fill("not-a-real-password");
+    await page.getByRole("button", { name: /^Create account/ }).click();
+    await expectAlert(page);
+    await expect(refusal(page)).toBeFocused();
+  });
+
+  base("confirm", async ({ page }) => {
+    await refuse(page);
+    await page.goto("/confirm?email=a%40example.test");
+    await page.getByLabel(/^Code/).fill("123456");
+    await page.getByRole("button", { name: /^Confirm/ }).click();
+    await expectAlert(page);
+    await expect(refusal(page)).toBeFocused();
+  });
+
+  base("reset, both steps", async ({ page }) => {
+    await refuse(page, "/auth/forgot");
+    await page.goto("/reset");
+    await page.getByLabel(/^Email/).fill("a@example.test");
+    await page.getByRole("button", { name: /^Send a code/ }).click();
+    await expect(page.getByLabel(/^Code/)).toBeVisible();
+    await page.getByLabel(/^Code/).fill("123456");
+    await page.getByLabel(/^New password/).fill("not-a-real-password");
+    await page.getByRole("button", { name: /^Set new password/ }).click();
+    await expectAlert(page);
+    await expect(refusal(page)).toBeFocused();
+
+    // And the first step, on a fresh load.
+    await page.unroute("**/api/auth/**");
+    await refuse(page);
+    await page.goto("/reset");
+    await page.getByLabel(/^Email/).fill("a@example.test");
+    await page.getByRole("button", { name: /^Send a code/ }).click();
+    await expectAlert(page);
+    await expect(refusal(page)).toBeFocused();
   });
 });
 

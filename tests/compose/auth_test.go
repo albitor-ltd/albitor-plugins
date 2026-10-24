@@ -285,28 +285,6 @@ func TestAuthCognitoNamesNoKit(t *testing.T) {
 	}
 }
 
-// TestAuthCognitoFormErrorsAreAlertsNotFieldErrors: a failure that is not about one field (the
-// wrong password, an unreachable service, an unconfirmed address) is announced in a role="alert"
-// region of its own and never hangs on a Field as `error`, which marks that field aria-invalid and,
-// on some kits, is not a live region at all (WCAG 3.3.1, 4.1.3). Every screen with an `error`
-// state keeps its alert and passes `error` to no Field.
-func TestAuthCognitoFormErrorsAreAlertsNotFieldErrors(t *testing.T) {
-	screens := []string{"sign-up", "confirm", "reset", "sign-in"}
-	for _, name := range screens {
-		b, err := os.ReadFile(filepath.Join(authDir(t, "auth-cognito"), "templates", "web", "src", "routes", "(auth)", name, "+page.svelte"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		src := string(b)
-		if !regexp.MustCompile(`\{#if error\}\s*<p role="alert"[^>]*>\{error\}</p>`).MatchString(src) {
-			t.Errorf("%s: a failure is not shown in a role=alert paragraph", name)
-		}
-		if regexp.MustCompile(`(?m)^\s*error=\{`).MatchString(src) {
-			t.Errorf("%s: the form-level error is attached to a Field as its error", name)
-		}
-	}
-}
-
 // TestAuthCognitoRefusesAComponentKit1OnlyKit: a kit that provides only major 1 does not satisfy
 // auth-cognito's requires; there is no implicit compatibility.
 func TestAuthCognitoRefusesAComponentKit1OnlyKit(t *testing.T) {

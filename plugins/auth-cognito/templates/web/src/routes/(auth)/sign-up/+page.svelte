@@ -1,6 +1,7 @@
 <!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. Keep the data-testid values. Add the
      sign-up fields the brief asks for here and in the API call (client.ts). -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { signUp } from '../../../lib/auth/client';
 	import { Button, Field } from '../../../lib/kit';
@@ -9,6 +10,14 @@
 	let password = $state('');
 	let error = $state('');
 	let busy = $state(false);
+	let alertBox: HTMLElement | undefined = $state();
+
+	// The button is disabled while busy, which drops focus to <body>; a failure takes it back, on the alert.
+	async function fail(message: string) {
+		error = message;
+		await tick();
+		alertBox?.focus();
+	}
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
@@ -17,7 +26,7 @@
 		const result = await signUp(email, password);
 		busy = false;
 		if (!result.ok) {
-			error = result.message;
+			void fail(result.message);
 			return;
 		}
 		await goto(
@@ -53,7 +62,7 @@
 		data-testid="sign-up-password"
 	/>
 	{#if error}
-		<p role="alert" data-testid="sign-up-error">{error}</p>
+		<p role="alert" tabindex="-1" bind:this={alertBox} data-testid="sign-up-error">{error}</p>
 	{/if}
 	<Button type="submit" disabled={busy} data-testid="sign-up-button">Create account</Button>
 </form>

@@ -61,6 +61,11 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
   test ids: a field labelled "Email...", a field labelled "Password" and a button named "Sign in". It
   may set `ALBITOR_SIGN_IN_SCREEN=1` for the run so the setup is strict about it (a front end that
   renders `SignInPage` outside the kit's own files, or names `sign-in-email`, makes it strict already).
+  Signed in also means the page must leave the sign-in route: the setup records the URL the sign-in
+  page loaded at and waits for its pathname (pathname plus hash under hash routing) to change, so a
+  same-route challenge page, such as a new-password step, fails the setup rather than passing as a
+  session. Redirect somewhere else on success (the app's landing page, `/`), even if it is a
+  separate full-page load.
 - The api-runtime plugin's local issuer lives at `/api/_local/auth` (`api-go` provides it).
 - The web-framework plugin has an `npm run local` that serves the build on `PORT` with `/api`
   forwarded to `ALBITOR_API_ORIGIN` and `/healthz` answering (`web-svelte` does).

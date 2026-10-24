@@ -1,6 +1,7 @@
 <!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. Two steps on one page: ask for a code,
      then set a new password with it. Keep the data-testid values. -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { forgot, reset } from '../../../lib/auth/client';
 	import { Button, Field } from '../../../lib/kit';
@@ -11,6 +12,14 @@
 	let sent = $state(false);
 	let error = $state('');
 	let busy = $state(false);
+	let alertBox: HTMLElement | undefined = $state();
+
+	// The button is disabled while busy, which drops focus to <body>; a failure takes it back, on the alert.
+	async function fail(message: string) {
+		error = message;
+		await tick();
+		alertBox?.focus();
+	}
 
 	async function request(event: SubmitEvent) {
 		event.preventDefault();
@@ -19,7 +28,7 @@
 		const result = await forgot(email);
 		busy = false;
 		if (result.ok) sent = true;
-		else error = result.message;
+		else void fail(result.message);
 	}
 
 	async function finish(event: SubmitEvent) {
@@ -29,7 +38,7 @@
 		const result = await reset(email, code, password);
 		busy = false;
 		if (!result.ok) {
-			error = result.message;
+			void fail(result.message);
 			return;
 		}
 		await goto(`/sign-in?email=${encodeURIComponent(email)}`);
@@ -53,7 +62,7 @@
 			data-testid="reset-email"
 		/>
 		{#if error}
-			<p role="alert" data-testid="reset-error">{error}</p>
+			<p role="alert" tabindex="-1" bind:this={alertBox} data-testid="reset-error">{error}</p>
 		{/if}
 		<Button type="submit" disabled={busy} data-testid="reset-request-button">Send a code</Button>
 	</form>
@@ -78,7 +87,7 @@
 			data-testid="reset-password"
 		/>
 		{#if error}
-			<p role="alert" data-testid="reset-error">{error}</p>
+			<p role="alert" tabindex="-1" bind:this={alertBox} data-testid="reset-error">{error}</p>
 		{/if}
 		<Button type="submit" disabled={busy} data-testid="reset-button">Set new password</Button>
 	</form>
