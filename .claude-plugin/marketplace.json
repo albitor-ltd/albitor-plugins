@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.1.2",
-        "sha": "93a64d60200176229832417c3af6b11eed426af0"
+        "ref": "test-playwright/v0.2.0",
+        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.4.0",
-        "sha": "1bf926b9024b003535dd59cbc2bbbd7293240ae8"
+        "ref": "kit-shadcn/v0.5.0",
+        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.2.0",
-        "sha": "714d015f48bc04ca2ee865ff43536e63fb9a65af"
+        "ref": "auth-cognito/v0.3.0",
+        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
@@ -348,8 +348,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.4.0",
-        "sha": "ea7b964eb0af72f1e3b75d274c64a74ecd11096a"
+        "ref": "kit-carbon/v0.5.0",
+        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -368,8 +368,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.4.0",
-        "sha": "ea7b964eb0af72f1e3b75d274c64a74ecd11096a"
+        "ref": "kit-gds/v0.5.0",
+        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
