@@ -309,7 +309,7 @@
         "ref": "auth-cognito/v0.3.0",
         "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
       },
-      "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded per kit. It declares services.auth; the local issuer comes from api-go.",
+      "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
       "keywords": [
         "auth",
