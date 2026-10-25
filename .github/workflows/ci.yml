@@ -95,7 +95,7 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         if: env.IS_FORK != 'true'
         with:
-          go-version: "1.26"
+          go-version: "1.27.3"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: env.IS_FORK != 'true'
         with:
@@ -119,7 +119,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: "1.26"
+          go-version: "1.27.3"
           cache: false
       - name: Build, vet and test the composed API tree
         run: scripts/verify-api-go.sh
@@ -136,7 +136,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: "1.26"
+          go-version: "1.27.3"
           cache: false
       - name: Build, vet and test the composed tree, then DynamoDB Local conformance
         run: scripts/verify-data-dynamodb.sh
@@ -156,7 +156,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: "1.26"
+          go-version: "1.27.3"
           cache: false
       - name: Build, vet and test the composed API tree
         run: scripts/verify-auth.sh "${{ matrix.plugin }}"

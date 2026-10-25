@@ -35,7 +35,7 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
+printf 'go 1.27.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
 mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/auth-carbon" "$tmp/auth-gds" "$tmp/auth-hosted" "$tmp/auth-hosted-carbon" "$tmp/auth-hosted-gds" "$tmp/offline" "$tmp/byoa"
 
 (cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_AUTH_CARBON="$tmp/auth-carbon" COMPOSE_OUT_AUTH_GDS="$tmp/auth-gds" COMPOSE_OUT_AUTH_HOSTED="$tmp/auth-hosted" COMPOSE_OUT_AUTH_HOSTED_CARBON="$tmp/auth-hosted-carbon" COMPOSE_OUT_AUTH_HOSTED_GDS="$tmp/auth-hosted-gds" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)

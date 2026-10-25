@@ -130,6 +130,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- Go 1.26 becomes 1.27 (toolchain go1.27.3), `api-go` `0.1.2`: the template `api/go.mod` is `go 1.27`, so
+  every generated app builds on Go 1.27. This repository's CI `setup-go` jobs, `tests/compose/go.mod` and the
+  `compose-check.sh` workspace move with it. The other plugins' workflows read `api/go.mod` and follow. No
+  golangci-lint is pinned here. Needs the `api-go/v0.1.2` tag before the catalogue can pin it.
 - Dependency refresh (albitor-ltd/albitor#3823): `web-svelte` `0.4.1`, `kit-carbon` `0.5.1`, `kit-gds`
   `0.5.1`, `kit-shadcn` `0.5.1`, `test-playwright` `0.3.1`, `deploy-byoa-aws` `0.3.4`, `deploy-hosted`
   `0.1.2`. The `deploy-byoa-aws` root's module `ref`s follow to `deploy-byoa-aws/v0.3.4`. No Go line
