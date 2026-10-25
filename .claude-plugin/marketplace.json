@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.4.0",
-        "sha": "67fc93d6dc312d5bb2d16ad06a54d411a4463b32"
+        "ref": "web-svelte/v0.4.1",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.2.0",
-        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
+        "ref": "test-playwright/v0.3.1",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.3.3",
-        "sha": "7be2045e2e0e08ff8e2425355b29e55318b2cdd3"
+        "ref": "deploy-byoa-aws/v0.3.4",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.1.1",
-        "sha": "2a00072f126a9a77f955039586aa806028cab433"
+        "ref": "deploy-hosted/v0.1.2",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.5.0",
-        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
+        "ref": "kit-shadcn/v0.5.1",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -323,6 +323,29 @@
       "license": "MIT"
     },
     {
+      "name": "auth-hosted",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/auth-hosted",
+        "ref": "auth-hosted/v0.1.0",
+        "sha": "6534e632b5e5107699d4603f05d3dfadb9cbc913"
+      },
+      "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
+      "category": "development",
+      "keywords": [
+        "auth",
+        "cognito",
+        "hosted-ui",
+        "oauth",
+        "pkce",
+        "sign-in",
+        "session",
+        "route-guard"
+      ],
+      "license": "MIT"
+    },
+    {
       "name": "auth-none",
       "source": {
         "source": "git-subdir",
@@ -348,8 +371,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.5.0",
-        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
+        "ref": "kit-carbon/v0.5.1",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -368,8 +391,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.5.0",
-        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
+        "ref": "kit-gds/v0.5.1",
+        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
