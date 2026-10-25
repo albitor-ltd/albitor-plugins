@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build, vet and test an auth plugin's Go as it composes over api-go.
 #
-#   verify-auth.sh auth-cognito|auth-none
+#   verify-auth.sh auth-cognito|auth-hosted|auth-none
 #
 # The real composer lives in albitor-ltd/albitor and is not importable here, so this lays the
 # plugin's templates/api tree over api-go's (the paths do not overlap) and renders api-go's
@@ -11,8 +11,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-name="${1:?usage: verify-auth.sh auth-cognito|auth-none}"
-case "$name" in auth-cognito | auth-none) ;; *) echo "unknown auth plugin: $name" >&2; exit 2 ;; esac
+name="${1:?usage: verify-auth.sh auth-cognito|auth-hosted|auth-none}"
+case "$name" in auth-cognito | auth-hosted | auth-none) ;; *) echo "unknown auth plugin: $name" >&2; exit 2 ;; esac
 apigo="$root/plugins/api-go"
 plugin="$root/plugins/$name"
 manifest="$plugin/.claude-plugin/plugin.json"

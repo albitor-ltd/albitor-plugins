@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `auth-hosted` `0.1.0` (new, untagged): an `auth@1` provider for the hosted lane. The hosted-app auth module's
+  Cognito client is public and allows only the authorization code flow, so `auth-cognito` (password sign-in, needs
+  `AUTH_USER_POOL_ID`) fails closed there. `auth-hosted` reads the module's `AUTH_*` environment, redirects to the
+  hosted sign-in with PKCE, finishes the callback (state, code exchange, ID token and `email_verified` checks), and
+  keeps the session in HttpOnly SameSite=Strict cookies; the callback answers a 200 page that navigates, not a 302,
+  because a browser does not send a Strict cookie on a redirect that follows a cross-site navigation. Also sign-out
+  through Cognito's logout, self-service account deletion (needs the `aws.cognito.signin.user.admin` scope), and an
+  optional `SIGNUP_DOMAINS` rule, which with `email_verified` is applied to every ID token the API takes (callback, refresh and each request, bearer or cookie), because the client is public. Cookies are `__Host-` cookies. `auth-cognito` is unchanged. The catalogue is not regenerated:
+  it gains `auth-hosted` when the release tag exists.
 - `test-playwright` `0.3.0`: the managed `auth.setup.ts` also signs in through a hosted sign-in page. After
   `/sign-in` loads, a landing on a host other than the app's with the Cognito classic hosted UI's username field
   visible (managed login v1) is signed in there: it fills the visible `input[name=username]` and
