@@ -202,6 +202,21 @@
     ],
     "license": "MIT"
   },
+  "auth-hosted": {
+    "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
+    "category": "development",
+    "keywords": [
+      "auth",
+      "cognito",
+      "hosted-ui",
+      "oauth",
+      "pkce",
+      "sign-in",
+      "session",
+      "route-guard"
+    ],
+    "license": "MIT"
+  },
   "auth-none": {
     "description": "The auth plugin for an app with no sign-in: a stub identity seam for the Go API in which every request acts for one fixed owner, so a handler written against it works unchanged under a real sign-in. No screens, no middleware, no routes, and no requirements, so a web-only profile composes it too.",
     "category": "development",

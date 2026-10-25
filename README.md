@@ -46,12 +46,13 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `deploy-byoa-aws` | The `deploy-target@1` plugin for a customer's own AWS account: Terraform rendered from `albitor.yaml` (site, API, tables, alarms, DNS) from versioned modules, the CI and deploy workflows (OIDC), the stale state-lock guard |
 | `deploy-hosted` | The `deploy-target@1` plugin for the hosted lane: no infrastructure in the repo, the platform compiles `albitor.yaml` and deploys; the managed CI workflow (manifest check, API and web build and test) |
 | `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-up, sign-in and reset screens on any `component-kit@2` kit, `services.auth` |
+| `auth-hosted` | The `auth@1` plugin for the hosted lane: sign-in through the app's Cognito hosted page (authorization code with PKCE), the API's identity seam and callback, a session module and route guard, sign-out, account deletion and sign-up domain refusal screens with no password field, `services.auth` |
 | `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
 | `look-business` | The `visual-language@1` look for enterprise and line-of-business apps: dense, navy neutrals, 2px corners, no elevation, tabular figures; ships `preview-tokens.json` |
 | `look-startup` | The `visual-language@1` look for SaaS and developer tools: near-neutral surfaces, one teal accent, 10px corners, hairline plus soft layered shadow; ships `preview-tokens.json` |
 | `look-consumer` | The `visual-language@1` look for mobile-first personal and lifestyle apps: warm cream and berry, rounded type, 24px corners, 48px targets; ships `preview-tokens.json` |
 
-`auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`).
+`auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`). `auth-hosted` is a separate `auth@1` provider for the hosted lane (the pool comes from the hosted-app auth module and signs in on Cognito's hosted page); `auth-cognito` stays the plugin for an app's own account (BYOA), which signs in with a password through its own screens.
 
 `client-online` and `client-offline` (the retired `client-data@1` socket) folded into `web-svelte`
 0.2.0 (albitor-ltd/albitor ADR-0090 amendment of 2026-10-15); their `v0.1.0` tags stay for history.

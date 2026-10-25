@@ -14,7 +14,9 @@
 # locally booted app in Chromium (needs go; PLAYWRIGHT_INSTALL_FLAGS="--with-deps" in CI).
 # The default shell with auth-cognito (web-svelte, kit-shadcn, api-go, test-playwright)
 # is composed too: --build vets and tests its API and checks, tests and builds its web, and
-# --journeys runs the harness plus the sign-in journey against it.
+# --journeys runs the harness plus the sign-in journey against it. auth-hosted is composed and
+# built the same way on each component-kit@2 kit (its journey needs a hosted pool, so it is not
+# run here).
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,9 +36,9 @@ core="$(cd "$albitor/app/core" 2>/dev/null && pwd)" || { echo "no app/core under
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 printf 'go 1.26.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tmp/go.work"
-mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/auth-carbon" "$tmp/auth-gds" "$tmp/offline" "$tmp/byoa"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/auth-carbon" "$tmp/auth-gds" "$tmp/auth-hosted" "$tmp/auth-hosted-carbon" "$tmp/auth-hosted-gds" "$tmp/offline" "$tmp/byoa"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_AUTH_CARBON="$tmp/auth-carbon" COMPOSE_OUT_AUTH_GDS="$tmp/auth-gds" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_AUTH_CARBON="$tmp/auth-carbon" COMPOSE_OUT_AUTH_GDS="$tmp/auth-gds" COMPOSE_OUT_AUTH_HOSTED="$tmp/auth-hosted" COMPOSE_OUT_AUTH_HOSTED_CARBON="$tmp/auth-hosted-carbon" COMPOSE_OUT_AUTH_HOSTED_GDS="$tmp/auth-hosted-gds" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
 
 # Lint the shipped workflows: a step that runs `npm ci` needs a lockfile in its working-directory,
 # and the composer drops a plugin's lockfile when the npm merge changes package.json (web/ has none;
@@ -198,6 +200,21 @@ if [[ $build -eq 1 ]]; then
     npm run build
     test -f build/index.html
     echo "composed default shell with auth-cognito on ${kit#auth-} builds, and its tests pass"
+  done
+fi
+
+# The default shell with auth-hosted (the hosted lane's auth): the same checks, on each component-kit@2
+# kit. Its screens are the app's own redirect, sign-out, account and refusal pages, with no form.
+if [[ $build -eq 1 ]]; then
+  (cd "$tmp/auth-hosted/api" && GOWORK=off go vet ./... && GOWORK=off go test ./... -count=1)
+  for kit in auth-hosted auth-hosted-carbon auth-hosted-gds; do
+    cd "$tmp/$kit/web"
+    install_web
+    npm run check
+    npm test
+    npm run build
+    test -f build/index.html
+    echo "composed default shell with auth-hosted ($kit) builds, and its tests pass"
   done
 fi
 
