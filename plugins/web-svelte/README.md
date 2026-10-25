@@ -18,6 +18,9 @@ dedicated shell, composed into a new app's `web/` by the platform's composer.
 - Both client data layers, and the entry point the platform selects (below), with the
   `data-online` and `data-offline` skills.
 - The `svelte-shell` skill: how to add a route, a page and a nav entry.
+- How to read vitest's output (`contributes.testCounts`, albitor-ltd/albitor#3595): a command
+  naming `vitest` or `npm test` is counted from its `Tests` summary line, and its failing tests are
+  named from its `FAIL` lines, so the platform can show a run's passes and failures.
 
 ## The data layer: online or offline-first
 

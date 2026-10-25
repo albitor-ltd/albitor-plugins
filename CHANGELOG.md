@@ -109,6 +109,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `0.4.0` and `api-go` `0.2.0` (albitor-ltd/albitor#3595): each declares how to read
+  its test runner's output, as `contributes.testCounts` data: vitest's `Tests` summary line and
+  `FAIL` lines for `web-svelte`, and `--- PASS`/`FAIL`/`SKIP` lines for `api-go` (top-level tests
+  only, so `go test` without `-v` that passes counts nothing). The platform copies the patterns
+  into the app's `.albitor/lock.json`, and a pi run reads each test command's passed, failed and
+  skipped counts and failing tests with them. Needs albitor#3595's manifest parser, which knows the
+  key; until it is on the platform the parser refuses it. Untagged, so the catalogue still pins the
+  previous versions until released.
 - `kit-shadcn` `0.3.0` (albitor-ltd/albitor#3563): the kit's skill takes over the `shadcn`
   pack's design-system role. `SKILL.md` declares `metadata.capability: design-system`, the plugin
   gains the `design-system` keyword (so `DetectKind` lists it as a design system), and a new

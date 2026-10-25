@@ -21,6 +21,11 @@ of `albitor.yaml`, and the `api-go` skill. It requires `deploy-target@1` because
 `repo.dependabot`. There is no items demo: the store, secrets and auth belong to the data-store,
 object-store and auth plugins.
 
+It also says how to read `go test` output (`contributes.testCounts`, albitor-ltd/albitor#3595):
+top-level `--- PASS`, `--- FAIL` and `--- SKIP` lines are counted and `--- FAIL` names the failing
+test. `go test` prints those only with `-v` or on a failure, so a passing run without `-v` counts
+nothing and the platform says only that the tests ran.
+
 ## Layout of this plugin
 
 ```text
