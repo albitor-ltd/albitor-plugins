@@ -38,7 +38,7 @@ unselected layer is never imported and never reaches the bundle. Changing layer 
 not an edit.
 
 - **Online** (`src/lib/data/`, was `client-online`): TanStack Query for Svelte
-  (`@tanstack/svelte-query` 6.3.0) with one query client per page load; a shared retry policy
+  (`@tanstack/svelte-query` 6.3.2) with one query client per page load; a shared retry policy
   (server errors, timeouts, throttling and an unreachable API retry twice with backoff; client
   errors never; an offline browser pauses rather than fails; mutations never retry); `apiQuery`
   through the shell's API client; `DataState.svelte` and `viewState` for loading, offline, error,

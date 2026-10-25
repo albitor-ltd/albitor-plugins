@@ -121,6 +121,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- Dependency refresh (albitor-ltd/albitor#3823): `web-svelte` `0.4.1`, `kit-carbon` `0.5.1`, `kit-gds`
+  `0.5.1`, `kit-shadcn` `0.5.1`, `test-playwright` `0.3.1`, `deploy-byoa-aws` `0.3.4`, `deploy-hosted`
+  `0.1.2`. The `deploy-byoa-aws` root's module `ref`s follow to `deploy-byoa-aws/v0.3.4`. No Go line
+  changes (api-go `go 1.26` stays).
+  - Node 24.21.0 becomes 24.22.1 in every template and in this repository's CI; the `test-playwright`
+    journeys workflow moves from Node 22 to the same pin. `web-svelte` `@types/node` 22.20.4 to 24.19.2.
+  - Terraform CLI 1.16.4 to 1.17.0 (CI and the `deploy-byoa-aws` ci, deploy and invite workflows); the
+    AWS provider 6.66.0 to 6.70.0 in the five modules, the root and its lock (regenerated for linux and
+    darwin, amd64 and arm64).
+  - Actions, still full-SHA pinned: checkout v7.0.1, setup-go v7.0.0, setup-node v7.1.0,
+    upload-artifact v7.0.2 and download-artifact v8.0.2 (a matched pair), setup-terraform v4.0.1 and
+    configure-aws-credentials v6.3.0 (already current). No `with:` block needed a change: every
+    checkout keeps `persist-credentials: false`, no step uses `pull_request_target`, no `setup-node`
+    caching is configured (v5 and later cache npm automatically only when `package.json` carries a
+    `packageManager` field, which no template does), the artifacts are directories of many files so
+    the v7 `archive` default is unchanged, and the artifact names are fetched by name.
+  - npm pins stay under the 14-day rule (newest release at least 14 days old on 2026-10-25), so
+    some requested latest versions are held back: `@sveltejs/kit` stays 3.0.1 (3.1.0 is from 2026-10-14),
+    `@playwright/test`/`playwright-core` 1.64.0 (1.64.1 is from 2026-10-14; the unit test that guards
+    the rule now allows 1.64.0), `@axe-core/playwright` stays 4.13.0, `govuk-frontend` 6.5.1 (6.6.0 is
+    from 2026-10-15; the kit markup is unchanged and 6.5.x only adds trial components), `bits-ui`
+    stays 2.19.3, `sass` stays 1.105.2. Moved: svelte 5.57.2, vite 8.3.4, vitest 5.0.3,
+    `@tanstack/svelte-query` 6.3.2, `axe-core` 4.14.0, jsdom 30.1.2, `carbon-components-svelte`
+    0.113.1, `carbon-icons-svelte` 13.16.0, `@ibm/telemetry-js` 1.12.0. `carbon-components-svelte`
+    0.113 breaks the `Disclosure` `toggle` detail (now `{ open: boolean }`) and drops unused IBM Plex
+    weights (100, 200, 450, 500, 700); the kit uses neither (weights 400 and 600 only). Two other 0.113
+    changes needed kit-carbon fixes: its SideNav calls `scrollIntoView`, which jsdom lacks, so the kit
+    now ships a managed `web/src/lib/kit/vitest.setup.ts` (stub) that its `vitest.config.ts` loads, or any jsdom test
+    that renders the shell fails with an unhandled rejection (a new managed file: an existing app gets
+    it and the changed `vitest.config.ts` on the next compose); and `all.css` now writes the dark
+    themes as `:root[theme=g100]{...}` and omits tokens identical to `:root`, which `contrast.test.ts`
+    now reads.
+    TypeScript stays 6.x. The two template lockfiles are regenerated.
+  - Release tags needed after merge: `web-svelte/v0.4.1`, `kit-carbon/v0.5.1`, `kit-gds/v0.5.1`,
+    `kit-shadcn/v0.5.1`, `test-playwright/v0.3.1`, `deploy-byoa-aws/v0.3.4`, `deploy-hosted/v0.1.2`; then
+    regenerate the catalogue pins.
+
 - `kit-shadcn` `0.3.0` (albitor-ltd/albitor#3563): the kit's skill takes over the `shadcn`
   pack's design-system role. `SKILL.md` declares `metadata.capability: design-system`, the plugin
   gains the `design-system` keyword (so `DetectKind` lists it as a design system), and a new

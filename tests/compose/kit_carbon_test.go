@@ -88,6 +88,7 @@ func TestKitCarbonFileModes(t *testing.T) {
 	// components and the theme choice are the app's to edit.
 	for p, want := range map[string]string{
 		"web/vitest.config.ts":              "managed",
+		"web/src/lib/kit/vitest.setup.ts":   "managed",
 		"web/src/lib/kit/contrast.test.ts":  "managed",
 		"web/src/lib/kit/kit.test.ts":       "managed",
 		"web/src/lib/kit/dialog.test.ts":    "managed",

@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "kit-shadcn",
   "displayName": "Component kit (shadcn-svelte)",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
   "author": {
     "name": "Albitor Ltd",
@@ -19,8 +19,8 @@
       "npm": [
         "bits-ui@2.19.3",
         "@internationalized/date@3.12.4",
-        "axe-core@4.13.0",
-        "jsdom@30.1.1",
+        "axe-core@4.14.0",
+        "jsdom@30.1.2",
         "@types/jsdom@30.0.0"
       ]
     },

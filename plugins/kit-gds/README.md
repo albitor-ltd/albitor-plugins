@@ -37,6 +37,7 @@ whose root layout renders the kit's `AppShell`.
   styles; WCAG 2.2 AA, the public sector regulations, testing, the accessibility statement, and the
   audit and statement procedures), each tagged `metadata.capability: design-system`.
 - `preview-tokens.json`: GOV.UK Frontend 6.4.0's palette for the build preview.
+- The `govuk-frontend` dependency is pinned at 6.5.1; the markup and palette above follow 6.4.0, which 6.5.x leaves unchanged (it only adds trial components).
 
 ## Root element classes
 

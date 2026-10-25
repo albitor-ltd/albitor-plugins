@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "kit-gds",
   "displayName": "Component kit (GOV.UK Frontend)",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
   "author": {
     "name": "Albitor Ltd",
@@ -31,10 +31,10 @@
   "contributes": {
     "dependencies": {
       "npm": [
-        "govuk-frontend@6.4.0",
+        "govuk-frontend@6.5.1",
         "sass@1.105.2",
-        "axe-core@4.13.0",
-        "jsdom@30.1.1",
+        "axe-core@4.14.0",
+        "jsdom@30.1.2",
         "@types/jsdom@30.0.0"
       ]
     },

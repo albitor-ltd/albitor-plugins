@@ -233,7 +233,7 @@ func kitShipsExactly(t *testing.T, kit string) {
 			strings.Contains(f.Path, "..") || strings.Contains(f.Path, "*") {
 			t.Errorf("unclean or glob path %q", f.Path)
 		}
-		// The one file outside the kit directory is the Vitest config its tests need.
+		// Every file sits under the kit directory except the Vitest config its tests need.
 		if !strings.HasPrefix(f.Path, "web/src/lib/kit/") && f.Path != "web/vitest.config.ts" {
 			t.Errorf("%s: the kit writes only under web/src/lib/kit/ (and web/vitest.config.ts)", f.Path)
 		}

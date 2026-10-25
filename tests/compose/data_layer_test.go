@@ -105,7 +105,7 @@ func TestBothDataLayersShipManaged(t *testing.T) {
 		t.Errorf("an online composition ships %d online and %d offline layer files; want both", data, sync)
 	}
 	pkg := string(res.Files["web/package.json"])
-	for _, dep := range []string{`"@tanstack/svelte-query": "6.3.0"`, `"fake-indexeddb": "6.2.5"`} {
+	for _, dep := range []string{`"@tanstack/svelte-query": "6.3.2"`, `"fake-indexeddb": "6.2.5"`} {
 		if !strings.Contains(pkg, dep) {
 			t.Errorf("web/package.json lacks %s", dep)
 		}
