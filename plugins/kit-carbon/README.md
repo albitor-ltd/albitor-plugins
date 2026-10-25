@@ -55,7 +55,7 @@ pairing today.
 ## Ownership
 
 The components and `theme.ts` are `example` files: seeded once, then the app's. The contrast test,
-the Showcase, the three test files, `contract.test.ts`, `signin.test.ts`, their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) and `web/vitest.config.ts` are `managed`. No managed file imports
+the Showcase, the three test files, `contract.test.ts`, `signin.test.ts`, their probes (`ContractProbe.svelte`, `SignInHarness.svelte`), `web/vitest.config.ts` and `web/src/lib/kit/vitest.setup.ts` (a jsdom `scrollIntoView` stub for Carbon's SideNav) are `managed`. No managed file imports
 an `example` file by name except the Showcase (which renders the components) and the contract tests and probes, which import the kit's `index.ts` (the `component-kit@2` exports, the app's: removing one fails them); the theme tests check
 the `theme` attribute Carbon puts on `<html>` through the mounted shell, so an app may rewrite
 `theme.ts` and keep the gate as long as the page still follows the preference and `data-theme`. The vitest config extends
@@ -75,10 +75,10 @@ and resolves `mount` to the client build.
   `scripts/compose-check.sh` installs the declared set before it builds; an app composed by the
   platform needs them added until the composer does it.
 - **IBM telemetry runs at install.** `carbon-components-svelte` depends on `@ibm/telemetry-js`
-  (`^1.5.0`, a range, so it floats) and runs it as a `postinstall` (`ibmtelemetry`), which sends
+  (`^1.10.2` in 0.113.1, a range, so it floats) and runs it as a `postinstall` (`ibmtelemetry`), which sends
   anonymous usage data to IBM. Install-time code that floats is younger than this repository's
-  14-day pin rule would allow (1.12.0 was published 2026-10-08). The manifest therefore also pins
-  `@ibm/telemetry-js@1.11.0` (2026-01-24) as a direct dependency, the only pin mechanism a plugin
+  14-day pin rule would allow (the range can float to a release younger than 14 days). The manifest therefore also pins
+  `@ibm/telemetry-js@1.12.0` (2026-10-08) as a direct dependency, which stops the range floating to a release younger than 14 days and is the only pin mechanism a plugin
   has; it holds only once the dependency is written into the app (composer gap, albitor-ltd/albitor#3235),
   and until then the app's lockfile decides. Set `IBM_TELEMETRY_DISABLED=true` for the install:
   `scripts/compose-check.sh` does, and it fails if the pinned version is not the one installed. No

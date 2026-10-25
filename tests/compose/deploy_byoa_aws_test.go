@@ -78,7 +78,7 @@ func TestDeployBYOALintIsReallyApplied(t *testing.T) {
 	pol := certification.DefaultWorkflowPolicy(core.SocketDeployTarget)
 	cases := map[string]func(string) string{
 		"an unpinned action": func(s string) string {
-			return strings.Replace(s, "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683", "actions/checkout@v4", 1)
+			return strings.Replace(s, "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1", "actions/checkout@v4", 1)
 		},
 		"a pull request trigger beside id-token": func(s string) string {
 			return strings.Replace(s, "on:\n", "on:\n  pull_request:\n", 1)

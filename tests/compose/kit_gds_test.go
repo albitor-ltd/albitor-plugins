@@ -124,8 +124,8 @@ func TestKitGDSDependenciesAreExact(t *testing.T) {
 		}
 	}
 	for _, d := range loadDir(t, kitDir(t, gds)).Manifest.Contributes.Dependencies.NPM {
-		if strings.HasPrefix(d, "govuk-frontend@") && d != "govuk-frontend@6.4.0" {
-			t.Errorf("the markup follows GOV.UK Frontend 6.4.0, the dependency is %s", d)
+		if strings.HasPrefix(d, "govuk-frontend@") && d != "govuk-frontend@6.5.1" {
+			t.Errorf("the markup was written against GOV.UK Frontend 6.4.0 and is additive-compatible with 6.5.1, the dependency is %s", d)
 		}
 	}
 }

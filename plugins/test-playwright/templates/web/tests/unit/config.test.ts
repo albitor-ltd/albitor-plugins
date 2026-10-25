@@ -55,8 +55,8 @@ describe("dependencies", () => {
 	});
 
 	it("keeps the Playwright pin at least fourteen days old", () => {
-		// 1.64.1 was published 2026-10-14 and 1.63.0 on 2026-09-04: the pin must be 1.63.0 or older.
-		assert.match(pkg.devDependencies["@playwright/test"], /^1\.(?:[0-5]\d|6[0-3])\.\d+$/);
+		// 1.64.1 was published 2026-10-14 and 1.64.0 on 2026-10-07: the pin must be 1.64.0 or older.
+		assert.match(pkg.devDependencies["@playwright/test"], /^1\.(?:[0-5]\d|6[0-4])\.\d+$/);
 		assert.notEqual(pkg.devDependencies["@playwright/test"], "1.64.1");
 	});
 });

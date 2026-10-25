@@ -7,7 +7,7 @@
 # The parser and composer live in albitor-ltd/albitor (app/core), so a checkout is required. A
 # throwaway go.work joins it to tests/compose; nothing in either repository changes.
 # --build also runs npm install (the lockfile is the app's, see install_web), check, test and build
-# in the composed web/ (needs node >= 22.17; CI pins 24.21.0, as npm 10.9 crashes on a
+# in the composed web/ (needs node >= 22.17; CI pins 24.22.1, as npm 10.9 crashes on a
 # lockfile-less install).
 # --journeys (with --build) then runs the test-playwright harness over the composed default shell:
 # the api-go tree is added, the harness's own unit tests run, and the journeys run against the
@@ -157,7 +157,7 @@ if [[ $build -eq 1 ]]; then
   # package must be the one installed, not whatever carbon-components-svelte's range floats to.
   grep -rlq -e '--cds-text-primary' build/_app || { echo "kit-carbon: Carbon's CSS is not in the build" >&2; exit 1; }
   grep -rlq -e '\[theme=g100\]' build/_app || { echo "kit-carbon: Carbon's g100 theme is not in the build" >&2; exit 1; }
-  npm ls @ibm/telemetry-js | grep -q '@ibm/telemetry-js@1.11.0' || { echo "kit-carbon: @ibm/telemetry-js is not the pinned version" >&2; exit 1; }
+  npm ls @ibm/telemetry-js | grep -q '@ibm/telemetry-js@1.12.0' || { echo "kit-carbon: @ibm/telemetry-js is not the pinned version" >&2; exit 1; }
   echo "composed web tree with kit-carbon builds, and its axe and contrast audits pass"
 fi
 

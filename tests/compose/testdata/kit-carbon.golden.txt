@@ -51,6 +51,7 @@
 === web/src/lib/kit/signin.test.ts ===
 === web/src/lib/kit/theme.ts ===
 === web/src/lib/kit/toast.svelte.ts ===
+=== web/src/lib/kit/vitest.setup.ts ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===
 === web/src/lib/shell/api.test.ts ===

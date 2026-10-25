@@ -13,12 +13,24 @@ const css = readFileSync(
 	'utf8'
 );
 
-/** The --cds-* custom properties of the block that opens with `selector{`. */
+/**
+ * The --cds-* custom properties of the first block that opens with `selector{` and sets a theme
+ * (carbon-components-svelte 0.113 writes the dark themes as `:root[theme=g100]{...color-scheme:dark;
+ * --cds-...}`, so the block need not start with a --cds- property).
+ */
 function theme(selector: string): Record<string, string> {
-	const start = css.indexOf(`${selector}{--cds-`);
-	if (start < 0) throw new Error(`all.css has no ${selector} theme block`);
-	const open = css.indexOf('{', start);
-	const close = css.indexOf('}', open);
+	let open = -1;
+	let close = -1;
+	for (let at = css.indexOf(`${selector}{`); at >= 0; at = css.indexOf(`${selector}{`, at + 1)) {
+		const o = css.indexOf('{', at);
+		const c = css.indexOf('}', o);
+		if (css.slice(o, c).includes('--cds-layer:')) {
+			open = o;
+			close = c;
+			break;
+		}
+	}
+	if (open < 0) throw new Error(`all.css has no ${selector} theme block`);
 	const out: Record<string, string> = {};
 	for (const m of css.slice(open + 1, close).matchAll(/(--cds-[a-z0-9-]+):([^;]+)/g)) {
 		out[m[1]] = m[2].trim();
@@ -27,7 +39,9 @@ function theme(selector: string): Record<string, string> {
 }
 
 const light = theme(':root');
-const dark = theme('[theme=g100]');
+// A token the g100 block leaves out is inherited from `:root` (the button and on-colour tokens are
+// the same in every theme), so the dark set is the light one overlaid with the g100 block.
+const dark = { ...light, ...theme(':root[theme=g100]') };
 
 // Carbon's Gray 100 theme paints a low-contrast toast with the layer colour, not a notification
 // token (only the light theme defines those). Read the rule from the g100 stylesheet and check it
