@@ -61,6 +61,23 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
   test ids: a field labelled "Email...", a field labelled "Password" and a button named "Sign in". It
   may set `ALBITOR_SIGN_IN_SCREEN=1` for the run so the setup is strict about it (a front end that
   renders `SignInPage` outside the kit's own files, or names `sign-in-email`, makes it strict already).
+  A hosted sign-in (the auth-hosted plugin: `/sign-in` redirects to the Cognito classic hosted UI on
+  another host) is recognised by the page landing on a host other than the app's with a visible
+  `input[name=username]` (an in-app email field always wins, whatever the host). The setup fills the
+  visible `input[name=username]` and `input[name=password]`, clicks `input[name=signInSubmitButton]`, and
+  waits for a page on the app's host that is not `/api/auth/*` and not the sign-in route (so a callback that
+  answers 200 and redirects client-side is waited out). It then requires a NEW cookie for the app's host in the
+  saved state (one not present just before the submit: the login route's transient state cookies and
+  cookies on Cognito's own host do not count). Cognito's visible error message fails the setup
+  at once. For a hosted sign-in the new cookie must also look like a session: by default a `__Host-` cookie
+  that is not auth-hosted's transient `auth_state` / `auth_verifier` / `auth_next`, so a locale or consent
+  cookie set by the landing page cannot pass for one. `ALBITOR_SESSION_COOKIE_PATTERN` (a regular expression
+  on the cookie name) overrides that for an app whose session cookie is named otherwise. The demo and verifier accounts are seeded with permanent passwords
+  (`deploy-byoa-aws/templates/scripts/seed-platform-accounts.sh`), so there is no change-password step.
+  Only an app with no sign-in runs signed out: no demo password, no `services.auth` in `albitor.yaml`, no
+  flag, no screen in the source. With a password in hand, a missing sign-in is always a failure; with none,
+  it is a failure on a deployed run (`ALBITOR_JOURNEY_BASE_URL` / `PLAYWRIGHT_API_ORIGIN`) when any of the
+  other signals says the app has one, and a signed-out run locally.
   Signed in also means the page must leave the sign-in route: the setup records the URL the sign-in
   page loaded at and waits for its pathname (pathname plus hash under hash routing) to change, so a
   same-route challenge page, such as a new-password step, fails the setup rather than passing as a

@@ -15,6 +15,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `test-playwright` `0.3.0`: the managed `auth.setup.ts` also signs in through a hosted sign-in page. After
+  `/sign-in` loads, a landing on a host other than the app's with the Cognito classic hosted UI's username field
+  visible (managed login v1) is signed in there: it fills the visible `input[name=username]` and
+  `input[name=password]`, clicks the visible `input[name=signInSubmitButton]`, and waits for a page on the app's
+  host that is neither `/api/auth/*` nor the sign-in route, failing fast if Cognito shows its error message. It
+  then requires a cookie for the app's host that was not there before the submit (the login route's transient state cookies and cookies set on Cognito's host do not count; on the hosted path it must also look like a session, by default a `__Host-` cookie that is not a transient one, overridable with `ALBITOR_SESSION_COOKIE_PATTERN`). An
+  in-app email field is always taken as the in-app form, whatever the host. The in-app path is unchanged. The
+  silent-pass hole is closed: a demo password in hand now makes a missing sign-in screen fail the setup, and a
+  deployed run (`ALBITOR_JOURNEY_BASE_URL` or `PLAYWRIGHT_API_ORIGIN`) with no password fails when the app
+  declares `services.auth` in `albitor.yaml`, sets `ALBITOR_SIGN_IN_SCREEN=1` or renders a `SignInPage`. Only an
+  app with none of those (auth-none), or a local run with no password, still runs signed out. New
+  `helpers/hosted-signin.ts` with unit tests, and end-to-end tests of the hosted path against fake hosts. Not yet pinned in the catalogue (needs the `test-playwright/v0.3.0` tag).
 - `test-playwright` `0.2.0` (albitor-ltd/albitor-plugins#63): the managed `auth.setup.ts` signs in by role and
   label, not test ids, because the standard sign-in screen is the component-kit@2 `SignInPage`, which carries
   none: a field labelled `Email...`, a field labelled `Password`, a button named `Sign in`. The "a password

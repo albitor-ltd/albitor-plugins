@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { inflateRawSync } from "node:zlib";
-import { DEMO_STORAGE_STATE, TESTS_DIR } from "../helpers/storage-state.ts";
+import { DEMO_STORAGE_STATE, hasDemoSession, TESTS_DIR } from "../helpers/storage-state.ts";
 
 const SENTINEL = "SENTINEL-pw-8841";
 
@@ -262,5 +262,180 @@ test("fill() prints the password", async ({ page }) => {
 			rmSync(out, { recursive: true, force: true });
 			rmSync(control, { recursive: true, force: true });
 		}
+	});
+});
+
+// THE HOSTED SIGN-IN, end to end against two fake hosts. The app (127.0.0.1) sends /sign-in/<mode>
+// to a "hosted UI" on localhost, a different host, whose page carries a hidden duplicate of the
+// form first (as the Cognito classic UI does). A good sign-in goes back to the app's callback,
+// which answers 200 with a meta refresh, as a callback that sets cookies and then redirects
+// client-side may.
+//   good      the callback sets the app's session cookie
+//   nocookie  the callback sets nothing (the hosted host's own cookie must not count)
+//   refused   the hosted page answers with its error message and stays put
+//   late      the callback answers 200 with no cookie; the page its meta refresh lands on sets it
+//   locale    the callback sets nothing; the page its meta refresh lands on sets only locale=en
+//   inapp     not hosted at all: the app's own form, served on a sibling host (localhost) of the app
+// The app's /api/auth/login sets a transient state cookie in every mode, as auth-hosted does, so
+// "the app has some cookie" is true even when the callback sets none.
+const HOSTED_FORM = (mode: string, error = "") => `<!doctype html><title>Sign in</title>
+<form style="display:none" method="post" action="/login?mode=${mode}"><input name="username"><input name="password" type="password"><input name="signInSubmitButton" type="submit"></form>
+${error}<form method="post" action="/login?mode=${mode}"><input name="username"><input name="password" type="password"><input name="signInSubmitButton" type="submit" value="Sign in"></form>`;
+
+// A request-derived mode is only ever one of these, never echoed as received.
+const MODES = ["good", "nocookie", "refused", "late", "locale", "inapp"] as const;
+const modeOf = (raw: string | null): (typeof MODES)[number] => MODES.find((m) => m === raw) ?? "good";
+
+async function serveHosted(): Promise<{ base: string; close: () => void }> {
+	const hosted = createServer((req, res) => {
+		const url = new URL(req.url ?? "/", "http://x");
+		const mode = modeOf(url.searchParams.get("mode"));
+		if (req.method === "POST") {
+			req.resume();
+			if (mode === "refused") {
+				res.writeHead(200, { "Content-Type": "text/html" });
+				res.end(HOSTED_FORM(mode, '<p id="loginErrorMessage">Incorrect username or password.</p>'));
+				return;
+			}
+			res.writeHead(302, { Location: `${appBase}/api/auth/callback?mode=${mode}&code=abc`, "Set-Cookie": "XSRF-TOKEN=1; Path=/" });
+			res.end();
+			return;
+		}
+		res.writeHead(200, { "Content-Type": "text/html" });
+		res.end(HOSTED_FORM(mode));
+	});
+	await new Promise<void>((resolve) => hosted.listen(0, () => resolve()));
+	const hostedBase = `http://localhost:${(hosted.address() as AddressInfo).port}`;
+	let appBase = "";
+	const app = createServer((req, res) => {
+		const url = new URL(req.url ?? "/", "http://x");
+		const sign = /^\/sign-in\/(\w+)$/.exec(url.pathname);
+		const signMode = sign ? modeOf(sign[1]) : "good";
+		if (sign && signMode === "inapp") {
+			res.writeHead(302, { Location: `http://localhost:${new URL(appBase).port}/in-app-form` });
+		} else if (sign) {
+			res.writeHead(302, { Location: `/api/auth/login?mode=${signMode}` });
+		} else if (url.pathname === "/api/auth/login") {
+			res.writeHead(302, { "Set-Cookie": "auth_state=abc; Path=/", Location: `${hostedBase}/login?mode=${modeOf(url.searchParams.get("mode"))}` });
+		} else if (url.pathname === "/api/auth/callback") {
+			const callbackMode = modeOf(url.searchParams.get("mode"));
+			const headers: Record<string, string> = { "Content-Type": "text/html" };
+			if (callbackMode === "good") {
+				headers["Set-Cookie"] = "session=ok; Path=/";
+			}
+			res.writeHead(200, headers);
+			res.end(
+				`<!doctype html><meta http-equiv="refresh" content="1;url=${callbackMode === "late" ? "/landing-late" : callbackMode === "locale" ? "/landing-locale" : "/"}"><p>Signing you in</p>`,
+			);
+			return;
+		} else if (url.pathname === "/landing-late") {
+			res.writeHead(200, { "Content-Type": "text/html", "Set-Cookie": "session=ok; Path=/" });
+			res.end("<!doctype html><h1>app</h1>");
+			return;
+		} else if (url.pathname === "/landing-locale") {
+			res.writeHead(200, { "Content-Type": "text/html", "Set-Cookie": "locale=en; Path=/" });
+			res.end("<!doctype html><h1>app</h1>");
+			return;
+		} else if (url.pathname === "/in-app-form") {
+			res.writeHead(200, { "Content-Type": "text/html" });
+			res.end(`<!doctype html><title>Sign in</title><form onsubmit="return false">
+<label>Email address <input type="email"></label><label>Password <input type="password"></label>
+<button type="button" onclick="document.cookie='session=ok; path=/'; history.pushState({}, '', '/done'); document.forms[0].remove()">Sign in</button></form>`);
+			return;
+		} else {
+			res.writeHead(200, { "Content-Type": "text/html" });
+			res.end("<!doctype html><h1>app</h1>");
+			return;
+		}
+		res.end();
+	});
+	await new Promise<void>((resolve) => app.listen(0, "127.0.0.1", () => resolve()));
+	appBase = `http://127.0.0.1:${(app.address() as AddressInfo).port}`;
+	return {
+		base: appBase,
+		close: () => {
+			for (const s of [app, hosted]) {
+				s.closeAllConnections();
+				s.close();
+			}
+		},
+	};
+}
+
+describe("the hosted sign-in", () => {
+	async function attempt(mode: string) {
+		const servers = await serveHosted();
+		const out = mkdtempSync(join(tmpdir(), "albitor-hosted-"));
+		rmSync(DEMO_STORAGE_STATE, { force: true });
+		try {
+			const result = await run(TESTS_DIR, ["--project=setup"], {
+				ALBITOR_LOCAL_BASE_URL: servers.base,
+				ALBITOR_DEMO_ACCOUNT_PASSWORD: SENTINEL,
+				DEMO_ACCOUNT_SIGN_IN_ROUTE: `/sign-in/${mode}`,
+				// The fixtures run over plain http, where a __Host- cookie is never stored, so the session is
+				// named plainly. auth_state is deliberately accepted here: only the before-submit snapshot
+				// keeps the login route's state cookie from passing for a session.
+				ALBITOR_SESSION_COOKIE_PATTERN: "^(session|auth_state)$",
+				ALBITOR_TESTS_OUT: out,
+			});
+			const produced = files(out);
+			return { ...result, produced, leaked: leaks(produced, SENTINEL), state: hasDemoSession() };
+		} finally {
+			servers.close();
+			rmSync(out, { recursive: true, force: true });
+			rmSync(DEMO_STORAGE_STATE, { force: true });
+		}
+	}
+
+	it("signs in across hosts and saves the app's session once the callback has finished", async () => {
+		const { code, log, state } = await attempt("good");
+		assert.equal(code, 0, `the hosted sign-in was meant to succeed:\n${log}`);
+		assert.equal(state, true, "no session was saved");
+	});
+
+	it("fails, saving no session, when the callback sets no cookie on the app's host", async () => {
+		const { code, log, state } = await attempt("nocookie");
+		assert.notEqual(code, 0, `a callback with no session was meant to fail:\n${log}`);
+		assert.match(log, /callback set no session/);
+		assert.equal(state, false, "a signed-out run saved something that looks like a session");
+	});
+
+	it("fails when only the transient state cookie the login route set is on the app", async () => {
+		// The same run as "nocookie" above, named for what it pins: the app host DOES hold a cookie
+		// (the state cookie), and the meta refresh lands on "/", yet no session was set.
+		const { code, log, state } = await attempt("nocookie");
+		assert.notEqual(code, 0, log);
+		assert.match(log, /no new cookie for the app's host/);
+		assert.equal(state, false);
+	});
+
+	it("fails when the landing page sets only an ordinary cookie (locale), not a session", async () => {
+		const { code, log, state } = await attempt("locale");
+		assert.notEqual(code, 0, log);
+		assert.match(log, /callback set no session/);
+		assert.equal(state, false);
+	});
+
+	it("waits out the callback's meta refresh when the session cookie arrives on the page after it", async () => {
+		const { code, log, state } = await attempt("late");
+		assert.equal(code, 0, `saving at the callback would have missed the cookie:\n${log}`);
+		assert.equal(state, true);
+	});
+
+	it("takes the in-app path for the app's own form served on a sibling host", async () => {
+		const { code, log, state } = await attempt("inapp");
+		assert.equal(code, 0, `an in-app form on another host of the app was meant to sign in:\n${log}`);
+		assert.equal(state, true);
+	});
+
+	it("fails fast when Cognito refuses the credentials, and the password is in nothing left behind", async () => {
+		const started = Date.now();
+		const { code, log, produced, leaked } = await attempt("refused");
+		assert.notEqual(code, 0, `a refused sign-in was meant to fail:\n${log}`);
+		assert.match(log, /Cognito refused the credentials/);
+		assert.ok(Date.now() - started < 25_000, "the refusal was not noticed before the return wait ran out");
+		assert.ok(produced.some((f) => f.endsWith("error-context.md")), "no failure snapshot was produced, so the scan proves nothing");
+		assert.deepEqual(leaked, [], "the password is in these files");
+		assert.ok(!log.includes(SENTINEL), "the password is in the console output");
 	});
 });
