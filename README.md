@@ -162,6 +162,13 @@ colour; a brand colour the buyer set paints the header instead, else `header`), 
 text and underline, without it a `focus` ring). Lengths are `0` or up to four decimals of `px`/`rem`;
 the file is at most 4 KiB. Run `scripts/validate-preview-tokens.sh` before opening a pull request.
 
+## Gate
+
+GitHub Actions is manual-only, so `just ci` is the local merge gate; run it before merging. It
+does not run `compose`, which needs a checkout of albitor-ltd/albitor and Node. Before merging a
+change to plugin templates, manifests or the composer contract, also run
+`just compose <albitor checkout>` (`scripts/compose-check.sh --build`).
+
 ## CI
 
 Pull requests run: manifest validation (JSON parses, `name` equals the directory, semver
