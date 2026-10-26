@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -392,10 +393,26 @@ var (
 	errEmailUnverified = errors.New("email address is not verified")
 )
 
+// platformSeededDomains are the domains of the accounts the platform seeds into every pool (the
+// verifier and the demo account). They are .invalid (RFC 2606), so no real person can hold one, and
+// SIGNUP_DOMAINS never locks them out: journeys and the published service's demo sign-in need them.
+var platformSeededDomains = []string{"albitor-verify.invalid", "albitor-demo.invalid"}
+
+// platformSeededEmail reports whether an already lower-cased address is on a platform-seeded
+// domain. Only the part after the last @ counts, so lookalikes and extra @ parts do not match.
+func platformSeededEmail(email string) bool {
+	at := strings.LastIndex(email, "@")
+	if at < 1 {
+		return false
+	}
+	return slices.Contains(platformSeededDomains, email[at+1:])
+}
+
 // acceptIDToken is the one rule for who may hold a session, applied to every ID token the API
 // takes: at the callback, on a refresh, and on each request. It must be an ID token, for an address
-// that Cognito has verified, which SIGNUP_DOMAINS allows. A person can change their own address to
-// another verified one, so it is the token's address, every time (a string comparison, no call).
+// that Cognito has verified, which SIGNUP_DOMAINS allows (the platform-seeded domains always pass
+// it). A person can change their own address to another verified one, so it is the token's address,
+// every time (a string comparison, no call).
 func (a *hostedAuth) acceptIDToken(c jwtClaims) error {
 	if c.TokenUse != "id" {
 		return errTokenInvalid
@@ -404,7 +421,7 @@ func (a *hostedAuth) acceptIDToken(c jwtClaims) error {
 	if email == "" || !bool(c.EmailVerified) {
 		return errEmailUnverified
 	}
-	if !signupAllowed(a.domains, email) {
+	if !platformSeededEmail(email) && !signupAllowed(a.domains, email) {
 		return errEmailNotAllowed
 	}
 	return nil

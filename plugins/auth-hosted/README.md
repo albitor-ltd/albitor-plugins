@@ -107,7 +107,10 @@ to the API. The rule is therefore not only at the callback: one function, `accep
 to **every** ID token the API takes: at the callback, on every refresh, and on **every request**, whether
 the token arrives as a bearer header or a session cookie. It must be an ID token (the gate accepts ID
 tokens only, never an access token, which carries no email), the address must be present and verified,
-and `SIGNUP_DOMAINS` must allow it. The address is trimmed and lower-cased once, there.
+and `SIGNUP_DOMAINS` must allow it. The one exception is the platform-seeded accounts on
+`albitor-verify.invalid` and `albitor-demo.invalid`, which always pass (the address must still be
+verified) so that journeys and the demo sign-in work whatever the app sets. The address is trimmed
+and lower-cased once, there.
 
 `SIGNUP_DOMAINS` is a comma- or space-separated list of `example.org` (exactly that domain) or
 `*.example.org` (any subdomain, not the bare domain). Unset or empty means any verified address. A
@@ -117,6 +120,17 @@ time (a string comparison, no call). At the callback a refusal goes to `/not-all
 session; elsewhere it answers `401 email_not_allowed` and clears the session cookies, and the route
 guard sends the person to `/not-allowed`. Cognito still holds the account of a refused person;
 removing it is the operator's.
+
+Why the exemption is safe: nobody outside the platform can hold a verified address on those domains
+in the hosted pool (terraform-aws-hosted-app `modules/auth`, read 2026-10-26). Self sign-up (`open`)
+needs a confirmation code mailed to the address, and `.invalid` (RFC 2606) never receives mail. A
+person moving their own email to one needs the same code, because
+`attributes_require_verification_before_update = ["email"]`. The app client cannot write
+`email_verified` (`write_attributes` omits it) and the only identity provider is `COGNITO`, so no
+federated mapping can assert an address. The pool has no Lambda trigger (no pre-sign-up auto-verify,
+which the deploy floor refuses), and invite-only pools are admin-created. The seeded accounts are
+created by the platform with the address already verified. If the pool ever gains a federated
+provider or a trigger, revisit this.
 
 ### Account deletion
 

@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- `auth-hosted` `0.1.1` (albitor-ltd/albitor#3870; `0.1.0` was already tagged, so this is a new
+  version): `acceptIDToken` always accepts the platform-seeded domains `albitor-verify.invalid` and
+  `albitor-demo.invalid` (a verified address is still required), whatever `SIGNUP_DOMAINS` says, so
+  an app that sets it no longer locks out the demo and verifier accounts. The README records why no
+  outsider can hold a verified address there. The skill tells agents not to set `SIGNUP_DOMAINS`
+  unless the brief or a person asks for a domain restriction.
+
 - `gds` `0.1.8` (albitor-ltd/albitor-plugins#68): GOV.UK branding (crown, GOV.UK logotype, OGL,
   Crown copyright, GDS Transport) now keys on the build's explicit "on GOV.UK" statement, never on
   the domain or audience. Not stated or "not on GOV.UK" gives the crownless pattern (organisation
