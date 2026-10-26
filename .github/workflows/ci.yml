@@ -26,6 +26,8 @@ jobs:
           fetch-depth: 0 # the catalogue guards resolve the release tags
       - name: Validate plugin manifests
         run: scripts/validate-plugins.sh
+      - name: test-playwright pins the Playwright the runner image bakes
+        run: scripts/check-runner-playwright.sh
       - name: The pin audit fails closed
         run: scripts/test-catalogue-guards.sh
       - name: Preview tokens match the platform contract

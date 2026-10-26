@@ -10,6 +10,7 @@ ci: manifests catalogue lint api-go data-dynamodb auth deploy-byoa-aws
 
 manifests:
     scripts/validate-plugins.sh
+    scripts/check-runner-playwright.sh
     scripts/test-catalogue-guards.sh
     scripts/validate-preview-tokens.sh
     scripts/test-preview-tokens.sh
