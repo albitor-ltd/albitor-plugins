@@ -39,6 +39,12 @@ client may send `Authorization: Bearer <token>` instead.
   not add a sign-in form, a sign-up screen or a reset screen, because Cognito's pages do those.
 - **Who may sign in.** `SIGNUP_DOMAINS` (comma-separated `example.org` or `*.example.org`) limits sign-in
   by email domain. A refused person lands on `/not-allowed`; reword that page and say who to contact. The rule and `email_verified` are applied to every ID token the API takes (callback, refresh, every request), so a token from a hand-run flow gets nowhere; the gate accepts ID tokens only.
+  The platform's seeded demo and verifier accounts (`@albitor-demo.invalid`,
+  `@albitor-verify.invalid`) always pass the rule.
+  That exemption exists only so the platform's journeys and demo sign-in keep working. It does not
+  make a restriction safe and is not a feature for app authors.
+  **Do not set `SIGNUP_DOMAINS`** (in `albitor.yaml` `config:` or anywhere) unless the brief or a
+  person explicitly asks for a sign-in domain restriction; never invent one.
 - **App data on deletion.** Set `shell.OnAccountDeleted` from an app-owned file to remove a person's
   records after their account is deleted. It must be idempotent: the person cannot retry.
 - **Public pages.** `PUBLIC_PATHS` in `guard.ts` is managed. A page that must be public (a landing page,

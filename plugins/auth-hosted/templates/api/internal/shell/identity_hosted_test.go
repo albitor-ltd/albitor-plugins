@@ -470,6 +470,68 @@ func TestTheSignupDomainRuleRunsAfterTheEmailIsVerified(t *testing.T) {
 			}
 		})
 	}
+	for name, email := range map[string]string{
+		"the verifier account": "verifier@albitor-verify.invalid",
+		"the demo account":     "Demo@Albitor-Demo.invalid",
+	} {
+		t.Run("always allows "+name+", whatever the rule says", func(t *testing.T) {
+			h, _ := setup(t, "northgate.gov.uk", map[string]any{"email": email})
+			cookies, state, _, _ := startSignIn(t, h, "/")
+			if rec := callbackWith(t, h, "code=good-code&state="+state, cookies); rec.Code != http.StatusOK || cookieNamed(rec, sessionCookie) == nil {
+				t.Fatalf("callback = %d, want a session", rec.Code)
+			}
+		})
+	}
+	t.Run("the seeded domains are exact, and still need a verified address", func(t *testing.T) {
+		a := &hostedAuth{domains: []string{"northgate.gov.uk"}}
+		for _, email := range []string{
+			"x@evil.albitor-demo.invalid", "x@albitor-demo.invalid.evil.test", "albitor-demo.invalid",
+			"x@notalbitor-verify.invalid", "x@albitor-demo.invalid@evil.test",
+			"albitor-demo.invalid@evil.test", " x@albitor-demo.invalid.evil.test ",
+		} {
+			if err := a.acceptIDToken(jwtClaims{TokenUse: "id", Email: email, EmailVerified: true}); !errors.Is(err, errEmailNotAllowed) {
+				t.Errorf("%q = %v, want errEmailNotAllowed", email, err)
+			}
+		}
+		// The address is trimmed once, so padding does not hide a seeded address either.
+		if err := a.acceptIDToken(jwtClaims{TokenUse: "id", Email: "  Demo@albitor-demo.invalid\t", EmailVerified: true}); err != nil {
+			t.Errorf("padded seeded address = %v, want accepted", err)
+		}
+		if err := a.acceptIDToken(jwtClaims{TokenUse: "id", Email: "demo@albitor-demo.invalid"}); !errors.Is(err, errEmailUnverified) {
+			t.Errorf("unverified seeded address = %v, want errEmailUnverified", err)
+		}
+	})
+	t.Run("a seeded address passes on every request and on refresh, whatever the rule says", func(t *testing.T) {
+		f := newFakeCognito(t)
+		a := f.auth()
+		a.domains = []string{"northgate.gov.uk"}
+		h := composeIdentity(signIn{auth: a})
+		seeded := f.idToken("user-a", map[string]any{"email": "demo@albitor-demo.invalid"})
+		other := f.idToken("user-a", map[string]any{"email": "sam@gmail.com"})
+		bearer := func(tok string) func(*http.Request) {
+			return func(r *http.Request) { r.Header.Set("Authorization", "Bearer "+tok) }
+		}
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", bearer(seeded)); rec.Code != http.StatusOK {
+			t.Errorf("bearer, seeded = %d, want 200", rec.Code)
+		}
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", withCookies(&http.Cookie{Name: sessionCookie, Value: seeded})); rec.Code != http.StatusOK {
+			t.Errorf("cookie, seeded = %d, want 200", rec.Code)
+		}
+		// Controls: the rule still bites an ordinary address on both paths.
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", bearer(other)); rec.Code != http.StatusUnauthorized {
+			t.Errorf("bearer, other = %d, want 401", rec.Code)
+		}
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", withCookies(&http.Cookie{Name: sessionCookie, Value: other})); rec.Code != http.StatusUnauthorized {
+			t.Errorf("cookie, other = %d, want 401", rec.Code)
+		}
+		f.answerToken(func(url.Values) (int, any) { return http.StatusOK, map[string]string{"id_token": seeded} })
+		expired := f.idToken("user-a", map[string]any{"exp": time.Now().Add(-time.Minute).Unix(), "email": "demo@albitor-demo.invalid"})
+		rec := authDo(t, h, http.MethodGet, "/api/items", "", withCookies(
+			&http.Cookie{Name: sessionCookie, Value: expired}, &http.Cookie{Name: refreshCookie, Value: "refresh-a"}))
+		if rec.Code != http.StatusOK {
+			t.Errorf("refresh to a seeded address = %d, want 200", rec.Code)
+		}
+	})
 	t.Run("a refresh is checked against the rule again, and a refusal ends the session", func(t *testing.T) {
 		f := newFakeCognito(t)
 		a := f.auth()
