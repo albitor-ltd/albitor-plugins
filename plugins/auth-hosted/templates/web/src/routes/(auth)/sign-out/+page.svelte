@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-hosted, component-kit@2), then yours: signs the person out, then goes
+<!-- Seeded by Albitor (auth-hosted), then yours: signs the person out, then goes
      through Cognito's sign-out page, which clears Cognito's own cookie and returns to the app's home
      page. Without that trip the next "Sign in" would skip the password. Its nav.ts puts "Sign out" in
      the nav; delete nav.ts to take it out. -->

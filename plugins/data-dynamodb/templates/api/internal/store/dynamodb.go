@@ -463,7 +463,7 @@ func (d *DynamoDB) send(ctx context.Context, op string, body []byte) (int, []byt
 		}
 		return 0, nil, fmt.Errorf("dynamodb %s: %w", op, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	payload, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 	if err != nil {
 		return 0, nil, fmt.Errorf("dynamodb %s: reading the response: %w", op, err)

@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-hosted, component-kit@2), then yours: the person's account, and the way
+<!-- Seeded by Albitor (auth-hosted), then yours: the person's account, and the way
      to delete it. Its nav.ts puts "Account" in the nav; delete nav.ts to take it out. -->
 <script lang="ts">
 	import { goto } from '$app/navigation';

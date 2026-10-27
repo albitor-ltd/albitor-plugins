@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-hosted, component-kit@2), then yours. There is no form: people sign in on
+<!-- Seeded by Albitor (auth-hosted), then yours. There is no form: people sign in on
      the app's Cognito hosted page. This page sends the browser there straight away (through the
      API, which starts the sign-in), and its button is the fallback. When the API sends a person back
      with ?error=<code> the sign-in did not finish: the page says so and does NOT redirect again, so a
@@ -17,7 +17,7 @@
 	// means the sign-in "worked" but no session was kept (a blocked cookie, say), and going round
 	// again would loop for ever: say so instead. The stamp is per tab and best effort.
 	const WINDOW_MS = 30_000;
-	const STAMP = 'albitor.sign-in.at';
+	const STAMP = 'app.sign-in.at';
 	let looped = $state(false);
 
 	function go() {

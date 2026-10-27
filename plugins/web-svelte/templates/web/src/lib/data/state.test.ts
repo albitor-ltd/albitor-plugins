@@ -70,9 +70,9 @@ describe('errorMessage', () => {
 	});
 
 	it('never echoes the response body or a raw error message', () => {
-		const secret = 'stack trace /srv/app/secret.go:12 token=abc';
-		expect(errorMessage(new ApiError(500, { error: secret }))).not.toContain('secret');
-		expect(errorMessage(new Error(secret))).not.toContain('secret');
+		const raw = 'stack trace /srv/app/internal.go:12 detail=abc';
+		expect(errorMessage(new ApiError(500, { error: raw }))).not.toContain('internal');
+		expect(errorMessage(new Error(raw))).not.toContain('internal');
 		expect(errorMessage('x')).toBe('Something went wrong. Try again.');
 	});
 });

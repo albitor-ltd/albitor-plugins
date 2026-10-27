@@ -15,6 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- Fixes for findings the Albitor task-time floor gates raised on the seeded trunk (not a claim that
+  every gate now passes). `auth-cognito` `0.3.1` and `auth-hosted` `0.1.2`: the
+  line-1 "Seeded by" header on each seeded screen names only the plugin, so it matches the
+  handover-clean exemption (the `@` in `component-kit@2` broke it). `data-dynamodb` `0.1.2`: the
+  response body close is checked (errcheck), and the SigV4 test vectors are assembled at run time
+  so the committed-secrets scan no longer flags them. `auth-cognito` `0.3.1`: a tagged switch in
+  the identity test (staticcheck QF1002). `auth-hosted` `0.1.2`: the unused `verify` wrapper is
+  removed. `web-svelte` `0.4.2`: the error-message test no longer uses `secret` and `token=` in
+  its fixture. `auth-hosted` `0.1.2`: the sign-in page's sessionStorage key is `app.sign-in.at`
+  (was a platform-named key; nothing else reads it). Tests assert the same behaviour.
+
 - `auth-hosted` `0.1.1` (albitor-ltd/albitor#3870; `0.1.0` was already tagged, so this is a new
   version): `acceptIDToken` always accepts the platform-seeded domains `albitor-verify.invalid` and
   `albitor-demo.invalid` (a verified address is still required), whatever `SIGNUP_DOMAINS` says, so

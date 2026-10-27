@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. The sign-in form is the kit's
+<!-- Seeded by Albitor (auth-cognito), then yours. The sign-in form is the kit's
      `SignInPage` (the same props in every kit), so it takes the kit's look and its error handling.
      Restyle and reword freely. `?email=` prefills the address. A person's first sign-in with the temporary password the pool
      emailed swaps it for a short form of kit `Field`s and `Button`, where they choose their own
