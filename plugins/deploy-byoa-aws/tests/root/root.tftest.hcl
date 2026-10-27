@@ -148,7 +148,19 @@ run "admin_group_reaches_the_pool_and_the_output" {
   }
 }
 
-run "admin_group_defaults_to_the_first_group_or_none" {
+run "admin_group_defaults_to_the_first_group" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-default-admin.yaml"
+  }
+
+  assert {
+    condition     = output.auth_admin_group == "admin"
+    error_message = "no admin_group resolves to groups[0]"
+  }
+}
+
+run "admin_group_is_none_without_groups" {
   command = plan
   variables {
     manifest_path = "fixtures/auth-minimal.yaml"

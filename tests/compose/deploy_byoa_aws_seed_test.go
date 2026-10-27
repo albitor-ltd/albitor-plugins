@@ -173,6 +173,24 @@ func TestSeedPlatformAccountsAddsBothAccountsToTheAdminGroupOnly(t *testing.T) {
 	}
 }
 
+// TestSeedPlatformAccountsClaimsNoRoleWhenAnAccountIsSkipped: seeded_roles is the group only when
+// both accounts were seeded and added; a skipped account leaves it empty.
+func TestSeedPlatformAccountsClaimsNoRoleWhenAnAccountIsSkipped(t *testing.T) {
+	cases := map[string]struct {
+		files  map[string]string
+		status string
+	}{
+		"verifier missing": {map[string]string{"params/ALBITOR_DEMO_ACCOUNT_PASSWORD": "demo-Pw-0123456789"}, "seed_status=skipped_unprovisioned:verifier\nseeded_roles="},
+		"demo missing":     {map[string]string{"params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}, "seed_status=skipped_unprovisioned:demo\nseeded_roles="},
+	}
+	for name, c := range cases {
+		r := runScript(t, "seed-platform-accounts.sh", c.files, testPool, testSegment, "reviewer")
+		if r.err != nil || r.out != c.status {
+			t.Errorf("%s: %v %q, want %q", name, r.err, r.out, c.status)
+		}
+	}
+}
+
 // TestSeedPlatformAccountsWithoutAnAdminGroupAddsNobody: an app with no groups has one kind of
 // account, so no group call is made and seeded_roles is empty.
 func TestSeedPlatformAccountsWithoutAnAdminGroupAddsNobody(t *testing.T) {

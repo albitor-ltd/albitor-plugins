@@ -30,7 +30,8 @@
 # stack's resolved services.auth.admin_group, empty for an app with no groups) both accounts are
 # added to it, and to no other group, so the owner's demo account can open the screens that group
 # gates and the verifier has an identity that can walk them. AdminAddUserToGroup is idempotent, so
-# a re-run is fine. $GITHUB_OUTPUT gets seeded_roles: the group, or empty when nothing was added.
+# a re-run is fine. $GITHUB_OUTPUT gets seeded_roles: the group when both accounts were seeded and added,
+# else empty.
 #
 # Idempotent. It creates each account when it is absent and sets its password every time. A password
 # reaches neither argv nor another step's environment: the set-password call reads a 0600 JSON file
@@ -102,6 +103,7 @@ read_err="$(mktemp)"
 trap 'rm -f "$payload" "$read_err"' EXIT
 
 unprovisioned=()
+added_to_group=()
 
 # seed_account <label> <short name> <username> <parameter name> [display name]
 seed_account() {
@@ -171,7 +173,7 @@ json.dump({
       echo "::error::could not add the ${label} to the ${admin_group} group in ${pool_id}" >&2
       return 1
     fi
-    seeded_roles="$admin_group"
+    added_to_group+=("$short")
     echo "the ${label} is in the ${admin_group} group"
   fi
   echo "the ${label} is seeded in ${pool_id}"
@@ -182,6 +184,12 @@ json.dump({
 status=0
 seed_account "demo account" demo "$demo_username" ALBITOR_DEMO_ACCOUNT_PASSWORD "$demo_display_name" || status=1
 seed_account "verifier account" verifier "$verifier_username" ALBITOR_VERIFIER_ACCOUNT_PASSWORD || status=1
+
+# seeded_roles claims a role only when both accounts were seeded and added to it: a skipped account
+# means a role-gated journey may have no identity, and the receipt must not say otherwise.
+if [ "$status" -eq 0 ] && [ "${#unprovisioned[@]}" -eq 0 ] && [ "${#added_to_group[@]}" -eq 2 ]; then
+  seeded_roles="$admin_group"
+fi
 
 if [ "${#unprovisioned[@]}" -gt 0 ]; then
   write_status "skipped_unprovisioned:$(IFS=,; echo "${unprovisioned[*]}")"
