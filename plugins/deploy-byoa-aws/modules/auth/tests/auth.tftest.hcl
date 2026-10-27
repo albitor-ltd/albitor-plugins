@@ -70,6 +70,54 @@ run "groups_become_pool_groups" {
   }
 }
 
+run "admin_group_defaults_to_the_first_group" {
+  command = plan
+  variables {
+    groups = ["staff", "reviewer"]
+  }
+  assert {
+    condition     = output.admin_group == "staff"
+    error_message = "an unset admin_group resolves to groups[0]"
+  }
+}
+
+run "admin_group_is_empty_without_groups" {
+  command = plan
+  assert {
+    condition     = output.admin_group == ""
+    error_message = "an app with no groups has no admin group"
+  }
+}
+
+run "a_declared_admin_group_wins" {
+  command = plan
+  variables {
+    groups      = ["staff", "reviewer"]
+    admin_group = "reviewer"
+  }
+  assert {
+    condition     = output.admin_group == "reviewer"
+    error_message = "a declared admin_group is the resolved one"
+  }
+}
+
+run "an_admin_group_outside_groups_is_refused" {
+  command = plan
+  variables {
+    groups      = ["staff"]
+    admin_group = "owner"
+  }
+  expect_failures = [var.admin_group]
+}
+
+run "an_admin_group_with_no_groups_is_refused" {
+  command = plan
+  variables {
+    admin_group = "admin"
+  }
+  expect_failures = [var.admin_group]
+}
+
 run "another_provider_is_refused" {
   command = plan
   variables {

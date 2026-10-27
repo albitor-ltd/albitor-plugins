@@ -136,6 +136,30 @@ run "services_auth_renders_a_user_pool_with_its_groups" {
   }
 }
 
+run "admin_group_reaches_the_pool_and_the_output" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth.yaml"
+  }
+
+  assert {
+    condition     = module.auth[0].admin_group == "reviewer" && output.auth_admin_group == "reviewer"
+    error_message = "a declared services.auth.admin_group is the resolved one"
+  }
+}
+
+run "admin_group_defaults_to_the_first_group_or_none" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-minimal.yaml"
+  }
+
+  assert {
+    condition     = output.auth_admin_group == ""
+    error_message = "no groups, no admin group"
+  }
+}
+
 run "sign_up_defaults_to_invite_only_and_posture_does_not_remove_the_pool" {
   command = plan
   variables {

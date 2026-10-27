@@ -17,6 +17,7 @@ services:
     posture: private
     sign_up: open
     groups: [admin, reviewer]
+    admin_group: reviewer
   tables:
     - name: data
       partition_key: {name: pk, type: string}
