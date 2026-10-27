@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/check-runner-playwright.sh` and `runner-image.json` (albitor-ltd/albitor#3895): CI fails when
+  `test-playwright`'s Playwright pin differs from the version the Albitor runner image bakes a browser
+  for, so a dependency bump cannot leave offline spec runs and journey walks without a browser. Bump
+  the image first, then the record and the plugin together. No plugin version change.
+
 ### Fixed
 
 - `auth-hosted` `0.1.1` (albitor-ltd/albitor#3870; `0.1.0` was already tagged, so this is a new

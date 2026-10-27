@@ -22,6 +22,7 @@ catalogue/metadata.json           catalogue-facing description, category, keywor
 catalogue/legacy-pins.json        old per-plugin repo and ref; history, used only by --mode legacy
 scripts/build-catalogue.sh        generates marketplace.json from the tree
 scripts/validate-plugins.sh       manifest validation (also run by CI)
+scripts/check-runner-playwright.sh test-playwright's Playwright pin equals runner-image.json, the version the runner image bakes a browser for (also run by CI)
 scripts/validate-preview-tokens.sh  every plugins/*/preview-tokens.json against the platform's contract
 scripts/test-preview-tokens.sh    accept/refuse cases for that validator (tests/preview-tokens/)
 scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build and, with --journeys, the Playwright journeys
