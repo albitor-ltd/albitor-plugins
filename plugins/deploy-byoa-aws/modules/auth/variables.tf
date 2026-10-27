@@ -69,6 +69,17 @@ variable "groups" {
   }
 }
 
+variable "admin_group" {
+  description = "services.auth.admin_group: the group the platform seeds the demo and verifier accounts into. Empty means groups[0], or none when there are no groups."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.admin_group == "" || contains(var.groups, var.admin_group)
+    error_message = "admin_group must be one of groups."
+  }
+}
+
 variable "deletion_protection" {
   description = "Refuse to delete the pool (and every account in it). Lift it deliberately to remove the pool."
   type        = bool

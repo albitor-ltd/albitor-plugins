@@ -30,9 +30,13 @@ readable by page script. A script or test client may send `Authorization: Bearer
 
 ## What the build writes
 
-- **Authorisation.** Take the owner from `identity.Owner(r)`, put it in the partition key, and
-  gate privileged routes on `id.InGroup("admin")` after `identity.FromContext`. Never take the
-  owner from a body or a query parameter.
+- **Authorisation.** Take the owner from `identity.Owner(r)` and put it in the partition key. Never
+  take the owner from a body or a query parameter. An app has one kind of signed-in account unless
+  the plan declares roles: never invent roles or an admin group. A route that only some people may
+  use gates on `id.InGroup(<the declared admin_group>)` after `identity.FromContext`, and that group
+  must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
+  `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
+  that is the platform's job.
 - **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them,
   add sign-up fields (and the field in `client.ts`'s call), but **keep the `data-testid` values**
   on the sign-up, confirm, reset and new-password forms. The sign-in form is the kit's `SignInPage`

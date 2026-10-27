@@ -105,6 +105,13 @@ never reaches a place real users depend on. A missing parameter is a warning ann
 not a failure, and the receipt says so (`seed_status=skipped_unprovisioned:<accounts>`); any other
 read failure fails the deploy.
 
+**Roles.** `services.auth.admin_group` names the group the seed adds both accounts to (default the
+first of `groups`; it must be one of them; an app with no groups has no roles and no admin). The
+root outputs the resolved name as `auth_admin_group`, the seed runs `cognito-idp
+admin-add-user-to-group` for the demo and verifier accounts (idempotent, that group only), and the
+receipt carries `seeded_roles` (empty with no groups). The deploy role therefore needs
+`cognito-idp:AdminAddUserToGroup` on the app's user pool.
+
 **Inviting people.** Run the `invite` workflow from the repository's Actions tab with the person's
 email. The pool emails them a temporary password; at first sign-in the app asks them to choose their
 own (the `auth-cognito` plugin answers the `NEW_PASSWORD_REQUIRED` challenge), so no one else ever

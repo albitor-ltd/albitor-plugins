@@ -43,6 +43,11 @@ output "auth_client_id" {
   value       = try(module.auth[0].client_id, "")
 }
 
+output "auth_admin_group" {
+  description = "The resolved services.auth.admin_group (the first group when the manifest names none, empty when it declares no groups). The deploy's seed adds the demo and verifier accounts to it."
+  value       = try(module.auth[0].admin_group, "")
+}
+
 output "csp_script_hashes" {
   description = "The script hashes of this build's inline scripts (empty with no site): what the policy admits for the shell being shipped."
   value       = join(" ", local.script_hashes.current)

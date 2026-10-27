@@ -40,6 +40,9 @@ holds none, and the floor refuses a grant. The first sign-in of an invited perso
 `auth-cognito` plugin's `new_password_required` step. The seed reads the passwords from the path
 segment Albitor wrote into `env/<environment>.deploy.env` (`ALBITOR_APP_SECRETS_SEGMENT`), never from
 the repository name, and the deploy receipt reports the pool, the client and the seed's status.
+When the manifest declares `services.auth.groups`, the same seed adds both accounts to
+`services.auth.admin_group` (default: the first group) and to no other group, and the receipt's
+`seeded_roles` reports it. Never ask a person to add accounts to groups.
 Inviting needs write access to the repository; `docs/inviting-people.md` is delivered at handover.
 See the README.
 

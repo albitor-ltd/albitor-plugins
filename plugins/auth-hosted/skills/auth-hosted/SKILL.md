@@ -31,9 +31,13 @@ client may send `Authorization: Bearer <token>` instead.
 
 ## What the build writes
 
-- **Authorisation.** Take the owner from `identity.Owner(r)`, put it in the partition key, and gate
-  privileged routes on `id.InGroup("admin")` after `identity.FromContext`. Never take the owner from a
-  body or a query parameter.
+- **Authorisation.** Take the owner from `identity.Owner(r)` and put it in the partition key. Never
+  take the owner from a body or a query parameter. An app has one kind of signed-in account unless
+  the plan declares roles: never invent roles or an admin group. A route that only some people may
+  use gates on `id.InGroup(<the declared admin_group>)` after `identity.FromContext`, and that group
+  must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
+  `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
+  that is the platform's job.
 - **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them. Keep
   the `data-testid` values and the headings the journey spec reads. There is **no password field**: do
   not add a sign-in form, a sign-up screen or a reset screen, because Cognito's pages do those.

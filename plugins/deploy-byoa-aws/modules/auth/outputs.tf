@@ -13,6 +13,11 @@ output "groups" {
   value       = sort(keys(aws_cognito_user_group.this))
 }
 
+output "admin_group" {
+  description = "The resolved admin group the seed puts the platform's demo and verifier accounts into: services.auth.admin_group, else the first group, else empty (an app with no groups has no roles)."
+  value       = var.admin_group != "" ? var.admin_group : (length(var.groups) > 0 ? var.groups[0] : "")
+}
+
 output "invite_only" {
   description = "Whether only an administrator can create accounts (services.auth.sign_up is invite_only)."
   value       = aws_cognito_user_pool.this.admin_create_user_config[0].allow_admin_create_user_only

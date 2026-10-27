@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `deploy-byoa-aws` `0.4.0` (albitor-ltd/albitor#3922): `services.auth.admin_group` (default the first
+  group, must be one of `groups`); the deploy's seed adds the demo and verifier accounts to it
+  (`cognito-idp:AdminAddUserToGroup`, idempotent) and the deploy receipt carries `seeded_roles`.
+  `auth-cognito` `0.3.2` and `auth-hosted` `0.1.3`: SKILL.md says an app has one kind of account unless
+  the plan declares roles, privileged routes gate on the declared `admin_group`, and nobody is asked
+  to change groups. Untagged, so the catalogue still pins the previous versions until released.
 - `scripts/check-runner-playwright.sh` and `runner-image.json` (albitor-ltd/albitor#3895): CI fails when
   `test-playwright`'s Playwright pin differs from the version the Albitor runner image bakes a browser
   for, so a dependency bump cannot leave offline spec runs and journey walks without a browser. Bump

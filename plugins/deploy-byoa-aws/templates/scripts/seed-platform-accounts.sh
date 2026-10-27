@@ -2,7 +2,7 @@
 # Managed by Albitor (deploy-byoa-aws). Seeds the app's two platform accounts into its Cognito user
 # pool, once per deploy, from the deploy job and never from the request-serving function.
 #
-#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment>
+#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group>]
 #
 # Two accounts, one mechanism. The DEMO account is the app owner's: they sign
 # in with it to try the app on handover day. The VERIFIER account is Albitor's own: its checks sign
@@ -26,6 +26,13 @@
 # The usernames are constants below (core.DemoAccountUsername, core.VerifierAccountUsername in
 # Albitor), not an input: nothing the app writes can name an identity or carry a password into here.
 #
+# Roles. An app has one kind of account unless it declares groups. When <admin-group> is given (the
+# stack's resolved services.auth.admin_group, empty for an app with no groups) both accounts are
+# added to it, and to no other group, so the owner's demo account can open the screens that group
+# gates and the verifier has an identity that can walk them. AdminAddUserToGroup is idempotent, so
+# a re-run is fine. $GITHUB_OUTPUT gets seeded_roles: the group when both accounts were seeded and added,
+# else empty.
+#
 # Idempotent. It creates each account when it is absent and sets its password every time. A password
 # reaches neither argv nor another step's environment: the set-password call reads a 0600 JSON file
 # that is removed on the way out, and nothing is written to $GITHUB_ENV.
@@ -44,10 +51,16 @@ readonly demo_display_name="Demo User"
 
 pool_id="${1:-}"
 secrets_segment="${2:-}"
+admin_group="${3:-}"
+
+# seeded_roles is the group the accounts were added to, or empty. It is written beside every
+# seed_status so a reader never has to tell "absent" from "none".
+seeded_roles=""
 
 write_status() {
   if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "seed_status=$1" >>"$GITHUB_OUTPUT"
+    echo "seeded_roles=${seeded_roles}" >>"$GITHUB_OUTPUT"
   fi
 }
 
@@ -62,6 +75,11 @@ if ! printf '%s' "$pool_id" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]_[A-Za-z0-9]{1,32}
 fi
 if ! command -v aws >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
   echo "::error::the aws cli and python3 are required to seed the platform accounts" >&2
+  exit 1
+fi
+
+if [ -n "$admin_group" ] && ! printf '%s' "$admin_group" | grep -Eq '^[a-z][a-z0-9-]{1,31}$'; then
+  echo "::error::the admin group is not a group name" >&2
   exit 1
 fi
 
@@ -85,6 +103,7 @@ read_err="$(mktemp)"
 trap 'rm -f "$payload" "$read_err"' EXIT
 
 unprovisioned=()
+added_to_group=()
 
 # seed_account <label> <short name> <username> <parameter name> [display name]
 seed_account() {
@@ -148,6 +167,15 @@ json.dump({
   fi
   rm -f "$payload"
   payload=""
+  if [ -n "$admin_group" ]; then
+    if ! aws cognito-idp admin-add-user-to-group \
+      --user-pool-id "$pool_id" --username "$username" --group-name "$admin_group" >/dev/null; then
+      echo "::error::could not add the ${label} to the ${admin_group} group in ${pool_id}" >&2
+      return 1
+    fi
+    added_to_group+=("$short")
+    echo "the ${label} is in the ${admin_group} group"
+  fi
   echo "the ${label} is seeded in ${pool_id}"
 }
 
@@ -156,6 +184,12 @@ json.dump({
 status=0
 seed_account "demo account" demo "$demo_username" ALBITOR_DEMO_ACCOUNT_PASSWORD "$demo_display_name" || status=1
 seed_account "verifier account" verifier "$verifier_username" ALBITOR_VERIFIER_ACCOUNT_PASSWORD || status=1
+
+# seeded_roles claims a role only when both accounts were seeded and added to it: a skipped account
+# means a role-gated journey may have no identity, and the receipt must not say otherwise.
+if [ "$status" -eq 0 ] && [ "${#unprovisioned[@]}" -eq 0 ] && [ "${#added_to_group[@]}" -eq 2 ]; then
+  seeded_roles="$admin_group"
+fi
 
 if [ "${#unprovisioned[@]}" -gt 0 ]; then
   write_status "skipped_unprovisioned:$(IFS=,; echo "${unprovisioned[*]}")"

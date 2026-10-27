@@ -117,6 +117,7 @@ jobs:
       auth_user_pool_id: ${{ steps.app_url.outputs.auth_user_pool_id }}
       auth_client_id: ${{ steps.app_url.outputs.auth_client_id }}
       seed_status: ${{ steps.app_url.outputs.seed_status }}
+      seeded_roles: ${{ steps.app_url.outputs.seeded_roles }}
     permissions:
       contents: read
       id-token: write
@@ -326,7 +327,8 @@ jobs:
         run: |
           set -euo pipefail
           pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
-          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT"
+          admin_group="$(terraform -chdir=infrastructure/aws output -raw auth_admin_group)"
+          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT" "$admin_group"
 
       # The receipt carries what the platform's sign-in check needs: the pool, the client and what
       # the seed did. Both ids are empty for an app with no sign-in.
@@ -334,6 +336,7 @@ jobs:
         id: app_url
         env:
           SEED_STATUS: ${{ steps.seed.outputs.seed_status }}
+          SEEDED_ROLES: ${{ steps.seed.outputs.seeded_roles }}
         run: |
           set -euo pipefail
           url="$(terraform output -raw app_url)"
@@ -357,6 +360,10 @@ jobs:
             echo "::error::the seed reported a status the receipt cannot carry" >&2
             exit 1
           fi
+          if [ -n "$SEEDED_ROLES" ] && ! printf '%s' "$SEEDED_ROLES" | grep -Eq '^[a-z][a-z0-9-]{1,31}(,[a-z][a-z0-9-]{1,31})*$'; then
+            echo "::error::the seed reported a role the receipt cannot carry" >&2
+            exit 1
+          fi
           if [ -z "$url" ]; then
             echo "::error::the stack applied but exposes no app_url (no site and no API), so there is nothing to report" >&2
             exit 1
@@ -367,6 +374,7 @@ jobs:
             echo "auth_user_pool_id=$pool"
             echo "auth_client_id=$client"
             echo "seed_status=$SEED_STATUS"
+            echo "seeded_roles=$SEEDED_ROLES"
           } >>"$GITHUB_OUTPUT"
         working-directory: infrastructure/aws
 
@@ -388,6 +396,7 @@ jobs:
           AUTH_USER_POOL_ID: ${{ needs.deploy.outputs.auth_user_pool_id }}
           AUTH_CLIENT_ID: ${{ needs.deploy.outputs.auth_client_id }}
           SEED_STATUS: ${{ needs.deploy.outputs.seed_status }}
+          SEEDED_ROLES: ${{ needs.deploy.outputs.seeded_roles }}
         run: |
           set -euo pipefail
           if ! printf '%s' "$APP_URL" | grep -Eq '^https://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+$'; then
@@ -410,5 +419,9 @@ jobs:
             echo "::error::the seed status is not one the receipt carries" >&2
             exit 1
           fi
-          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s"}\n' \
-            "$APP_URL" "$DEPLOY_SHA" "$AUTH_USER_POOL_ID" "$AUTH_CLIENT_ID" "$SEED_STATUS"
+          if [ -n "$SEEDED_ROLES" ] && ! printf '%s' "$SEEDED_ROLES" | grep -Eq '^[a-z][a-z0-9-]{1,31}(,[a-z][a-z0-9-]{1,31})*$'; then
+            echo "::error::the seeded role is not one the receipt carries" >&2
+            exit 1
+          fi
+          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s","seeded_roles":"%s"}\n' \
+            "$APP_URL" "$DEPLOY_SHA" "$AUTH_USER_POOL_ID" "$AUTH_CLIENT_ID" "$SEED_STATUS" "$SEEDED_ROLES"

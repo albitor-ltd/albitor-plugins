@@ -17,6 +17,8 @@ import (
 //	users          usernames that already exist in the pool, one per line
 //	status/<user>  admin-get-user's UserStatus for a user (a missing file is UserNotFoundException)
 //
+//	groups         admin-add-user-to-group appends "<user> <group>" lines to this file
+//
 // admin-set-user-password's request file is copied to set.log, because that file is the only place
 // the password may be.
 const fakeAWS = `#!/usr/bin/env bash
@@ -37,6 +39,9 @@ case "$1 $2" in
   "cognito-idp admin-set-user-password")
     cat "$(arg --cli-input-json "$@" | sed 's#^file://##')" >>"$FAKE/set.log"
     echo >>"$FAKE/set.log"
+    ;;
+  "cognito-idp admin-add-user-to-group")
+    echo "$(arg --username "$@") $(arg --group-name "$@")" >>"$FAKE/groups"
     ;;
   "cognito-idp admin-get-user")
     user="$(arg --username "$@")"
@@ -112,7 +117,7 @@ func TestSeedPlatformAccountsSeedsBothAccountsWithoutPuttingAPasswordOnACommandL
 	if r.err != nil {
 		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
 	}
-	if r.out != "seed_status=seeded" {
+	if r.out != "seed_status=seeded\nseeded_roles=" {
 		t.Errorf("seed_status = %q, want seeded", r.out)
 	}
 	users := r.read(t, "users")
@@ -142,6 +147,68 @@ func TestSeedPlatformAccountsSeedsBothAccountsWithoutPuttingAPasswordOnACommandL
 	}
 }
 
+// TestSeedPlatformAccountsAddsBothAccountsToTheAdminGroupOnly: roles are the platform's job, so the
+// demo and verifier accounts land in the declared admin group and nowhere else, and the receipt's
+// seeded_roles says so.
+func TestSeedPlatformAccountsAddsBothAccountsToTheAdminGroupOnly(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "reviewer")
+	if r.err != nil {
+		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
+	}
+	if r.out != "seed_status=seeded\nseeded_roles=reviewer" {
+		t.Errorf("outputs = %q, want seeded and seeded_roles=reviewer", r.out)
+	}
+	want := "demo@albitor-demo.invalid reviewer\nverifier@albitor-verify.invalid reviewer\n"
+	if got := r.read(t, "groups"); got != want {
+		t.Errorf("group memberships = %q, want %q", got, want)
+	}
+	// Re-running (the accounts now exist) adds them again, which Cognito accepts.
+	files := map[string]string{"users": "demo@albitor-demo.invalid\nverifier@albitor-verify.invalid\n"}
+	for k, v := range bothPasswords {
+		files[k] = v
+	}
+	r = runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment, "reviewer")
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=reviewer" || r.read(t, "groups") != want {
+		t.Errorf("a re-run = %v %q %q", r.err, r.out, r.read(t, "groups"))
+	}
+}
+
+// TestSeedPlatformAccountsClaimsNoRoleWhenAnAccountIsSkipped: seeded_roles is the group only when
+// both accounts were seeded and added; a skipped account leaves it empty.
+func TestSeedPlatformAccountsClaimsNoRoleWhenAnAccountIsSkipped(t *testing.T) {
+	cases := map[string]struct {
+		files  map[string]string
+		status string
+	}{
+		"verifier missing": {map[string]string{"params/ALBITOR_DEMO_ACCOUNT_PASSWORD": "demo-Pw-0123456789"}, "seed_status=skipped_unprovisioned:verifier\nseeded_roles="},
+		"demo missing":     {map[string]string{"params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}, "seed_status=skipped_unprovisioned:demo\nseeded_roles="},
+	}
+	for name, c := range cases {
+		r := runScript(t, "seed-platform-accounts.sh", c.files, testPool, testSegment, "reviewer")
+		if r.err != nil || r.out != c.status {
+			t.Errorf("%s: %v %q, want %q", name, r.err, r.out, c.status)
+		}
+	}
+}
+
+// TestSeedPlatformAccountsWithoutAnAdminGroupAddsNobody: an app with no groups has one kind of
+// account, so no group call is made and seeded_roles is empty.
+func TestSeedPlatformAccountsWithoutAnAdminGroupAddsNobody(t *testing.T) {
+	for _, args := range [][]string{{testPool, testSegment}, {testPool, testSegment, ""}} {
+		r := runScript(t, "seed-platform-accounts.sh", bothPasswords, args...)
+		if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=" {
+			t.Errorf("args %q = %v %q", args, r.err, r.out)
+		}
+		if strings.Contains(r.read(t, "calls.log"), "add-user-to-group") {
+			t.Errorf("a group call was made with no admin group:\n%s", r.read(t, "calls.log"))
+		}
+	}
+	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "Bad;Group")
+	if r.err == nil || r.read(t, "calls.log") != "" {
+		t.Errorf("a malformed group reached the cli: %v", r.err)
+	}
+}
+
 // TestSeedPlatformAccountsIsIdempotent: the second deploy finds both accounts and resets them.
 func TestSeedPlatformAccountsIsIdempotent(t *testing.T) {
 	files := map[string]string{"users": "demo@albitor-demo.invalid\nverifier@albitor-verify.invalid\n"}
@@ -149,7 +216,7 @@ func TestSeedPlatformAccountsIsIdempotent(t *testing.T) {
 		files[k] = v
 	}
 	r := runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment)
-	if r.err != nil || r.out != "seed_status=seeded" {
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=" {
 		t.Fatalf("a second seed = %v %q\n%s", r.err, r.out, r.output)
 	}
 	if strings.Count(r.read(t, "set.log"), `"Permanent": true`) != 2 {
@@ -164,7 +231,7 @@ func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
 	if r.err != nil {
 		t.Fatalf("a missing demo parameter failed the deploy: %v\n%s", r.err, r.output)
 	}
-	if r.out != "seed_status=skipped_unprovisioned:demo" || !strings.Contains(r.output, "::warning title=seed-skipped::") {
+	if r.out != "seed_status=skipped_unprovisioned:demo\nseeded_roles=" || !strings.Contains(r.output, "::warning title=seed-skipped::") {
 		t.Errorf("status %q, output %q: want a named, annotated skip", r.out, r.output)
 	}
 	if !strings.Contains(r.read(t, "users"), "verifier@albitor-verify.invalid") {
@@ -182,7 +249,7 @@ func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
 
 	placeholder := map[string]string{"params/ALBITOR_DEMO_ACCOUNT_PASSWORD": "__albitor_pending__", "params/ALBITOR_VERIFIER_ACCOUNT_PASSWORD": "v-Pw-0123456789"}
 	r = runScript(t, "seed-platform-accounts.sh", placeholder, testPool, testSegment)
-	if r.err != nil || r.out != "seed_status=skipped_unprovisioned:demo" || strings.Contains(r.read(t, "users"), "demo@") {
+	if r.err != nil || r.out != "seed_status=skipped_unprovisioned:demo\nseeded_roles=" || strings.Contains(r.read(t, "users"), "demo@") {
 		t.Errorf("the reservation placeholder was seeded as a password: %v %q", r.err, r.out)
 	}
 }
@@ -191,7 +258,7 @@ func TestSeedPlatformAccountsSkipsLoudlyOnlyForAMissingParameter(t *testing.T) {
 // a value that is not a pool id never reaches the cli.
 func TestSeedPlatformAccountsNeedsNoPoolAndRefusesAnythingElse(t *testing.T) {
 	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, "", testSegment)
-	if r.err != nil || r.out != "seed_status=no_pool" || r.read(t, "calls.log") != "" {
+	if r.err != nil || r.out != "seed_status=no_pool\nseeded_roles=" || r.read(t, "calls.log") != "" {
 		t.Errorf("no pool = %v %q calls %q", r.err, r.out, r.read(t, "calls.log"))
 	}
 	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, "eu-west-2_x; echo pwned", testSegment)
@@ -206,12 +273,12 @@ func TestSeedPlatformAccountsNeedsNoPoolAndRefusesAnythingElse(t *testing.T) {
 func TestSeedPlatformAccountsFailsLoudlyWithoutTheSecretsSegment(t *testing.T) {
 	for _, segment := range []string{"", "../escape", "a b", "x;id"} {
 		r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, segment)
-		if r.err == nil || r.out != "seed_status=failed:no_secrets_segment" || r.read(t, "calls.log") != "" {
+		if r.err == nil || r.out != "seed_status=failed:no_secrets_segment\nseeded_roles=" || r.read(t, "calls.log") != "" {
 			t.Errorf("segment %q: err %v status %q calls %q, want a reported failure with no aws call", segment, r.err, r.out, r.read(t, "calls.log"))
 		}
 	}
 	// No pool is still no pool: the segment only matters when there is something to seed.
-	if r := runScript(t, "seed-platform-accounts.sh", bothPasswords, ""); r.err != nil || r.out != "seed_status=no_pool" {
+	if r := runScript(t, "seed-platform-accounts.sh", bothPasswords, ""); r.err != nil || r.out != "seed_status=no_pool\nseeded_roles=" {
 		t.Errorf("no pool and no segment = %v %q", r.err, r.out)
 	}
 }
