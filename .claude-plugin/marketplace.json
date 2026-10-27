@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.4.1",
-        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
+        "ref": "web-svelte/v0.4.2",
+        "sha": "f552afaf47495ef8523a31024c7a760f9d57b701"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
       "category": "development",
@@ -263,8 +263,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/data-dynamodb",
-        "ref": "data-dynamodb/v0.1.1",
-        "sha": "7be2045e2e0e08ff8e2425355b29e55318b2cdd3"
+        "ref": "data-dynamodb/v0.1.2",
+        "sha": "f552afaf47495ef8523a31024c7a760f9d57b701"
       },
       "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.3.0",
-        "sha": "d78c562e3a9f59d06dbbf742c716e940b6e8df35"
+        "ref": "auth-cognito/v0.3.1",
+        "sha": "f552afaf47495ef8523a31024c7a760f9d57b701"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.1.1",
-        "sha": "060ac160a4d73f9bd4312026531fa50923b71a3b"
+        "ref": "auth-hosted/v0.1.2",
+        "sha": "f552afaf47495ef8523a31024c7a760f9d57b701"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
       "category": "development",
