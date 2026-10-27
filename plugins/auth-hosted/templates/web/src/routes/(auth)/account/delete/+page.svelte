@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-hosted, component-kit@2), then yours: the confirmation before an account
+<!-- Seeded by Albitor (auth-hosted), then yours: the confirmation before an account
      is deleted. On success the API has deleted the account and cleared the session, and the person
      goes through Cognito's sign-out page back to the app's home page. -->
 <script lang="ts">

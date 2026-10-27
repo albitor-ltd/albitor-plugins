@@ -680,10 +680,10 @@ func TestAnInvitedPersonSetsTheirOwnPasswordAtFirstSignIn(t *testing.T) {
 	h := gateFor(f, srv)
 	f.answer("InitiateAuth", func(in map[string]any) (int, any) {
 		params, _ := in["AuthParameters"].(map[string]any)
-		switch {
-		case params["PASSWORD"] == "Temp-0nly-pw":
+		switch params["PASSWORD"] {
+		case "Temp-0nly-pw":
 			return http.StatusOK, map[string]any{"ChallengeName": "NEW_PASSWORD_REQUIRED", "Session": "challenge-session"}
-		case params["PASSWORD"] == "mfa":
+		case "mfa":
 			return http.StatusOK, map[string]any{"ChallengeName": "SMS_MFA", "Session": "mfa-session"}
 		}
 		return http.StatusBadRequest, map[string]string{"__type": "NotAuthorizedException", "message": "Incorrect username or password."}

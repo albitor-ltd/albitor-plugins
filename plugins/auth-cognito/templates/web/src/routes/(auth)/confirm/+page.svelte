@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. Keep the data-testid values. -->
+<!-- Seeded by Albitor (auth-cognito), then yours. Keep the data-testid values. -->
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';

@@ -15,8 +15,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"webapp/internal/identity"
 )
 
 // Verifying a Cognito token, with the standard library only.
@@ -134,18 +132,9 @@ func (c jwtClaims) hasScope(scope string) bool {
 	return false
 }
 
-// verify returns the identity a token carries, errTokenExpired for a genuine
-// token past its expiry, errVerifierUnavailable when the pool's keys cannot be
-// fetched, or errTokenInvalid.
-func (v *cognitoVerifier) verify(ctx context.Context, raw string) (identity.Identity, error) {
-	claims, err := v.verifyClaims(ctx, raw)
-	if err != nil {
-		return identity.Identity{}, err
-	}
-	return identity.Identity{Sub: claims.Sub, Email: claims.Email, Groups: claims.Groups}, nil
-}
-
-// verifyClaims is verify, answering every claim of a token that passed the check.
+// verifyClaims returns every claim of a token that passed the check, errTokenExpired for a genuine
+// token past its expiry, errVerifierUnavailable when the pool's keys cannot be fetched, or
+// errTokenInvalid.
 func (v *cognitoVerifier) verifyClaims(ctx context.Context, raw string) (jwtClaims, error) {
 	parts := strings.Split(raw, ".")
 	if len(parts) != 3 {

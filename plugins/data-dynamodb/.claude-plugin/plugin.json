@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "data-dynamodb",
   "displayName": "DynamoDB data store",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "kind": "socket",
   "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
   "author": {

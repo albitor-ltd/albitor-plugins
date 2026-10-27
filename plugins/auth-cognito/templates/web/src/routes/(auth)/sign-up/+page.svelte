@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (auth-cognito, component-kit@2), then yours. Keep the data-testid values. Add the
+<!-- Seeded by Albitor (auth-cognito), then yours. Keep the data-testid values. Add the
      sign-up fields the brief asks for here and in the API call (client.ts). -->
 <script lang="ts">
 	import { tick } from 'svelte';
