@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "look-startup",
   "displayName": "Look: Startup",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "kind": "socket",
   "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
   "author": {

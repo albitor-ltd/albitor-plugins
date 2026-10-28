@@ -23,8 +23,12 @@ SaaS products and developer tools: dashboards, workspaces, settings and onboardi
 The composed app carries the look's token set as `web/src/lib/look/look.json` (seeded once, a copy
 of this plugin's `preview-tokens.json`). Map its values onto the kit's colour, radius and type tokens
 in one place (declare them unlayered in `web/src/lib/app/app.css`, which wins over the kit's
-`albitor-kit` layer); never hardcode a hex in a component. Dark values are derived, not authored: keep
-the dark scheme the kit already ships unless the platform hands you derived values.
+`albitor-kit` layer); never hardcode a hex in a component. An unlayered declaration beats the kit's
+layered dark block too, so a token you override in the light selector (`:root`) silently stays light
+on the dark page. **Override tokens in both the light and dark selectors, or not at all.** Declare
+the dark values in `:root:not([data-theme="light"])` (inside `@media (prefers-color-scheme: dark)`)
+and in `:root[data-theme="dark"]`. Use the platform's derived `dark_*` tokens when it hands you
+them; otherwise use the dark accent below. The kit offers dark and the runner scans both themes.
 
 ### Typography
 
@@ -44,13 +48,13 @@ the dark scheme the kit already ships unless the platform hands you derived valu
 
 ### Colour
 
-- Neutrals are near-achromatic and cool: text `#0d1013`, page `#f7f8fa`, white surfaces. The deep teal accent `#0a7f8f` appears only on actions, marks and links.
+- Neutrals are near-achromatic and cool: text `#0d1013`, page `#f7f8fa`, white surfaces. The deep teal accent `#08737f` appears only on actions, marks and links.
 - Two border strengths: the subtle `border` hairline for decoration, the stronger `control_border` (3:1) for inputs and outline buttons.
 - Status colours always with a glyph and a word; tinted pill fills at about 15% with a 1px border.
 
 The authored light palette: text `#0d1013`, secondary text `#565d68`, border
 `#e3e6eb`, control border `#858c9a`, surface `#ffffff`, page
-`#f7f8fa`, accent `#0a7f8f` with `#ffffff` on it. The accent is a default:
+`#f7f8fa`, accent `#08737f` with `#ffffff` on it. The accent is a default:
 the app's own brand colour replaces it and the platform recalculates the dependent shades.
 
 ## Phone navigation
@@ -81,6 +85,9 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 - No shadows in dark; separation is the lighter surface plus the hairline. Controls keep the stronger 3:1 border.
 - Accent lifted to 4.5:1 for links and fills, primary stays a solid fill with dark ink, no glow.
 - Status colours lightened, always with a glyph and a word. Ink capped near #e1e8f2.
+- Dark accent. The light accent fails 4.5:1 on the dark page, so on dark pages (`#09090b` and the
+  panel steps above it) use `#2fb5c6` for links, accent text and the primary fill (dark ink `#09090b`
+  on it); it holds 4.5:1 or better on `#09090b`, `#18181b` and `#27272a`.
 
 ## Accessibility floor
 

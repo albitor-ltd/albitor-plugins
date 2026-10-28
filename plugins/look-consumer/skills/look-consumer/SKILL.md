@@ -23,8 +23,12 @@ Mobile-first personal and lifestyle apps: habit, planning, family, wellness and 
 The composed app carries the look's token set as `web/src/lib/look/look.json` (seeded once, a copy
 of this plugin's `preview-tokens.json`). Map its values onto the kit's colour, radius and type tokens
 in one place (declare them unlayered in `web/src/lib/app/app.css`, which wins over the kit's
-`albitor-kit` layer); never hardcode a hex in a component. Dark values are derived, not authored: keep
-the dark scheme the kit already ships unless the platform hands you derived values.
+`albitor-kit` layer); never hardcode a hex in a component. An unlayered declaration beats the kit's
+layered dark block too, so a token you override in the light selector (`:root`) silently stays light
+on the dark page. **Override tokens in both the light and dark selectors, or not at all.** Declare
+the dark values in `:root:not([data-theme="light"])` (inside `@media (prefers-color-scheme: dark)`)
+and in `:root[data-theme="dark"]`. Use the platform's derived `dark_*` tokens when it hands you
+them; otherwise use the dark accent below. The kit offers dark and the runner scans both themes.
 
 ### Typography
 
@@ -82,6 +86,9 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 - Elevation by lighter surface; no drop shadows. Decorative borders stay subtle, controls use the 3:1 control border.
 - Accent and status held to about 5:1 on the surface; label on accent is the dark page ink.
 - Illustrations about 15% less saturated, no pure white; true black only as an OLED opt-in.
+- Dark accent. The light accent fails 4.5:1 on the dark page, so on dark pages (`#09090b` and the
+  panel steps above it) use `#f06cd0` for links, accent text and the primary fill (dark ink `#09090b`
+  on it); it holds 4.5:1 or better on `#09090b`, `#18181b` and `#27272a`.
 
 ## Accessibility floor
 
