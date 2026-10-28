@@ -34,6 +34,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- Look contrast (albitor-ltd/albitor#3944). `look-startup` `0.1.2`: accent `#0a7f8f` to `#08737f`
+  (4.45:1 to 5.24:1 on the `#f7f8fa` page, 5.57:1 on white), so links pass the rendered axe scan.
+  `look-startup`, `look-business` and `look-consumer` `0.1.2`: the dark page is no longer left on the
+  light accent. An unlayered override beats kit-shadcn's layered dark block, so SKILL.md now says to
+  override tokens in both the light and dark selectors, or not at all, and names a dark accent that
+  passes AA on `#09090b` (startup `#2fb5c6`, business `#5aa9f0`, consumer `#f06cd0`). Dark values are
+  not authored in `preview-tokens.json` (the platform derives `dark_*` tokens and the allow-list
+  refuses them). Untagged, so the catalogue still pins the previous versions until released.
 - Fixes for findings the Albitor task-time floor gates raised on the seeded trunk (not a claim that
   every gate now passes). `auth-cognito` `0.3.1` and `auth-hosted` `0.1.2`: the
   line-1 "Seeded by" header on each seeded screen names only the plugin, so it matches the

@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "look-consumer",
   "displayName": "Look: Consumer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "kind": "socket",
   "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm cream palette with a berry accent, a few things at a time.",
   "author": {
