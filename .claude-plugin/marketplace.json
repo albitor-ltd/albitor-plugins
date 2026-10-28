@@ -417,8 +417,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-business",
-        "ref": "look-business/v0.1.1",
-        "sha": "232fde2df72f9673a9b48637e7563d57b0754d03"
+        "ref": "look-business/v0.1.2",
+        "sha": "344a190546adc4ed234de598023791382845e610"
       },
       "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
       "category": "development",
@@ -440,8 +440,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-startup",
-        "ref": "look-startup/v0.1.1",
-        "sha": "232fde2df72f9673a9b48637e7563d57b0754d03"
+        "ref": "look-startup/v0.1.2",
+        "sha": "344a190546adc4ed234de598023791382845e610"
       },
       "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
       "category": "development",
@@ -463,8 +463,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-consumer",
-        "ref": "look-consumer/v0.1.1",
-        "sha": "232fde2df72f9673a9b48637e7563d57b0754d03"
+        "ref": "look-consumer/v0.1.2",
+        "sha": "344a190546adc4ed234de598023791382845e610"
       },
       "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm cream palette with a berry accent, a few things at a time.",
       "category": "development",
