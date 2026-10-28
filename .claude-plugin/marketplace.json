@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.4.2",
-        "sha": "f552afaf47495ef8523a31024c7a760f9d57b701"
+        "ref": "web-svelte/v0.4.3",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
       "category": "development",
@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.1.2",
-        "sha": "c96ab639eed814ce84f823aa7f746ea509d8c30d"
+        "ref": "api-go/v0.2.0",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.3.1",
-        "sha": "bcaf750d2b6f1725f828f1be8addd1542da00cae"
+        "ref": "test-playwright/v0.4.0",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.4.0",
-        "sha": "d28ff6a9da21e710e79079357f2dee13a357daae"
+        "ref": "deploy-byoa-aws/v0.5.0",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.3.2",
-        "sha": "d28ff6a9da21e710e79079357f2dee13a357daae"
+        "ref": "auth-cognito/v0.4.0",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.1.3",
-        "sha": "d28ff6a9da21e710e79079357f2dee13a357daae"
+        "ref": "auth-hosted/v0.2.0",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
       "category": "development",
@@ -351,8 +351,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-none",
-        "ref": "auth-none/v0.1.0",
-        "sha": "de7ba8c004e9443351d29f01f21c63231e7cc62f"
+        "ref": "auth-none/v0.2.0",
+        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
       },
       "description": "The auth plugin for an app with no sign-in: a stub identity seam for the Go API in which every request acts for one fixed owner, so a handler written against it works unchanged under a real sign-in. No screens, no middleware, no routes, and no requirements, so a web-only profile composes it too.",
       "category": "development",
