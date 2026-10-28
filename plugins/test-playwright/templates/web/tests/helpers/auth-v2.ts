@@ -36,8 +36,11 @@ export type SeededRole = {
   mode: "local" | "deployed";
   /** The account's email: what the app sees in /api/me. */
   account: string;
-  /** The groups the account holds: exactly [role]. */
-  groups: string[];
+  /**
+   * The groups the account holds, exactly [role]. Reported by the local issuer only; a deployed
+   * account's groups are not known here, so the app's own /api/me is what proves them.
+   */
+  groups?: string[];
 };
 
 export type SeedContext = { request: APIRequestContext };
@@ -90,10 +93,10 @@ export function createAuthV2(options: AuthV2Options): AuthV2 {
     if (!creds) {
       throw new Error(
         `no account for role ${role} reached this run: the deploy seeds ${role}@albitor-role.invalid, and its password ` +
-          `comes from the journey credentials file (roles.${role}.password) or the environment; neither has one`,
+          `comes only from the journey credentials file (roles.${role}.password), and it has none`,
       );
     }
-    return { role, mode: "deployed", account: creds.username, groups: [role] };
+    return { role, mode: "deployed", account: creds.username };
   };
 
   return {

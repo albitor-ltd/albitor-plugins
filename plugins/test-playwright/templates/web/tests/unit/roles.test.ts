@@ -10,7 +10,6 @@ import {
 	readDeclaredRoles,
 	readRoleCredentials,
 	roleAccountUsername,
-	roleEnvName,
 } from "../helpers/roles.ts";
 
 describe("parseDeclaredRoles", () => {
@@ -51,24 +50,22 @@ describe("readDeclaredRoles", () => {
 describe("role accounts", () => {
 	it("names the seeded account, the variable and the local identity from the role", () => {
 		assert.equal(roleAccountUsername("field-officer"), "field-officer@albitor-role.invalid");
-		assert.equal(roleEnvName("field-officer"), "ALBITOR_ROLE_FIELD_OFFICER_ACCOUNT_PASSWORD");
 		assert.equal(localRoleIdentity("manager"), "role-manager");
 	});
-	it("reads a password from the environment", () => {
-		assert.deepEqual(readRoleCredentials({ ALBITOR_ROLE_MANAGER_ACCOUNT_PASSWORD: "pw" }, "manager"), {
-			username: "manager@albitor-role.invalid",
-			password: "pw",
-		});
-		assert.equal(readRoleCredentials({}, "manager"), null);
-	});
-	it("prefers the credentials file, and falls through when it is unusable", () => {
+	it("reads a role's password only from the credentials file", () => {
 		const dir = mkdtempSync(join(tmpdir(), "albitor-roles-"));
 		const file = join(dir, "creds.json");
-		writeFileSync(file, JSON.stringify({ password: "demo", roles: { manager: { password: "from-file" }, empty: { password: "" } } }));
+		writeFileSync(file, JSON.stringify({ password: "demo", roles: { manager: { password: "from-file" }, other: { username: "o@x.invalid", password: "p2" }, empty: { password: "" } } }));
 		const env = { ALBITOR_JOURNEY_CREDENTIALS: file, ALBITOR_ROLE_MANAGER_ACCOUNT_PASSWORD: "from-env", ALBITOR_ROLE_EMPTY_ACCOUNT_PASSWORD: "env-empty" };
-		assert.equal(readRoleCredentials(env, "manager")?.password, "from-file");
-		assert.equal(readRoleCredentials(env, "empty")?.password, "env-empty");
-		assert.equal(readRoleCredentials({ ...env, ALBITOR_JOURNEY_CREDENTIALS: join(dir, "missing.json") }, "manager")?.password, "from-env");
+		assert.deepEqual(readRoleCredentials(env, "manager"), { username: "manager@albitor-role.invalid", password: "from-file" });
+		assert.deepEqual(readRoleCredentials(env, "other"), { username: "o@x.invalid", password: "p2" });
+		assert.equal(readRoleCredentials(env, "empty"), null);
+		assert.equal(readRoleCredentials(env, "absent"), null);
+	});
+	it("ignores the environment: no file, or an unreadable one, means no account", () => {
+		const env = { ALBITOR_ROLE_MANAGER_ACCOUNT_PASSWORD: "from-env" };
+		assert.equal(readRoleCredentials(env, "manager"), null);
+		assert.equal(readRoleCredentials({ ...env, ALBITOR_JOURNEY_CREDENTIALS: "/nonexistent/creds.json" }, "manager"), null);
 	});
 	it("gives no account to a role that is not a group name", () => {
 		assert.equal(readRoleCredentials({ ALBITOR_ROLE_X_ACCOUNT_PASSWORD: "pw" }, "X"), null);

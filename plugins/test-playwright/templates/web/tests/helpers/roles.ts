@@ -60,11 +60,6 @@ export function roleAccountUsername(role: string): string {
   return `${role}@albitor-role.invalid`;
 }
 
-/** The environment variable that carries a role's password: the role upper-cased, hyphens as underscores. */
-export function roleEnvName(role: string): string {
-  return `ALBITOR_ROLE_${role.toUpperCase().replace(/-/g, "_")}_ACCOUNT_PASSWORD`;
-}
-
 /** The identity the local issuer registers for a role (api-go's localauth.RoleIdentityName). */
 export function localRoleIdentity(role: string): `role-${string}` {
   return `role-${role}`;
@@ -73,32 +68,33 @@ export function localRoleIdentity(role: string): `role-${string}` {
 /**
  * A role's deployed account, or null when none reached this run.
  *
- * Like the demo account's, the password lives in the app's own secret store and reaches the run from
- * outside the checkout: the journey credentials file (ALBITOR_JOURNEY_CREDENTIALS, mode 0600, deleted
- * when the walk ends) names it under `roles.<role>.password`, and outside a walk the environment
- * carries it as ALBITOR_ROLE_<ROLE>_ACCOUNT_PASSWORD. The file wins. A role that is not a group name
- * has no account.
+ * Credentials reach the runner only as the execution-scoped journey credentials file
+ * (ALBITOR_JOURNEY_CREDENTIALS, mode 0600, deleted when the walk ends), never as environment
+ * variables. Besides the demo account's top-level { username, password, sign_in_route }, the
+ * platform writes one entry per declared role:
+ *
+ *   { "username": "...", "password": "...", "sign_in_route": "/sign-in",
+ *     "roles": { "<role>": { "username": "<role>@albitor-role.invalid", "password": "..." } } }
+ *
+ * `roles.<role>.password` is required; `roles.<role>.username` is optional and defaults to the
+ * account the deploy seeds (roleAccountUsername). No file, an unreadable one, or a role without a
+ * password means no account. A role that is not a group name has no account.
  */
 export function readRoleCredentials(env: Record<string, string | undefined>, role: string): RoleCredentials | null {
   if (!ROLE_PATTERN.test(role)) return null;
-  const fallback = roleAccountUsername(role);
   const path = env.ALBITOR_JOURNEY_CREDENTIALS || "";
-  if (path) {
-    try {
-      const parsed = JSON.parse(readFileSync(path, "utf8")) as {
-        roles?: Record<string, { username?: unknown; password?: unknown } | undefined>;
-      };
-      const entry = parsed.roles?.[role];
-      if (entry && typeof entry.password === "string" && entry.password) {
-        return {
-          username: typeof entry.username === "string" && entry.username ? entry.username : fallback,
-          password: entry.password,
-        };
-      }
-    } catch {
-      // Unreadable: fall through to the environment.
-    }
+  if (!path) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf8")) as {
+      roles?: Record<string, { username?: unknown; password?: unknown } | undefined>;
+    };
+    const entry = parsed.roles?.[role];
+    if (!entry || typeof entry.password !== "string" || !entry.password) return null;
+    return {
+      username: typeof entry.username === "string" && entry.username ? entry.username : roleAccountUsername(role),
+      password: entry.password,
+    };
+  } catch {
+    return null;
   }
-  const password = env[roleEnvName(role)] || "";
-  return password ? { username: fallback, password } : null;
 }
