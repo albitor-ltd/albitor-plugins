@@ -38,6 +38,10 @@ client may send `Authorization: Bearer <token>` instead.
   must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
   `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
   that is the platform's job.
+- **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` (managed) exports `auth` with `roles()`
+  (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
+  request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
+  hand-made user, never a password in a spec. Each role's account holds that group and no other. Locally it is the `api-go` local issuer; deployed it is the seeded `<role>@albitor-role.invalid` signed in on the Cognito hosted page.
 - **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them. Keep
   the `data-testid` values and the headings the journey spec reads. There is **no password field**: do
   not add a sign-in form, a sign-up screen or a reset screen, because Cognito's pages do those.

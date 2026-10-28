@@ -27,7 +27,7 @@ import { authFor } from "./screen-rules";
 
 export const LOCAL_AUTH_PATH = "/api/_local/auth";
 
-export type LocalIdentityName = "alice" | "bob" | "admin";
+export type LocalIdentityName = "alice" | "bob" | "admin" | `role-${string}`;
 
 export type LocalTokens = {
   idToken: string;

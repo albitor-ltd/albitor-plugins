@@ -148,6 +148,30 @@ run "admin_group_reaches_the_pool_and_the_output" {
   }
 }
 
+run "auth_groups_lists_every_group_for_the_per_role_seed" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth.yaml"
+  }
+
+  assert {
+    condition     = output.auth_groups == "admin,reviewer"
+    error_message = "the seed gets every declared group, sorted"
+  }
+}
+
+run "auth_groups_is_empty_without_groups" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-minimal.yaml"
+  }
+
+  assert {
+    condition     = output.auth_groups == ""
+    error_message = "no groups, no per-role accounts"
+  }
+}
+
 run "admin_group_defaults_to_the_first_group" {
   command = plan
   variables {

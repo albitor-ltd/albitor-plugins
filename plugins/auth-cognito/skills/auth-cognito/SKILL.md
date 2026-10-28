@@ -37,6 +37,10 @@ readable by page script. A script or test client may send `Authorization: Bearer
   must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
   `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
   that is the platform's job.
+- **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` (managed) exports `auth` with `roles()`
+  (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
+  request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
+  hand-made user, never a password in a spec. Each role's account holds that group and no other. Locally it is the `api-go` local issuer; deployed it is the seeded `<role>@albitor-role.invalid` signed in on the app's own form.
 - **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them,
   add sign-up fields (and the field in `client.ts`'s call), but **keep the `data-testid` values**
   on the sign-up, confirm, reset and new-password forms. The sign-in form is the kit's `SignInPage`

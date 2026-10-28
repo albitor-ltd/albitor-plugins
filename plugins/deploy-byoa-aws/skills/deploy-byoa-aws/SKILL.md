@@ -41,8 +41,10 @@ holds none, and the floor refuses a grant. The first sign-in of an invited perso
 segment Albitor wrote into `env/<environment>.deploy.env` (`ALBITOR_APP_SECRETS_SEGMENT`), never from
 the repository name, and the deploy receipt reports the pool, the client and the seed's status.
 When the manifest declares `services.auth.groups`, the same seed adds both accounts to
-`services.auth.admin_group` (default: the first group) and to no other group, and the receipt's
-`seeded_roles` reports it. Never ask a person to add accounts to groups.
+`services.auth.admin_group` (default: the first group) and to no other group, and gives every
+declared group an account of its own (`<role>@albitor-role.invalid`, that group alone), so a spec
+signs in as one role through `auth.signInAs(role)`. The receipt's `seeded_roles` reports the roles
+seeded. Never ask a person to add accounts to groups.
 Inviting needs write access to the repository; `docs/inviting-people.md` is delivered at handover.
 See the README.
 

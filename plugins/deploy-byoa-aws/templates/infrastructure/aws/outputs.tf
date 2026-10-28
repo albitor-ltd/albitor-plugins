@@ -48,6 +48,11 @@ output "auth_admin_group" {
   value       = try(module.auth[0].admin_group, "")
 }
 
+output "auth_groups" {
+  description = "Every services.auth group, comma-separated and sorted (empty when the manifest declares none). The deploy's seed gives each its own account, in that group and no other."
+  value       = join(",", try(module.auth[0].groups, []))
+}
+
 output "csp_script_hashes" {
   description = "The script hashes of this build's inline scripts (empty with no site): what the policy admits for the shell being shipped."
   value       = join(" ", local.script_hashes.current)

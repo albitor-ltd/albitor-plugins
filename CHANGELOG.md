@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- The `auth@2` interface, `roles()` / `seed(role)` / `signInAs(role)` (albitor-ltd/albitor#3937 part B,
+  stream #3944). `test-playwright` `0.4.0` ships it (`helpers/auth-v2.ts`, `helpers/roles.ts`, the
+  sign-in flows moved to `helpers/browser-signin.ts`) and `roles.spec.ts`, the per-role check: every
+  declared role signs in as an account holding that group alone. `auth-none` `0.2.0`, `auth-cognito`
+  `0.4.0` and `auth-hosted` `0.2.0` each ship `web/tests/auth/provider.ts`, the plugin's provider.
+  `api-go` `0.2.0`: the local issuer seeds a role (`POST /api/_local/auth/seed`, identity
+  `role-<group>`, that group only). `deploy-byoa-aws` `0.5.0`: the seed gives every
+  `services.auth.groups` entry its own account (`<role>@albitor-role.invalid`, password
+  `ALBITOR_ROLE_<ROLE>_ACCOUNT_PASSWORD`), root output `auth_groups`, and `seeded_roles` lists every
+  role seeded; the demo account is not given the other groups. `web-svelte` `0.4.3`: the home page
+  stub carries `<!-- albitor:home-stub -->`, which the foundation gate fails on until it is replaced.
+  The manifests still `provide` `auth@1`: the socket registry accepts `auth@2` only once albitor
+  adds it. Untagged, so the catalogue still pins the previous versions until released.
 - `deploy-byoa-aws` `0.4.0` (albitor-ltd/albitor#3922): `services.auth.admin_group` (default the first
   group, must be one of `groups`); the deploy's seed adds the demo and verifier accounts to it
   (`cognito-idp:AdminAddUserToGroup`, idempotent) and the deploy receipt carries `seeded_roles`.

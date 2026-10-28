@@ -328,7 +328,8 @@ jobs:
           set -euo pipefail
           pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
           admin_group="$(terraform -chdir=infrastructure/aws output -raw auth_admin_group)"
-          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT" "$admin_group"
+          roles="$(terraform -chdir=infrastructure/aws output -raw auth_groups)"
+          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT" "$admin_group" "$roles"
 
       # The receipt carries what the platform's sign-in check needs: the pool, the client and what
       # the seed did. Both ids are empty for an app with no sign-in.

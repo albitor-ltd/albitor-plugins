@@ -112,6 +112,16 @@ admin-add-user-to-group` for the demo and verifier accounts (idempotent, that gr
 receipt carries `seeded_roles` (empty with no groups). The deploy role therefore needs
 `cognito-idp:AdminAddUserToGroup` on the app's user pool.
 
+**One account per role** (`auth@2`, albitor-ltd/albitor#3937). Beside the demo and verifier accounts the
+seed gives every `services.auth.groups` entry an account of its own, `<role>@albitor-role.invalid`,
+in that group and no other (the root outputs the list as `auth_groups`; the demo account is never
+given the other groups). The password is `ALBITOR_ROLE_<ROLE>_ACCOUNT_PASSWORD` in the app's secret
+store (the role upper-cased, hyphens as underscores), written by Albitor like the other two. A role
+whose parameter is missing is a warning and is left out of `seeded_roles`; it never fails the
+deploy and never changes `seed_status`. `seeded_roles` lists the admin group (both platform accounts
+seeded into it) and every role whose own account was seeded. The `auth@2` plugins' `signInAs(role)`
+signs in as these accounts.
+
 **Inviting people.** Run the `invite` workflow from the repository's Actions tab with the person's
 email. The pool emails them a temporary password; at first sign-in the app asks them to choose their
 own (the `auth-cognito` plugin answers the `NEW_PASSWORD_REQUIRED` challenge), so no one else ever

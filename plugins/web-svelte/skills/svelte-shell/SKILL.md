@@ -66,6 +66,10 @@ place.
 `package.json` and its lockfile, and `src/lib/sync/collections.ts` (the synced collections, read
 only by the offline data layer).
 
+`src/routes/+page.svelte` is the home page stub: it carries the comment `<!-- albitor:home-stub -->`,
+which the foundation gate looks for in the source and fails on until the real home page replaces
+the file. Replace the whole page, marker included; never keep the comment to quiet a check.
+
 `src/app.html` is managed (a slot template), not yours: an edit is overwritten on upgrade. Put head
 content (favicon, meta) in `<svelte:head>` in a layout, and root `html`/`body` classes in a plugin's
 `web.root-classes` slot.
