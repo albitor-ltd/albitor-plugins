@@ -165,14 +165,14 @@ the file is at most 4 KiB. Run `scripts/validate-preview-tokens.sh` before openi
 
 ## Gate
 
-GitHub Actions is manual-only, so `just ci` is the local merge gate; run it before merging. It
-does not run `compose`, which needs a checkout of albitor-ltd/albitor and Node. Before merging a
-change to plugin templates, manifests or the composer contract, also run
-`just compose <albitor checkout>` (`scripts/compose-check.sh --build`).
+There is no hosted CI (see #98), so `just ci` is the merge gate; run it before merging. Release
+tags are not CI-certified on push, so run `just ci` on the commit before tagging. It does not run
+`compose`, which needs a checkout of albitor-ltd/albitor and Node. Before merging a change to plugin
+templates, manifests or the composer contract, also run `just compose <albitor checkout>` (`scripts/compose-check.sh --build`).
 
 ## CI
 
-Pull requests run: manifest validation (JSON parses, `name` equals the directory, semver
+`just ci` runs: manifest validation (JSON parses, `name` equals the directory, semver
 `version`, catalogue metadata present), preview-token validation (`scripts/validate-preview-tokens.sh`
 and its refusal tests), catalogue reproducibility (`--check`), shellcheck and JSON
 lint, a `compose` job (the real manifest parser and composer from albitor-ltd/albitor over the
@@ -182,8 +182,8 @@ schema-2 plugins, then `npm install`, check, test and build of the composed `web
 platform's certification harness over every socket plugin and every certified profile (default,
 byoa-aws), with the deploy target required to declare `renders`, the composed `albitor.yaml` checked
 against it, and `terraform init -backend=false` plus `terraform validate` over each composed
-Terraform root, with no cloud credential (albitor-ltd/albitor#3333). It runs on release tags
-(`<plugin>/v<semver>`) as well as pull requests and `main`. Actions are pinned by full commit SHA.
+Terraform root, with no cloud credential (albitor-ltd/albitor#3333). Run it on the commit
+before tagging a release (`<plugin>/v<semver>`).
 
 ## Third parties
 
