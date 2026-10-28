@@ -173,6 +173,65 @@ func TestSeedPlatformAccountsAddsBothAccountsToTheAdminGroupOnly(t *testing.T) {
 	}
 }
 
+// TestSeedPlatformAccountsGivesEachRoleItsOwnAccountInItsOwnGroupOnly (auth@2): every declared group
+// gets one account of its own holding that group and no other. The demo account is not given the
+// other groups, and seeded_roles lists every role whose account was seeded.
+func TestSeedPlatformAccountsGivesEachRoleItsOwnAccountInItsOwnGroupOnly(t *testing.T) {
+	files := map[string]string{
+		"params/ALBITOR_ROLE_ADMIN_ACCOUNT_PASSWORD":         "admin-Pw-0123456789",
+		"params/ALBITOR_ROLE_FIELD_OFFICER_ACCOUNT_PASSWORD": "field-Pw-0123456789",
+	}
+	for k, v := range bothPasswords {
+		files[k] = v
+	}
+	r := runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment, "admin", "admin,field-officer")
+	if r.err != nil {
+		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
+	}
+	if r.out != "seed_status=seeded\nseeded_roles=admin,field-officer" {
+		t.Errorf("outputs = %q", r.out)
+	}
+	want := "demo@albitor-demo.invalid admin\nverifier@albitor-verify.invalid admin\n" +
+		"admin@albitor-role.invalid admin\nfield-officer@albitor-role.invalid field-officer\n"
+	if got := r.read(t, "groups"); got != want {
+		t.Errorf("group memberships = %q, want %q", got, want)
+	}
+	if got := r.read(t, "set.log"); !strings.Contains(got, "field-Pw-0123456789") {
+		t.Errorf("the role account's own password was not set")
+	}
+	if strings.Contains(r.read(t, "calls.log"), "field-Pw-0123456789") {
+		t.Error("a role password reached a command line")
+	}
+}
+
+// A role whose password parameter is missing is a loud skip: it is not claimed, the deploy does not
+// fail, and seed_status keeps its demo and verifier vocabulary.
+func TestSeedPlatformAccountsClaimsOnlyTheRolesItSeeded(t *testing.T) {
+	files := map[string]string{"params/ALBITOR_ROLE_ADMIN_ACCOUNT_PASSWORD": "admin-Pw-0123456789"}
+	for k, v := range bothPasswords {
+		files[k] = v
+	}
+	r := runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment, "admin", "admin,reviewer")
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=admin" {
+		t.Errorf("= %v %q", r.err, r.out)
+	}
+	if !strings.Contains(r.output, "::warning title=seed-skipped::") || strings.Contains(r.read(t, "groups"), "reviewer") {
+		t.Errorf("a missing role password was not a loud skip:\n%s", r.output)
+	}
+	// With no admin account of its own the admin group is still claimed through demo and verifier.
+	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "admin", "admin,reviewer")
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=admin" {
+		t.Errorf("no role passwords = %v %q", r.err, r.out)
+	}
+}
+
+func TestSeedPlatformAccountsRefusesARoleThatIsNotAGroupName(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "admin", "admin,Bad_Role")
+	if r.err == nil || strings.Contains(r.read(t, "calls.log"), "admin-create-user") {
+		t.Errorf("a bad role was accepted: %v", r.err)
+	}
+}
+
 // TestSeedPlatformAccountsClaimsNoRoleWhenAnAccountIsSkipped: seeded_roles is the group only when
 // both accounts were seeded and added; a skipped account leaves it empty.
 func TestSeedPlatformAccountsClaimsNoRoleWhenAnAccountIsSkipped(t *testing.T) {
@@ -339,6 +398,9 @@ func TestDeployWorkflowSeedsOnlyAfterTheApplyAndOnlyOnDev(t *testing.T) {
 	}
 	if !strings.Contains(step, "scripts/seed-platform-accounts.sh") {
 		t.Error("the seed step does not run the managed script")
+	}
+	if !strings.Contains(step, "output -raw auth_groups") {
+		t.Error("the seed step does not hand the script every declared group")
 	}
 	if !strings.Contains(step, "id: seed") {
 		t.Error("the seed step has no id, so its seed_status cannot reach the receipt")

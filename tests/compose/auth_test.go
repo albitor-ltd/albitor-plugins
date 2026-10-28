@@ -360,6 +360,7 @@ func TestAuthPluginsStayInTheirDirectories(t *testing.T) {
 	allowed := []string{
 		"api/internal/identity/", "api/internal/shell/identity_", "web/src/lib/auth/",
 		"web/src/lib/shell/scope.d/auth-cognito.ts", "web/src/routes/(auth)/", "web/tests/journeys/sign-in.spec.ts",
+		"web/tests/auth/provider.ts",
 	}
 	for _, name := range []string{"auth-cognito", "auth-none"} {
 		p := loadDir(t, authDir(t, name))
@@ -412,5 +413,34 @@ func TestAuthCognitoWritesTreeForBuild(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestAuthPluginsShipTheAuthV2Provider pins auth@2: every auth plugin ships the managed
+// web/tests/auth/provider.ts that test-playwright's specs and setup call, naming the sign-in it
+// ships; auth-none's is the one with no roles.
+func TestAuthPluginsShipTheAuthV2Provider(t *testing.T) {
+	for name, shape := range map[string]string{"auth-cognito": "in-app", "auth-hosted": "hosted", "auth-none": "none"} {
+		p := loadDir(t, authDir(t, name))
+		found := false
+		for _, f := range p.Manifest.Contributes.Files {
+			if f.Path == "web/tests/auth/provider.ts" {
+				found = true
+				if f.Mode != "managed" || len(f.When) != 1 || string(f.When[0].Socket) != "test-harness" || f.When[0].Plugin != "test-playwright" {
+					t.Errorf("%s: provider.ts must be managed and only with test-playwright, got %+v", name, f)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("%s does not contribute web/tests/auth/provider.ts", name)
+		}
+		src, err := os.ReadFile(filepath.Join(authDir(t, name), "templates", "web", "tests", "auth", "provider.ts"))
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		want := `createAuthV2({ shape: "` + shape + `" })`
+		if !strings.Contains(string(src), want) || !strings.Contains(string(src), "export const auth") {
+			t.Errorf("%s: provider.ts must export auth = %s", name, want)
+		}
 	}
 }

@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "api-go",
   "displayName": "Go API runtime",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "kind": "socket",
   "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
   "author": {

@@ -6,6 +6,7 @@
 // identities, and serves its JWKS, under Path:
 //
 //	POST /api/_local/auth/token                  {"identity":"alice"}
+//	POST /api/_local/auth/seed                   {"role":"manager"}
 //	GET  /api/_local/auth/identities
 //	GET  /api/_local/auth/.well-known/jwks.json
 //
@@ -34,8 +35,10 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -98,6 +101,29 @@ var identities = map[string]Identity{
 	"admin": {Name: "admin", Subject: "00000000-0000-4000-8000-00000000ad31", Email: "admin@example.test", Groups: []string{"admin"}},
 }
 
+// roleSlug is a group name as the user pool and albitor.yaml take it (services.auth.groups).
+var roleSlug = regexp.MustCompile(`^[a-z][a-z0-9-]{1,31}$`)
+
+// ErrBadRole refuses a role that is not a group name.
+var ErrBadRole = errors.New("a role is a group name: lower case letters, digits and hyphens, 2 to 32 characters")
+
+// RoleIdentityName is the name of the identity SeedRole registers for a role.
+func RoleIdentityName(role string) string { return "role-" + role }
+
+// roleIdentity is the one identity of a role: it holds that group and no other, and its subject
+// is derived from the role so a record written in one run belongs to it in the next.
+func roleIdentity(role string) Identity {
+	sum := sha256.Sum256([]byte("albitor-local-role:" + role))
+	h := hex.EncodeToString(sum[:16])
+	subject := h[0:8] + "-" + h[8:12] + "-4" + h[13:16] + "-8" + h[17:20] + "-" + h[20:32]
+	return Identity{
+		Name:    RoleIdentityName(role),
+		Subject: subject,
+		Email:   role + "@role.example.test",
+		Groups:  []string{role},
+	}
+}
+
 // Issuer mints tokens for the test identities. Its signing key is generated
 // when it starts and never leaves the process, so no token it mints verifies
 // anywhere else, or after a restart.
@@ -107,6 +133,9 @@ type Issuer struct {
 	key    *rsa.PrivateKey
 	jwks   []byte
 	now    func() time.Time
+
+	mu    sync.Mutex
+	roles map[string]Identity // seeded role identities, by name
 }
 
 // Open starts the issuer when the environment, read through getenv, asks for
@@ -160,6 +189,57 @@ func newIssuer(issuer string) (*Issuer, error) {
 	return l, nil
 }
 
+// SeedRole registers the identity of a role (a group of services.auth.groups) and returns it. The
+// identity holds that group alone: an account of one role is never given another's. Seeding is
+// idempotent, and local: nothing is written anywhere but this issuer's memory.
+func (l *Issuer) SeedRole(role string) (Identity, error) {
+	if !roleSlug.MatchString(role) {
+		return Identity{}, ErrBadRole
+	}
+	id := roleIdentity(role)
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.roles == nil {
+		l.roles = map[string]Identity{}
+	}
+	l.roles[id.Name] = id
+	return id, nil
+}
+
+// identity finds a named identity: a fixed one, or a seeded role's.
+func (l *Issuer) identity(name string) (Identity, bool) {
+	if id, ok := identities[name]; ok {
+		return id, true
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	id, ok := l.roles[name]
+	return id, ok
+}
+
+// all lists every identity the issuer can mint for, by name.
+func (l *Issuer) all() []Identity {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	names := make([]string, 0, len(identities)+len(l.roles))
+	for name := range identities {
+		names = append(names, name)
+	}
+	for name := range l.roles {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	out := make([]Identity, 0, len(names))
+	for _, name := range names {
+		if id, ok := identities[name]; ok {
+			out = append(out, id)
+		} else {
+			out = append(out, l.roles[name])
+		}
+	}
+	return out
+}
+
 // URL is the `iss` the issuer's tokens carry.
 func (l *Issuer) URL() string { return l.issuer }
 
@@ -175,7 +255,7 @@ type Tokens struct {
 // Mint returns an ID token and an access token for the named identity, with
 // the claims Cognito's carry.
 func (l *Issuer) Mint(name string) (Tokens, error) {
-	id, ok := identities[name]
+	id, ok := l.identity(name)
 	if !ok {
 		return Tokens{}, fmt.Errorf("no local identity %q", name)
 	}
@@ -258,16 +338,21 @@ func (l *Issuer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(l.jwks)
 	case r.URL.Path == Path+"/identities" && r.Method == http.MethodGet:
-		names := make([]string, 0, len(identities))
-		for name := range identities {
-			names = append(names, name)
+		writeJSON(w, http.StatusOK, map[string]any{"issuer": l.issuer, "client_id": ClientID, "identities": l.all()})
+	case r.URL.Path == Path+"/seed" && r.Method == http.MethodPost:
+		var body struct {
+			Role string `json:"role"`
 		}
-		sort.Strings(names)
-		out := make([]Identity, 0, len(names))
-		for _, name := range names {
-			out = append(out, identities[name])
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<10)).Decode(&body); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"issuer": l.issuer, "client_id": ClientID, "identities": out})
+		id, err := l.SeedRole(body.Role)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, id)
 	case r.URL.Path == Path+"/token" && r.Method == http.MethodPost:
 		var body struct {
 			Identity string `json:"identity"`

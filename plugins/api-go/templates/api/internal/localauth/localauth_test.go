@@ -224,3 +224,70 @@ func TestKeysArePerIssuer(t *testing.T) {
 		t.Fatal("two issuers share a signing key")
 	}
 }
+
+func TestSeedRoleRegistersOneIdentityHoldingOnlyItsOwnGroup(t *testing.T) {
+	l := mustOpen(t)
+	if _, err := l.Mint(RoleIdentityName("manager")); err == nil {
+		t.Fatal("a role is signable before it is seeded")
+	}
+	first, err := l.SeedRole("manager")
+	if err != nil {
+		t.Fatal(err)
+	}
+	again, _ := l.SeedRole("manager")
+	other, _ := l.SeedRole("reviewer")
+	if first.Subject != again.Subject || first.Subject == other.Subject {
+		t.Fatalf("seeding is not idempotent or subjects collide: %+v %+v %+v", first, again, other)
+	}
+	if len(first.Groups) != 1 || first.Groups[0] != "manager" {
+		t.Fatalf("groups = %v, want only [manager]", first.Groups)
+	}
+	tokens, err := l.Mint(first.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	claims := claimsOf(t, keysFrom(t, l.jwks), tokens.IDToken)
+	if g, _ := claims["cognito:groups"].([]any); len(g) != 1 || g[0] != "manager" {
+		t.Errorf("token groups = %v, want [manager]", claims["cognito:groups"])
+	}
+	if claims["sub"] != first.Subject {
+		t.Errorf("sub = %v, want %s", claims["sub"], first.Subject)
+	}
+	// A fresh issuer derives the same subject: a record written last run is the same user's now.
+	again2, _ := mustOpen(t).SeedRole("manager")
+	if again2.Subject != first.Subject {
+		t.Errorf("subject differs across issuers: %s vs %s", again2.Subject, first.Subject)
+	}
+}
+
+func TestSeedRoleRefusesWhatIsNotAGroupName(t *testing.T) {
+	l := mustOpen(t)
+	for _, bad := range []string{"", "A", "x", "1abc", "has space", "under_score", strings.Repeat("a", 33)} {
+		if _, err := l.SeedRole(bad); !errors.Is(err, ErrBadRole) {
+			t.Errorf("SeedRole(%q) = %v, want ErrBadRole", bad, err)
+		}
+	}
+}
+
+func TestSeedRouteSeedsAndListsRoleIdentities(t *testing.T) {
+	l := mustOpen(t)
+	post := func(path, body string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		l.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, path, strings.NewReader(body)))
+		return rec
+	}
+	if rec := post(Path+"/seed", `{"role":"manager"}`); rec.Code != http.StatusOK {
+		t.Fatalf("seed = %d %s", rec.Code, rec.Body)
+	}
+	if rec := post(Path+"/seed", `{"role":"Bad Role"}`); rec.Code != http.StatusBadRequest {
+		t.Errorf("a bad role = %d, want 400", rec.Code)
+	}
+	if rec := post(Path+"/token", `{"identity":"role-manager"}`); rec.Code != http.StatusOK {
+		t.Errorf("token for a seeded role = %d", rec.Code)
+	}
+	rec := httptest.NewRecorder()
+	l.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, Path+"/identities", nil))
+	if !strings.Contains(rec.Body.String(), `"role-manager"`) || !strings.Contains(rec.Body.String(), `"alice"`) {
+		t.Errorf("identities = %s", rec.Body)
+	}
+}

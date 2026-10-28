@@ -14,7 +14,15 @@ It comes from the starter's `web/tests` harness and the harness fixes made while
 - **Sign-in per auth socket** (`auth.setup.ts`, `helpers/local-auth.ts`, `helpers/storage-state.ts`,
   `helpers/credentials.ts`): one sign-in for the whole suite, the local test identities (`alice`,
   `bob`, `admin`) the api-runtime plugin's local issuer mints, and the platform walk's credentials
-  file.
+  file. `helpers/auth-v2.ts`, `helpers/roles.ts` and `helpers/browser-signin.ts` are the `auth@2`
+  interface (`roles()`, `seed(role)`, `signInAs(role)`) an auth plugin's `web/tests/auth/provider.ts`
+  instantiates, and `roles.spec.ts` its per-role check: every declared role signs in as an account
+  holding that group alone. Role passwords reach the run only through the journey credentials file
+  (`ALBITOR_JOURNEY_CREDENTIALS`), never the environment. Its shape:
+  `{"username","password","sign_in_route","roles":{"<role>":{"username","password"}}}`;
+  `roles.<role>.password` is required, `roles.<role>.username` defaults to
+  `<role>@albitor-role.invalid`. `roles.spec.ts` fails when `albitor.yaml` declares roles but
+  `web/tests/auth/provider.ts` is missing.
 - **The sign-up mailbox** (`helpers/mailbox.ts`): how the one sign-up spec reads its confirmation
   email.
 - **Fixtures and seed helpers** (`helpers/seed.ts`, `helpers/fixture-scope.ts`): records created

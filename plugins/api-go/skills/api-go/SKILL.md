@@ -57,6 +57,6 @@ logging; a middleware that refuses unauthenticated requests must leave `GET /api
 ## Run it locally
 
 `ALBITOR_LOCAL=1 PORT=8080 go run .` from `api/`. Add `ALBITOR_LOCAL_AUTH=1` for the in-process
-test issuer (`alice`, `bob`, `admin`), which only issues tokens and, while it runs, binds `127.0.0.1` only. SIGTERM drains in-flight
+test issuer (`alice`, `bob`, `admin`, and one `role-<group>` identity per seeded role, holding only that group), which only issues tokens and, while it runs, binds `127.0.0.1` only. SIGTERM drains in-flight
 requests (20 seconds at most) before the process exits. Verify with
 `go build ./... && go vet ./... && go test ./... -count=1`.

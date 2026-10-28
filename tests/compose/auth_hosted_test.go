@@ -216,6 +216,7 @@ func TestAuthHostedStaysInItsDirectories(t *testing.T) {
 	allowed := []string{
 		"api/internal/identity/", "api/internal/shell/identity_", "web/src/lib/auth/",
 		"web/src/lib/shell/scope.d/auth-hosted.ts", "web/src/routes/(auth)/", "web/tests/journeys/sign-in.spec.ts",
+		"web/tests/auth/provider.ts",
 	}
 	p := loadDir(t, authDir(t, "auth-hosted"))
 	for _, f := range p.Manifest.Contributes.Files {

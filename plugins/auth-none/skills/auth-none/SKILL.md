@@ -23,6 +23,12 @@ There are no screens, no route guard, no middleware, no `GET /api/me` and no `se
 `albitor.yaml`. It requires nothing, so a web-only profile (no API) composes it and gets no files at
 all.
 
+## Roles
+
+There are none. `web/tests/auth/provider.ts` (managed, with the Playwright harness) is this plugin's
+`auth@2` provider: `auth.roles()` is always empty, and `seed` and `signInAs` refuse, so no spec can
+pretend to be someone. An app that needs roles needs a real auth plugin.
+
 ## Writing handlers
 
 Use `identity.Owner(r)` for the owner exactly as you would under a real sign-in: put it in the

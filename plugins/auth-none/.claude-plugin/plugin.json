@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "auth-none",
   "displayName": "Auth (none)",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "kind": "socket",
   "description": "The auth plugin for an app with no sign-in: a stub identity seam for the Go API in which every request acts for one fixed owner, so a handler written against it works unchanged under a real sign-in. No screens, no middleware, no routes, and no requirements, so a web-only profile composes it too.",
   "author": {
@@ -21,7 +21,8 @@
   "contributes": {
     "files": [
       { "path": "api/internal/identity/identity.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
-      { "path": "api/internal/identity/identity_test.go", "mode": "managed", "when": { "api-runtime": "api-go" } }
+      { "path": "api/internal/identity/identity_test.go", "mode": "managed", "when": { "api-runtime": "api-go" } },
+      { "path": "web/tests/auth/provider.ts", "mode": "managed", "when": { "test-harness": "test-playwright" } }
     ],
     "skills": ["auth-none"]
   }

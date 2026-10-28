@@ -2,7 +2,7 @@
 # Managed by Albitor (deploy-byoa-aws). Seeds the app's two platform accounts into its Cognito user
 # pool, once per deploy, from the deploy job and never from the request-serving function.
 #
-#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group>]
+#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group> [<roles>]]
 #
 # Two accounts, one mechanism. The DEMO account is the app owner's: they sign
 # in with it to try the app on handover day. The VERIFIER account is Albitor's own: its checks sign
@@ -31,7 +31,18 @@
 # added to it, and to no other group, so the owner's demo account can open the screens that group
 # gates and the verifier has an identity that can walk them. AdminAddUserToGroup is idempotent, so
 # a re-run is fine. $GITHUB_OUTPUT gets seeded_roles: the group when both accounts were seeded and added,
-# else empty.
+# else empty, and every role below whose account was seeded.
+#
+# One account per role. <roles> is the comma-separated list of every declared group
+# (services.auth.groups). Each gets its own account, <role>@albitor-role.invalid, in that group and
+# no other, so a spec signs in as exactly one role and the screens of every other role stay
+# refused to it. The demo account is not given every group: it stays the owner's, in the admin group
+# alone. The password is the app's own secret
+#   /albitor/apps/<secrets segment>/secrets/ALBITOR_ROLE_<ROLE>_ACCOUNT_PASSWORD
+# (the role upper-cased, hyphens as underscores), which Albitor writes beside the other two. A role
+# whose parameter is missing is a LOUD skip and is not in seeded_roles; it is never a failed deploy
+# and never a seed_status, which keeps its three-account vocabulary. Auth@2's signInAs reads the same
+# password, from outside the checkout, to sign in as the role (test-playwright, helpers/auth-v2.ts).
 #
 # Idempotent. It creates each account when it is absent and sets its password every time. A password
 # reaches neither argv nor another step's environment: the set-password call reads a 0600 JSON file
@@ -52,6 +63,7 @@ readonly demo_display_name="Demo User"
 pool_id="${1:-}"
 secrets_segment="${2:-}"
 admin_group="${3:-}"
+roles_csv="${4:-}"
 
 # seeded_roles is the group the accounts were added to, or empty. It is written beside every
 # seed_status so a reader never has to tell "absent" from "none".
@@ -83,6 +95,17 @@ if [ -n "$admin_group" ] && ! printf '%s' "$admin_group" | grep -Eq '^[a-z][a-z0
   exit 1
 fi
 
+roles=()
+if [ -n "$roles_csv" ]; then
+  IFS=',' read -r -a roles <<<"$roles_csv"
+  for role in "${roles[@]}"; do
+    if ! printf '%s' "$role" | grep -Eq '^[a-z][a-z0-9-]{1,31}$'; then
+      echo "::error::a role is not a group name" >&2
+      exit 1
+    fi
+  done
+fi
+
 # The parameter path segment is the one Albitor wrote the parameters under, handed in by the
 # workflow from the platform-written deploy.env. Absent is a failure, not a skip.
 if [ -z "$secrets_segment" ]; then
@@ -104,10 +127,13 @@ trap 'rm -f "$payload" "$read_err"' EXIT
 
 unprovisioned=()
 added_to_group=()
+seeded_role_accounts=()
 
-# seed_account <label> <short name> <username> <parameter name> [display name]
+# seed_account <label> <short name> <username> <parameter name> <display name> <group> <track>
+# <group> is the one group the account joins ("" for none). <track> is "yes" for the demo and the
+# verifier, whose absence is a seed_status; a role account's absence is only a warning.
 seed_account() {
-  local label="$1" short="$2" username="$3" param_name="$4" display_name="${5:-}"
+  local label="$1" short="$2" username="$3" param_name="$4" display_name="${5:-}" group="${6:-}" track="${7:-yes}"
   local param="/albitor/apps/${secrets_segment}/secrets/${param_name}"
   local password read_status create_out
   local -a attributes
@@ -127,7 +153,9 @@ seed_account() {
   fi
   if [ -z "$password" ] || [ "$password" = "None" ] || [ "$password" = "__albitor_pending__" ]; then
     echo "::warning title=seed-skipped::the app has user pool ${pool_id} but ${param} holds no password, so the ${label} is not seeded"
-    unprovisioned+=("$short")
+    if [ "$track" = "yes" ]; then
+      unprovisioned+=("$short")
+    fi
     return 0
   fi
 
@@ -167,14 +195,18 @@ json.dump({
   fi
   rm -f "$payload"
   payload=""
-  if [ -n "$admin_group" ]; then
+  if [ -n "$group" ]; then
     if ! aws cognito-idp admin-add-user-to-group \
-      --user-pool-id "$pool_id" --username "$username" --group-name "$admin_group" >/dev/null; then
-      echo "::error::could not add the ${label} to the ${admin_group} group in ${pool_id}" >&2
+      --user-pool-id "$pool_id" --username "$username" --group-name "$group" >/dev/null; then
+      echo "::error::could not add the ${label} to the ${group} group in ${pool_id}" >&2
       return 1
     fi
-    added_to_group+=("$short")
-    echo "the ${label} is in the ${admin_group} group"
+    if [ "$track" = "yes" ]; then
+      added_to_group+=("$short")
+    else
+      seeded_role_accounts+=("$group")
+    fi
+    echo "the ${label} is in the ${group} group"
   fi
   echo "the ${label} is seeded in ${pool_id}"
 }
@@ -182,14 +214,26 @@ json.dump({
 # Both are attempted whichever fails: they are independent fixtures, and a reader of a red deploy is
 # owed both findings rather than the first.
 status=0
-seed_account "demo account" demo "$demo_username" ALBITOR_DEMO_ACCOUNT_PASSWORD "$demo_display_name" || status=1
-seed_account "verifier account" verifier "$verifier_username" ALBITOR_VERIFIER_ACCOUNT_PASSWORD || status=1
+seed_account "demo account" demo "$demo_username" ALBITOR_DEMO_ACCOUNT_PASSWORD "$demo_display_name" "$admin_group" yes || status=1
+seed_account "verifier account" verifier "$verifier_username" ALBITOR_VERIFIER_ACCOUNT_PASSWORD "" "$admin_group" yes || status=1
+for role in ${roles[@]+"${roles[@]}"}; do
+  upper="$(printf '%s' "$role" | tr 'a-z-' 'A-Z_')"
+  seed_account "${role} role account" "role-${role}" "${role}@albitor-role.invalid" \
+    "ALBITOR_ROLE_${upper}_ACCOUNT_PASSWORD" "" "$role" no || status=1
+done
 
 # seeded_roles claims a role only when both accounts were seeded and added to it: a skipped account
 # means a role-gated journey may have no identity, and the receipt must not say otherwise.
 if [ "$status" -eq 0 ] && [ "${#unprovisioned[@]}" -eq 0 ] && [ "${#added_to_group[@]}" -eq 2 ]; then
   seeded_roles="$admin_group"
 fi
+# Each role account seeded and added to its own group claims that role, once.
+for role in ${seeded_role_accounts[@]+"${seeded_role_accounts[@]}"}; do
+  case ",${seeded_roles}," in
+    *",${role},"*) ;;
+    *) seeded_roles="${seeded_roles:+${seeded_roles},}${role}" ;;
+  esac
+done
 
 if [ "${#unprovisioned[@]}" -gt 0 ]; then
   write_status "skipped_unprovisioned:$(IFS=,; echo "${unprovisioned[*]}")"

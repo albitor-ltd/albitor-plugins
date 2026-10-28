@@ -52,6 +52,10 @@ ALBITOR_LOCAL=1 ALBITOR_LOCAL_AUTH=1 PORT=8080 go run .
 curl -s -X POST localhost:8080/api/_local/auth/token -d '{"identity":"alice"}'
 ```
 
+A role of `services.auth.groups` is seeded the same way, `POST /api/_local/auth/seed {"role":"manager"}`
+(idempotent), and then signs in as `role-manager`: an identity holding that group and no other. The
+`auth@2` interface (`roles`, `seed`, `signInAs`) drives this in a spec.
+
 It only issues tokens (keys at `/api/_local/auth/.well-known/jwks.json`); verifying them is the auth
 plugin's middleware. It refuses to start without `ALBITOR_LOCAL=1`, on a deployed function, or
 beside a configured user pool.

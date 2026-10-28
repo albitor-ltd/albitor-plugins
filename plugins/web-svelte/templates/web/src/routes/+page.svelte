@@ -1,4 +1,5 @@
 <!-- Seeded by Albitor (web-svelte), then yours: the home page. Replace it with the product. -->
+<!-- albitor:home-stub -->
 <svelte:head>
 	<title>Home</title>
 </svelte:head>

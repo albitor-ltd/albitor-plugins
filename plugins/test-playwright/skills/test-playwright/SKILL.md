@@ -14,7 +14,7 @@ Journeys are Playwright specs under `web/tests`. The harness is its own npm pack
 | --- | --- | --- |
 | `web/tests/journeys/<journey>.spec.ts` | Spec author | One spec per journey; first line `// @journey <id>` |
 | `web/tests/fixtures/**` | Spec author | Records the specs need, created through the app's own API |
-| `web/tests/helpers/**`, `auth.setup.ts`, `playwright.config.ts`, `package*.json`, `smoke.spec.ts`, `a11y.spec.ts`, `unit/**`, `.github/workflows/journeys.yml` | The plugin (managed) | Builders cannot edit them; report a needed change |
+| `web/tests/helpers/**`, `auth.setup.ts`, `playwright.config.ts`, `package*.json`, `smoke.spec.ts`, `a11y.spec.ts`, `roles.spec.ts`, `unit/**`, `.github/workflows/journeys.yml` | The plugin (managed) | Builders cannot edit them; report a needed change |
 
 ## Writing a journey
 
@@ -52,6 +52,14 @@ test("browse the claims", async ({ page, fixtureScope }) => {
 
 - One sign-in for the whole suite: `auth.setup.ts` signs in once as the demo account and saves the
   session every spec inherits. Do not sign in again, and do not sign up.
+- To be a role (a group of `services.auth.groups`), use the auth plugin's `auth@2` provider, never a
+  hand-made user: `import { auth } from "./auth/provider"`, then `auth.roles()`,
+  `await auth.seed(role, { request })` and `await auth.signInAs(role, { context, request, baseURL })`.
+  Each role's account holds that group and no other. Locally it is an `api-go` local-issuer identity
+  (`role-<group>`); deployed it is the deploy's seeded `<group>@albitor-role.invalid` signed in through
+  the plugin's own sign-in. Use a signed-out context for it (`test.use({ storageState:
+  EMPTY_STORAGE_STATE })`), not the journey fixture's `alice`. `roles.spec.ts` already proves every
+  declared role signs in and holds only its own group.
 - In a local run the journey fixture signs the browser in as the fixed `alice` identity from the local
   issuer, and `appAuthHeaders` carries the same bearer on direct `request` calls.
   The bearer goes only on the app's own fetch and XHR calls to its own origin, never to another host;
