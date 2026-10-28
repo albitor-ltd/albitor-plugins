@@ -1,7 +1,6 @@
-# Local merge gate: `just ci` runs what .github/workflows/ci.yml runs (GitHub Actions is
-# manual-only, so the workflows do not run on their own). Needs shellcheck, jq, go, terraform and
-# Docker (data-dynamodb starts amazon/dynamodb-local). Needs network for Go modules, the Terraform
-# registry and the dynamodb-local image.
+# Local merge gate: `just ci` is the only gate; there is no hosted CI workflow (#98). Needs
+# shellcheck, jq, go, terraform and Docker (data-dynamodb starts amazon/dynamodb-local). Needs
+# network for Go modules, the Terraform registry and the dynamodb-local image.
 
 default:
     @just --list
@@ -40,6 +39,7 @@ data-dynamodb:
 auth:
     scripts/verify-auth.sh auth-cognito
     scripts/verify-auth.sh auth-none
+    scripts/verify-auth.sh auth-hosted
 
 deploy-byoa-aws:
     scripts/verify-deploy-byoa-aws.sh
