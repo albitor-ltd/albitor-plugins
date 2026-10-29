@@ -196,6 +196,22 @@ jobs:
       - name: unblock the deletes
         run: |
           set -euo pipefail
+          # exists <what> <not-found pattern> <aws command...>: 0 when it is there, 1 when AWS says it
+          # is not found, and a stop on any other error (AccessDenied, throttling), so a permission
+          # gap is never mistaken for "already gone".
+          exists() {
+            local what="$1" gone="$2" err
+            shift 2
+            if err="$("$@" 2>&1 >/dev/null)"; then
+              return 0
+            fi
+            if printf '%s' "$err" | grep -Eq "$gone"; then
+              return 1
+            fi
+            echo "::error::could not check whether $what exists: $err" >&2
+            exit 1
+          }
+
           outputs="$(terraform output -json)"
           state="$(terraform show -json)"
 
@@ -205,13 +221,16 @@ jobs:
               echo "::error::the state's spa_bucket is not a bucket name" >&2
               exit 1
             fi
-            if aws s3api head-bucket --bucket "$bucket" 2>/dev/null; then
+            if exists "s3://${bucket}" '404|Not Found|NoSuchBucket' aws s3api head-bucket --bucket "$bucket"; then
               echo "emptying s3://${bucket}"
               while :; do
                 batch="$RUNNER_TEMP/delete-batch.json"
-                aws s3api list-object-versions --bucket "$bucket" --max-items 1000 --output json \
-                  | jq -c '{Objects: ([(.Versions // [])[], (.DeleteMarkers // [])[]] | map({Key: .Key, VersionId: .VersionId})), Quiet: true}' >"$batch"
-                if [ "$(jq '.Objects | length' "$batch")" -eq 0 ]; then
+                listing="$(aws s3api list-object-versions --bucket "$bucket" --max-items 1000 --output json)"
+                [ -n "$listing" ] || listing='{}'
+                # --max-items may count versions only, so cap the batch at the API's 1000 keys here.
+                printf '%s' "$listing" \
+                  | jq -c '{Objects: ([(.Versions // [])[], (.DeleteMarkers // [])[]] | map({Key: .Key, VersionId: .VersionId}) | .[0:1000]), Quiet: true}' >"$batch"
+                if [ "$(jq '(.Objects // []) | length' "$batch")" = 0 ]; then
                   break
                 fi
                 result="$(aws s3api delete-objects --bucket "$bucket" --delete "file://$batch" --output json)"
@@ -232,7 +251,7 @@ jobs:
               echo "::error::a table name in the state is not a plain name" >&2
               exit 1
             fi
-            if aws dynamodb describe-table --table-name "$table" >/dev/null 2>&1; then
+            if exists "table $table" 'ResourceNotFoundException' aws dynamodb describe-table --table-name "$table"; then
               echo "lifting deletion protection on table $table"
               aws dynamodb update-table --table-name "$table" --no-deletion-protection-enabled >/dev/null
             fi
@@ -244,7 +263,7 @@ jobs:
               echo "::error::the state's auth_user_pool_id is not a user pool id" >&2
               exit 1
             fi
-            if aws cognito-idp describe-user-pool --user-pool-id "$pool" >/dev/null 2>&1; then
+            if exists "user pool $pool" 'ResourceNotFoundException' aws cognito-idp describe-user-pool --user-pool-id "$pool"; then
               echo "lifting deletion protection on user pool $pool"
               aws cognito-idp update-user-pool --user-pool-id "$pool" --deletion-protection INACTIVE
             fi

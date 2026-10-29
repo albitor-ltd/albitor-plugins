@@ -411,9 +411,21 @@ func TestDeployBYOADestroyHonoursThePlatformContract(t *testing.T) {
 		`[[ "$DESTROY_REF" =~ ^[0-9a-f]{40}$ ]]`,
 		`git merge-base --is-ancestor "$DESTROY_REF" "$GITHUB_SHA"`,
 		"fetch-depth: 0",
+		`[ -n "$listing" ] || listing='{}'`,
+		`[ "$(jq '(.Objects // []) | length' "$batch")" = 0 ]`,
+		`.[0:1000]`,
+		`exists "s3://${bucket}" '404|Not Found|NoSuchBucket' aws s3api head-bucket`,
+		`exists "table $table" 'ResourceNotFoundException' aws dynamodb describe-table`,
+		`exists "user pool $pool" 'ResourceNotFoundException' aws cognito-idp describe-user-pool`,
+		`could not check whether $what exists`,
 	} {
 		if !strings.Contains(s, want) {
 			t.Errorf("destroy.yml lacks %q", want)
+		}
+	}
+	for _, bad := range []string{"head-bucket --bucket \"$bucket\" 2>/dev/null", "describe-table --table-name \"$table\" >/dev/null 2>&1", "describe-user-pool --user-pool-id \"$pool\" >/dev/null 2>&1"} {
+		if strings.Contains(s, bad) {
+			t.Errorf("destroy.yml treats every error as not found: %q", bad)
 		}
 	}
 	refCheck, standIn := strings.Index(s, "- name: check the ref"), strings.Index(s, "- name: stand in for the build outputs")
