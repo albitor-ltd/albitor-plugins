@@ -52,7 +52,7 @@ func TestCallSendsASignedAWSShapedPost(t *testing.T) {
 	var resp struct{ TranslatedText string }
 	err := testClient(t, srv, nil).Call(context.Background(), "translate", "TranslateText",
 		map[string]string{"Text": "hello", "SourceLanguageCode": "en", "TargetLanguageCode": "fr"}, &resp,
-		WithIdempotencyKey("k-1"))
+		WithIdempotencyKey("idem-key-0001"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestCallSendsASignedAWSShapedPost(t *testing.T) {
 	if !strings.Contains(gotAuth, "/eu-west-2/lambda/aws4_request") {
 		t.Errorf("Authorization %q is not scoped for lambda in eu-west-2", gotAuth)
 	}
-	if gotKey != "k-1" {
+	if gotKey != "idem-key-0001" {
 		t.Errorf("Idempotency-Key = %q", gotKey)
 	}
 	var sent map[string]string
@@ -152,27 +152,62 @@ func TestCallRetries429WithJitterCappedAndHonouringRetryAfter(t *testing.T) {
 	}
 }
 
-func TestCallGivesUpOn429AndCapsAHostileRetryAfter(t *testing.T) {
+func TestCallGivesUpOn429AfterMaxAttempts(t *testing.T) {
 	var calls atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		calls.Add(1)
-		w.Header().Set("Retry-After", "86400")
+		w.Header().Set("Retry-After", "1")
 		refuse(w, 429, "rate_limited")
 	}))
 	defer srv.Close()
 
-	var sleeps []time.Duration
-	err := testClient(t, srv, &sleeps).Call(context.Background(), "translate", "TranslateText", nil, nil)
+	err := testClient(t, srv, nil).Call(context.Background(), "translate", "TranslateText", nil, nil)
 	if !errors.Is(err, ErrRateLimited) {
 		t.Fatalf("err = %v", err)
 	}
 	if calls.Load() != 4 {
 		t.Errorf("calls = %d, want the default 4 attempts", calls.Load())
 	}
-	for _, d := range sleeps {
-		if d > 5*time.Second {
-			t.Errorf("slept %v: Retry-After was not capped", d)
+}
+
+// A Retry-After over MaxDelay (the jobs path sends 10s; a hostile value 86400s) is not waited for
+// and not retried early: the 429 comes back at once.
+func TestCallReturnsAtOnceWhenRetryAfterExceedsTheCap(t *testing.T) {
+	for _, after := range []string{"10", "86400"} {
+		var calls atomic.Int32
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			calls.Add(1)
+			w.Header().Set("Retry-After", after)
+			refuse(w, 429, "rate_limited")
+		}))
+		var sleeps []time.Duration
+		err := testClient(t, srv, &sleeps).Call(context.Background(), "translate", "TranslateText", nil, nil)
+		srv.Close()
+		var ge *Error
+		if !errors.Is(err, ErrRateLimited) || !errors.As(err, &ge) || ge.RetryAfter == 0 {
+			t.Fatalf("Retry-After %s: err = %v", after, err)
 		}
+		if calls.Load() != 1 || len(sleeps) != 0 {
+			t.Errorf("Retry-After %s: calls = %d, sleeps = %v, want one call and no wait", after, calls.Load(), sleeps)
+		}
+	}
+}
+
+func TestCallRefusesAnIdempotencyKeyTheGatewayWould(t *testing.T) {
+	var calls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { calls.Add(1) }))
+	defer srv.Close()
+	c := testClient(t, srv, nil)
+	for _, bad := range []string{"short", "has space in it", "bad/slash-1234", strings.Repeat("a", 65), "tab\tkey-12345"} {
+		if err := c.Call(context.Background(), "bedrock", "Converse", nil, nil, WithIdempotencyKey(bad)); err == nil {
+			t.Errorf("key %q was accepted", bad)
+		}
+	}
+	if calls.Load() != 0 {
+		t.Error("a refused key was sent")
+	}
+	if err := c.Call(context.Background(), "bedrock", "Converse", nil, nil, WithIdempotencyKey(strings.Repeat("a", 64))); err != nil {
+		t.Errorf("a 64 character key was refused: %v", err)
 	}
 }
 

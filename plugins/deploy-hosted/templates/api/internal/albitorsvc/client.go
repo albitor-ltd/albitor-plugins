@@ -29,7 +29,9 @@ const (
 var (
 	servicePattern   = regexp.MustCompile(`^[a-z][a-z0-9-]{1,31}$`)
 	operationPattern = regexp.MustCompile(`^[A-Z][A-Za-z0-9]{1,63}$`)
-	regionInHost     = regexp.MustCompile(`\.lambda-url\.([a-z0-9-]+)\.on\.aws$`)
+	// The gateway's own rule for an Idempotency-Key.
+	idempotencyKeyPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{8,64}$`)
+	regionInHost          = regexp.MustCompile(`\.lambda-url\.([a-z0-9-]+)\.on\.aws$`)
 )
 
 // Config builds a Client. Zero values take the defaults below.
@@ -162,11 +164,15 @@ func WithIdempotencyKey(key string) CallOption {
 // ErrCreditsExhausted, ErrCapReached, ErrForbidden or ErrRateLimited, or with
 // Unavailable.
 //
-// A 429 is retried with full-jitter exponential backoff, honouring Retry-After,
-// up to MaxAttempts, because the gateway refuses it before the call runs. Nothing
-// else is retried: a 5xx may have run, and a 402 or 403 will not change by
-// asking again. Retries spend the app's own rate budget, so do not wrap Call in a
-// retry loop of the app's own.
+// A 429 is retried with full-jitter exponential backoff, never sooner than its
+// Retry-After, up to MaxAttempts, because the gateway refuses it before the call
+// runs. A Retry-After longer than MaxDelay is not waited for: Call returns the
+// 429 (ErrRateLimited) at once. Nothing else is retried: a 5xx may have run, and
+// a 402 or 403 will not change by asking again. Retries spend the app's own rate
+// budget, so do not wrap Call in a retry loop of the app's own.
+//
+// A key given to WithIdempotencyKey must match ^[A-Za-z0-9_-]{8,64}$, the
+// gateway's rule; Call refuses any other before sending.
 func (c *Client) Call(ctx context.Context, service, operation string, req, resp any, opts ...CallOption) error {
 	if !servicePattern.MatchString(service) || !operationPattern.MatchString(operation) {
 		return fmt.Errorf("albitorsvc: %q/%q is not a service and operation name", service, operation)
@@ -174,6 +180,9 @@ func (c *Client) Call(ctx context.Context, service, operation string, req, resp 
 	var o callOptions
 	for _, f := range opts {
 		f(&o)
+	}
+	if o.idempotencyKey != "" && !idempotencyKeyPattern.MatchString(o.idempotencyKey) {
+		return errors.New("albitorsvc: the idempotency key must match [A-Za-z0-9_-]{8,64}")
 	}
 	body := []byte("{}")
 	if req != nil {
@@ -197,6 +206,11 @@ func (c *Client) Call(ctx context.Context, service, operation string, req, resp 
 		}
 		var ge *Error
 		if !errors.As(err, &ge) || ge.Status != http.StatusTooManyRequests || attempt >= c.cfg.MaxAttempts {
+			return err
+		}
+		// A wait longer than the cap is the gateway saying "not soon": give up now
+		// rather than retry early and spend the app's rate budget for nothing.
+		if ge.RetryAfter > c.cfg.MaxDelay {
 			return err
 		}
 		if err := c.cfg.Sleep(ctx, c.backoff(attempt, ge.RetryAfter)); err != nil {

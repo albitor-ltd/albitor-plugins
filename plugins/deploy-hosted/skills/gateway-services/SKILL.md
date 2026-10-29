@@ -46,7 +46,9 @@ cannot verify, and that is why this client exists.
    an allow-list: a field it does not list is `400 bad_request`, so send only the fields the
    operation needs.
 4. **Pass a fresh `albitorsvc.WithIdempotencyKey(...)`** on operations that start work or bill by
-   the call (Bedrock, job starts), or the gateway answers `400 idempotency_key_required`.
+   the call (Bedrock, job starts), or the gateway answers `400 idempotency_key_required`. The key
+   must match `^[A-Za-z0-9_-]{8,64}$` (a random hex or base64url string; no spaces, slashes or dots),
+   and `Call` refuses any other before sending.
 
 ## Inputs and outputs are handles, never locations
 
@@ -71,7 +73,7 @@ content, not the URL, unless the user needs the file.
 | --- | --- | --- |
 | `402 credits_exhausted`, `402 cap_reached` | `errors.Is(err, albitorsvc.ErrCreditsExhausted)` or `ErrCapReached` | Treat the feature as unavailable: tell the user it is unavailable right now and carry on. Do not retry, and do not queue the work to retry later |
 | `403` (`not_declared`, `service_disabled`, `app_disabled`, residency) | `errors.Is(err, albitorsvc.ErrForbidden)` | The same: unavailable. A `not_declared` is a build bug, so log it once at startup of the feature |
-| `429` | `errors.Is(err, albitorsvc.ErrRateLimited)` | The client has already retried with jittered, capped backoff and given up: answer "busy, try again shortly" |
+| `429` | `errors.Is(err, albitorsvc.ErrRateLimited)` | The client has already retried with jittered, capped backoff and given up, or returned at once because the wait asked for is over its 5 second cap: answer "busy, try again shortly" |
 | anything else | `*albitorsvc.Error` | A fault: log the code and `RequestID` against the correlation id, answer an opaque 500 through `apikit.WriteFailure` |
 
 `albitorsvc.Unavailable(err)` is true for the first two rows. Never show a user the code, a credit

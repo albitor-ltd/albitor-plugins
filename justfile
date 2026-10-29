@@ -44,6 +44,9 @@ auth:
 deploy-byoa-aws:
     scripts/verify-deploy-byoa-aws.sh
 
+deploy-hosted:
+    scripts/verify-deploy-hosted.sh
+
 # Not part of `ci`, but REQUIRED before merging a change to plugin templates, manifests or the
 # composer contract: needs a checkout of the private albitor-ltd/albitor repo (app/core) and
 # Node >= 22.17 plus npm (and Playwright with --journeys), which this gate does not require.

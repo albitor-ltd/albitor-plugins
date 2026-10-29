@@ -9,7 +9,6 @@ declares what it provides and contributes, and the platform composer renders it 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
 | `.github/workflows/ci.yml` | managed | Advisory manifest check, then build and test of the API and the web app; read-only |
-
 | `api/internal/albitorsvc/**` | managed | `albitorsvc`, the thin Go client for the Albitor service gateway, with its tests (below) |
 
 It contributes the `github-actions` entry of the held `dependabot.yml`.
@@ -44,7 +43,7 @@ through the gateway, keyless and credit-metered, with `api/internal/albitorsvc`:
   `errors.Is` against `ErrCreditsExhausted`, `ErrCapReached`, `ErrForbidden` and `ErrRateLimited`;
   `Unavailable(err)` groups the 402s and 403s as "feature unavailable". AWS's message never arrives.
 - Only a `429` is retried (it is refused before the call runs), with full-jitter capped
-  exponential backoff that honours a capped `Retry-After`.
+  exponential backoff never sooner than `Retry-After`; a `Retry-After` over the 5 second cap is not waited for and the 429 returns at once. An idempotency key must match `^[A-Za-z0-9_-]{8,64}$`.
 - `CreateUploadSlot` and `Upload` for the gateway's presigned POST slots; the slot is never logged
   or put in an error.
 - No redirect is followed and the gateway URL must be https (loopback http for tests).
