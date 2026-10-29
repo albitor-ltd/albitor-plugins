@@ -21,6 +21,7 @@ builds is a new release of the plugin, offered as an upgrade change request.
 | To | Edit |
 | --- | --- |
 | Add or change a table, a schedule or a config key | the matching block of `albitor.yaml` |
+| Call translate, transcribe, textract, bedrock or another AWS AI service | `services.callable` in `albitor.yaml`, then `api/internal/albitorsvc`; see the `gateway-services` skill |
 | Change how the site or the API is built | `build.static` and `build.api` in `albitor.yaml` |
 
 Do not add Terraform, a deploy workflow, a cloud credential or a role: the platform deploys with

@@ -5,7 +5,7 @@
 default:
     @just --list
 
-ci: manifests catalogue lint api-go data-dynamodb auth deploy-byoa-aws
+ci: manifests catalogue lint api-go data-dynamodb auth deploy-byoa-aws deploy-hosted
 
 manifests:
     scripts/validate-plugins.sh

@@ -3,7 +3,9 @@ package compose
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -239,6 +241,50 @@ func TestDeployHostedComposes(t *testing.T) {
 		if !strings.Contains(yaml, want) {
 			t.Errorf("albitor.yaml lacks %q:\n%s", want, yaml)
 		}
+	}
+}
+
+// TestDeployHostedShipsTheGatewayClientManaged pins the albitorsvc client (albitor ADR-0099 3.1):
+// it lands under api/internal, managed so a build cannot edit the signer, with its tests.
+func TestDeployHostedShipsTheGatewayClientManaged(t *testing.T) {
+	res, err := composeHosted(t, "deploy-hosted")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var lock composer.Lock
+	if err := json.Unmarshal(res.Files[".albitor/lock.json"], &lock); err != nil {
+		t.Fatal(err)
+	}
+	modes := map[string]string{}
+	for _, f := range lock.Files {
+		modes[f.Path] = f.Mode
+	}
+	for _, p := range []string{"client.go", "errors.go", "sigv4.go", "upload.go", "client_test.go"} {
+		full := "api/internal/albitorsvc/" + p
+		if _, ok := res.Files[full]; !ok {
+			t.Errorf("%s is not in the composed tree", full)
+		}
+		if modes[full] != "managed" {
+			t.Errorf("%s should be managed, got %q", full, modes[full])
+		}
+	}
+}
+
+// TestDeployHostedRendersCallable: a manifest declaring services.callable is refused with
+// manifest_unrendered by a deploy target that does not list it, so the hosted target must.
+func TestDeployHostedRendersCallable(t *testing.T) {
+	var m struct {
+		Renders []string `json:"renders"`
+	}
+	b, err := os.ReadFile(filepath.Join(hostedDir(t), ".claude-plugin", "plugin.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(b, &m); err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Contains(m.Renders, "services.callable") {
+		t.Errorf("renders = %v, want services.callable", m.Renders)
 	}
 }
 

@@ -2,9 +2,9 @@
   "schema": 2,
   "name": "deploy-hosted",
   "displayName": "Hosted deploy target",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "kind": "socket",
-  "renders": ["site", "http", "services.tables", "services.objects", "services.auth", "schedules", "config"],
+  "renders": ["site", "http", "services.tables", "services.objects", "services.auth", "services.callable", "schedules", "config"],
   "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
   "author": {
     "name": "Albitor Ltd",
@@ -20,13 +20,14 @@
   "provides": ["deploy-target@1"],
   "contributes": {
     "files": [
-      { "path": ".github/workflows/ci.yml", "mode": "managed" }
+      { "path": ".github/workflows/ci.yml", "mode": "managed" },
+      { "path": "api/internal/albitorsvc/**", "mode": "managed" }
     ],
     "slots": {
       "repo.dependabot": [
         { "ecosystem": "github-actions", "directory": "/" }
       ]
     },
-    "skills": ["deploy-hosted"]
+    "skills": ["deploy-hosted", "gateway-services"]
   }
 }

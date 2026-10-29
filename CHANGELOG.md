@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `deploy-hosted` `0.2.0` (albitor-ltd/albitor#4005, ADR-0099 section 3.1): `renders` gains
+  `services.callable`; `api/internal/albitorsvc` (managed, standard library only), the thin SigV4
+  client for the service gateway with typed 402/403/429 errors, jittered capped backoff and
+  upload-slot helpers; the `gateway-services` skill (declare `services.callable`, sign-in or
+  per-end-user limits by default, `402` as "feature unavailable"). `just ci` runs
+  `scripts/verify-deploy-hosted.sh`. Untagged, so the catalogue still pins `0.1.2` until released.
+
 - The `auth@2` interface, `roles()` / `seed(role)` / `signInAs(role)` (albitor-ltd/albitor#3937 part B,
   stream #3944). `test-playwright` `0.4.0` ships it (`helpers/auth-v2.ts`, `helpers/roles.ts`, the
   sign-in flows moved to `helpers/browser-signin.ts`) and `roles.spec.ts`, the per-role check: every
