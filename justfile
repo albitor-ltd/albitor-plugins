@@ -5,7 +5,7 @@
 default:
     @just --list
 
-ci: manifests catalogue lint api-go data-dynamodb auth deploy-byoa-aws
+ci: manifests catalogue lint api-go data-dynamodb auth deploy-byoa-aws deploy-hosted
 
 manifests:
     scripts/validate-plugins.sh
@@ -43,6 +43,9 @@ auth:
 
 deploy-byoa-aws:
     scripts/verify-deploy-byoa-aws.sh
+
+deploy-hosted:
+    scripts/verify-deploy-hosted.sh
 
 # Not part of `ci`, but REQUIRED before merging a change to plugin templates, manifests or the
 # composer contract: needs a checkout of the private albitor-ltd/albitor repo (app/core) and
