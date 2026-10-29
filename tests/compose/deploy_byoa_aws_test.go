@@ -387,6 +387,42 @@ func TestDeployBYOADestroyHonoursThePlatformContract(t *testing.T) {
 	if got := strings.Count(s, "name: destroy receipt\n"); got != 1 {
 		t.Errorf("exactly one job may be named destroy receipt, found %d", got)
 	}
+
+	// Fail closed: the destroy job runs on the default branch only, and the receipt job has no
+	// condition of its own that could let it run after a skipped destroy.
+	if !strings.Contains(s, "    if: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}\n    runs-on: ubuntu-24.04\n    timeout-minutes: 60") {
+		t.Error("the destroy job must run only from the default branch")
+	}
+	receiptJob := s[idx[0]:]
+	if regexp.MustCompile(`(?m)^    if:`).MatchString(receiptJob) {
+		t.Error("the receipt job must carry no if: that could run it after a skipped destroy")
+	}
+	// Dispatch inputs never reach a script by interpolation.
+	for _, m := range regexp.MustCompile(`(?ms)^\s+run: \|\n((?:\s{12,}.*\n|\n)*)`).FindAllStringSubmatch(s, -1) {
+		if strings.Contains(m[1], "${{ inputs.") {
+			t.Errorf("a run: block interpolates a dispatch input:\n%s", m[1])
+		}
+	}
+	for _, want := range []string{
+		`select(.mode? == "managed" and .type? == "aws_dynamodb_table")`,
+		`(.Errors // [])[0]`,
+		`--delete "file://$batch"`,
+		`terraform state list`,
+		`[[ "$DESTROY_REF" =~ ^[0-9a-f]{40}$ ]]`,
+		`git merge-base --is-ancestor "$DESTROY_REF" "$GITHUB_SHA"`,
+		"fetch-depth: 0",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("destroy.yml lacks %q", want)
+		}
+	}
+	refCheck, standIn := strings.Index(s, "- name: check the ref"), strings.Index(s, "- name: stand in for the build outputs")
+	if refCheck < 0 || refCheck > identity || standIn < 0 || standIn > destroy {
+		t.Error("the ref must be checked before the identity is resolved, and the stand-ins made before terraform destroy")
+	}
+	if stateCheck := strings.Index(s, "- name: check the state is empty"); stateCheck < destroy || stateCheck > idx[0] {
+		t.Error("the state must be checked empty after terraform destroy and before the receipt")
+	}
 	tail := s[idx[0]:]
 	notice := `::notice title=destroy-receipt::{"environment":"%s","commit":"%s","state":"destroyed"}`
 	if !strings.Contains(tail, notice) {

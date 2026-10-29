@@ -58,9 +58,12 @@ jobs:
       contents: read
       id-token: write
     steps:
+      # The default branch head (github.sha of a dispatch) with its history, so `ref` can be checked
+      # against it below. No repository code or script runs before that check.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
 
       # First step, before the environment name is used to build any path. It matches the stack's
@@ -74,6 +77,29 @@ jobs:
             exit 1
           fi
 
+      # `ref` is empty or a full sha that is an ancestor of the default branch head: a destroy never
+      # runs code from an unmerged branch or a fork. Passed through the environment, never spliced.
+      - name: check the ref
+        env:
+          DESTROY_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DESTROY_REF" ]; then
+            exit 0
+          fi
+          if ! [[ "$DESTROY_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::ref must be empty or a full 40-character commit sha" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$DESTROY_REF" "$GITHUB_SHA"; then
+            echo "::error::ref is not an ancestor of the default branch head" >&2
+            exit 1
+          fi
+          # Code from the pinned commit, per-environment configuration from the default branch head,
+          # because a pinned commit can predate the env/<environment>.* files the platform committed.
+          git checkout --quiet --detach "$DESTROY_REF"
+          git checkout --quiet "$GITHUB_SHA" -- infrastructure/aws/env
+
       - name: record the commit
         id: commit
         run: |
@@ -84,29 +110,6 @@ jobs:
             exit 1
           fi
           echo "commit_sha=$sha" >>"$GITHUB_OUTPUT"
-
-      # As in deploy.yml: code from the pinned commit, per-environment configuration from the
-      # default branch head (github.sha of a dispatch), because a pinned commit can predate the
-      # env/<environment>.* files the platform committed.
-      - name: take deploy inputs from the default branch
-        if: ${{ inputs.ref != '' }}
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          path: deploy-inputs-src
-          sparse-checkout: infrastructure/aws/env
-          persist-credentials: false
-      - name: overlay deploy inputs
-        if: ${{ inputs.ref != '' }}
-        run: |
-          set -euo pipefail
-          if [ ! -d deploy-inputs-src/infrastructure/aws/env ]; then
-            echo "::error::no infrastructure/aws/env directory on the default branch to overlay" >&2
-            exit 1
-          fi
-          mkdir -p infrastructure/aws/env
-          cp -f deploy-inputs-src/infrastructure/aws/env/* infrastructure/aws/env/
-          rm -rf deploy-inputs-src
 
       - name: resolve the deploy identity
         id: identity
@@ -205,19 +208,25 @@ jobs:
             if aws s3api head-bucket --bucket "$bucket" 2>/dev/null; then
               echo "emptying s3://${bucket}"
               while :; do
-                batch="$(aws s3api list-object-versions --bucket "$bucket" --max-items 1000 --output json \
-                  | jq -c '{Objects: ([(.Versions // [])[], (.DeleteMarkers // [])[]] | map({Key: .Key, VersionId: .VersionId})), Quiet: true}')"
-                if [ "$(printf '%s' "$batch" | jq '.Objects | length')" -eq 0 ]; then
+                batch="$RUNNER_TEMP/delete-batch.json"
+                aws s3api list-object-versions --bucket "$bucket" --max-items 1000 --output json \
+                  | jq -c '{Objects: ([(.Versions // [])[], (.DeleteMarkers // [])[]] | map({Key: .Key, VersionId: .VersionId})), Quiet: true}' >"$batch"
+                if [ "$(jq '.Objects | length' "$batch")" -eq 0 ]; then
                   break
                 fi
-                aws s3api delete-objects --bucket "$bucket" --delete "$batch" >/dev/null
+                result="$(aws s3api delete-objects --bucket "$bucket" --delete "file://$batch" --output json)"
+                first_error="$(printf '%s' "$result" | jq -r '(.Errors // [])[0] | if . then "\(.Key): \(.Code): \(.Message)" else "" end')"
+                if [ -n "$first_error" ]; then
+                  echo "::error::could not delete an object version: $first_error" >&2
+                  exit 1
+                fi
               done
             else
               echo "s3://${bucket} is already gone"
             fi
           fi
 
-          tables="$(printf '%s' "$state" | jq -r '[.. | objects | select(.type? == "aws_dynamodb_table") | .values.name] | .[]')"
+          tables="$(printf '%s' "$state" | jq -r '[.. | objects | select(.mode? == "managed" and .type? == "aws_dynamodb_table") | .values.name] | .[]')"
           for table in $tables; do
             if ! [[ "$table" =~ ^[A-Za-z0-9_.-]{3,255}$ ]]; then
               echo "::error::a table name in the state is not a plain name" >&2
@@ -248,6 +257,18 @@ jobs:
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
         run: terraform destroy -input=false -auto-approve -lock-timeout=300s
+        working-directory: infrastructure/aws
+
+      # The receipt is evidence, not an assertion: the state must hold nothing once the destroy is
+      # done.
+      - name: check the state is empty
+        run: |
+          set -euo pipefail
+          left="$(terraform state list)"
+          if [ -n "$left" ]; then
+            echo "::error::the destroy finished but the state still holds resources" >&2
+            exit 1
+          fi
         working-directory: infrastructure/aws
 
   # The platform reads the destroy receipt from this job and no other. It runs only after a green

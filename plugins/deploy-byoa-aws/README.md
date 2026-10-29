@@ -146,7 +146,15 @@ deploy role therefore needs, beyond what a deploy needs, `s3:ListBucketVersions`
 tables, `cognito-idp:UpdateUserPool` and `cognito-idp:DescribeUserPool` on the pool, and the delete
 actions for every resource the stack makes. The job `destroy receipt` runs only after a green
 destroy and prints `::notice title=destroy-receipt::{"environment":"..","commit":"..","state":"destroyed"}`;
-the platform reads that job alone, so do not rename it.
+the platform reads that job alone, so do not rename it. The receipt follows a check that
+`terraform state list` is empty. `ref` must be empty or a full sha that is an ancestor of the default
+branch head, checked before any repository code runs.
+
+Two things to know. The deploy role's trust can be pinned per account to specific workflow files
+(`cicd_job_workflow_refs` in albitor-aws-baselining): an account pinned to `deploy.yml` refuses
+`destroy.yml`'s token, so `destroy.yml` must be added there. And a destroy waiting in the
+`deploy-<environment>` group can be replaced by a newer queued deploy (GitHub keeps one pending run
+per group); that fails safe, since nothing is destroyed and the platform sees no receipt.
 
 ## Verification
 
