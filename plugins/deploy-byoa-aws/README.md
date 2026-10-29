@@ -14,6 +14,7 @@ contributes, and the platform composer renders it into a new app.
 | `infrastructure/aws/terraform.tfvars` | example | Per-environment choices: DNS mode, domain, alarm address |
 | `.github/workflows/ci.yml` | managed | Build, test and Terraform checks; read-only |
 | `.github/workflows/deploy.yml` | managed | Build, test, apply, seed the platform accounts and ship under an OIDC-assumed role |
+| `.github/workflows/destroy.yml` | managed | Destroys one environment ("Delete app"): unblocks, `terraform destroy`, then a `destroy receipt`; manual dispatch only |
 | `.github/workflows/invite.yml` | managed | Invites one person to the user pool; run by hand from the Actions tab |
 | `scripts/tf-unlock-stale.sh` | managed | Clears a stale same-account state lock before init |
 | `scripts/seed-platform-accounts.sh` | managed | Seeds the demo and verifier accounts into the pool, from the deploy job |
@@ -130,6 +131,22 @@ who has, it changes nothing. The temporary password is valid for 7 days. The ema
 when the stack knows the address before the apply (a custom domain that is attached), where to sign
 in. Running the workflow takes write access to the repository. The handover delivers
 `docs/inviting-people.md`, which says all of this to the owner.
+
+**Destroying an environment.** `destroy.yml` is the "Delete app" path and runs on `workflow_dispatch`
+from the default branch only (no push, pull request or schedule trigger), with the inputs
+`environment` (required) and `ref` (optional, as in `deploy.yml`). It assumes the same per-environment
+OIDC deploy role, `id-token: write` on the one destroy job, and shares `deploy.yml`'s concurrency
+group (`deploy-<environment>`, never cancelled), so it queues behind a running deploy. It inits from
+`env/<environment>.s3.tfbackend`, then unblocks what Terraform cannot delete itself, reading every
+name from the state: it deletes all object versions and delete markers in the site bucket, sets
+`--no-deletion-protection-enabled` on each DynamoDB table and `--deletion-protection INACTIVE` on the
+user pool; then it runs `terraform destroy`. A thing already gone is skipped, so a retry works. The
+deploy role therefore needs, beyond what a deploy needs, `s3:ListBucketVersions` and
+`s3:DeleteObjectVersion` on the site bucket, `dynamodb:UpdateTable` and `dynamodb:DescribeTable` on the
+tables, `cognito-idp:UpdateUserPool` and `cognito-idp:DescribeUserPool` on the pool, and the delete
+actions for every resource the stack makes. The job `destroy receipt` runs only after a green
+destroy and prints `::notice title=destroy-receipt::{"environment":"..","commit":"..","state":"destroyed"}`;
+the platform reads that job alone, so do not rename it.
 
 ## Verification
 

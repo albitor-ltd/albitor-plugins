@@ -13,7 +13,7 @@ infrastructure.
 
 ## What is managed (never edit)
 
-`.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `infrastructure/aws/*.tf`,
+`.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `.github/workflows/destroy.yml`, `infrastructure/aws/*.tf`,
 `infrastructure/aws/.terraform.lock.hcl`, `.github/workflows/invite.yml` and the three scripts under
 `scripts/`. A finding in them is the
 plugin's, not yours: a change to how the stack builds is a new release of the plugin, offered as an

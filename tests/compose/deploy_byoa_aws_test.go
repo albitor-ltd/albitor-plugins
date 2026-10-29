@@ -47,6 +47,7 @@ func TestDeployBYOAConforms(t *testing.T) {
 var workflowPaths = []string{
 	"templates/.github/workflows/ci.yml",
 	"templates/.github/workflows/deploy.yml",
+	"templates/.github/workflows/destroy.yml",
 	"templates/.github/workflows/invite.yml",
 }
 
@@ -186,7 +187,7 @@ func TestDeployBYOAComposes(t *testing.T) {
 	}
 	// Deploy plumbing is pinned: a build cannot weaken the pipeline or the rendered stack.
 	for _, p := range []string{
-		".github/workflows/ci.yml", ".github/workflows/deploy.yml", ".github/workflows/invite.yml",
+		".github/workflows/ci.yml", ".github/workflows/deploy.yml", ".github/workflows/destroy.yml", ".github/workflows/invite.yml",
 		"infrastructure/aws/main.tf", "infrastructure/aws/variables.tf", "infrastructure/aws/versions.tf",
 		"infrastructure/aws/backend.tf", "infrastructure/aws/outputs.tf", "infrastructure/aws/.terraform.lock.hcl",
 		"scripts/tf-unlock-stale.sh", "scripts/seed-platform-accounts.sh", "scripts/invite-user.sh",
@@ -313,6 +314,81 @@ func TestDeployBYOAHonoursThePlatformDispatchContract(t *testing.T) {
 	}
 	tail := s[idx[0]:]
 	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s","seeded_roles":"%s"}`
+	if !strings.Contains(tail, notice) {
+		t.Errorf("the receipt job does not print %s", notice)
+	}
+	if strings.Contains(tail, "id-token") {
+		t.Error("the receipt job must hold no cloud identity")
+	}
+}
+
+// TestDeployBYOADestroyHonoursThePlatformContract pins what the platform relies on when it
+// dispatches destroy.yml for "Delete app" (albitor-ltd/albitor#4040): the `environment` and `ref`
+// inputs are declared, nothing but a manual dispatch triggers it, the cloud identity sits on the
+// destroy job alone, and a job named exactly `destroy receipt` ends with the destroy-receipt notice.
+func TestDeployBYOADestroyHonoursThePlatformContract(t *testing.T) {
+	sub := byoaSubject(t)
+	body, ok := sub.Tree["templates/.github/workflows/destroy.yml"]
+	if !ok {
+		t.Fatal("plugin ships no destroy.yml")
+	}
+	s := string(body)
+
+	for _, input := range []string{"environment", "ref"} {
+		re := regexp.MustCompile(`(?m)^  workflow_dispatch:\n    inputs:\n(?:      .*\n|        .*\n)*?      ` + input + `:\n`)
+		if !re.MatchString(s) {
+			t.Errorf("workflow_dispatch does not declare the %q input", input)
+		}
+	}
+
+	// The trigger block is the lines between `on:` and `permissions:`: dispatch and nothing else.
+	onBlock := regexp.MustCompile(`(?ms)^on:\n(.*?)^permissions:`).FindStringSubmatch(s)
+	if onBlock == nil {
+		t.Fatal("destroy.yml has no on: block")
+	}
+	events := regexp.MustCompile(`(?m)^  ([a-z_]+):`).FindAllStringSubmatch(onBlock[1], -1)
+	if len(events) != 1 || events[0][1] != "workflow_dispatch" {
+		t.Errorf("destroy.yml must trigger on workflow_dispatch alone, got %v", events)
+	}
+	for _, bad := range []string{"push:", "pull_request", "schedule:", "workflow_run", "workflow_call"} {
+		if strings.Contains(onBlock[1], bad) {
+			t.Errorf("destroy.yml must not trigger on %s", bad)
+		}
+	}
+
+	if !strings.Contains(s, "group: deploy-${{ inputs.environment }}") || !strings.Contains(s, "cancel-in-progress: false") {
+		t.Error("destroy.yml must queue in deploy.yml's per-environment concurrency group and never cancel")
+	}
+	if n := len(regexp.MustCompile(`(?m)^      id-token: write$`).FindAllString(s, -1)); n != 1 {
+		t.Errorf("id-token: write must be held by one job, found %d", n)
+	}
+	check, identity := strings.Index(s, "name: check the environment name"), strings.Index(s, "name: resolve the deploy identity")
+	if check < 0 || check > identity {
+		t.Error("the environment name must be validated before the deploy identity is resolved")
+	}
+	init, unblock, destroy := strings.Index(s, "name: terraform init"), strings.Index(s, "name: unblock the deletes"), strings.Index(s, "- name: terraform destroy")
+	if init < 0 || unblock < init || destroy < unblock {
+		t.Error("destroy.yml must init, then unblock the deletes, then terraform destroy")
+	}
+	if !strings.Contains(s, `-backend-config="env/${ENVIRONMENT}.s3.tfbackend"`) {
+		t.Error("destroy.yml must init from env/<environment>.s3.tfbackend")
+	}
+	for _, call := range []string{"delete-objects", "--no-deletion-protection-enabled", "--deletion-protection INACTIVE"} {
+		if !strings.Contains(s, call) {
+			t.Errorf("the unblock step lacks %q", call)
+		}
+	}
+
+	job := regexp.MustCompile(`(?m)^  [a-z_-]+:\n    name: destroy receipt\n    needs: \[destroy\]\n`)
+	idx := job.FindStringIndex(s)
+	if idx == nil {
+		t.Fatal(`no job named exactly "destroy receipt" that needs the destroy job`)
+	}
+	if got := strings.Count(s, "name: destroy receipt\n"); got != 1 {
+		t.Errorf("exactly one job may be named destroy receipt, found %d", got)
+	}
+	tail := s[idx[0]:]
+	notice := `::notice title=destroy-receipt::{"environment":"%s","commit":"%s","state":"destroyed"}`
 	if !strings.Contains(tail, notice) {
 		t.Errorf("the receipt job does not print %s", notice)
 	}
