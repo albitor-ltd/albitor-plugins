@@ -5,7 +5,7 @@
   "version": "0.5.0",
   "kind": "socket",
   "renders": ["site", "http", "services.tables", "services.auth"],
-  "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, and the owner's invite workflow.",
+  "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
   "author": {
     "name": "Albitor Ltd",
     "email": "jamie@albitor.com"
@@ -25,6 +25,7 @@
     "files": [
       { "path": ".github/workflows/ci.yml", "mode": "managed" },
       { "path": ".github/workflows/deploy.yml", "mode": "managed" },
+      { "path": ".github/workflows/destroy.yml", "mode": "managed" },
       { "path": ".github/workflows/invite.yml", "mode": "managed" },
       { "path": "infrastructure/aws/main.tf", "mode": "managed" },
       { "path": "infrastructure/aws/variables.tf", "mode": "managed" },
