@@ -199,6 +199,9 @@ jobs:
             echo "::error::ALBITOR_APP_SECRETS_SEGMENT in $cfg is not a plain token" >&2
             exit 1
           fi
+          if [ -z "$segment" ]; then
+            echo "::warning::$cfg carries no ALBITOR_APP_SECRETS_SEGMENT: the API function is granted no access to the app's secrets" >&2
+          fi
           # The project name is the repository name, folded to what the stack accepts.
           project="$(printf '%s' "${GITHUB_REPOSITORY#*/}" | tr 'A-Z_.' 'a-z--' | tr -cd 'a-z0-9-' | cut -c1-31)"
           {
@@ -284,6 +287,7 @@ jobs:
           TF_VAR_project_name: ${{ steps.identity.outputs.project }}
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
+          TF_VAR_secrets_segment: ${{ steps.identity.outputs.secrets_segment }}
           TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}
         run: terraform apply -input=false -auto-approve -lock-timeout=300s
         working-directory: infrastructure/aws

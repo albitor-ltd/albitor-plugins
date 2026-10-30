@@ -69,6 +69,28 @@ variable "table_arns" {
   }
 }
 
+variable "secrets_parameter_prefix" {
+  description = "SSM path prefix the function may read its secrets under, such as /albitor/apps/plantrain/secrets/. Empty grants nothing and sets no environment variable."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.secrets_parameter_prefix == "" || can(regex("^/[A-Za-z0-9._/-]{1,200}/$", var.secrets_parameter_prefix))
+    error_message = "secrets_parameter_prefix must be empty or an SSM path starting and ending with /."
+  }
+}
+
+variable "secrets_kms_key_arn" {
+  description = "ARN of the customer-managed KMS key the secrets are sealed with. Null (the AWS-managed alias/aws/ssm key, which the platform uses) grants no kms:Decrypt."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.secrets_kms_key_arn == null || can(regex("^arn:aws:kms:[a-z0-9-]+:[0-9]{12}:key/[A-Za-z0-9-]+$", var.secrets_kms_key_arn))
+    error_message = "secrets_kms_key_arn must be a KMS key ARN."
+  }
+}
+
 variable "lambda_adapter_layer_arn" {
   description = "ARN of the AWS Lambda Web Adapter layer. Null derives the pinned x86_64 layer for the region."
   type        = string

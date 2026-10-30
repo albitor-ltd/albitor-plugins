@@ -46,6 +46,22 @@ registered twice panics at start.
 - **Reach data only through the store interface** the data-store plugin provides, so the handler
   works in the local run as well as deployed.
 
+## Read secrets from the app's secret store
+
+Credentials the app needs (a supplier API key, say) are SSM SecureString parameters Albitor writes
+at `<prefix><NAME>`. The deploy target hands the function the prefix in the environment variable
+`ALBITOR_SECRETS_PARAMETER_PREFIX` (for example `/albitor/apps/<segment>/secrets/`, ending in `/`)
+and grants the function's role `ssm:GetParameter` and `ssm:GetParameters` on exactly that prefix.
+
+- Read `os.Getenv("ALBITOR_SECRETS_PARAMETER_PREFIX")` and ask SSM (`GetParameter`, `WithDecryption`
+  true) for `prefix + NAME`. Never hard-code the path, the app name or the segment: the segment is
+  not the repository name, and the grant follows the variable.
+- An empty variable (the local run, or a deploy with no secret store) means no secrets: treat a
+  missing secret as "not configured", never as an error that takes the endpoint down.
+- Never write a parameter, list a path or add an IAM policy for this: the grant is the deploy
+  target's, and a secret is added through Albitor, not the repository.
+- Read at request time or cache briefly; never log a value or put it in a response.
+
 ## Contributing to the slots (plugin authors)
 
 A fragment in `api.middleware` or `api.routes` is an identifier that resolves in package

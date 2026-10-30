@@ -364,3 +364,28 @@ run "an_api_only_app_needs_no_web_build" {
     error_message = "no site, no hashes, no build required"
   }
 }
+
+run "the_secrets_segment_scopes_the_functions_secret_prefix" {
+  command = plan
+  variables {
+    secrets_segment = "plantrain-app"
+  }
+
+  assert {
+    condition     = local.secrets_parameter_prefix == "/albitor/apps/plantrain-app/secrets/"
+    error_message = "the prefix is the platform's segment, not the project name"
+  }
+  assert {
+    condition     = module.api[0].secrets_parameter_prefix == "/albitor/apps/plantrain-app/secrets/"
+    error_message = "the prefix reaches the api module"
+  }
+}
+
+run "no_secrets_segment_means_no_prefix" {
+  command = plan
+
+  assert {
+    condition     = local.secrets_parameter_prefix == ""
+    error_message = "without a segment the function is granted no secrets"
+  }
+}

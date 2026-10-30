@@ -163,3 +163,64 @@ run "an_adapter_layer_that_is_not_a_Lambda_layer_ARN_is_refused" {
   }
   expect_failures = [var.lambda_adapter_layer_arn]
 }
+
+run "no_secrets_prefix_grants_nothing_and_sets_no_env" {
+  command = plan
+
+  assert {
+    condition     = length(aws_iam_role_policy.secrets) == 0 && !contains(keys(aws_lambda_function.api.environment[0].variables), "ALBITOR_SECRETS_PARAMETER_PREFIX")
+    error_message = "an empty secrets_parameter_prefix adds no policy and no environment variable"
+  }
+}
+
+run "a_secrets_prefix_is_granted_and_handed_to_the_function" {
+  command = plan
+  variables {
+    secrets_parameter_prefix = "/albitor/apps/plantrain/secrets/"
+  }
+
+  assert {
+    condition     = length(aws_iam_role_policy.secrets) == 1
+    error_message = "the role gets a secrets policy"
+  }
+  assert {
+    condition     = aws_lambda_function.api.environment[0].variables["ALBITOR_SECRETS_PARAMETER_PREFIX"] == "/albitor/apps/plantrain/secrets/"
+    error_message = "the function is handed the prefix the grant names"
+  }
+  assert {
+    condition = (
+      length(data.aws_iam_policy_document.secrets[0].statement) == 1 &&
+      one(data.aws_iam_policy_document.secrets[0].statement).sid == "SecretsRead" &&
+      toset(one(data.aws_iam_policy_document.secrets[0].statement).actions) == toset(["ssm:GetParameter", "ssm:GetParameters"]) &&
+      one(one(data.aws_iam_policy_document.secrets[0].statement).resources) == "arn:aws:ssm:eu-west-2:${data.aws_caller_identity.current.account_id}:parameter/albitor/apps/plantrain/secrets/*"
+    )
+    error_message = "read on exactly the prefix's parameters, no kms statement without a CMK"
+  }
+}
+
+run "a_malformed_secrets_prefix_is_refused" {
+  command = plan
+  variables {
+    secrets_parameter_prefix = "albitor/apps/x"
+  }
+  expect_failures = [var.secrets_parameter_prefix]
+}
+
+run "a_customer_managed_key_adds_decrypt_on_that_key_only" {
+  command = plan
+  variables {
+    secrets_parameter_prefix = "/albitor/apps/plantrain/secrets/"
+    secrets_kms_key_arn      = "arn:aws:kms:eu-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+  }
+
+  assert {
+    condition = (
+      length(data.aws_iam_policy_document.secrets[0].statement) == 2 &&
+      anytrue([
+        for s in data.aws_iam_policy_document.secrets[0].statement :
+        s.sid == "SecretsDecrypt" && toset(s.actions) == toset(["kms:Decrypt"]) && one(s.resources) == var.secrets_kms_key_arn
+      ])
+    )
+    error_message = "kms:Decrypt is granted on the named key and only then"
+  }
+}
