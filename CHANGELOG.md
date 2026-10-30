@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- `test-playwright` `0.4.1` (albitor-ltd/albitor#4177, stream #3944): the suite's signed-in session is
+  written to a private (0700) directory under the OS temp dir, not to `web/tests/.auth/` in the tree,
+  where a secrets scan walking the tree flagged it. `ALBITOR_TESTS_AUTH_DIR` overrides the directory;
+  `helpers/storage-state.ts` gains `ensureAuthDir()`, which `auth.setup.ts` and the `auth` plugin's
+  `auth.setup.ts.tmpl` call. Untagged until `test-playwright/v0.4.1` is cut; the catalogue pins the
+  previous version meanwhile. `ensureAuthDir()` chmods 0700 only a directory it created or the default
+  one; an existing override open to group or others is refused, never chmodded.
+- `auth` `0.7.1` (albitor-ltd/albitor#4177): `auth.setup.ts.tmpl` imports `ensureAuthDir` from
+  `helpers/storage-state.ts`, so it requires `test-playwright` >= 0.4.1. Release and pin the two
+  together.
+
 - `deploy-byoa-aws` and `api-go` (albitor#4173; unreleased, the release PR bumps `deploy-byoa-aws`
   to `0.6.1` and `api-go` to `0.2.1`): the API function can read the app's own SSM secrets. The `api` module takes `secrets_parameter_prefix` (empty grants nothing), grants
   `ssm:GetParameter` and `ssm:GetParameters` on it, sets `ALBITOR_SECRETS_PARAMETER_PREFIX` and outputs

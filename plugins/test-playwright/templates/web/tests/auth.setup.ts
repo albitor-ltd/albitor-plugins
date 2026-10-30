@@ -1,6 +1,6 @@
 // Managed by Albitor (test-playwright).
-import { type Dirent, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, sep } from "node:path";
+import { type Dirent, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 import { expect, test as setup } from "@playwright/test";
 import {
   type BrowserState,
@@ -17,6 +17,7 @@ import { declaresServicesAuth, signInRequired } from "./helpers/hosted-signin";
 import {
   DEMO_STORAGE_STATE,
   EMPTY_STORAGE_STATE,
+  ensureAuthDir,
   hasDemoSession,
   WEB_ROOT,
 } from "./helpers/storage-state";
@@ -193,7 +194,7 @@ function runSignedOut(why: string): void {
   writeFileSync(DEMO_STORAGE_STATE, JSON.stringify(EMPTY_STORAGE_STATE));
 }
 setup("sign in once as the demo account", async ({ page }) => {
-  mkdirSync(dirname(DEMO_STORAGE_STATE), { recursive: true });
+  ensureAuthDir();
 
   // Strict once there is any evidence the app signs in: see signInRequired. A password is the
   // strongest, since only an app with a user pool is given one. Decided per run, so nothing has to
