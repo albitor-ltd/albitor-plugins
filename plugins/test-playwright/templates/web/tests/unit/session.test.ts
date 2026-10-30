@@ -1,6 +1,6 @@
 // Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
-import { chmodSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -35,16 +35,29 @@ describe("storage state", () => {
 			delete process.env.ALBITOR_TESTS_AUTH_DIR;
 		}
 	});
-	it("creates the directory private to the user (0700), tightening one that already exists", async () => {
+	it("creates a new override directory private to the user (0700)", async () => {
 		const target = join(dir, "private", "nested");
 		process.env.ALBITOR_TESTS_AUTH_DIR = target;
 		try {
 			const moved = await import("../helpers/storage-state.ts?private");
 			assert.equal(moved.ensureAuthDir(), target);
 			assert.equal(statSync(target).mode & 0o777, 0o700);
-			chmodSync(target, 0o755);
 			moved.ensureAuthDir();
-			assert.equal(statSync(target).mode & 0o777, 0o700);
+		} finally {
+			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+		}
+	});
+	it("never chmods an existing override, and refuses one open to group or others", async () => {
+		const target = join(dir, "shared");
+		mkdirSync(target, { mode: 0o755 });
+		chmodSync(target, 0o755);
+		process.env.ALBITOR_TESTS_AUTH_DIR = target;
+		try {
+			const moved = await import("../helpers/storage-state.ts?shared");
+			assert.throws(() => moved.ensureAuthDir(), /accessible to group or others/);
+			assert.equal(statSync(target).mode & 0o777, 0o755);
+			chmodSync(target, 0o700);
+			assert.equal(moved.ensureAuthDir(), target);
 		} finally {
 			delete process.env.ALBITOR_TESTS_AUTH_DIR;
 		}

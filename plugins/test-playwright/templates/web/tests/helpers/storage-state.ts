@@ -1,6 +1,6 @@
 // Managed by Albitor (test-playwright).
 import { createHash } from "node:crypto";
-import { chmodSync, lstatSync, mkdirSync, readFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync } from "node:fs";
 import { tmpdir, userInfo } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,15 +37,23 @@ export const AUTH_DIR = authDir();
 export const DEMO_STORAGE_STATE = join(AUTH_DIR, "demo.json");
 
 // ensureAuthDir creates the session directory, private to the user (0700), and returns it.
-// It refuses a path that is not a directory owned by this user: in a shared temp dir a
-// pre-made one would let another user read the session.
+// It tightens (chmod 0700) only a directory it made itself or the default one, whose name is ours.
+// An override that already exists (it may be $HOME or a shared directory) is never chmodded:
+// it must already be closed to group and others, or this refuses. It also refuses a path that
+// is not a directory owned by this user: in a shared temp dir a pre-made one would let another
+// user read the session.
 export function ensureAuthDir(): string {
+	const existed = existsSync(AUTH_DIR);
 	mkdirSync(AUTH_DIR, { recursive: true, mode: 0o700 });
 	const info = lstatSync(AUTH_DIR);
 	if (!info.isDirectory() || (process.platform !== "win32" && info.uid !== userInfo().uid)) {
 		throw new Error(`${AUTH_DIR} is not a directory owned by this user; set ALBITOR_TESTS_AUTH_DIR to a private one`);
 	}
-	chmodSync(AUTH_DIR, 0o700);
+	if (!existed || !process.env.ALBITOR_TESTS_AUTH_DIR) {
+		chmodSync(AUTH_DIR, 0o700);
+	} else if (process.platform !== "win32" && (info.mode & 0o077) !== 0) {
+		throw new Error(`${AUTH_DIR} already exists and is accessible to group or others; chmod 700 it or set ALBITOR_TESTS_AUTH_DIR to a new private path`);
+	}
 	return AUTH_DIR;
 }
 

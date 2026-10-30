@@ -13,7 +13,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   where a secrets scan walking the tree flagged it. `ALBITOR_TESTS_AUTH_DIR` overrides the directory;
   `helpers/storage-state.ts` gains `ensureAuthDir()`, which `auth.setup.ts` and the `auth` plugin's
   `auth.setup.ts.tmpl` call. Untagged until `test-playwright/v0.4.1` is cut; the catalogue pins the
-  previous version meanwhile.
+  previous version meanwhile. `ensureAuthDir()` chmods 0700 only a directory it created or the default
+  one; an existing override open to group or others is refused, never chmodded.
+- `auth` `0.7.1` (albitor-ltd/albitor#4177): `auth.setup.ts.tmpl` imports `ensureAuthDir` from
+  `helpers/storage-state.ts`, so it requires `test-playwright` >= 0.4.1. Release and pin the two
+  together.
 
 ### Added
 
