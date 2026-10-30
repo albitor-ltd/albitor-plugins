@@ -14,8 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   table and user pool deletion protection, runs `terraform destroy`, and a job named exactly
   `destroy receipt` emits `::notice title=destroy-receipt::{environment, commit, state}`. Released as
   `0.6.0` (albitor-ltd/albitor-plugins#106 added the receipt); the version is bumped and the module
-  refs point at `deploy-byoa-aws/v0.6.0`, and the catalogue still pins `0.5.0` until the tag exists and
-  it is regenerated.
+  refs point at `deploy-byoa-aws/v0.6.0`, and the catalogue pins `0.6.0` (tag `deploy-byoa-aws/v0.6.0`,
+  commit `c4ca02d`).
 
 - `deploy-hosted` `0.2.0` (albitor-ltd/albitor#4005, ADR-0099 section 3.1): `renders` gains
   `services.callable`; `api/internal/albitorsvc` (managed, standard library only), the thin SigV4
