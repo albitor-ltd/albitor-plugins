@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `test-playwright` `0.4.1` (albitor-ltd/albitor#4177, stream #3944): the suite's signed-in session is
+  written to a private (0700) directory under the OS temp dir, not to `web/tests/.auth/` in the tree,
+  where a secrets scan walking the tree flagged it. `ALBITOR_TESTS_AUTH_DIR` overrides the directory;
+  `helpers/storage-state.ts` gains `ensureAuthDir()`, which `auth.setup.ts` and the `auth` plugin's
+  `auth.setup.ts.tmpl` call. Untagged until `test-playwright/v0.4.1` is cut; the catalogue pins the
+  previous version meanwhile.
+
 ### Added
 
 - `deploy-byoa-aws` (albitor-ltd/albitor-plugins#105, albitor#4040 Delete app): a managed

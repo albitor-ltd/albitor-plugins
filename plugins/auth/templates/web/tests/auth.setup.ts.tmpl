@@ -1,9 +1,10 @@
-import { type Dirent, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { type Dirent, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { expect, type Locator, test as setup } from "@playwright/test";
 import {
   DEMO_STORAGE_STATE,
   EMPTY_STORAGE_STATE,
+  ensureAuthDir,
   hasDemoSession,
   WEB_ROOT,
 } from "./helpers/storage-state";
@@ -239,7 +240,7 @@ function runSignedOut(why: string): void {
 }
 
 setup("sign in once as the demo account", async ({ page }) => {
-  mkdirSync(dirname(DEMO_STORAGE_STATE), { recursive: true });
+  ensureAuthDir();
 
   if (!SIGN_IN_SCREEN_EXISTS) {
     const naming = sourceNamingSignInField();

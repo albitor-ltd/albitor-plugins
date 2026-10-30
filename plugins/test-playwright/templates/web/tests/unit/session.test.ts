@@ -1,12 +1,12 @@
 // Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { leftSignInRoute, readCredentials } from "../helpers/credentials.ts";
 import { parseVerification } from "../helpers/mailbox-contract.ts";
-import { DEMO_STORAGE_STATE, sessionSaved } from "../helpers/storage-state.ts";
+import { DEMO_STORAGE_STATE, sessionSaved, TESTS_DIR } from "../helpers/storage-state.ts";
 
 const dir = mkdtempSync(join(tmpdir(), "albitor-tests-"));
 const write = (name: string, body: string) => {
@@ -16,8 +16,48 @@ const write = (name: string, body: string) => {
 };
 
 describe("storage state", () => {
-	it("lives under tests/.auth whatever the working directory", () => {
-		assert.ok(DEMO_STORAGE_STATE.endsWith("/tests/.auth/demo.json"));
+	it("lives under the OS temp dir, outside the checkout, whatever the working directory", () => {
+		assert.ok(DEMO_STORAGE_STATE.startsWith(join(tmpdir(), "albitor-tests-auth-")));
+		assert.ok(!DEMO_STORAGE_STATE.startsWith(TESTS_DIR));
+		assert.ok(DEMO_STORAGE_STATE.endsWith("/demo.json"));
+	});
+	it("is named per checkout, so two apps never share a session", async () => {
+		const other = await import("../helpers/storage-state.ts?other-checkout");
+		assert.equal(other.DEMO_STORAGE_STATE, DEMO_STORAGE_STATE);
+	});
+	it("can be moved with ALBITOR_TESTS_AUTH_DIR", async () => {
+		const target = join(dir, "moved");
+		process.env.ALBITOR_TESTS_AUTH_DIR = target;
+		try {
+			const moved = await import("../helpers/storage-state.ts?moved");
+			assert.equal(moved.DEMO_STORAGE_STATE, join(target, "demo.json"));
+		} finally {
+			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+		}
+	});
+	it("creates the directory private to the user (0700), tightening one that already exists", async () => {
+		const target = join(dir, "private", "nested");
+		process.env.ALBITOR_TESTS_AUTH_DIR = target;
+		try {
+			const moved = await import("../helpers/storage-state.ts?private");
+			assert.equal(moved.ensureAuthDir(), target);
+			assert.equal(statSync(target).mode & 0o777, 0o700);
+			chmodSync(target, 0o755);
+			moved.ensureAuthDir();
+			assert.equal(statSync(target).mode & 0o777, 0o700);
+		} finally {
+			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+		}
+	});
+	it("refuses a session path that is not a directory", async () => {
+		const file = write("not-a-dir", "x");
+		process.env.ALBITOR_TESTS_AUTH_DIR = file;
+		try {
+			const moved = await import("../helpers/storage-state.ts?file");
+			assert.throws(() => moved.ensureAuthDir());
+		} finally {
+			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+		}
 	});
 	it("is a session only when it holds cookies or origins", () => {
 		assert.equal(sessionSaved(join(dir, "missing.json")), false);
