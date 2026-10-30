@@ -199,6 +199,9 @@ jobs:
             echo "::error::ALBITOR_APP_SECRETS_SEGMENT in $cfg is not a plain token" >&2
             exit 1
           fi
+          if [ -z "$segment" ]; then
+            echo "::warning::$cfg carries no ALBITOR_APP_SECRETS_SEGMENT: the API function is granted no access to the app's secrets" >&2
+          fi
           # The project name is the repository name, folded to what the stack accepts.
           project="$(printf '%s' "${GITHUB_REPOSITORY#*/}" | tr 'A-Z_.' 'a-z--' | tr -cd 'a-z0-9-' | cut -c1-31)"
           {

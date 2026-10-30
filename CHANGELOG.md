@@ -8,8 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
-- `deploy-byoa-aws` and `api-go` (albitor#4173, unreleased: the release PR bumps `deploy-byoa-aws` to `0.6.1` and `api-go` to `0.2.1`): the API function can read the app's own
-  SSM secrets. The `api` module takes `secrets_parameter_prefix` (empty grants nothing), grants
+- `deploy-byoa-aws` and `api-go` (albitor#4173; unreleased, the release PR bumps `deploy-byoa-aws`
+  to `0.6.1` and `api-go` to `0.2.1`): the API function can read the app's own SSM secrets. The `api` module takes `secrets_parameter_prefix` (empty grants nothing), grants
   `ssm:GetParameter` and `ssm:GetParameters` on it, sets `ALBITOR_SECRETS_PARAMETER_PREFIX` and outputs
   the role; the root stack derives the prefix from `secrets_segment`, which `deploy.yml` passes from
   `ALBITOR_APP_SECRETS_SEGMENT`. The `api-go` skill records the variable and the read convention.

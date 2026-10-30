@@ -375,6 +375,10 @@ run "the_secrets_segment_scopes_the_functions_secret_prefix" {
     condition     = local.secrets_parameter_prefix == "/albitor/apps/plantrain-app/secrets/"
     error_message = "the prefix is the platform's segment, not the project name"
   }
+  assert {
+    condition     = module.api[0].secrets_parameter_prefix == "/albitor/apps/plantrain-app/secrets/"
+    error_message = "the prefix reaches the api module"
+  }
 }
 
 run "no_secrets_segment_means_no_prefix" {

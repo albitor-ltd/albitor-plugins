@@ -27,3 +27,8 @@ output "role_arn" {
   description = "The function's execution role ARN."
   value       = aws_iam_role.lambda.arn
 }
+
+output "secrets_parameter_prefix" {
+  description = "The SSM path prefix the function may read its secrets under; empty when it has no grant."
+  value       = var.secrets_parameter_prefix
+}
