@@ -12,9 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `destroy.yml`, dispatch-only with `environment` and `ref` inputs, under the same OIDC deploy role and
   `deploy-<env>` concurrency group as `deploy.yml`. It empties the site bucket's object versions, lifts
   table and user pool deletion protection, runs `terraform destroy`, and a job named exactly
-  `destroy receipt` emits `::notice title=destroy-receipt::{environment, commit, state}`. Not yet
-  released: the version stays `0.5.0` until the release bump and tag (`0.6.0`), so the catalogue still
-  pins `0.5.0`.
+  `destroy receipt` emits `::notice title=destroy-receipt::{environment, commit, state}`. Released as
+  `0.6.0` (albitor-ltd/albitor-plugins#106 added the receipt); the version is bumped and the module
+  refs point at `deploy-byoa-aws/v0.6.0`, and the catalogue still pins `0.5.0` until the tag exists and
+  it is regenerated.
 
 - `deploy-hosted` `0.2.0` (albitor-ltd/albitor#4005, ADR-0099 section 3.1): `renders` gains
   `services.callable`; `api/internal/albitorsvc` (managed, standard library only), the thin SigV4
