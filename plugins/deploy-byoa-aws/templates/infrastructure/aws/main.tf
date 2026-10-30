@@ -35,6 +35,10 @@ locals {
 
   name_prefix = "${var.project_name}-${var.environment}"
 
+  # Where the platform wrote the app's secrets, from the segment in the deploy env, which
+  # is not the repository name. No segment, no grant: the function then has no secrets to read.
+  secrets_parameter_prefix = var.secrets_segment == "" ? "" : "/albitor/apps/${var.secrets_segment}/secrets/"
+
   # The built shell, read at plan time. A framework build inlines a bootstrap script into its HTML;
   # the site's CSP admits it by hash, never 'unsafe-inline', and the hash comes from the very files
   # about to be shipped, so it cannot go stale. Line endings are normalised first (the HTML parser
@@ -144,6 +148,8 @@ module "api" {
   binary      = local.api_binary
   environment = merge(module.data.table_env, try(module.auth[0].env, {}))
   table_arns  = module.data.table_arns
+
+  secrets_parameter_prefix = local.secrets_parameter_prefix
 }
 
 module "site" {

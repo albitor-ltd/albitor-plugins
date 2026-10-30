@@ -130,3 +130,14 @@ variable "previous_web_build_dir" {
   type        = string
   default     = null
 }
+
+variable "secrets_segment" {
+  description = "Set by the deploy workflow, not here: the path segment the platform wrote the app's secrets under (/albitor/apps/<segment>/secrets/), from ALBITOR_APP_SECRETS_SEGMENT in env/<environment>.deploy.env. It is not the repository name. Empty grants the API function no secrets."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9._-]{0,100}$", var.secrets_segment))
+    error_message = "secrets_segment must be a plain token of letters, digits and . _ -"
+  }
+}
