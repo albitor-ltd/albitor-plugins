@@ -163,3 +163,36 @@ run "an_adapter_layer_that_is_not_a_Lambda_layer_ARN_is_refused" {
   }
   expect_failures = [var.lambda_adapter_layer_arn]
 }
+
+run "no_secrets_prefix_grants_nothing_and_sets_no_env" {
+  command = plan
+
+  assert {
+    condition     = length(aws_iam_role_policy.secrets) == 0 && !contains(keys(aws_lambda_function.api.environment[0].variables), "ALBITOR_SECRETS_PARAMETER_PREFIX")
+    error_message = "an empty secrets_parameter_prefix adds no policy and no environment variable"
+  }
+}
+
+run "a_secrets_prefix_is_granted_and_handed_to_the_function" {
+  command = plan
+  variables {
+    secrets_parameter_prefix = "/albitor/apps/plantrain/secrets/"
+  }
+
+  assert {
+    condition     = length(aws_iam_role_policy.secrets) == 1
+    error_message = "the role gets a secrets policy"
+  }
+  assert {
+    condition     = aws_lambda_function.api.environment[0].variables["ALBITOR_SECRETS_PARAMETER_PREFIX"] == "/albitor/apps/plantrain/secrets/"
+    error_message = "the function is handed the prefix the grant names"
+  }
+}
+
+run "a_malformed_secrets_prefix_is_refused" {
+  command = plan
+  variables {
+    secrets_parameter_prefix = "albitor/apps/x"
+  }
+  expect_failures = [var.secrets_parameter_prefix]
+}

@@ -17,3 +17,13 @@ output "api_host" {
   description = "The API Gateway host name, the CloudFront origin for /api/*."
   value       = "${aws_apigatewayv2_api.api.id}.execute-api.${var.region}.amazonaws.com"
 }
+
+output "role_name" {
+  description = "The function's execution role name."
+  value       = aws_iam_role.lambda.name
+}
+
+output "role_arn" {
+  description = "The function's execution role ARN."
+  value       = aws_iam_role.lambda.arn
+}

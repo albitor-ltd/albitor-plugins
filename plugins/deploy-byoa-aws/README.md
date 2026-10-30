@@ -98,7 +98,13 @@ a permanent password and no email. The passwords are Albitor's: it mints them an
 app's own secret store (`/albitor/apps/<segment>/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD` and
 `ALBITOR_VERIFIER_ACCOUNT_PASSWORD`), where the deploy role reads them. `<segment>` is the app's slug,
 which Albitor writes into `env/<environment>.deploy.env` as `ALBITOR_APP_SECRETS_SEGMENT`: it is not
-the repository name, so the seed never guesses it. Without that line the seed fails the deploy
+the repository name, so the seed never guesses it. The same segment scopes the API function's read of the app's own secrets: `deploy.yml` passes it to
+the stack as `TF_VAR_secrets_segment`, and the `api` module grants its role `ssm:GetParameter` and
+`ssm:GetParameters` on `/albitor/apps/<segment>/secrets/*` and sets the function's
+`ALBITOR_SECRETS_PARAMETER_PREFIX` to that prefix. The platform seals them with the AWS-managed SSM
+key, so no `kms:Decrypt` is granted (the module's optional `secrets_kms_key_arn` adds one for a
+customer-managed key). No segment, no grant.
+Without that line the seed fails the deploy
 (`seed_status=failed:no_secrets_segment`) rather than skipping. Nothing here is in the app's
 Terraform or its function: the function holds no user-pool admin action. An app with no
 `services.auth` seeds nothing. A promotion to another environment seeds nothing, so a known account

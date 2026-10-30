@@ -44,6 +44,10 @@ When the manifest declares `services.auth.groups`, the same seed adds both accou
 declared group an account of its own (`<role>@albitor-role.invalid`, that group alone), so a spec
 signs in as one role through `auth.signInAs(role)`. The receipt's `seeded_roles` reports the roles
 seeded. Never ask a person to add accounts to groups.
+The API function can read the app's own secrets: the stack grants its role `ssm:GetParameter` and
+`ssm:GetParameters` on `/albitor/apps/<segment>/secrets/*` (the same segment) and sets
+`ALBITOR_SECRETS_PARAMETER_PREFIX` to that prefix. Read secrets through it (see the `api-go` skill);
+never add an IAM policy or a `.tf` file of your own for it.
 Inviting needs write access to the repository; `docs/inviting-people.md` is delivered at handover.
 See the README.
 

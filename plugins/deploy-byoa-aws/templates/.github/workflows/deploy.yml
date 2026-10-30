@@ -284,6 +284,7 @@ jobs:
           TF_VAR_project_name: ${{ steps.identity.outputs.project }}
           TF_VAR_environment: ${{ env.ENVIRONMENT }}
           TF_VAR_aws_region: ${{ steps.identity.outputs.region }}
+          TF_VAR_secrets_segment: ${{ steps.identity.outputs.secrets_segment }}
           TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}
         run: terraform apply -input=false -auto-approve -lock-timeout=300s
         working-directory: infrastructure/aws

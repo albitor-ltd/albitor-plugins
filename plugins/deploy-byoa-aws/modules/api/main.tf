@@ -1,4 +1,12 @@
+data "aws_caller_identity" "current" {}
+
 locals {
+  # Where the app's secrets are read from, handed to the function so the code and the grant below
+  # name the same path. Empty prefix: no env var and no grant.
+  secrets_env = var.secrets_parameter_prefix == "" ? {} : {
+    ALBITOR_SECRETS_PARAMETER_PREFIX = var.secrets_parameter_prefix
+  }
+
   # The official AWS Lambda Web Adapter layer (publisher account 753240598075), x86_64, at a pinned
   # version. The API is a plain net/http server; the adapter forwards API Gateway events to it.
   adapter_layer_arn = coalesce(
@@ -8,7 +16,7 @@ locals {
 
   # The adapter's own settings come last, so nothing the manifest or the data module passes can
   # override them (the variable also refuses those names).
-  environment = merge(var.environment, {
+  environment = merge(var.environment, local.secrets_env, {
     PORT                         = "8080"
     AWS_LWA_PORT                 = "8080"
     AWS_LWA_READINESS_CHECK_PATH = "/api/health"
@@ -71,6 +79,37 @@ resource "aws_iam_role_policy" "tables" {
   name   = "tables"
   role   = aws_iam_role.lambda.id
   policy = data.aws_iam_policy_document.tables[0].json
+}
+
+# The platform writes each app secret as an SSM SecureString at <prefix><NAME> (ADR-0057). The
+# function may read exactly those parameters and nothing wider: no GetParametersByPath, no write.
+# Parameters sealed with the AWS-managed alias/aws/ssm key need no grant of their own (its key policy
+# admits the account's principals through SSM); a customer-managed key needs kms:Decrypt on it.
+data "aws_iam_policy_document" "secrets" {
+  count = var.secrets_parameter_prefix == "" ? 0 : 1
+
+  statement {
+    sid       = "SecretsRead"
+    actions   = ["ssm:GetParameter", "ssm:GetParameters"]
+    resources = ["arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter${var.secrets_parameter_prefix}*"]
+  }
+
+  dynamic "statement" {
+    for_each = var.secrets_kms_key_arn == null ? [] : [var.secrets_kms_key_arn]
+    content {
+      sid       = "SecretsDecrypt"
+      actions   = ["kms:Decrypt"]
+      resources = [statement.value]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "secrets" {
+  count = var.secrets_parameter_prefix == "" ? 0 : 1
+
+  name   = "secrets"
+  role   = aws_iam_role.lambda.id
+  policy = data.aws_iam_policy_document.secrets[0].json
 }
 
 resource "aws_cloudwatch_log_group" "api" {
