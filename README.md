@@ -185,7 +185,9 @@ one that is not is refused), and `tests/compose/certify_test.go`: the platform's
 harness over every socket plugin and every certified profile (default, byoa-aws), with the deploy
 target required to declare `renders`, the composed `albitor.yaml` checked against it, and
 `terraform init -backend=false` plus `terraform validate` over each composed Terraform root, with no
-cloud credential (albitor-ltd/albitor#3333). Run it on the commit before tagging a release
+cloud credential (albitor-ltd/albitor#3333). `tests/compose/policy_packs_test.go` composes the
+default selection with each built-in policy pack mandated (Internal Tool clean; GDS refuses only a
+visual-language provider; albitor-ltd/albitor#4156). Run it on the commit before tagging a release
 (`<plugin>/v<semver>`).
 
 ## Third parties
