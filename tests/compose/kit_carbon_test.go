@@ -90,9 +90,9 @@ func TestKitCarbonFileModes(t *testing.T) {
 	for p, want := range map[string]string{
 		"web/vitest.config.ts":              "example",
 		"web/src/lib/kit/vitest.setup.ts":   "example",
-		"web/src/lib/kit/contrast.test.ts":  "managed",
-		"web/src/lib/kit/kit.test.ts":       "managed",
-		"web/src/lib/kit/dialog.test.ts":    "managed",
+		"web/src/lib/kit/contrast.test.ts":  "example",
+		"web/src/lib/kit/kit.test.ts":       "example",
+		"web/src/lib/kit/dialog.test.ts":    "example",
 		"web/src/lib/kit/shell.test.ts":     "example",
 		"web/src/lib/kit/Showcase.svelte":   "example",
 		"web/src/lib/kit/AppShell.svelte":   "example",

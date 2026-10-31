@@ -239,14 +239,8 @@ func TestManagedAndExampleModes(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	// A slot template is recorded managed by the composer; every other plugin file is an example.
-	managed := []string{"web/src/lib/shell/nav.generated.ts"}
-	example := []string{"web/src/routes/+layout.svelte", "web/vite.config.ts", "web/src/routes/+error.svelte", "web/src/routes/+page.svelte", "web/package.json", "web/src/routes/nav.ts"}
-	for _, p := range managed {
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed, got %q", p, modes[p])
-		}
-	}
+	// The composer seeds every file once (ADR-0103), a slot template included: nothing is managed.
+	example := []string{"web/src/routes/+layout.svelte", "web/vite.config.ts", "web/src/routes/+error.svelte", "web/src/routes/+page.svelte", "web/package.json", "web/src/lib/shell/nav.generated.ts", "web/src/routes/nav.ts"}
 	for _, p := range example {
 		if modes[p] != "example" {
 			t.Errorf("%s should be example, got %q", p, modes[p])
