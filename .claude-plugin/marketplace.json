@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.3.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "deploy-hosted/v0.3.1",
+        "sha": "eb0b426902e038539dae8bb4be3bf149ba86338d"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
