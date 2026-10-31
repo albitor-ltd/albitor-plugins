@@ -360,7 +360,7 @@ func TestAuthPluginsStayInTheirDirectories(t *testing.T) {
 	allowed := []string{
 		"api/internal/identity/", "api/internal/shell/identity_", "web/src/lib/auth/",
 		"web/src/lib/shell/scope.d/auth-cognito.ts", "web/src/routes/(auth)/", "web/tests/journeys/sign-in.spec.ts",
-		"web/tests/auth/provider.ts",
+		"web/tests/auth/provider.ts", "api/openapi.yaml",
 	}
 	for _, name := range []string{"auth-cognito", "auth-none"} {
 		p := loadDir(t, authDir(t, name))

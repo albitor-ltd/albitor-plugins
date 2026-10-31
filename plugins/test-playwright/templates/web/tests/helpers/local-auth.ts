@@ -41,7 +41,9 @@ export type LocalTokens = {
 export async function localIssuerRunning(request: APIRequestContext): Promise<boolean> {
   try {
     const res = await request.get(`${LOCAL_AUTH_PATH}/identities`);
-    return res.ok();
+    // A single-page app answers every unknown path 200 with its HTML shell; only the issuer
+    // answers this one with JSON.
+    return res.ok() && (res.headers()["content-type"] ?? "").includes("json");
   } catch {
     return false;
   }
@@ -71,6 +73,24 @@ export async function localTokens(request: APIRequestContext, identity: LocalIde
 // The header an API call carries to act as these tokens' identity.
 export function authHeader(tokens: LocalTokens): Record<string, string> {
   return { Authorization: `Bearer ${tokens.idToken}` };
+}
+
+// The session cookies a signed-in browser carries, for a local run. The auth plugins read the
+// session from an HttpOnly cookie when no bearer is sent: auth-cognito names it `session`,
+// auth-hosted `__Host-session`. Setting both is harmless (the one a plugin does not read is
+// ignored) and keeps this helper from knowing which plugin is composed. Chromium treats
+// http://localhost as secure, so the Secure attribute the plugins require is accepted there.
+export function localSessionCookies(tokens: LocalTokens, baseURL: string) {
+  return ["session", "__Host-session"].map((name) => ({
+    name,
+    value: tokens.idToken,
+    // domain and path, not url: Chromium refuses a `__Host-` cookie given by url over http.
+    domain: new URL(baseURL).hostname,
+    path: "/",
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict" as const,
+  }));
 }
 
 // attachAuth adds `auth` to the app's own fetch and XHR calls to `origin`, by a route that checks

@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Seeds boot as shipped (albitor-ltd/albitor#4228; patch releases `test-playwright` `0.5.1`, `api-go`
   `0.3.1`, `auth-cognito` `0.5.1`, `auth-hosted` `0.3.1`; untagged until released):
+  the seeded `auth.setup.ts` signs in at api-go's local issuer (alice's token as the session cookie) in a local run, since
+  the auth plugins answer 501 on `/api/auth/sign-in` there; the deployed path is unchanged.
   `test-playwright`'s Playwright config installs `web/` dependencies (`npm ci --include=dev`, then
   `npm install --include=dev`) when `node_modules` is absent before `npm run local`, which exited
   127 on a fresh checkout. `auth-cognito` and `auth-hosted` now seed `api/openapi.yaml` with the

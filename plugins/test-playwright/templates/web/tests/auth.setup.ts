@@ -13,6 +13,7 @@ import {
   SIGN_IN_STEP_MS,
 } from "./helpers/browser-signin";
 import { readCredentials } from "./helpers/credentials";
+import { localIssuerRunning, localSessionCookies, localTokens } from "./helpers/local-auth";
 import { declaresServicesAuth, signInRequired } from "./helpers/hosted-signin";
 import {
   DEMO_STORAGE_STATE,
@@ -193,8 +194,29 @@ function runSignedOut(why: string): void {
   console.log(`auth.setup: ${why}, so the suite runs signed out and specs that need a session skip themselves`);
   writeFileSync(DEMO_STORAGE_STATE, JSON.stringify(EMPTY_STORAGE_STATE));
 }
-setup("sign in once as the demo account", async ({ page }) => {
+setup("sign in once as the demo account", async ({ page, request }) => {
   ensureAuthDir();
+
+  // A LOCAL RUN SIGNS IN AT THE LOCAL ISSUER, NOT AT A FORM. The auth plugins answer 501 on
+  // /api/auth/sign-in locally (there is no user pool), and no demo credential is provisioned for a
+  // local run. api-go's issuer (ALBITOR_LOCAL_AUTH=1) mints a token for a named identity instead:
+  // the setup takes alice's, saves it as the session cookie, and proves the API accepts it. A
+  // deployed run (PLAYWRIGHT_API_ORIGIN, ALBITOR_JOURNEY_BASE_URL) never takes this branch: there
+  // the platform supplies the demo credential and the browser signs in as below.
+  if (!browsesDeployedApp && (await localIssuerRunning(request))) {
+    const tokens = await localTokens(request, "alice");
+    await page.context().addCookies(localSessionCookies(tokens, appBaseURL()));
+    const me = await page.request.get("/api/me");
+    // An API with no /api/me has no sign-in to be signed in to (the issuer runs in every api-go
+    // local run): fall through to the signed-out handling below rather than save a useless cookie.
+    if (me.status() !== 404) {
+      expect(me.status(), "the local issuer's token was not accepted by GET /api/me").toBe(200);
+      writeFileSync(DEMO_STORAGE_STATE, JSON.stringify(await page.context().storageState()));
+      expect(hasDemoSession(), "the local sign-in saved no session").toBe(true);
+      return;
+    }
+    await page.context().clearCookies();
+  }
 
   // Strict once there is any evidence the app signs in: see signInRequired. A password is the
   // strongest, since only an app with a user pool is given one. Decided per run, so nothing has to
