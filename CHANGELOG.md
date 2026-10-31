@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- `api-go` and `test-playwright` (albitor-ltd/albitor#4175, stream #3944; unreleased, the release PR
+  bumps `api-go` to `0.2.1`, with the #4173 change, and `test-playwright` to `0.4.2`): the `api-go`
+  skill forbids a nil slice for any array field (build with `make`, clone with `make` and `copy`,
+  never `append([]T(nil), ...)`), after a build shipped `defects: null` against an `openapi.yaml`
+  array; the `test-playwright` skill forbids either-branch assertions, so a spec asserts exactly
+  one outcome.
+
 - `test-playwright` `0.4.1` (albitor-ltd/albitor#4177, stream #3944): the suite's signed-in session is
   written to a private (0700) directory under the OS temp dir, not to `web/tests/.auth/` in the tree,
   where a secrets scan walking the tree flagged it. `ALBITOR_TESTS_AUTH_DIR` overrides the directory;

@@ -44,6 +44,12 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   and AA (see the `wcag-22-aa` skill).
 - **Find elements by stable test ids** (`getByTestId`), role or label. Never by CSS class, layout or
   position.
+- **A spec asserts exactly one outcome. No either-branch assertions.** Never branch on what an
+  external supplier or any other uncontrolled answer returns (`if (found) {...} else {...}`, a
+  try/catch that passes either way, a locator waiting for one of two results): the test is green
+  whichever happens and proves nothing. Fix the answer in the fixtures and assert the one outcome it
+  must give. Specs call no supplier; the platform walks each supplier path once against the real
+  supplier when the build ends.
 - **Seed through the app's API with `fixtureScope`**, which deletes exactly what the test created
   and fails the test if something is left behind. Never write to a database, and never put records in
   the app's code.
