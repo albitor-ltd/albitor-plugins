@@ -72,6 +72,8 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth-hosted does not compose in the default shell: %v", composer.Problems(err))
 	}
+
+	requireOneContractWithMe(t, res)
 	providers := string(res.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{"const { requireSession } = scope;", "checkGuards([requireSession])"} {
 		if !strings.Contains(providers, want) {
@@ -216,7 +218,7 @@ func TestAuthHostedStaysInItsDirectories(t *testing.T) {
 	allowed := []string{
 		"api/internal/identity/", "api/internal/shell/identity_", "web/src/lib/auth/",
 		"web/src/lib/shell/scope.d/auth-hosted.ts", "web/src/routes/(auth)/", "web/tests/journeys/sign-in.spec.ts",
-		"web/tests/auth/provider.ts",
+		"web/tests/auth/provider.ts", "api/openapi.yaml",
 	}
 	p := loadDir(t, authDir(t, "auth-hosted"))
 	for _, f := range p.Manifest.Contributes.Files {

@@ -14,7 +14,8 @@ provides, requires and contributes, and the platform composer renders it into a 
 | `api/internal/apikit/**` | starting point | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
 | `api/internal/localauth/**` | starting point | The Go side of the local run contract: the in-process test issuer |
 | `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)`, where product handlers are registered |
-| `api/openapi.yaml`, `api/README.md`, `api/.gitignore` | example | The API contract and notes |
+| `api/openapi.yaml` | example | The API contract; seeded only with `auth-none` (the other auth plugins seed their own copy plus `GET /api/me`, since the composer has no contract slot) |
+| `api/README.md`, `api/.gitignore` | example | Notes |
 
 It contributes the `gomod` entry for `/api` to `repo.dependabot`, the `build.api` and `http` blocks
 of `albitor.yaml`, and the `api-go` skill. It requires `deploy-target@1` because that socket hosts

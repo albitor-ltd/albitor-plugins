@@ -21,6 +21,7 @@ password reset, an invited person's new password and any MFA.
 | `api/internal/shell/identity_verify.go` | starting point | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `/api/auth/*` |
 | `api/internal/shell/identity_token.go` | starting point | RS256 check against the pool's JWKS, standard library only |
 | `api/internal/shell/identity_hosted.go` | starting point | The environment, login, callback, refresh, sign-out, account deletion, the sign-up domain rule, the cookies |
+| `api/openapi.yaml` | starting point | api-go's contract plus the `GET /api/me` entry (200 identity, 401 signed out) |
 | `web/src/lib/auth/` | starting point | `getSession()`, the `requireSession` route guard, the API calls, and their tests |
 | `web/src/lib/shell/scope.d/auth-hosted.ts` | starting point | Exports the name `web.route-guard` resolves to |
 | `web/src/routes/(auth)/` | example | Sign-in (redirect), sign-out, account, delete-account confirmation and refusal screens, written against the `component-kit@2` exports (`Button`) |
@@ -30,6 +31,9 @@ It requires `api-runtime@1`, `web-framework@1`, `component-kit@2` and `deploy-ta
 target realises the pool from `services.auth`). It contributes `services.auth` (`provider: cognito`,
 `posture: private`, `sign_up: open`) and no Terraform. The module stays stdlib-only, because
 `api/go.mod` is `api-go`'s.
+
+Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
+app-owned): remove its `/api/me` entry yourself if the app no longer serves it.
 
 ## The environment
 

@@ -36,8 +36,15 @@ const bootsNothing = journeyBaseURL !== "" || localBaseURL !== "";
 //   api/  `ALBITOR_LOCAL=1 ALBITOR_LOCAL_AUTH=1 go run .`  in-process store, local issuer (api-runtime)
 //   web/  `npm run local`                                  builds, serves build/, forwards /api (web-framework)
 //
+// A fresh checkout has no web/node_modules, and `npm run local` then dies with `vite: not found`
+// (exit 127). The web command installs first when the build tool is not installed; `--include=dev` because
+// the build tools are devDependencies, and a plain `npm install` falls back when the lockfile has
+// drifted from package.json (composition adds dependencies).
+
 // The API half is skipped when the app has no api/ (a web-only profile) or when the API is
 // deployed. Each server's own timeout covers a cold build.
+const WEB_COMMAND =
+	"if [ ! -x node_modules/.bin/vite ]; then npm ci --include=dev || npm install --include=dev; fi && npm run local";
 const servers = [];
 if (!bootsNothing && !apiOrigin && existsSync(resolve(WEB_ROOT, "..", "api", "main.go"))) {
 	servers.push({
@@ -51,11 +58,11 @@ if (!bootsNothing && !apiOrigin && existsSync(resolve(WEB_ROOT, "..", "api", "ma
 }
 if (!bootsNothing) {
 	servers.push({
-		command: "npm run local",
+		command: WEB_COMMAND,
 		cwd: WEB_ROOT,
 		url: `http://localhost:${webPort}/healthz`,
 		reuseExistingServer: !isCI,
-		timeout: 180_000,
+		timeout: 300_000,
 		env: { PORT: webPort, APP_API_ORIGIN: apiOrigin || `http://127.0.0.1:${apiPort}` },
 	});
 }

@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "test-playwright",
   "displayName": "Playwright journey harness",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
   "author": {
     "name": "Albitor Ltd",

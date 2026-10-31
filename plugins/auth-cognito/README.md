@@ -12,6 +12,7 @@ provides, requires and contributes, and the platform composer renders it into a 
 | `api/internal/shell/identity_verify.go` | starting point | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `POST /api/auth/*` |
 | `api/internal/shell/identity_token.go` | starting point | RS256 check against the pool's JWKS, standard library only |
 | `api/internal/shell/identity_cognito.go` | starting point | Pool from the environment, the sign-in calls, the session cookies |
+| `api/openapi.yaml` | starting point | api-go's contract plus the `GET /api/me` entry (200 identity, 401 signed out) |
 | `web/src/lib/auth/` | starting point | `getSession()`, the `requireSession` route guard, the sign-in client, and their tests |
 | `web/src/lib/shell/scope.d/auth-cognito.ts` | starting point | Exports the name `web.route-guard` resolves to |
 | `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset and sign-out screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
@@ -22,6 +23,9 @@ contributes `services.auth` (`provider: cognito`, `posture: private`, `sign_up: 
 Terraform: the deploy target realises the pool and hands the function `AUTH_USER_POOL_ID`,
 `AUTH_CLIENT_ID` and `AWS_REGION`. The module stays stdlib-only, because `api/go.mod` is `api-go`'s
 (ADR-0090 amendment 3).
+
+Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
+app-owned): remove its `/api/me` entry yourself if the app no longer serves it.
 
 ## Behaviour worth knowing
 

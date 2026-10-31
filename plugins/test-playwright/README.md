@@ -47,7 +47,8 @@ The harness is its own npm package (`web/tests/package.json` with a lockfile). T
 merge dependencies into `web/package.json` yet (ADR-0090 amendment of 2026-10-14, item 7), and the
 web-framework plugin owns that file, so the harness resolves `@playwright/test` and
 `@axe-core/playwright` from `web/tests/node_modules`. The Playwright config lives in
-`web/tests/playwright.config.ts`, not `web/`.
+`web/tests/playwright.config.ts`, not `web/`. The web server it boots installs `web/`'s
+dependencies first when `web/node_modules` is absent, so the suite runs on a fresh checkout.
 
 ## Who may change what
 
