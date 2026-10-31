@@ -18,6 +18,18 @@ fresh() {
     mkdir -p "$work/r/plugins/$(basename "$d")/.claude-plugin"
     cp "$d.claude-plugin/plugin.json" "$work/r/plugins/$(basename "$d")/.claude-plugin/"
   done
+  # Pin each catalogued plugin to its catalogued version, so the cases below do not depend on
+  # a version bump (a pending release) in the pull request under test.
+  while IFS=$'\t' read -r n v; do
+    [[ -f "$work/r/plugins/$n/.claude-plugin/plugin.json" ]] || continue
+    edit "$work/r/plugins/$n/.claude-plugin/plugin.json" ".version = \"$v\""
+  done < <(jq -r '.plugins[] | [.name, (.source.ref | sub("^.*/v"; ""))] | @tsv' "$root/.claude-plugin/marketplace.json")
+}
+
+expect_err() { # text, description, command...
+  local text="$1"
+  expect_fail "${@:2}"
+  grep -q -- "$text" "$work/out" || { echo "FAIL: ${2} failed without '$text'" >&2; fail=1; }
 }
 
 expect_fail() { # description, command...
@@ -100,6 +112,42 @@ printf 'a { color: #000; border: 1px solid #333; background: #767676 }\nid = "in
 for ref in '# see #3022' '# ADR-0085' '# albitor#3178' '# albitor-ltd/albitor issue'; do
   printf '%s\n' "$ref" >"$work/r/plugins/auth/templates/ref.sh"
   expect_fail "validate-plugins.sh with a template citing '$ref'" "$work/r/scripts/validate-plugins.sh"
+done
+
+# 10. A pending release (version ahead of the catalogue, new tag not cut) passes --check with a note.
+fresh
+edit "$work/r/plugins/auth/.claude-plugin/plugin.json" '.version = "99.0.0"'
+"$work/r/scripts/build-catalogue.sh" --check >"$work/out" 2>&1 || { echo "FAIL: a pending release failed --check" >&2; fail=1; }
+grep -q 'auth/v99.0.0' "$work/out" || { echo "FAIL: no note naming the pending tag" >&2; fail=1; }
+# ...but generation must still refuse to pin it.
+expect_err "does not exist" "build-catalogue.sh generating a pending release" "$work/r/scripts/build-catalogue.sh" --out "$work/cat.json"
+# ...and a pending release does not excuse a changed committed entry.
+edit "$work/r/.claude-plugin/marketplace.json" '(.plugins[] | select(.name == "auth") | .description) = "drifted"'
+expect_fail "build-catalogue.sh --check with a pending release and a drifted entry" "$work/r/scripts/build-catalogue.sh" --check
+
+# 11. A pending release whose catalogued sha has moved or whose catalogued tag is gone is rejected.
+fresh
+edit "$work/r/plugins/auth/.claude-plugin/plugin.json" '.version = "99.0.0"'
+edit "$work/r/.claude-plugin/marketplace.json" '(.plugins[] | select(.name == "auth") | .source.sha) = "0000000000000000000000000000000000000001"'
+expect_err "does not resolve to" "build-catalogue.sh --check with a pending release and a moved catalogued sha" "$work/r/scripts/build-catalogue.sh" --check
+fresh
+edit "$work/r/plugins/auth/.claude-plugin/plugin.json" '.version = "99.0.0"'
+# A tag repo holding every release tag except auth's catalogued one.
+git clone -q --bare "$root" "$work/missing-one"
+git -C "$work/missing-one" tag -d "$(jq -r '.plugins[] | select(.name == "auth") | .source.ref' "$root/.claude-plugin/marketplace.json")" >/dev/null
+CATALOGUE_TAG_REPO="$work/missing-one" expect_err "does not resolve to" "build-catalogue.sh --check with a pending release and the catalogued tag missing" \
+  "$work/r/scripts/build-catalogue.sh" --check
+
+# 12. A version behind the catalogue, with no tag, is an error and not a pending release.
+fresh
+edit "$work/r/plugins/auth/.claude-plugin/plugin.json" '.version = "0.0.1"'
+expect_err "does not exist" "build-catalogue.sh --check with a version behind the catalogue" "$work/r/scripts/build-catalogue.sh" --check
+
+# 13. A version that is not strict semver is never a pending release.
+for bad in abc 99.0.0-rc1; do
+  fresh
+  edit "$work/r/plugins/auth/.claude-plugin/plugin.json" ".version = \"$bad\""
+  expect_err "does not exist" "build-catalogue.sh --check with untagged version '$bad'" "$work/r/scripts/build-catalogue.sh" --check
 done
 
 exit "$fail"

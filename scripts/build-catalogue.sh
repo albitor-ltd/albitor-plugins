@@ -9,7 +9,10 @@
 #          tags locally; CATALOGUE_TAG_REPO names another checkout to resolve them in.
 # legacy   each plugin points at its old albitor-plugin-<name> repo and ref from
 #          catalogue/legacy-pins.json.
-# --check  write nothing; exit 1 if the output differs from the committed catalogue.
+# --check  write nothing; exit 1 if the output differs from the committed catalogue. A catalogued
+#          plugin whose plugin.json version is ahead of the catalogued ref and whose new tag does
+#          not exist yet is a pending release: its committed entry is kept (its own tag and sha
+#          must still resolve) and a note names the pending tag.
 #
 # Catalogue-facing metadata (description, category, keywords, license) lives in
 # catalogue/metadata.json; the key order there is the catalogue order. A plugin with no legacy pin
@@ -26,7 +29,7 @@ while [[ $# -gt 0 ]]; do
     --mode) mode="${2:?--mode needs a value}"; shift 2 ;;
     --check) check=1; shift ;;
     --out) out="${2:?--out needs a value}"; shift 2 ;;
-    -h | --help) sed -n '2,15p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h | --help) sed -n '2,18p' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -54,6 +57,28 @@ if [[ "$mode" == monorepo ]]; then
     # silent omission.
     if ! sha="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$name/v$version^{commit}")"; then
       if jq -e --arg n "$name" 'any(.plugins[]?; .name == $n)' "$root/.claude-plugin/marketplace.json" >/dev/null 2>&1; then
+        # Pending release (--check only): the version is ahead of the catalogued ref and its tag
+        # is not cut yet. Keep the committed entry, provided its own tag and sha still resolve.
+        # Generation never takes this path: it must not pin a tag that does not exist.
+        if [[ $check -eq 1 ]]; then
+          cat_ref="$(jq -r --arg n "$name" '.plugins[] | select(.name == $n) | .source.ref // ""' "$root/.claude-plugin/marketplace.json" | head -n1)"
+          cat_sha="$(jq -r --arg n "$name" '.plugins[] | select(.name == $n) | .source.sha // ""' "$root/.claude-plugin/marketplace.json" | head -n1)"
+          cat_version="${cat_ref#"$name"/v}"
+          semver='^[0-9]+\.[0-9]+\.[0-9]+$'
+          if [[ "$cat_ref" == "$name/v"* && "$version" =~ $semver && "$cat_version" =~ $semver &&
+            "$cat_version" != "$version" &&
+            "$(printf '%s\n%s\n' "$cat_version" "$version" | sort -V | tail -n1)" == "$version" ]]; then
+            cat_actual="$(git -C "${CATALOGUE_TAG_REPO:-$root}" rev-parse --verify --quiet "refs/tags/$cat_ref^{commit}" || true)"
+            if [[ -z "$cat_actual" || "$cat_actual" != "$cat_sha" ]]; then
+              echo "error: $name is pending $name/v$version but its catalogued tag $cat_ref does not resolve to $cat_sha" >&2
+              exit 1
+            fi
+            echo "note: $name is a pending release: $name/v$version is not tagged yet, catalogue keeps $cat_ref" >&2
+            versions="$(jq --arg n "$name" --arg v "$cat_version" '. + {($n): $v}' <<<"$versions")"
+            shas="$(jq --arg n "$name" --arg s "$cat_sha" '. + {($n): $s}' <<<"$shas")"
+            continue
+          fi
+        fi
         echo "error: tag $name/v$version does not exist (tag the release before regenerating)" >&2
         exit 1
       fi

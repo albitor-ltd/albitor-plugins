@@ -66,12 +66,15 @@ The old `visual-*` packs are not migrated; they are retired (albitor-ltd/albitor
 Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` is the `version` in
 `plugins/<name>/.claude-plugin/plugin.json` (for example `auth/v0.7.0`).
 
-1. Change the plugin and bump `version` in its `plugin.json` in the same PR.
+1. Change the plugin and bump `version` in its `plugin.json` in the same PR. The catalogue is not
+   touched in this PR: `--check` treats a catalogued plugin whose version is ahead of its
+   catalogued ref, with the new tag not yet cut, as a **pending release**. It keeps the committed
+   entry (whose own tag and sha must still resolve), prints a note naming the pending tag and passes.
 2. Merge to `main` once `just ci` passes, plus `just compose <albitor checkout>` for template, manifest or composer-contract changes.
 3. Tag the merge commit: `git tag auth/v0.7.0 && git push origin auth/v0.7.0`.
 4. In a follow-up PR, regenerate the catalogue (`scripts/build-catalogue.sh`, after `git fetch --tags`) so it
-   pins the new tag and its commit. Only tag-then-regenerate keeps the catalogue from pointing at a tag that does
-   not exist yet.
+   pins the new tag and its commit. Generation never pins a tag that does not exist, so it fails
+   until step 3 is done.
 
 ## The catalogue
 
@@ -90,7 +93,9 @@ Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` 
   `sha` from the local tag, so a tag that moves makes `--check` fail and a missing tag fails
   generation. A plugin not yet in the committed catalogue and with no tag is left out (with a note)
   until its first tag, so a new plugin's pull request can pass `--check`; one already catalogued
-  whose tag is missing is an error. Albitor's pin audit joins entries on
+  whose catalogued tag is missing is an error, and so is one whose version is behind or equal to
+  the catalogue with no tag. A pending release (see above) is accepted by `--check` only, and only
+  when both versions are strict `X.Y.Z` and the plugin's is newer; anything else is an error. Albitor's pin audit joins entries on
   repository and subdirectory.
 - `legacy`: `github` sources pointing at the old `albitor-plugin-<name>` repositories and tags
   (`catalogue/legacy-pins.json`). Kept only so the old shape
