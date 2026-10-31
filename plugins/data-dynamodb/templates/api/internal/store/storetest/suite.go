@@ -295,9 +295,9 @@ func caseQueryOrder(t *testing.T, s store.Store) {
 func caseQueryPrefix(t *testing.T, s store.Store) {
 	pk := partition(t, "pre")
 	// Wildcard-looking characters are literal: a prefix is not a pattern.
-	seed(t, s, pk, []string{"inv#001", "inv#002", "inv%", "inv_x", "ord#001", "in"})
+	seed(t, s, pk, []string{"inv#a1", "inv#a2", "inv%", "inv_x", "ord#a1", "in"})
 	page, err := s.Query(ctx(t), store.Query{PK: pk, SKPrefix: "inv#", Limit: 100})
-	if err != nil || !sameStrings(skOf(page.Items), []string{"inv#001", "inv#002"}) {
+	if err != nil || !sameStrings(skOf(page.Items), []string{"inv#a1", "inv#a2"}) {
 		t.Fatalf("prefix inv# = %v err %v", skOf(page.Items), err)
 	}
 	page, err = s.Query(ctx(t), store.Query{PK: pk, SKPrefix: "inv%", Limit: 100})

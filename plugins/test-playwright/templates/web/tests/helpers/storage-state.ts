@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright).
+// Starting point (test-playwright).
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync } from "node:fs";
 import { tmpdir, userInfo } from "node:os";
@@ -22,14 +22,14 @@ export const WEB_ROOT = resolve(TESTS_DIR, "..");
 
 // THE SESSION LIVES OUTSIDE THE REPOSITORY. It holds a live session cookie, so it is written to a
 // private (0700) directory under the OS temp dir rather than into the tree, where a secrets scan
-// or a `git add -A` could reach it. ALBITOR_TESTS_AUTH_DIR overrides the directory. The default
+// or a `git add -A` could reach it. TESTS_AUTH_DIR overrides the directory. The default
 // is named from this checkout's path and the user, so two apps on one machine never share a
 // session and every process that needs it computes the same path.
 function authDir(): string {
-	const override = process.env.ALBITOR_TESTS_AUTH_DIR;
+	const override = process.env.TESTS_AUTH_DIR;
 	if (override) return resolve(override);
 	const checkout = createHash("sha256").update(TESTS_DIR).digest("hex").slice(0, 12);
-	return join(tmpdir(), `albitor-tests-auth-${userInfo().uid}-${checkout}`);
+	return join(tmpdir(), `tests-auth-${userInfo().uid}-${checkout}`);
 }
 
 export const AUTH_DIR = authDir();
@@ -47,12 +47,12 @@ export function ensureAuthDir(): string {
 	mkdirSync(AUTH_DIR, { recursive: true, mode: 0o700 });
 	const info = lstatSync(AUTH_DIR);
 	if (!info.isDirectory() || (process.platform !== "win32" && info.uid !== userInfo().uid)) {
-		throw new Error(`${AUTH_DIR} is not a directory owned by this user; set ALBITOR_TESTS_AUTH_DIR to a private one`);
+		throw new Error(`${AUTH_DIR} is not a directory owned by this user; set TESTS_AUTH_DIR to a private one`);
 	}
-	if (!existed || !process.env.ALBITOR_TESTS_AUTH_DIR) {
+	if (!existed || !process.env.TESTS_AUTH_DIR) {
 		chmodSync(AUTH_DIR, 0o700);
 	} else if (process.platform !== "win32" && (info.mode & 0o077) !== 0) {
-		throw new Error(`${AUTH_DIR} already exists and is accessible to group or others; chmod 700 it or set ALBITOR_TESTS_AUTH_DIR to a new private path`);
+		throw new Error(`${AUTH_DIR} already exists and is accessible to group or others; chmod 700 it or set TESTS_AUTH_DIR to a new private path`);
 	}
 	return AUTH_DIR;
 }

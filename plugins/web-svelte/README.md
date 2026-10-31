@@ -7,7 +7,7 @@ dedicated shell, composed into a new app's `web/` by the platform's composer.
 ## What it provides
 
 - A SvelteKit static SPA build (`adapter-static`, fallback `index.html`, `ssr = false`).
-- The slot host: a managed root layout that nests `web.providers`, runs `web.route-guard` before
+- The slot host: a root layout that nests `web.providers`, runs `web.route-guard` before
   every navigation and hands the merged `web.nav` and the app's name to the kit's `AppShell`.
 - Error, 404 and offline pages (seeded, app-owned) and a service worker that opens the built app
   offline.
@@ -26,7 +26,7 @@ The client data layer was the `client-data@1` socket with two plugins, `client-o
 2026-10-15), so an app that must work offline needs no extra plugin registered. Both layers ship in
 every app; the platform decides which one is live **before Start**, from the plan's `offline`
 capability need, and passes it as the `data_layer` platform token (`online` or `offline`, nothing
-else). One managed file reads it:
+else). One file reads it:
 
 ```ts
 // web/src/lib/data-layer/index.ts
@@ -43,7 +43,7 @@ not an edit.
   errors never; an offline browser pauses rather than fails; mutations never retry); `apiQuery`
   through the shell's API client; `DataState.svelte` and `viewState` for loading, offline, error,
   empty and ready, with `errorMessage` never repeating a response body.
-- **Offline-first** (`src/lib/sync/`, was `client-offline`; `@albitor/sync` as managed source until
+- **Offline-first** (`src/lib/sync/`, was `client-offline`; the sync package as seeded source until
   a published package exists): a local store per signed-in person (IndexedDB, in memory without
   it), an outbox of creates, updates and deletes replayed when there is a network, device-chosen
   ids, one guarded run at a time (and a Web Lock across tabs), tombstones for deletions, failed
@@ -79,10 +79,10 @@ cursor back; a server that hangs for ever pauses the queue without counting atte
 
 | Slot | Convention |
 |---|---|
-| routes | App-owned SvelteKit files under `web/src/routes/`. No slot, no managed file to edit |
-| `web.nav` | A route adds a sibling `nav.ts` exporting `nav = { label, order, group }`; the managed `nav.generated.ts` collects them with `import.meta.glob('/src/routes/**/nav.ts')` and merges plugin entries. A plugin entry has no target: its link is the label slug (`Sign in` is `/sign-in`) |
-| `web.root-classes` | The managed `src/app.html` is an `html` slot template: `<html class="{{albitor.slot.web.root-classes.html}}">` and `<body class="{{albitor.slot.web.root-classes.body}}">`. A kit or style contributes `{target: "html"\|"body", class}` entries; the composer sorts and dedupes them. No entries renders `class=""`. `app.html` is no longer app-owned: edit root classes through the slot, not the file. Migration: an app that edited `app.html` (favicon, meta, attributes) loses those edits on upgrade; move head content to `<svelte:head>` in a layout |
-| `web.providers`, `web.route-guard` | A plugin ships a module in `web/src/lib/shell/scope.d/` exporting the identifier it declared; the managed `providers.generated.ts` resolves it |
+| routes | App-owned SvelteKit files under `web/src/routes/`. No slot, no shell file to edit |
+| `web.nav` | A route adds a sibling `nav.ts` exporting `nav = { label, order, group }`; the seeded `nav.generated.ts` collects them with `import.meta.glob('/src/routes/**/nav.ts')` and merges plugin entries. A plugin entry has no target: its link is the label slug (`Sign in` is `/sign-in`) |
+| `web.root-classes` | The seeded `src/app.html` is an `html` slot template: `<html class="{{albitor.slot.web.root-classes.html}}">` and `<body class="{{albitor.slot.web.root-classes.body}}">`. A kit or style contributes `{target: "html"\|"body", class}` entries; the composer sorts and dedupes them. No entries renders `class=""`. `app.html` is no longer app-owned: edit root classes through the slot, not the file. Migration: an app that edited `app.html` (favicon, meta, attributes) loses those edits on upgrade; move head content to `<svelte:head>` in a layout |
+| `web.providers`, `web.route-guard` | A plugin ships a module in `web/src/lib/shell/scope.d/` exporting the identifier it declared; the seeded `providers.generated.ts` resolves it |
 
 ## Dependency pins
 

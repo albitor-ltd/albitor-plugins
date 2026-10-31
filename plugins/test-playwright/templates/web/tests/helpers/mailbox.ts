@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright).
+// Starting point (test-playwright).
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "@playwright/test";

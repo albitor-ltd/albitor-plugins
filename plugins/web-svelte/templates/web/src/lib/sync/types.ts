@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): the shapes @albitor/sync passes around.
+// Starting point (web-svelte, offline data layer): the shapes the sync package passes around.
 
 /** A synced record. `id` is chosen on the device, so a create can be replayed safely. */
 export interface SyncRecord {

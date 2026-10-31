@@ -12,12 +12,12 @@ service gateway, which makes the call from Albitor's account, meters it and bill
 The client is `api/internal/albitorsvc/` (package `webapp/internal/albitorsvc`, standard library
 only). The plugin owns that directory; the build owns `api/internal/app/`.
 
-## What is managed (never edit)
+## Starting points
 
-Everything under `api/internal/albitorsvc/`, tests included. A finding there is the plugin's, not
-yours. Do not point an AWS SDK client at the gateway, add a custom signer or "fix" the client in
-place: a stock SDK signs for the target service's name (`translate`, `transcribe`), which the gateway
-cannot verify, and that is why this client exists.
+Everything under `api/internal/albitorsvc/`, tests included, is seeded once and is yours from then
+on. Keep the client's signing as it is: do not point an AWS SDK client at the gateway or add a
+custom signer, because a stock SDK signs for the target service's name (`translate`, `transcribe`),
+which the gateway cannot verify, and that is why this client exists.
 
 ## Steps to add a feature
 

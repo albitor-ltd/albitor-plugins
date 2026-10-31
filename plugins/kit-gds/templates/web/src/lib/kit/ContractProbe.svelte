@@ -1,7 +1,6 @@
-<!-- Managed by Albitor (kit-gds): the component-kit@2 shell contract on one page. AppShell, Footer
+<!-- Starting point (kit-gds): the component-kit@2 shell contract on one page. AppShell, Footer
      and SignInPage are imported from the kit's index, the way an auth plugin imports them, so
-     contract.test.ts fails if the kit stops exporting one. Managed so the audit cannot be deleted
-     by editing it; it is not routed and nothing links here. -->
+     contract.test.ts fails if the kit stops exporting one. Keep it so the audit still runs; it is not routed and nothing links here. -->
 <script lang="ts">
 	import { AppShell, Footer, SignInPage } from './index';
 	import type { NavGroup } from '../shell/types';

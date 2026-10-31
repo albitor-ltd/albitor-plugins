@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (kit-shadcn): drives the kit's SignInPage through its states the way an auth
+<!-- Starting point (kit-shadcn): drives the kit's SignInPage through its states the way an auth
      plugin does (error and busy changing over time), for signin.test.ts. Not routed. -->
 <script lang="ts">
 	import { SignInPage } from './index';

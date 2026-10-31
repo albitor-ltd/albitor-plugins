@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests (needs Chromium:
+// Starting point (test-playwright). Run with `npm run unit` from web/tests (needs Chromium:
 // `npx playwright install chromium`).
 //
 // The demo password must not land in anything a failed sign-in leaves behind: the per-failure
@@ -171,13 +171,13 @@ describe("the demo password", () => {
 	for (const route of ["/never", "/disabled", "/overlay", "/slow"]) {
 		it(`is in no snapshot, report or trace when sign-in fails (${route})`, async () => {
 			const app = await serve();
-			const out = mkdtempSync(join(tmpdir(), "albitor-secret-"));
+			const out = mkdtempSync(join(tmpdir(), "secret-"));
 			try {
 				const { code, log } = await run(TESTS_DIR, ["--project=setup"], {
 					ALBITOR_LOCAL_BASE_URL: app.base,
 					ALBITOR_DEMO_ACCOUNT_PASSWORD: SENTINEL,
 					DEMO_ACCOUNT_SIGN_IN_ROUTE: route,
-					ALBITOR_TESTS_OUT: out,
+					TESTS_OUT_DIR: out,
 				});
 				assert.notEqual(code, 0, `the sign-in was meant to fail:\n${log}`);
 
@@ -196,7 +196,7 @@ describe("the demo password", () => {
 
 	it("still signs in against an input a UI framework controls", async () => {
 		const app = await serve();
-		const out = mkdtempSync(join(tmpdir(), "albitor-secret-"));
+		const out = mkdtempSync(join(tmpdir(), "secret-"));
 		let hadSession = true;
 		try {
 			statSync(DEMO_STORAGE_STATE);
@@ -208,7 +208,7 @@ describe("the demo password", () => {
 				ALBITOR_LOCAL_BASE_URL: app.base,
 				ALBITOR_DEMO_ACCOUNT_PASSWORD: SENTINEL,
 				DEMO_ACCOUNT_SIGN_IN_ROUTE: "/bound",
-				ALBITOR_TESTS_OUT: out,
+				TESTS_OUT_DIR: out,
 			});
 			assert.equal(code, 0, `the sign-in was meant to succeed:\n${log}`);
 		} finally {
@@ -226,7 +226,7 @@ describe("the demo password", () => {
 	// hold it.
 	it("is found by the scan when fill() is used instead of fillSecret", async () => {
 		const app = await serve();
-		const out = mkdtempSync(join(tmpdir(), "albitor-secret-"));
+		const out = mkdtempSync(join(tmpdir(), "secret-"));
 		const control = mkdtempSync(join(TESTS_DIR, ".control-"));
 		try {
 			writeFileSync(
@@ -365,7 +365,7 @@ async function serveHosted(): Promise<{ base: string; close: () => void }> {
 describe("the hosted sign-in", () => {
 	async function attempt(mode: string) {
 		const servers = await serveHosted();
-		const out = mkdtempSync(join(tmpdir(), "albitor-hosted-"));
+		const out = mkdtempSync(join(tmpdir(), "hosted-"));
 		rmSync(DEMO_STORAGE_STATE, { force: true });
 		try {
 			const result = await run(TESTS_DIR, ["--project=setup"], {
@@ -375,8 +375,8 @@ describe("the hosted sign-in", () => {
 				// The fixtures run over plain http, where a __Host- cookie is never stored, so the session is
 				// named plainly. auth_state is deliberately accepted here: only the before-submit snapshot
 				// keeps the login route's state cookie from passing for a session.
-				ALBITOR_SESSION_COOKIE_PATTERN: "^(session|auth_state)$",
-				ALBITOR_TESTS_OUT: out,
+				SESSION_COOKIE_PATTERN: "^(session|auth_state)$",
+				TESTS_OUT_DIR: out,
 			});
 			const produced = files(out);
 			return { ...result, produced, leaked: leaks(produced, SENTINEL), state: hasDemoSession() };

@@ -1,5 +1,5 @@
 // @journey sign-in
-// Managed by Albitor (auth-cognito). The sign-in journey the plugin owes the app: a signed-out
+// Starting point (auth-cognito). The sign-in journey the plugin owes the app: a signed-out
 // visitor is sent to the sign-in screen and can reach the sign-up and reset screens from it, and a
 // local test identity (alice, from api-go's local issuer) reaches the app. Signing in with a
 // password needs a user pool, so a deployed run's sign-in is the suite's one auth.setup.ts.

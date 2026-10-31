@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Pure decisions behind auth.setup.ts's hosted sign-in path.
+// Starting point (test-playwright). Pure decisions behind auth.setup.ts's hosted sign-in path.
 
 // HOSTED SIGN-IN LEAVES THE APP. An app signed in through an identity provider's hosted page (the
 // Cognito classic hosted UI, reached from the app's /sign-in through /api/auth/login) sends the
@@ -65,13 +65,13 @@ export function hasNewAppHostCookie(
  */
 export const DEFAULT_SESSION_COOKIE_PATTERN = "^__Host-(?!auth_(state|verifier|next)$)";
 
-/** The session-name predicate from ALBITOR_SESSION_COOKIE_PATTERN (a regular expression), or the default. */
+/** The session-name predicate from SESSION_COOKIE_PATTERN (a regular expression), or the default. */
 export function sessionCookiePredicate(pattern: string | undefined): (name: string) => boolean {
 	let re: RegExp;
 	try {
 		re = new RegExp(pattern?.trim() || DEFAULT_SESSION_COOKIE_PATTERN);
 	} catch {
-		throw new Error("ALBITOR_SESSION_COOKIE_PATTERN is not a valid regular expression");
+		throw new Error("SESSION_COOKIE_PATTERN is not a valid regular expression");
 	}
 	return (name) => re.test(name);
 }
@@ -140,7 +140,7 @@ function flowHasAuth(flow: string): boolean {
  * Whether an albitor.yaml declares `services.auth`: a `services:` mapping with an `auth:` key
  * beneath it (quoted keys and the inline `services: {auth: ...}` form included). auth-none
  * contributes none, so its absence is how an app with no sign-in is recognised; any real auth
- * plugin contributes it. A line scan, not a YAML parse: the managed tests carry no parser. A
+ * plugin contributes it. A line scan, not a YAML parse: these tests carry no parser. A
  * `services:` value that is inline and not a plain mapping (an alias, a tag) cannot be read, and
  * counts as declaring auth: the failure then is a strict setup, never a silent signed-out run.
  */

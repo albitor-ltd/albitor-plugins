@@ -19,8 +19,8 @@
 // (PORT defaults to 8080), its keys are at Issuer + "/.well-known/jwks.json",
 // and its tokens are for ClientID.
 //
-// This is platform code, maintained with the local run it serves; extend the
-// app around it rather than editing it.
+// It is a starting point for the local run it serves: extend the app around it where you can,
+// and keep the contract above.
 package localauth
 
 import (
@@ -113,7 +113,7 @@ func RoleIdentityName(role string) string { return "role-" + role }
 // roleIdentity is the one identity of a role: it holds that group and no other, and its subject
 // is derived from the role so a record written in one run belongs to it in the next.
 func roleIdentity(role string) Identity {
-	sum := sha256.Sum256([]byte("albitor-local-role:" + role))
+	sum := sha256.Sum256([]byte("local-role:" + role))
 	h := hex.EncodeToString(sum[:16])
 	subject := h[0:8] + "-" + h[8:12] + "-4" + h[13:16] + "-8" + h[17:20] + "-" + h[20:32]
 	return Identity{

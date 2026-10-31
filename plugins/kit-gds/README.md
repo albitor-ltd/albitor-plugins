@@ -11,7 +11,7 @@ whose root layout renders the kit's `AppShell`.
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark, GOV.UK footer
   colours; not GOV.UK's footer component, so no Crown copyright, OGL line or crest) and `SignInPage`
   (new: GOV.UK error summary linked to the email field, then the fields). The contract is in the
-  repository README; `contract.test.ts` and `ContractProbe.svelte` (managed) audit it.
+  repository README; `contract.test.ts` and `ContractProbe.svelte` (seeded once) audit it.
 - The shell pieces in [GOV.UK Frontend](https://frontend.design-system.service.gov.uk/) v6.4.0
   markup and classes: `AppShell` (skip link, a text-only header, service navigation with the
   current page marked, one `main`), `Button`, `Field` (label, hint and error tied to the control),
@@ -28,7 +28,7 @@ whose root layout renders the kit's `AppShell`.
   still wins.
 - **No Crown, no GOV.UK logotype, no GDS Transport font** (the font falls back to arial). They are
   licensed for services on GOV.UK only; this kit is for the apps that are not. The header is text.
-- Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and
+- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell pieces on the server and
   runs axe over them, plus behaviour checks (current page, label wiring, text not markup, a
   text-only header); `dialog.test.ts` mounts the dialog in jsdom for axe, its open state and its initial focus;
   `contrast.test.ts` reads GOV.UK Frontend's colours from the installed stylesheet and checks every
@@ -49,7 +49,7 @@ Frontend's template also runs an inline script first in `<body>` that adds `js-e
 `govuk-frontend-supported` (when `noModule` is supported) to the body. This is a client-rendered
 SPA, so `AppShell` does it instead (in its script body, before children mount) and removes only what it added on destroy. No
 inline script means no CSP `script-src` exception; the classes gate only JS-enhanced styling, so
-a page without JS is the plain one. `rootclasses.test.ts` (managed) covers it. The classes are set while `AppShell` initialises, before any child mounts, so a component that calls `initAll()` in its own `onMount` already sees them.
+a page without JS is the plain one. `rootclasses.test.ts` (seeded once) covers it. The classes are set while `AppShell` initialises, before any child mounts, so a component that calls `initAll()` in its own `onMount` already sees them.
 
 ## Brand colour
 
@@ -74,5 +74,5 @@ recognises the kit as GOV.UK by its name and keywords (`core.IsGOVUKDesignSystem
 ## Ownership
 
 The components and `govuk.scss` are `example` files: seeded once, then the app's. The contrast and
-axe tests, `Showcase.svelte` and `web/vitest.config.ts` are `managed`. `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are `managed` and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The `gds` plugin is
+axe tests, `Showcase.svelte` and `web/vitest.config.ts` are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are seeded once and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The `gds` plugin is
 unchanged and is retired separately.

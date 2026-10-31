@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, online data layer): query options for this app's own API.
+// Starting point (web-svelte, online data layer): query options for this app's own API.
 import { queryOptions } from '@tanstack/svelte-query';
 import { api, type RequestOptions } from '../shell/api';
 

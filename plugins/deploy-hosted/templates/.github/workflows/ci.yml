@@ -1,4 +1,4 @@
-# Managed by Albitor (deploy-hosted). The gate for this repository: every pull request and every
+# Starting point (deploy-hosted). The gate for this repository: every pull request and every
 # push to main checks albitor.yaml, then builds and tests the API and the web app. Read-only: it
 # assumes no cloud role and reads no secret. This repository holds no infrastructure; the platform
 # compiles albitor.yaml and deploys, so there is no Terraform job and no deploy workflow here.

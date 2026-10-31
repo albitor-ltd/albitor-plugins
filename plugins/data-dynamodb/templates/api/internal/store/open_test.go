@@ -35,7 +35,7 @@ func TestOpenLocalRunUsesMemory(t *testing.T) {
 }
 
 func TestOpenDeployedUsesDynamoDB(t *testing.T) {
-	s, err := Open(env(append(aws, "ALBITOR_TABLE_DATA", "albitor-hosted-x--data", "AWS_LAMBDA_FUNCTION_NAME", "fn")...), DataTable)
+	s, err := Open(env(append(aws, "ALBITOR_TABLE_DATA", "hosted-x--data", "AWS_LAMBDA_FUNCTION_NAME", "fn")...), DataTable)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func TestOpenDeployedUsesDynamoDB(t *testing.T) {
 	if !ok {
 		t.Fatalf("deployed run opened %T, want *DynamoDB", s)
 	}
-	if d.table != "albitor-hosted-x--data" || d.endpoint != "https://dynamodb.eu-west-2.amazonaws.com" {
+	if d.table != "hosted-x--data" || d.endpoint != "https://dynamodb.eu-west-2.amazonaws.com" {
 		t.Errorf("table %q endpoint %q", d.table, d.endpoint)
 	}
 }

@@ -1,6 +1,7 @@
-// Managed by Albitor (test-playwright). The pure half of auth@2: which roles an app declares, and
+// Starting point (test-playwright). The pure half of auth@2: which roles an app declares, and
 // where a role's deployed account and password come from. No Playwright here, so it is unit tested.
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 // A role is a group of services.auth.groups, so it is a group name as the user pool takes it.
 export const ROLE_PATTERN = /^[a-z][a-z0-9-]{1,31}$/;
@@ -47,7 +48,7 @@ export function parseDeclaredRoles(yaml: string): string[] {
 /** The roles of the app at `root` (the repository root, above web/), none when it has no albitor.yaml. */
 export function readDeclaredRoles(root: string): string[] {
   try {
-    return parseDeclaredRoles(readFileSync(`${root}/albitor.yaml`, "utf8"));
+    return parseDeclaredRoles(readFileSync(join(root, "albitor.yaml"), "utf8"));
   } catch {
     return [];
   }

@@ -1,6 +1,6 @@
 ---
 name: deploy-byoa-aws
-description: Use when an app composed with the deploy-byoa-aws plugin (deploy-target@1) needs a new table, a site or API setting, a custom domain or an alarm address, or when its deploy workflow fails. The Terraform and both workflows are managed and pinned; the build changes albitor.yaml and infrastructure/aws/terraform.tfvars, never the rendered files.
+description: Use when an app composed with the deploy-byoa-aws plugin (deploy-target@1) needs a new table, a site or API setting, a custom domain or an alarm address, or when its deploy workflow fails. The Terraform and the workflows are seeded once and the app owns them; the build keeps albitor.yaml and infrastructure/aws/terraform.tfvars as the first place to change what the stack builds.
 metadata:
   capability: deploy-target
 ---
@@ -11,12 +11,12 @@ The stack under `infrastructure/aws/` reads `albitor.yaml` itself at plan time a
 declares. There is nothing to regenerate: change the manifest and the next deploy changes the
 infrastructure.
 
-## What is managed (never edit)
+## Starting points
 
 The workflows `ci.yml`, `deploy.yml`, `destroy.yml` and `invite.yml` under `.github/workflows/`,
 `infrastructure/aws/*.tf`, `infrastructure/aws/.terraform.lock.hcl` and the three scripts under
-`scripts/`. A finding in them is the plugin's, not yours: a change to how the stack builds is a new release of the plugin, offered as an
-upgrade change request.
+`scripts/` are seeded once and are yours from then on. Change them when the app needs it, and do not
+weaken the checks the pipeline runs (the tests and the receipts).
 
 ## What you may change
 

@@ -12,7 +12,7 @@ made: say so in the delivery record, and do not describe the app as private.
 
 ## What it gives you
 
-`api/internal/identity` (managed, never edit), with the same API as the auth-cognito plugin's:
+`api/internal/identity` (seeded once, yours to edit), with the same API as the auth-cognito plugin's:
 
 | Call | Answers |
 | --- | --- |
@@ -25,7 +25,7 @@ all.
 
 ## Roles
 
-There are none. `web/tests/auth/provider.ts` (managed, with the Playwright harness) is this plugin's
+There are none. `web/tests/auth/provider.ts` (seeded with the Playwright harness) is this plugin's
 `auth@2` provider: `auth.roles()` is always empty, and `seed` and `signInAs` refuse, so no spec can
 pretend to be someone. An app that needs roles needs a real auth plugin.
 

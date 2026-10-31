@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Pure rules the journey helper applies to every screen.
+// Starting point (test-playwright). Pure rules the journey helper applies to every screen.
 //
 // Nothing here imports Playwright, so `npm run unit` tests it with plain Node.
 

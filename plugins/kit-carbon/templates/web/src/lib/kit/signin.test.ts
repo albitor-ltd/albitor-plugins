@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// Managed by Albitor (kit-carbon). SignInPage's error behaviour, the same in every kit (component-kit@2):
+// Starting point (kit-carbon). SignInPage's error behaviour, the same in every kit (component-kit@2):
 // the failure stays in the page until the next attempt's result replaces it, and takes focus on
 // every failed attempt, a repeated sentence included. Mounted in a jsdom tree because focus is a
 // client behaviour.

@@ -8,12 +8,12 @@ provides, requires and contributes, and the platform composer renders it into a 
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `api/internal/store/store.go` | managed | `Store`, `Record`, `Query`, the errors, `Key`, validation, cursors |
-| `api/internal/store/memory.go` | managed | The in-memory fake for a local run and tests |
-| `api/internal/store/dynamodb.go`, `sigv4.go` | managed | The DynamoDB adapter: JSON API over `net/http`, SigV4, retries |
-| `api/internal/store/open.go` | managed | `Open`: picks the adapter from the environment, never falls back to memory |
-| `api/internal/store/*_test.go` | managed | Unit tests and the in-memory conformance run |
-| `api/internal/store/storetest/**` | managed | The data-store@1 conformance suite |
+| `api/internal/store/store.go` | starting point | `Store`, `Record`, `Query`, the errors, `Key`, validation, cursors |
+| `api/internal/store/memory.go` | starting point | The in-memory fake for a local run and tests |
+| `api/internal/store/dynamodb.go`, `sigv4.go` | starting point | The DynamoDB adapter: JSON API over `net/http`, SigV4, retries |
+| `api/internal/store/open.go` | starting point | `Open`: picks the adapter from the environment, never falls back to memory |
+| `api/internal/store/*_test.go` | starting point | Unit tests and the in-memory conformance run |
+| `api/internal/store/storetest/**` | starting point | The data-store@1 conformance suite |
 
 It contributes the `data` table to `services.tables` in `albitor.yaml` (string `pk` and `sk`) and
 the `data-dynamodb` skill. It requires `api-runtime@1` (the module, `apikit` paging and the local
@@ -22,7 +22,7 @@ function its name as `ALBITOR_TABLE_DATA`.
 
 The module stays stdlib-only. The adapter signs its own requests (SigV4) rather than importing the
 AWS SDK, because the plugin may not add a dependency to `api/go.mod`, which `api-go` owns
-(ADR-0090 amendment 3: logic ships as managed files for now). Moving the adapter into a versioned
+(logic ships as files seeded once into the app, not as a package). Moving the adapter into a versioned
 module later is an ordinary plugin major.
 
 ## Behaviour worth knowing
@@ -38,8 +38,8 @@ module later is an ordinary plugin major.
   `AWS_SESSION_TOKEN`, `AWS_REGION`), which is what Lambda sets for the execution role. There is
   no profile, file or metadata-service lookup. The HTTP client ignores proxy environment variables.
 - Writes are not retried on a 5xx (it may have applied); throttling is retried, and so is a read's 5xx.
-- On a deployed function `ALBITOR_DYNAMODB_ENDPOINT` is ignored.
-- `ALBITOR_DYNAMODB_ENDPOINT` points the adapter at DynamoDB Local and accepts loopback hosts
+- On a deployed function `LOCAL_DYNAMODB_ENDPOINT` is ignored.
+- `LOCAL_DYNAMODB_ENDPOINT` points the adapter at DynamoDB Local and accepts loopback hosts
   only: a signed request is never sent to a host the platform did not name. Responses are capped,
   redirects are not followed, and DynamoDB error messages (which can name roles and accounts) are
   never put in an error.
@@ -50,7 +50,7 @@ module later is an ordinary plugin major.
 `api-go`'s router with empty slots, and runs `gofmt`, `go build`, `go vet` and `go test`, then
 runs the conformance suite against DynamoDB Local (`amazon/dynamodb-local`, started and removed by
 the script, or `DYNAMODB_LOCAL_ENDPOINT`). The same suite runs against the in-memory fake in the
-managed tree, so an app's own CI proves the fake without Docker. `conformance/` holds the one test
+seeded tree, so an app's own CI proves the fake without Docker. `conformance/` holds the one test
 that needs DynamoDB Local; it is not shipped to apps, and it fails rather than skips when no
 endpoint is set.
 `tests/compose` runs the real manifest parser and composer over this plugin and `api-go`.

@@ -105,7 +105,7 @@ func (c *Client) Upload(ctx context.Context, s Slot, data []byte) error {
 		}
 		return errors.New("albitorsvc: the upload failed to send")
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 	_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, maxErrorBody))
 	if res.StatusCode/100 != 2 {
 		return fmt.Errorf("albitorsvc: upload refused with status %d", res.StatusCode)

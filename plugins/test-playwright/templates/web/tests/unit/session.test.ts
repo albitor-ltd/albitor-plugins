@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
+// Starting point (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { chmodSync, mkdirSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -8,7 +8,7 @@ import { leftSignInRoute, readCredentials } from "../helpers/credentials.ts";
 import { parseVerification } from "../helpers/mailbox-contract.ts";
 import { DEMO_STORAGE_STATE, sessionSaved, TESTS_DIR } from "../helpers/storage-state.ts";
 
-const dir = mkdtempSync(join(tmpdir(), "albitor-tests-"));
+const dir = mkdtempSync(join(tmpdir(), "tests-"));
 const write = (name: string, body: string) => {
 	const p = join(dir, name);
 	writeFileSync(p, body);
@@ -17,7 +17,7 @@ const write = (name: string, body: string) => {
 
 describe("storage state", () => {
 	it("lives under the OS temp dir, outside the checkout, whatever the working directory", () => {
-		assert.ok(DEMO_STORAGE_STATE.startsWith(join(tmpdir(), "albitor-tests-auth-")));
+		assert.ok(DEMO_STORAGE_STATE.startsWith(join(tmpdir(), "tests-auth-")));
 		assert.ok(!DEMO_STORAGE_STATE.startsWith(TESTS_DIR));
 		assert.ok(DEMO_STORAGE_STATE.endsWith("/demo.json"));
 	});
@@ -25,33 +25,33 @@ describe("storage state", () => {
 		const other = await import("../helpers/storage-state.ts?other-checkout");
 		assert.equal(other.DEMO_STORAGE_STATE, DEMO_STORAGE_STATE);
 	});
-	it("can be moved with ALBITOR_TESTS_AUTH_DIR", async () => {
+	it("can be moved with TESTS_AUTH_DIR", async () => {
 		const target = join(dir, "moved");
-		process.env.ALBITOR_TESTS_AUTH_DIR = target;
+		process.env.TESTS_AUTH_DIR = target;
 		try {
 			const moved = await import("../helpers/storage-state.ts?moved");
 			assert.equal(moved.DEMO_STORAGE_STATE, join(target, "demo.json"));
 		} finally {
-			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+			delete process.env.TESTS_AUTH_DIR;
 		}
 	});
 	it("creates a new override directory private to the user (0700)", async () => {
 		const target = join(dir, "private", "nested");
-		process.env.ALBITOR_TESTS_AUTH_DIR = target;
+		process.env.TESTS_AUTH_DIR = target;
 		try {
 			const moved = await import("../helpers/storage-state.ts?private");
 			assert.equal(moved.ensureAuthDir(), target);
 			assert.equal(statSync(target).mode & 0o777, 0o700);
 			moved.ensureAuthDir();
 		} finally {
-			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+			delete process.env.TESTS_AUTH_DIR;
 		}
 	});
 	it("never chmods an existing override, and refuses one open to group or others", async () => {
 		const target = join(dir, "shared");
 		mkdirSync(target, { mode: 0o755 });
 		chmodSync(target, 0o755);
-		process.env.ALBITOR_TESTS_AUTH_DIR = target;
+		process.env.TESTS_AUTH_DIR = target;
 		try {
 			const moved = await import("../helpers/storage-state.ts?shared");
 			assert.throws(() => moved.ensureAuthDir(), /accessible to group or others/);
@@ -59,17 +59,17 @@ describe("storage state", () => {
 			chmodSync(target, 0o700);
 			assert.equal(moved.ensureAuthDir(), target);
 		} finally {
-			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+			delete process.env.TESTS_AUTH_DIR;
 		}
 	});
 	it("refuses a session path that is not a directory", async () => {
 		const file = write("not-a-dir", "x");
-		process.env.ALBITOR_TESTS_AUTH_DIR = file;
+		process.env.TESTS_AUTH_DIR = file;
 		try {
 			const moved = await import("../helpers/storage-state.ts?file");
 			assert.throws(() => moved.ensureAuthDir());
 		} finally {
-			delete process.env.ALBITOR_TESTS_AUTH_DIR;
+			delete process.env.TESTS_AUTH_DIR;
 		}
 	});
 	it("is a session only when it holds cookies or origins", () => {

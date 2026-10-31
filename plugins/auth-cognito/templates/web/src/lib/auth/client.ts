@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-cognito): the calls the sign-in, sign-up, confirm and reset screens make.
+// Starting point (auth-cognito): the calls the sign-in, sign-up, confirm and reset screens make.
 //
 // The browser never talks to Cognito. It posts to the API's /api/auth/*, which calls Cognito and
 // answers with a stable `code`; the session comes back as HttpOnly cookies, so no token is ever in

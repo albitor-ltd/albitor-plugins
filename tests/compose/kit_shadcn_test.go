@@ -198,13 +198,13 @@ func TestKitShadcnFileModes(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	// Tokens and the accessibility gate (contrast, axe, and the Showcase they render) are platform-owned; the components are the app's to edit.
+	// Every kit file is seeded once and app-owned; the token file and the contrast and axe tests stay managed only because the platform's kit certification still demands them.
 	for p, want := range map[string]string{
 		"web/src/lib/kit/tokens.css":        "managed",
 		"web/src/lib/kit/contrast.test.ts":  "managed",
 		"web/src/lib/kit/kit.test.ts":       "managed",
 		"web/src/lib/kit/dialog.test.ts":    "managed",
-		"web/src/lib/kit/Showcase.svelte":   "managed",
+		"web/src/lib/kit/Showcase.svelte":   "example",
 		"web/src/lib/kit/AppShell.svelte":   "example",
 		"web/src/lib/kit/Dialog.svelte":     "example",
 		"web/src/lib/kit/Field.svelte":      "example",

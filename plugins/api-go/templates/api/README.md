@@ -11,8 +11,8 @@ ALBITOR_LOCAL=1 PORT=8080 go run .
 
 | Path | Whose | What |
 |---|---|---|
-| `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Managed | The server skeleton. Rendered by the plugin; do not edit |
-| `internal/shell/router.go` | Generated | Places the `api.middleware` and `api.routes` slots. Rewritten on compose |
+| `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Starting point | The server skeleton. Yours from the first compose |
+| `internal/shell/router.go` | Starting point | Places the `api.middleware` and `api.routes` slots once, at compose time |
 | `internal/app/routes.go` | Yours | Registers your handlers. Add a file per handler and one line here |
 | `openapi.yaml` | Yours | The API contract. Add each endpoint in the same change as its handler |
 

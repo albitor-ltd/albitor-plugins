@@ -14,7 +14,7 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
   `footer` snippet, placed beside the side nav the way Carbon places `Content`), `Footer` (new, in
   Carbon's tokens: links and text in a `contentinfo` landmark) and `SignInPage` (its own file,
   `SignInPage.svelte`, also re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
-  `ContractProbe.svelte` (managed) audit it.
+  `ContractProbe.svelte` (seeded once) audit it.
 - The styled shell pieces in the Carbon style: `AppShell` (Carbon's UI shell: header, skip link,
   a labelled side nav with the current page marked, one `main`), `Button`, `Field` (label, hint and
   error tied to the control), `Table`, `Dialog` (on Carbon's `Modal`), `Toaster` and `toast`,
@@ -24,7 +24,7 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
 - Colour contrast that passes out of the box: `contrast.test.ts` reads the installed Carbon
   stylesheet and computes WCAG 2.2 AA ratios for every foreground and background pair the
   components use, in both themes (axe cannot judge contrast without layout).
-- Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and
+- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell pieces on the server and
   runs axe over them, plus behaviour checks (current page, label wiring, live regions, button types
   and variants, text not markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus (trap,
   Escape, return) and the Close button; `shell.test.ts` mounts the shell and checks the theme
@@ -33,7 +33,7 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
   empty states, one `<h1>`, and form errors in a focused summary. `pages/PagesShowcase.svelte` and
-  `pages/pages.test.ts` (`managed`) render every template in every state and run axe over them
+  `pages/pages.test.ts`  render every template in every state and run axe over them
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
 - The `kit-carbon` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG 2.2
@@ -55,7 +55,7 @@ pairing today.
 ## Ownership
 
 The components and `theme.ts` are `example` files: seeded once, then the app's. The contrast test,
-the Showcase, the three test files, `contract.test.ts`, `signin.test.ts`, their probes (`ContractProbe.svelte`, `SignInHarness.svelte`), `web/vitest.config.ts` and `web/src/lib/kit/vitest.setup.ts` (a jsdom `scrollIntoView` stub for Carbon's SideNav) are `managed`. No managed file imports
+the Showcase, the three test files, `contract.test.ts`, `signin.test.ts`, their probes (`ContractProbe.svelte`, `SignInHarness.svelte`), `web/vitest.config.ts` and `web/src/lib/kit/vitest.setup.ts` (a jsdom `scrollIntoView` stub for Carbon's SideNav) are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). No test file imports
 an `example` file by name except the Showcase (which renders the components) and the contract tests and probes, which import the kit's `index.ts` (the `component-kit@2` exports, the app's: removing one fails them); the theme tests check
 the `theme` attribute Carbon puts on `<html>` through the mounted shell, so an app may rewrite
 `theme.ts` and keep the gate as long as the page still follows the preference and `data-theme`. The vitest config extends

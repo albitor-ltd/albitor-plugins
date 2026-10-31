@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "auth-hosted",
   "displayName": "Auth (hosted sign-in)",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "kind": "socket",
   "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
   "author": {
@@ -33,98 +33,98 @@
     "files": [
       {
         "path": "api/internal/identity/identity.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "api/internal/identity/identity_test.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "api/internal/shell/identity_verify.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "api/internal/shell/identity_token.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "api/internal/shell/identity_hosted.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "api/internal/shell/identity_test.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "api/internal/shell/identity_hosted_test.go",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "api-runtime": "api-go"
         }
       },
       {
         "path": "web/src/lib/auth/session.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/auth/session.test.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/auth/guard.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/auth/guard.test.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/auth/client.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/auth/client.test.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/shell/scope.d/auth-hosted.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
@@ -138,7 +138,7 @@
       },
       {
         "path": "web/tests/auth/provider.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "test-harness": "test-playwright"
         }

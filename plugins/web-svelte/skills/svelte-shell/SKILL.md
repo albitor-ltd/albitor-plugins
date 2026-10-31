@@ -6,7 +6,7 @@ description: How to add a route, a page and a nav entry on the web-svelte shell,
 # The web-svelte shell
 
 The app is a SvelteKit static single-page app under `web/`. Routes are SvelteKit's own file routing
-and belong to the app, so **adding a page never edits a managed file**.
+and belong to the app, so **adding a page never edits a shell file**.
 
 ## Add a page
 
@@ -45,7 +45,7 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
   `src/routes/**/nav.ts` at build time through `import.meta.glob`; a malformed one fails the dev
   server with the file named, and is skipped with a warning in a production build.
 
-## What the shell owns (managed files: do not edit)
+## What the shell seeds (yours from the first compose)
 
 | File | Role |
 |---|---|
@@ -56,8 +56,8 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
 | `src/lib/data-layer/`, `src/lib/data/`, `src/lib/sync/` (not `sync/collections.ts`) | Both data layers and the entry point the platform selected before Start: online (TanStack Query, the data-online skill) or offline-first (outbox and sync, the data-offline skill). `data-layer/index.ts` names the one in use |
 | `vite.config.ts` (SvelteKit 3 config lives here), `tsconfig.json`, `scripts/local-serve.mjs` | Build and the local run |
 
-To change one, **eject** it (the file becomes yours and the lock records it); do not edit it in
-place.
+Each is yours from the first compose. Prefer adding routes, nav entries and plugin fragments to
+editing them, and edit one when the app needs it.
 
 ## Seeded files you own
 
@@ -70,9 +70,8 @@ only by the offline data layer).
 which the foundation gate looks for in the source and fails on until the real home page replaces
 the file. Replace the whole page, marker included; never keep the comment to quiet a check.
 
-`src/app.html` is managed (a slot template), not yours: an edit is overwritten on upgrade. Put head
-content (favicon, meta) in `<svelte:head>` in a layout, and root `html`/`body` classes in a plugin's
-`web.root-classes` slot.
+`src/app.html` was written once from the `web.root-classes` slot and is yours: edit the `html` and
+`body` classes there, and put head content (favicon, meta) in `<svelte:head>` in a layout.
 
 ## Plugins: providers and the route guard
 
@@ -88,11 +87,13 @@ A plugin `web.nav` entry only names a label, so the plugin must ship the route i
 (`Sign in` needs `/sign-in`); otherwise the link is dead. Two plugin entries slugging to one link
 are an error, and so is a label with no letters or digits.
 
-The generated slot files are managed: a plugin upgrade re-renders them from the slot fragments.
+The slot files (`nav.generated.ts`, `providers.generated.ts`) were written once from the slot
+fragments of the plugins composed with the shell. A plugin added later does not rewire them: add its
+entry by hand.
 
 ## Run and verify
 
-- `npm run dev` starts the dev server and forwards `/api` to `ALBITOR_API_ORIGIN` (default
+- `npm run dev` starts the dev server and forwards `/api` to `APP_API_ORIGIN` (default
   `http://127.0.0.1:8080`).
 - `npm run local` builds and serves `build/` on `PORT` (default 3000) with `/api` forwarded and
   `/healthz` answering `ok`: the web side of the local run contract.

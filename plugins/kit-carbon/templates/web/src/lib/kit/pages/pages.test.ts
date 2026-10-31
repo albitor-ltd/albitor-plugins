@@ -1,4 +1,4 @@
-// Managed by Albitor (kit-carbon). The page templates, each in each state, rendered on the server
+// Starting point (kit-carbon). The page templates, each in each state, rendered on the server
 // the way a build prerenders them, loaded into a DOM and audited with axe, plus the behaviours a
 // template promises: one <h1>, a status or alert for loading and failure, an error summary, a
 // labelled form. Colour contrast is audited from the tokens in ../contrast.test.ts, as jsdom has

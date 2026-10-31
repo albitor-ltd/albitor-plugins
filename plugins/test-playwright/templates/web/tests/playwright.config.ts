@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The journey suite's one Playwright config.
+// Starting point (test-playwright). The journey suite's one Playwright config.
 //
 // Run it from web/tests (`npm test`) or from the repository root
 // (`npx playwright test -c web/tests/playwright.config.ts <spec files>`); paths below are derived
@@ -11,7 +11,7 @@ import { DEMO_STORAGE_STATE, TESTS_DIR, WEB_ROOT } from "./helpers/storage-state
 const isCI = !!process.env.CI;
 
 // Where the results and the HTML report go. Only the harness's own tests move it.
-const outRoot = process.env.ALBITOR_TESTS_OUT || TESTS_DIR;
+const outRoot = process.env.TESTS_OUT_DIR || TESTS_DIR;
 
 // ALBITOR_JOURNEY_BASE_URL: an automated walk of this app's journeys drives an app that is ALREADY
 // deployed and published, so nothing is served from the runner. The suite boots no server and
@@ -56,7 +56,7 @@ if (!bootsNothing) {
 		url: `http://localhost:${webPort}/healthz`,
 		reuseExistingServer: !isCI,
 		timeout: 180_000,
-		env: { PORT: webPort, ALBITOR_API_ORIGIN: apiOrigin || `http://127.0.0.1:${apiPort}` },
+		env: { PORT: webPort, APP_API_ORIGIN: apiOrigin || `http://127.0.0.1:${apiPort}` },
 	});
 }
 

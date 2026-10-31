@@ -1,6 +1,6 @@
 # Tokens
 
-All in `web/src/lib/kit/tokens.css` (managed), in the `albitor-kit` cascade layer. Override by
+All in `web/src/lib/kit/tokens.css` (the defaults), in the `albitor-kit` cascade layer. Override by
 declaring the same property unlayered in `web/src/lib/app/app.css`.
 
 | Token | Role |

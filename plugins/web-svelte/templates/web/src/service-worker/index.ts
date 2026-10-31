@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte). Caches the built app so it still opens offline: assets are
+// Starting point (web-svelte). Caches the built app so it still opens offline: assets are
 // served cache-first, navigations network-first with the cached app shell as the fallback. The
 // API is never cached, so offline data calls fail with a NetworkError the page can show.
 import { version } from '$app/env';

@@ -179,8 +179,8 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/lib/shell/scope.d/auth-cognito.ts",
 	}
 	for _, p := range managed {
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed, got %q", p, modes[p])
+		if modes[p] != "example" {
+			t.Errorf("%s should be an example (seeded once, app-owned), got %q", p, modes[p])
 		}
 	}
 	screens := []string{
@@ -334,8 +334,8 @@ func TestAuthNoneShipsOnlyTheFixedOwnerSeam(t *testing.T) {
 	}
 	modes := lockModes(t, res)
 	for _, p := range []string{"api/internal/identity/identity.go", "api/internal/identity/identity_test.go"} {
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed, got %q", p, modes[p])
+		if modes[p] != "example" {
+			t.Errorf("%s should be an example (seeded once, app-owned), got %q", p, modes[p])
 		}
 	}
 	// No screens, no guard, no middleware, no routes, no services.auth.
@@ -416,7 +416,7 @@ func TestAuthCognitoWritesTreeForBuild(t *testing.T) {
 	}
 }
 
-// TestAuthPluginsShipTheAuthV2Provider pins auth@2: every auth plugin ships the managed
+// TestAuthPluginsShipTheAuthV2Provider pins auth@2: every auth plugin ships the seeded
 // web/tests/auth/provider.ts that test-playwright's specs and setup call, naming the sign-in it
 // ships; auth-none's is the one with no roles.
 func TestAuthPluginsShipTheAuthV2Provider(t *testing.T) {
@@ -426,8 +426,8 @@ func TestAuthPluginsShipTheAuthV2Provider(t *testing.T) {
 		for _, f := range p.Manifest.Contributes.Files {
 			if f.Path == "web/tests/auth/provider.ts" {
 				found = true
-				if f.Mode != "managed" || len(f.When) != 1 || string(f.When[0].Socket) != "test-harness" || f.When[0].Plugin != "test-playwright" {
-					t.Errorf("%s: provider.ts must be managed and only with test-playwright, got %+v", name, f)
+				if f.Mode != "example" || len(f.When) != 1 || string(f.When[0].Socket) != "test-harness" || f.When[0].Plugin != "test-playwright" {
+					t.Errorf("%s: provider.ts must be an example and only with test-playwright, got %+v", name, f)
 				}
 			}
 		}

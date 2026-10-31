@@ -4,7 +4,7 @@ package app
 
 import "net/http"
 
-// Routes registers the product handlers. The managed router in internal/shell
+// Routes registers the product handlers. The router in internal/shell
 // calls it once at start, after the health route and the plugins' routes, so
 // the mux is where a handler goes:
 //

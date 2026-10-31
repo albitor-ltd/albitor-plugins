@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): the framework-free core of the reactive views. It reads once,
+// Starting point (web-svelte, offline data layer): the framework-free core of the reactive views. It reads once,
 // then again on every engine change, and drops a read that a newer one has overtaken.
 import type { SyncEngine } from './engine';
 

@@ -170,8 +170,12 @@ func TestTestPlaywrightComposes(t *testing.T) {
 		"web/tests/helpers/a11y.ts",
 		"web/tests/package-lock.json",
 	} {
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed, got %q", p, modes[p])
+		want := "example"
+		if p == ".github/workflows/journeys.yml" {
+			want = "managed" // the parser admits a workflow in managed mode only
+		}
+		if modes[p] != want {
+			t.Errorf("%s should be %s, got %q", p, want, modes[p])
 		}
 	}
 	// A journey spec is the spec author's, never the harness's.

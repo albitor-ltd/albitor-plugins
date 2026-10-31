@@ -10,7 +10,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark) and `SignInPage`
   (its own file, `SignInPage.svelte`, also re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
-  `ContractProbe.svelte` (managed) audit it.
+  `ContractProbe.svelte` (seeded once) audit it.
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
   (on [Bits UI](https://bits-ui.com)), `Toaster` and `toast`, `EmptyState`.
@@ -23,14 +23,14 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - Colour contrast that passes out of the box: `contrast.test.ts` computes WCAG 2.2 AA ratios for
   every foreground and background pair the components use, in both schemes, from the shipped
   tokens (axe cannot judge contrast without layout).
-- Tests that ship with the app (managed): `kit.test.ts` renders the shell pieces on the server and
+- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell pieces on the server and
   runs axe over them, plus behaviour checks (current page, label wiring, live regions, text not
   markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
 - The page templates, `web/src/lib/kit/pages/` (`example`): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
   empty states, one `<h1>`, and form errors in a focused summary. `pages/PagesShowcase.svelte` and
-  `pages/pages.test.ts` (`managed`) render every template in every state and run axe over them
+  `pages/pages.test.ts`  render every template in every state and run axe over them
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
 - The `kit-shadcn` skill: rules, components, patterns, tokens and design-system notes (the Bits
@@ -43,7 +43,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 ## Ownership
 
 The components are `example` files: seeded once, then the app's, which is shadcn's model. The
-tokens, the contrast test and `web/vitest.config.ts` are `managed`. `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are `managed` and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The vitest config extends
+tokens, the contrast test and `web/vitest.config.ts` are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are seeded once and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The vitest config extends
 web-svelte's `vite.config.ts` so Bits UI's `.svelte` files compile and `mount` resolves to the
 client build.
 
@@ -60,7 +60,7 @@ client build.
   `web/package.json`. `scripts/compose-check.sh` installs the declared set before it builds; an
   app composed by the platform needs them added until the composer does it.
 - **No Tailwind.** shadcn-svelte's own components use Tailwind and `tailwind-variants`; web-svelte's
-  managed `vite.config.ts` has no Tailwind plugin, so this kit styles with scoped CSS over the
+  `vite.config.ts` has no Tailwind plugin, so this kit styles with scoped CSS over the
   tokens and uses Bits UI for behaviour. Adding Tailwind is a web-svelte change.
 - **Colour contrast in a real browser** is audited from the tokens, not from rendered pixels.
   The product e2e suite (`test-playwright`) is where a rendered audit belongs.

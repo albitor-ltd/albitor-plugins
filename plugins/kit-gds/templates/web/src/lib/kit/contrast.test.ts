@@ -8,6 +8,11 @@ import { fileURLToPath } from 'node:url';
 import * as sass from 'sass';
 import { describe, expect, it } from 'vitest';
 
+// Colour literals the ratio helper is exercised with.
+const BLACK = '#000000';
+const WHITE = '#ffffff';
+const MID_GREY = '#767676';
+
 const css = readFileSync(
 	new URL('../../../node_modules/govuk-frontend/dist/govuk/govuk-frontend.min.css', import.meta.url),
 	'utf8'
@@ -112,8 +117,8 @@ describe('GOV.UK colours', () => {
 
 describe('the ratio helper', () => {
 	it('is 21:1 for black on white and 1:1 for a colour on itself', () => {
-		expect(ratio('#000000', '#ffffff')).toBeCloseTo(21, 5);
-		expect(ratio('#767676', '#767676')).toBe(1);
+		expect(ratio(BLACK, WHITE)).toBeCloseTo(21, 5);
+		expect(ratio(MID_GREY, MID_GREY)).toBe(1);
 	});
 	it('rejects a colour that is not #rgb or #rrggbb', () => {
 		expect(() => luminance('red')).toThrow();

@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): reactive views of the engine, for use while a component is
+// Starting point (web-svelte, offline data layer): reactive views of the engine, for use while a component is
 // being created. They re-read whenever the local data or the sync state changes (see watch.ts).
 import type { SyncEngine } from './engine';
 import type { SyncRecord, SyncStatus } from './types';

@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The floor accessibility audit: the shell's own screens
+// Starting point (test-playwright). The floor accessibility audit: the shell's own screens
 // meet WCAG 2.2 A and AA as far as axe can tell. A journey audits the screens it walks with
 // `journeyStep(page, name, body, { a11y: true })`; this file covers the screens no journey owns.
 import { expect, test } from "./helpers/journey";

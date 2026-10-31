@@ -1,6 +1,5 @@
-<!-- Managed by Albitor (kit-carbon): every shell piece on one page, and what kit.test.ts
-     audits with axe. Copy from it when building a page. It is managed so the audits cannot be
-     deleted by editing it; it is not routed and nothing links here. -->
+<!-- Starting point (kit-carbon): every shell piece on one page, and what kit.test.ts
+     audits with axe. Copy from it when building a page. Keep it: it is what the audits run against; it is not routed and nothing links here. -->
 <script lang="ts">
 	import Send from 'carbon-icons-svelte/lib/Send.svelte';
 	import AppShell from './AppShell.svelte';

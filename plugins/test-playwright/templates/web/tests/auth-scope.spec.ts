@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The journey identity's bearer reaches the app's own origin
+// Starting point (test-playwright). The journey identity's bearer reaches the app's own origin
 // and nowhere else - not another host, and not another host a redirect from the app points at.
 import { createServer, type IncomingMessage, type Server } from "node:http";
 import type { AddressInfo } from "node:net";

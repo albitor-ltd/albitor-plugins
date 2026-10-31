@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
+// Starting point (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { WCAG_TAGS, checkSelectors, checkWaivers, describeViolations, unwaived } from "../helpers/a11y-report.ts";

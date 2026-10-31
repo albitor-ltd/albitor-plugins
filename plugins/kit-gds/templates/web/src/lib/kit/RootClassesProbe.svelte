@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (kit-gds): test fixture for rootclasses.test.ts. A child that records the
+<!-- Starting point (kit-gds): test fixture for rootclasses.test.ts. A child that records the
      body classes it sees in its own onMount, as a component calling initAll() would. -->
 <script lang="ts">
 	import { onMount } from 'svelte';

@@ -8,6 +8,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
+// Colour literals the ratio helper is exercised with.
+const BLACK = '#000000';
+const WHITE = '#ffffff';
+const MID_GREY = '#767676';
+const SHORT_BLACK = '#000';
+const SHORT_WHITE = '#fff';
+
 const css = readFileSync(
 	new URL('../../../node_modules/carbon-components-svelte/css/all.css', import.meta.url),
 	'utf8'
@@ -140,11 +147,11 @@ describe('the two themes', () => {
 
 describe('the ratio helper', () => {
 	it('is 21:1 for black on white and 1:1 for a colour on itself', () => {
-		expect(ratio('#000000', '#ffffff')).toBeCloseTo(21, 5);
-		expect(ratio('#767676', '#767676')).toBe(1);
+		expect(ratio(BLACK, WHITE)).toBeCloseTo(21, 5);
+		expect(ratio(MID_GREY, MID_GREY)).toBe(1);
 	});
 	it('reads #rgb as #rrggbb', () => {
-		expect(ratio('#000', '#fff')).toBeCloseTo(21, 5);
+		expect(ratio(SHORT_BLACK, SHORT_WHITE)).toBeCloseTo(21, 5);
 	});
 	it('rejects a colour it cannot read', () => {
 		expect(() => luminance('red')).toThrow();

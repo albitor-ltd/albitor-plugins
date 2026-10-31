@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The pure half of the accessibility audit: which axe tags
+// Starting point (test-playwright). The pure half of the accessibility audit: which axe tags
 // the audit runs, how a waiver is validated and how violations are reported. Nothing here imports
 // Playwright or axe, so `npm run unit` tests it with plain Node.
 

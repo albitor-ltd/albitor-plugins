@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (web-svelte): nests the web.providers components, outermost first. -->
+<!-- Starting point (web-svelte): nests the web.providers components, outermost first. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Self from './ShellProviders.svelte';

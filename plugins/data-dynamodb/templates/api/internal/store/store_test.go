@@ -35,8 +35,8 @@ func TestKey(t *testing.T) {
 
 func TestCursorRoundTripAndBinding(t *testing.T) {
 	q := Query{PK: "p#1", SKPrefix: "inv#", Limit: 5}
-	q.Cursor = encodeCursor(q.PK, "inv#007")
-	if sk, err := decodeCursor(q); err != nil || sk != "inv#007" {
+	q.Cursor = encodeCursor(q.PK, "inv#a7")
+	if sk, err := decodeCursor(q); err != nil || sk != "inv#a7" {
 		t.Fatalf("round trip = %q, %v", sk, err)
 	}
 	// A partition key that contains the length separator and digits cannot be

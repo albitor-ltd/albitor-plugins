@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-cognito): the route guard the shell runs before every navigation.
+// Starting point (auth-cognito): the route guard the shell runs before every navigation.
 //
 // It is a function over the session module, never over a provider: `load` runs before any provider
 // mounts. A guard shapes what the browser shows; the API enforces access itself.

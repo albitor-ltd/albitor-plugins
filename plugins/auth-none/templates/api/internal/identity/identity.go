@@ -2,7 +2,7 @@
 // the one identity API an app's handlers use, whichever auth plugin the app
 // composes: handlers call Owner and FromContext. This is the auth-none
 // plugin's version: there is no sign-in, so every request acts for the one
-// fixed owner. This is platform code: do not edit it.
+// fixed owner. Keep the exported names: handlers depend on them.
 //
 // The package imports nothing from the app or the shell, so the shell (which
 // imports the app) and the app's handlers can both depend on it.

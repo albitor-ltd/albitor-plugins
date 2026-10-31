@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- Starting points, not managed files (albitor-ltd/albitor#4216, ADR-0103; minor releases of `api-go`
+  `0.3.0`, `auth-cognito` `0.5.0`, `auth-hosted` `0.3.0`, `auth-none` `0.3.0`, `data-dynamodb`
+  `0.2.0`, `deploy-byoa-aws` `0.7.0`, `deploy-hosted` `0.3.0`, `kit-carbon` `0.6.0`, `kit-gds`
+  `0.6.0`, `kit-shadcn` `0.6.0`, `test-playwright` `0.5.0`, `web-svelte` `0.5.0`; untagged until
+  released): every file a plugin contributes is seeded once and is the app's from then on, so every
+  `managed` entry in the manifests is now `example`. Three kinds of entry keep their old mode only
+  because the platform's parser or kit certification still requires it: the four slot templates
+  (`router.go`, `app.html`, `nav.generated.ts`, `providers.generated.ts`, recorded as `slot-template`
+  and rendered once), the workflows (`deploy-hosted` `ci.yml`, the four `deploy-byoa-aws` workflows,
+  `test-playwright` `journeys.yml`, which the parser admits in `managed` mode only) and the kits'
+  contrast test, `kit.test.ts`, `dialog.test.ts` and (`kit-shadcn`) `tokens.css`. Their headers and the skills and READMEs no longer
+  claim a file is managed, generated or rewritten on compose or upgrade, or tell the builder to edit
+  `albitor.yaml` instead of the file.
+- The skeletons pass the floor as shipped. `deploy-hosted`'s `albitorsvc` client closes the response
+  body without dropping its error (the `lint-clean/lint` finding); the delivered files no longer
+  carry names the `handover-clean/no-internal-references` gate flags. Plugin-owned names changed:
+  `ALBITOR_API_ORIGIN` is `APP_API_ORIGIN`, `ALBITOR_SIGN_IN_SCREEN` is `SIGN_IN_SCREEN`,
+  `ALBITOR_SESSION_COOKIE_PATTERN` is `SESSION_COOKIE_PATTERN`, `ALBITOR_TESTS_OUT` is
+  `TESTS_OUT_DIR`, `ALBITOR_TESTS_AUTH_DIR` is `TESTS_AUTH_DIR`, `ALBITOR_DYNAMODB_ENDPOINT` is
+  `LOCAL_DYNAMODB_ENDPOINT`; the offline layer's IndexedDB prefix and lock name are `app-sync`; test
+  keys `inv#001` are `inv#a1`; the contrast tests name their colour literals once. Still named by the
+  platform and so still flagged until the platform's gate exempts them: the `albitorsvc` package and
+  `ALBITOR_SERVICES_URL` (`deploy-hosted`), the `albitor-kit` cascade layer (`kit-shadcn`) and the
+  `albitor:home-stub` marker (`web-svelte`).
+
 ### Fixed
 
 - `api-go` `0.2.1` and `test-playwright` `0.4.2` (albitor-ltd/albitor#4175, stream #3944; `api-go`

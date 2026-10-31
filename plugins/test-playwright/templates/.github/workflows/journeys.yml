@@ -1,4 +1,4 @@
-# Managed by Albitor (test-playwright). Boots the app locally under the local run contract and
+# Starting point (test-playwright). Boots the app locally under the local run contract and
 # runs the journey suite and the accessibility audit. Read-only: it reads no secret and writes
 # nothing back to the repository.
 name: journeys

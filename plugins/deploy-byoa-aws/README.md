@@ -9,16 +9,16 @@ contributes, and the platform composer renders it into a new app.
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `infrastructure/aws/{main,variables,versions,backend,outputs}.tf` | managed | The root: reads `albitor.yaml`, checks it, calls the modules |
-| `infrastructure/aws/.terraform.lock.hcl` | managed | Provider checksums for the pinned providers |
+| `infrastructure/aws/{main,variables,versions,backend,outputs}.tf` | starting point | The root: reads `albitor.yaml`, checks it, calls the modules |
+| `infrastructure/aws/.terraform.lock.hcl` | starting point | Provider checksums for the pinned providers |
 | `infrastructure/aws/terraform.tfvars` | example | Per-environment choices: DNS mode, domain, alarm address |
-| `.github/workflows/ci.yml` | managed | Build, test and Terraform checks; read-only |
-| `.github/workflows/deploy.yml` | managed | Build, test, apply, seed the platform accounts and ship under an OIDC-assumed role |
-| `.github/workflows/destroy.yml` | managed | Destroys one environment ("Delete app"): unblocks, `terraform destroy`, then a `destroy receipt`; manual dispatch only |
-| `.github/workflows/invite.yml` | managed | Invites one person to the user pool; run by hand from the Actions tab |
-| `scripts/tf-unlock-stale.sh` | managed | Clears a stale same-account state lock before init |
-| `scripts/seed-platform-accounts.sh` | managed | Seeds the demo and verifier accounts into the pool, from the deploy job |
-| `scripts/invite-user.sh` | managed | Sends one invitation; the invite workflow runs it |
+| `.github/workflows/ci.yml` | starting point (manifest mode `managed` until the platform admits example) | Build, test and Terraform checks; read-only |
+| `.github/workflows/deploy.yml` | starting point (manifest mode `managed` until the platform admits example) | Build, test, apply, seed the platform accounts and ship under an OIDC-assumed role |
+| `.github/workflows/destroy.yml` | starting point (manifest mode `managed` until the platform admits example) | Destroys one environment ("Delete app"): unblocks, `terraform destroy`, then a `destroy receipt`; manual dispatch only |
+| `.github/workflows/invite.yml` | starting point (manifest mode `managed` until the platform admits example) | Invites one person to the user pool; run by hand from the Actions tab |
+| `scripts/tf-unlock-stale.sh` | starting point | Clears a stale same-account state lock before init |
+| `scripts/seed-platform-accounts.sh` | starting point | Seeds the demo and verifier accounts into the pool, from the deploy job |
+| `scripts/invite-user.sh` | starting point | Sends one invitation; the invite workflow runs it |
 | `docs/inviting-people.md` | example, held for handover | Tells the owner how to invite people; written into the repository at handover |
 
 It contributes the `github-actions` and `terraform` entries of the held `dependabot.yml`. The

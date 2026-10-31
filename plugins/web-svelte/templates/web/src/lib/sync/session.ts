@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): who is signed in, as far as the sync layer is concerned.
+// Starting point (web-svelte, offline data layer): who is signed in, as far as the sync layer is concerned.
 //
 // The auth plugin's provider calls `setSyncUser(id)` when a session starts or its person changes,
 // and `setSyncUser(null)` when it ends. The id must be the stable user id (the token's subject),

@@ -1,6 +1,6 @@
 ---
 name: data-offline
-description: How to read and write data that must work offline on a SvelteKit app composed with the web-svelte offline data layer (@albitor/sync): collections, the outbox, sync status, sign-out, and what the API must provide. Use when a build adds or changes a page that reads or writes synced data.
+description: How to read and write data that must work offline on a SvelteKit app composed with the web-svelte offline data layer (lib/sync): collections, the outbox, sync status, sign-out, and what the API must provide. Use when a build adds or changes a page that reads or writes synced data.
 ---
 
 # Offline-first data (web-svelte, offline data layer)
@@ -75,7 +75,8 @@ change was rejected. For rejected changes, `sync.failures()` lists them (no serv
 
 ## Rules that stay
 
-- Do not edit `lib/sync/*` except `collections.ts`; it is managed and upgraded with the plugin.
+- Treat `lib/sync/*` as a starting point: `collections.ts` is where the app lists its collections;
+  change the rest only when the app needs it, and keep `engine.test.ts` and `shell.test.ts` passing.
 - Do not unregister or bypass the service worker (`src/service-worker`): it is what lets the shell
   open offline, and it deliberately never caches `/api/`.
 - A route guard hides pages, it does not protect data: the API must check the caller on every call.

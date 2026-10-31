@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Managed by Albitor (deploy-byoa-aws). Invites one person to the app's Cognito user pool, run by the
+# Starting point (deploy-byoa-aws). Invites one person to the app's Cognito user pool, run by the
 # invite workflow under the deploy identity.
 #
 #   scripts/invite-user.sh <user-pool-id> <email>
