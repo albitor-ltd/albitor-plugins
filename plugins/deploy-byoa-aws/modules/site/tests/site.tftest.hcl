@@ -361,7 +361,7 @@ run "external_delegated_first_apply_never_waits_for_validation" {
   }
   assert {
     condition     = length(aws_acm_certificate_validation.cert) == 0 && length(aws_route53_record.alias_a) == 0 && length(aws_route53_record.delegation) == 0
-    error_message = "no validation wait, no alias and no delegation record before domain_ready: the first apply cannot hang on a delegation that is not live (ADR-0041)"
+    error_message = "no validation wait, no alias and no delegation record before domain_ready: the first apply cannot hang on a delegation that is not live"
   }
   assert {
     condition     = one(aws_cloudfront_distribution.this.viewer_certificate).cloudfront_default_certificate == true && length(aws_cloudfront_distribution.this.aliases) == 0

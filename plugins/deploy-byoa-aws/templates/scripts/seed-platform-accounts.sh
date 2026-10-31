@@ -5,7 +5,7 @@
 #   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group> [<roles>]]
 #
 # Two accounts, one mechanism. The DEMO account is the app owner's: they sign
-# in with it to try the app on handover day. The VERIFIER account is Albitor's own: its checks sign
+# in with it to try the app on handover day. The VERIFIER account is the platform's own: its checks sign
 # in with it to prove the signed-in journeys work. Both are created confirmed, with a permanent
 # password and no email (MessageAction SUPPRESS), so neither spends the default Cognito sender's
 # daily quota and neither sits in FORCE_CHANGE_PASSWORD.
@@ -15,16 +15,15 @@
 # any request-path bug into a pool-wide account takeover. The deploy identity can already create the
 # pool, so running the seed here adds no authority that did not exist.
 #
-# Each password was minted by Albitor and written to the app's own secret store:
+# Each password was minted by the platform and written to the app's own secret store:
 #   /albitor/apps/<secrets segment>/secrets/ALBITOR_DEMO_ACCOUNT_PASSWORD
 #   /albitor/apps/<secrets segment>/secrets/ALBITOR_VERIFIER_ACCOUNT_PASSWORD
-# The segment is what Albitor wrote the parameters under (the app's slug, core.AppSecretSegment). It
+# The segment is what the platform wrote the parameters under (the app's slug). It
 # is not derivable from the repository name, which can differ from the slug, so the platform writes
 # it into env/<environment>.deploy.env as ALBITOR_APP_SECRETS_SEGMENT and deploy.yml passes it in.
 # Without it the seed cannot know where to read, and fails (seed_status=failed:no_secrets_segment)
 # rather than guessing: a guess would read as "no password" and skip silently.
-# The usernames are constants below (core.DemoAccountUsername, core.VerifierAccountUsername in
-# Albitor), not an input: nothing the app writes can name an identity or carry a password into here.
+# The usernames are constants below, not an input: nothing the app writes can name an identity or carry a password into here.
 #
 # Roles. An app has one kind of account unless it declares groups. When <admin-group> is given (the
 # stack's resolved services.auth.admin_group, empty for an app with no groups) both accounts are
@@ -39,7 +38,7 @@
 # refused to it. The demo account is not given every group: it stays the owner's, in the admin group
 # alone. The password is the app's own secret
 #   /albitor/apps/<secrets segment>/secrets/ALBITOR_ROLE_<ROLE>_ACCOUNT_PASSWORD
-# (the role upper-cased, hyphens as underscores), which Albitor writes beside the other two. A role
+# (the role upper-cased, hyphens as underscores), which the platform writes beside the other two. A role
 # whose parameter is missing is a LOUD skip and is not in seeded_roles; it is never a failed deploy
 # and never a seed_status, which keeps its three-account vocabulary. Auth@2's signInAs reads the same
 # password, from outside the checkout, to sign in as the role (test-playwright, helpers/auth-v2.ts).
@@ -49,7 +48,7 @@
 # that is removed on the way out, and nothing is written to $GITHUB_ENV.
 #
 # No pool is a skip. A pool whose password parameter does not exist (ParameterNotFound) is a LOUD
-# skip, a warning naming the account and the parameter, because Albitor writes the parameter and a
+# skip, a warning naming the account and the parameter, because the platform writes the parameter and a
 # red deploy is not something the app's owner can fix. Any other read failure (access denied, KMS,
 # throttling) is not "missing": it fails the step. $GITHUB_OUTPUT gets seed_status, one of
 #   seeded | no_pool | skipped_unprovisioned:<demo|verifier>[,<demo|verifier>]
@@ -106,7 +105,7 @@ if [ -n "$roles_csv" ]; then
   done
 fi
 
-# The parameter path segment is the one Albitor wrote the parameters under, handed in by the
+# The parameter path segment is the one the platform wrote the parameters under, handed in by the
 # workflow from the platform-written deploy.env. Absent is a failure, not a skip.
 if [ -z "$secrets_segment" ]; then
   echo "::error::env/<environment>.deploy.env carries no ALBITOR_APP_SECRETS_SEGMENT, so the seed cannot tell where the platform wrote the account passwords. Redeploy after the platform rewrites that file" >&2

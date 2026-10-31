@@ -1,4 +1,4 @@
-# Managed by Albitor (deploy-byoa-aws): rendered from albitor.yaml, pinned in .albitor/lock.json.
+# Managed by Albitor (deploy-byoa-aws): rendered from albitor.yaml and pinned by the repository's lock file.
 # Edit albitor.yaml and terraform.tfvars, not this file. A change to what the stack builds is a
 # change to the manifest; a change to how it builds it is a new release of the plugin.
 #
@@ -7,7 +7,7 @@
 # app, so the same file renders every app and a manifest edit is the whole change.
 
 locals {
-  manifest_file = coalesce(var.manifest_path, "${path.root}/../../albitor.yaml")
+  manifest_file = coalesce(var.manifest_path, join("/", [path.root, "../..", "albitor.yaml"]))
   manifest      = yamldecode(file(local.manifest_file))
 
   site   = try(local.manifest.site, null)
@@ -91,7 +91,7 @@ resource "terraform_data" "manifest" {
     }
     precondition {
       condition     = try(local.manifest.version, "") == "albitor/v1"
-      error_message = "albitor.yaml must declare version: albitor/v1."
+      error_message = "albitor.yaml must declare the manifest version this stack renders."
     }
     precondition {
       condition     = local.site != null || local.http != null
@@ -117,7 +117,7 @@ resource "terraform_data" "manifest" {
 }
 
 module "data" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.6.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.6.1"
 
   name_prefix         = local.name_prefix
   tables              = local.tables
@@ -125,7 +125,7 @@ module "data" {
 }
 
 module "auth" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.6.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.6.1"
   count  = local.auth == null ? 0 : 1
 
   name_prefix         = local.name_prefix
@@ -139,7 +139,7 @@ module "auth" {
 }
 
 module "api" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.6.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.6.1"
   count  = local.http == null ? 0 : 1
 
   name_prefix = local.name_prefix
@@ -153,7 +153,7 @@ module "api" {
 }
 
 module "site" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.6.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.6.1"
   count  = local.site == null ? 0 : 1
 
   providers = {
@@ -179,7 +179,7 @@ module "site" {
 }
 
 module "alarms" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.6.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.6.1"
 
   name_prefix   = local.name_prefix
   api_enabled   = local.http != null

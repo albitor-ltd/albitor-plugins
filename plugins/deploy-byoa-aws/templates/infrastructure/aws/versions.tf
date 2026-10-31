@@ -21,7 +21,7 @@ provider "aws" {
       Project     = var.project_name
       Environment = var.environment
       ManagedBy   = "terraform"
-      Template    = "albitor-deploy-byoa-aws"
+      Template    = "deploy-byoa-aws"
     }
   }
 }
@@ -37,7 +37,7 @@ provider "aws" {
       Project     = var.project_name
       Environment = var.environment
       ManagedBy   = "terraform"
-      Template    = "albitor-deploy-byoa-aws"
+      Template    = "deploy-byoa-aws"
     }
   }
 }
