@@ -14,7 +14,10 @@ deploy realises the pool and hands the function `AUTH_ISSUER`, `AUTH_CLIENT_ID`,
 `AUTH_POSTURE`, `AUTH_LOGIN_URL` and `AUTH_LOGOUT_URL`. There is no Terraform and no pool id in the
 repository.
 
-## What is managed (never edit)
+## Starting points
+
+These files are seeded once and are yours from then on. They are the working sign-in for the app: change them when the app needs it, and keep the identity API (`identity.Owner`, `identity.FromContext`) and the checks the API makes on every token, which is what keeps one person's records from another.
+
 
 | File | What it does |
 | --- | --- |
@@ -38,7 +41,7 @@ client may send `Authorization: Bearer <token>` instead.
   must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
   `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
   that is the platform's job.
-- **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` (managed) exports `auth` with `roles()`
+- **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` exports `auth` with `roles()`
   (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
   request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
   hand-made user, never a password in a spec. Each role's account holds that group and no other. Locally it is the `api-go` local issuer; deployed it is the seeded `<role>@albitor-role.invalid` signed in on the Cognito hosted page.
@@ -55,8 +58,8 @@ client may send `Authorization: Bearer <token>` instead.
   person explicitly asks for a sign-in domain restriction; never invent one.
 - **App data on deletion.** Set `shell.OnAccountDeleted` from an app-owned file to remove a person's
   records after their account is deleted. It must be idempotent: the person cannot retry.
-- **Public pages.** `PUBLIC_PATHS` in `guard.ts` is managed. A page that must be public (a landing page,
-  say) means ejecting `guard.ts` and adding the path: say why in the delivery record. The guard only
+- **Public pages.** `PUBLIC_PATHS` in `guard.ts` lists the public paths. A page that must be public (a landing page,
+  say) means adding the path there: say why in the delivery record. The guard only
   shapes what the browser shows; the API enforces access. An app whose every page is private sends a
   signed-out visitor straight to Cognito.
 

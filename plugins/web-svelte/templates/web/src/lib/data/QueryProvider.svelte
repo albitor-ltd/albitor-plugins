@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (web-svelte, online data layer): the web.providers entry that gives every page the shared
+<!-- Starting point (web-svelte, online data layer): the web.providers entry that gives every page the shared
      query client. One client per page load, created here and not at module level. -->
 <script lang="ts">
 	import { QueryClientProvider } from '@tanstack/svelte-query';

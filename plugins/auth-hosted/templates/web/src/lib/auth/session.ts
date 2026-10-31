@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-hosted): the session, read without any provider.
+// Starting point (auth-hosted): the session, read without any provider.
 //
 // SvelteKit runs the route guard in `+layout.ts` `load`, before any provider mounts, so the guard
 // cannot read a context a provider sets. This module is what the guard and the screens both read,

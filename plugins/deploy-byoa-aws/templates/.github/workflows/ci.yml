@@ -1,4 +1,4 @@
-# Managed by Albitor (deploy-byoa-aws). The gate for this repository: every pull request and every
+# Starting point (deploy-byoa-aws). The gate for this repository: every pull request and every
 # push to main builds and tests the API and the web app, and checks the Terraform. Read-only: it
 # assumes no cloud role and reads no secret. deploy.yml repeats the build and the tests before it
 # ships, because a deploy cannot wait on this workflow without a trigger that could run it for a

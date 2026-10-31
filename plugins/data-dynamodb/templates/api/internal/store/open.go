@@ -19,7 +19,7 @@ const (
 	// each declared table.
 	TableEnvPrefix = "ALBITOR_TABLE_"
 	// EndpointEnv points the adapter at DynamoDB Local. Loopback hosts only.
-	EndpointEnv = "ALBITOR_DYNAMODB_ENDPOINT"
+	EndpointEnv = "LOCAL_DYNAMODB_ENDPOINT"
 
 	// lambdaMarker is set by the Lambda runtime itself, so configuration cannot
 	// unset it.

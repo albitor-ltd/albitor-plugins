@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-none). This app's auth@2 provider: the one object a spec or auth.setup.ts
+// Starting point (auth-none). This app's auth@2 provider: the one object a spec or auth.setup.ts
 // calls to learn the roles and to be one of them. This app has no sign-in, so it has no roles: roles() is always empty and seed and signInAs refuse.
 //
 //   import { auth } from "./auth/provider";

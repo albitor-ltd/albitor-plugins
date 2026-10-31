@@ -91,8 +91,8 @@ How to use one:
 
 Everything reads the custom properties in `tokens.css`, declared in the `albitor-kit` cascade layer so
 any unlayered declaration wins. To theme the app, declare the same properties in
-`web/src/lib/app/app.css`; do not edit `tokens.css` (it is managed and will be reset) or the
-components. Dark mode follows the visitor's preference unless the page sets `data-theme="light"`,
+`web/src/lib/app/app.css`; leave `tokens.css` as the defaults and the
+components alone for a colour change. Dark mode follows the visitor's preference unless the page sets `data-theme="light"`,
 and `data-theme="dark"` forces it.
 
 If you override colours, keep `contrast.test.ts` passing. It computes WCAG 2.2 AA ratios (4.5:1 for
@@ -133,7 +133,6 @@ detail, and the map from other shadcn components to their Bits UI primitive, is 
 ## Do not
 
 - Do not add Tailwind: this kit styles with scoped CSS over tokens, and the web-svelte build has no
-  Tailwind plugin. If you do want it, that is a change to `vite.config.ts`, which is ejected
-  first (see `svelte-shell`).
+  Tailwind plugin. If you do want it, that is a change to `vite.config.ts` (see `svelte-shell`).
 - Do not hand-roll focus management or portals; use Bits UI, which the dialog already wraps.
 - Do not remove the focus outlines.

@@ -8,12 +8,12 @@ provides, requires and contributes, and the platform composer renders it into a 
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `api/internal/identity/` | managed | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use |
-| `api/internal/shell/identity_verify.go` | managed | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `POST /api/auth/*` |
-| `api/internal/shell/identity_token.go` | managed | RS256 check against the pool's JWKS, standard library only |
-| `api/internal/shell/identity_cognito.go` | managed | Pool from the environment, the sign-in calls, the session cookies |
-| `web/src/lib/auth/` | managed | `getSession()`, the `requireSession` route guard, the sign-in client, and their tests |
-| `web/src/lib/shell/scope.d/auth-cognito.ts` | managed | Exports the name `web.route-guard` resolves to |
+| `api/internal/identity/` | starting point | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use |
+| `api/internal/shell/identity_verify.go` | starting point | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `POST /api/auth/*` |
+| `api/internal/shell/identity_token.go` | starting point | RS256 check against the pool's JWKS, standard library only |
+| `api/internal/shell/identity_cognito.go` | starting point | Pool from the environment, the sign-in calls, the session cookies |
+| `web/src/lib/auth/` | starting point | `getSession()`, the `requireSession` route guard, the sign-in client, and their tests |
+| `web/src/lib/shell/scope.d/auth-cognito.ts` | starting point | Exports the name `web.route-guard` resolves to |
 | `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset and sign-out screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: redirect, screens, local identity |
 
@@ -77,8 +77,8 @@ deploy seeds are permanent from the start and never meet this step.
 - Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
 - No MFA, no social sign-in. The one challenge handled is `NEW_PASSWORD_REQUIRED` (below); any other
   answers 409 `challenge_unsupported`.
-- Logic ships as managed files, not a versioned module (ADR-0090 amendment 3), so a fix reaches an
-  app on a compose or upgrade, not silently.
+- Logic ships as files seeded once into the app, not a versioned module. An app owns its copy from
+  the first compose; a fix in a later release reaches new apps only.
 
 ## Upgrading from 0.2.0
 

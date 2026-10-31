@@ -46,8 +46,8 @@ func TestDataDynamoDBComposesOverAPIGo(t *testing.T) {
 		if _, ok := res.Files[p]; !ok {
 			t.Errorf("%s is not in the composed tree", p)
 		}
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed (a build must not edit the store), got %q", p, modes[p])
+		if modes[p] != "example" {
+			t.Errorf("%s should be an example (seeded once, app-owned), got %q", p, modes[p])
 		}
 	}
 

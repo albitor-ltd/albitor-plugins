@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright).
+// Starting point (test-playwright).
 import { type Dirent, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { expect, test as setup } from "@playwright/test";
@@ -74,8 +74,8 @@ const { username, password, signInRoute } = readCredentials(process.env);
 
 // DOES THIS APP HAVE A SIGN-IN SCREEN YET? Decided here, not by an edit.
 //
-// This file is managed: no builder can flip a flag in it. The answer is true when the platform
-// says so (ALBITOR_SIGN_IN_SCREEN=1, set by an auth plugin that ships a sign-in screen) or when the
+// The answer is not a flag a build can flip. The answer is true when the platform
+// says so (SIGN_IN_SCREEN=1, set by an auth plugin that ships a sign-in screen) or when the
 // app's own front end anywhere under web/ renders the kit's SignInPage (outside the kit itself).
 // Declaring services.auth in albitor.yaml, or holding a demo password at all (only an app with a
 // user pool is given one), also counts: a hosted sign-in has no in-app screen to find in the source.
@@ -106,8 +106,8 @@ function appBaseURL(): string {
   return String(setup.info().project.use.baseURL ?? "");
 }
 
-// albitorYamlDeclaresAuth reads the app's albitor.yaml (the repository root, above web/).
-function albitorYamlDeclaresAuth(): boolean {
+// manifestDeclaresAuth reads the app's albitor.yaml (the repository root, above web/).
+function manifestDeclaresAuth(): boolean {
   try {
     return declaresServicesAuth(readFileSync(join(WEB_ROOT, "..", "albitor.yaml"), "utf8"));
   } catch {
@@ -199,12 +199,12 @@ setup("sign in once as the demo account", async ({ page }) => {
   // Strict once there is any evidence the app signs in: see signInRequired. A password is the
   // strongest, since only an app with a user pool is given one. Decided per run, so nothing has to
   // be edited when the screen appears.
-  const signInScreenFlag = process.env.ALBITOR_SIGN_IN_SCREEN === "1";
+  const signInScreenFlag = process.env.SIGN_IN_SCREEN === "1";
   const signInScreenExists = signInRequired({
     hasPassword: !!password,
     signInScreenFlag,
     sourceNamesScreen: sourceNamingSignInField() !== "",
-    declaresAuth: albitorYamlDeclaresAuth(),
+    declaresAuth: manifestDeclaresAuth(),
   });
 
   if (!password) {

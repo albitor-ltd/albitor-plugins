@@ -397,7 +397,7 @@ func TestDynamoDBQueryNeverStopsOnAShortTruncatedPage(t *testing.T) {
 func TestDynamoDBQueryUsesTheKeyConditionNotAFilter(t *testing.T) {
 	f := newFakeDynamo(t, reply(200, `{"Items":[]}`))
 	q := Query{PK: "p", SKPrefix: "inv#", Reverse: true, Limit: 5}
-	q.Cursor = encodeCursor("p", "inv#009")
+	q.Cursor = encodeCursor("p", "inv#a9")
 	if _, err := f.store().Query(context.Background(), q); err != nil {
 		t.Fatal(err)
 	}
@@ -409,7 +409,7 @@ func TestDynamoDBQueryUsesTheKeyConditionNotAFilter(t *testing.T) {
 		t.Errorf("reverse query scans forward: %v", b)
 	}
 	esk, _ := b["ExclusiveStartKey"].(map[string]any)
-	if esk == nil || esk["sk"].(map[string]any)["S"] != "inv#009" || esk["pk"].(map[string]any)["S"] != "p" {
+	if esk == nil || esk["sk"].(map[string]any)["S"] != "inv#a9" || esk["pk"].(map[string]any)["S"] != "p" {
 		t.Errorf("cursor did not become ExclusiveStartKey: %v", b["ExclusiveStartKey"])
 	}
 	// Values are bound as attribute values, never spliced into an expression.

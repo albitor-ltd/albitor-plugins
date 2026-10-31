@@ -13,7 +13,10 @@ route. All of that is in the repository: read it, then extend it. The plugin dec
 deploy target realises the user pool and hands the function `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`
 and `AWS_REGION`. There is no Terraform and no pool id in the repository.
 
-## What is managed (never edit)
+## Starting points
+
+These files are seeded once and are yours from then on. They are the working sign-in for the app: change them when the app needs it, and keep the identity API (`identity.Owner`, `identity.FromContext`) and the checks the API makes on every token, which is what keeps one person's records from another.
+
 
 | File | What it does |
 | --- | --- |
@@ -37,7 +40,7 @@ readable by page script. A script or test client may send `Authorization: Bearer
   must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
   `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
   that is the platform's job.
-- **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` (managed) exports `auth` with `roles()`
+- **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` exports `auth` with `roles()`
   (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
   request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
   hand-made user, never a password in a spec. Each role's account holds that group and no other. Locally it is the `api-go` local issuer; deployed it is the seeded `<role>@albitor-role.invalid` signed in on the app's own form.
@@ -46,11 +49,11 @@ readable by page script. A script or test client may send `Authorization: Bearer
   on the sign-up, confirm, reset and new-password forms. The sign-in form is the kit's `SignInPage`
   (component-kit@2), found by role and label; keep it rather than rebuilding it. `sign-out/nav.ts` puts "Sign out" in the
   nav; delete it to take it out.
-- **Public pages.** `PUBLIC_PATHS` in `guard.ts` is managed. A page that must be public (a landing
-  page, say) means ejecting `guard.ts` and adding the path: say why in the delivery record. The
+- **Public pages.** `PUBLIC_PATHS` in `guard.ts` lists the public paths. A page that must be public (a landing
+  page, say) means adding the path there: say why in the delivery record. The
   guard only shapes what the browser shows; the API enforces access.
 - **Anything the brief adds** (MFA, social sign-in, invite-only) is a change to `services.auth` in
-  `albitor.yaml` and, where the API must change, an ejected file. `sign_up` is `open` or
+  `albitor.yaml` and, where the API must change, an edit to the file that needs it. `sign_up` is `open` or
   `invite_only`; a challenge the screens do not handle answers `challenge_unsupported`. The
   invited person's temporary-password step (`new_password_required`, then `newPassword` in
   `client.ts`) is handled: keep the `new-password-*` test ids on the sign-in page.

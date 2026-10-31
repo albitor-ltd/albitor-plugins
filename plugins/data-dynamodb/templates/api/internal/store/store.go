@@ -13,8 +13,7 @@
 // cannot name a key outside the one the caller built. The owner of a record
 // comes from the verified identity, never the request body.
 //
-// This is platform code, maintained with the plugin that ships it; extend the
-// app around it rather than editing it. The conformance suite in storetest
+// It is a starting point: extend the app around it where you can. The conformance suite in storetest
 // runs against both adapters, so a behaviour a handler relies on is one the
 // deployed store has.
 package store

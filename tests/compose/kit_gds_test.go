@@ -94,14 +94,14 @@ func TestKitGDSFileModes(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	// The accessibility gate (contrast, axe, and the Showcase they render) is platform-owned; the
-	// components are the app's to edit.
+	// Every kit file is seeded once and app-owned. The contrast and axe test files stay managed only because the platform's
+	// kit certification still demands them: those tests and the themeable token file.
 	for p, want := range map[string]string{
-		"web/vitest.config.ts":             "managed",
+		"web/vitest.config.ts":             "example",
 		"web/src/lib/kit/contrast.test.ts": "managed",
 		"web/src/lib/kit/kit.test.ts":      "managed",
 		"web/src/lib/kit/dialog.test.ts":   "managed",
-		"web/src/lib/kit/Showcase.svelte":  "managed",
+		"web/src/lib/kit/Showcase.svelte":  "example",
 		"web/src/lib/kit/AppShell.svelte":  "example",
 		"web/src/lib/kit/Button.svelte":    "example",
 		"web/src/lib/kit/Dialog.svelte":    "example",

@@ -8,11 +8,11 @@ provides, requires and contributes, and the platform composer renders it into a 
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `api/go.mod`, `api/main.go` | managed | Module `webapp` (stdlib only) and the process entry point |
-| `api/internal/shell/shell.go`, `boot.go` | managed | Health route, JSON 404, middleware chain, request logging, local issuer wiring |
+| `api/go.mod`, `api/main.go` | starting point | Module `webapp` (stdlib only) and the process entry point |
+| `api/internal/shell/shell.go`, `boot.go` | starting point | Health route, JSON 404, middleware chain, request logging, local issuer wiring |
 | `api/internal/shell/router.go` | generated | Places the `api.middleware` and `api.routes` slots; a `slot-template` entry in `plugin.json` (syntax `go`) |
-| `api/internal/apikit/**` | managed | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
-| `api/internal/localauth/**` | managed | The Go side of the local run contract: the in-process test issuer |
+| `api/internal/apikit/**` | starting point | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
+| `api/internal/localauth/**` | starting point | The Go side of the local run contract: the in-process test issuer |
 | `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)`, where product handlers are registered |
 | `api/openapi.yaml`, `api/README.md`, `api/.gitignore` | example | The API contract and notes |
 
@@ -44,4 +44,4 @@ parentheses (`middlewareOf(...)`, `routesOf(...)`) so it is clean either way.
 A fragment is an identifier resolved in package `internal/shell`. `api.middleware` entries are
 `func(http.Handler) http.Handler`, outermost first, inside request logging; `api.routes` entries
 are `func(*http.ServeMux)`, registered before the app's `Routes`. A contributing plugin ships a
-managed file in `api/internal/shell/` that declares the symbol.
+file in `api/internal/shell/` that declares the symbol.

@@ -68,8 +68,7 @@ Mutations are never retried automatically. After a write, invalidate the lists i
 ## Rules that stay
 
 - Retries: server errors, timeouts, throttling and an unreachable API retry twice with backoff;
-  client errors (400 to 499) never do. Change the policy in `lib/data/client.ts` only through the
-  plugin, since the file is managed.
+  client errors (400 to 499) never do. Change the policy in `lib/data/client.ts`.
 - On sign-out call `useQueryClient().clear()`, or the next person on the browser sees cached data.
 - The cache lives in memory and is gone on reload. Do not copy API data into `localStorage`.
 - A route guard hides pages, it does not protect data: the API must check the caller on every call.

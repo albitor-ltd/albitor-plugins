@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): the IndexedDB LocalStore. One database per owner, so
+// Starting point (web-svelte, offline data layer): the IndexedDB LocalStore. One database per owner, so
 // another person's data is not merely hidden but unreachable through the store being used.
 import type { LocalStore, OutboxEntry, StoreFactory, SyncRecord } from './types';
 
@@ -96,7 +96,7 @@ export function idbStore(name: string, factory: IDBFactory = indexedDB): LocalSt
 }
 
 /** One database per owner, named `<prefix>:<owner>`. */
-export function idbStores(prefix = 'albitor-sync', factory?: IDBFactory): StoreFactory {
+export function idbStores(prefix = 'app-sync', factory?: IDBFactory): StoreFactory {
 	const byOwner = new Map<string, LocalStore>();
 	return (owner) => {
 		let store = byOwner.get(owner);

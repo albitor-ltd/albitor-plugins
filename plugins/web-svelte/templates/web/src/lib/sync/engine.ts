@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): the sync engine, @albitor/sync.
+// Starting point (web-svelte, offline data layer): the sync engine, the sync package.
 //
 // Offline-first: every write lands in the local store first and in an outbox second, and the
 // outbox is replayed to the server when there is a network. The rules below exist because
@@ -299,7 +299,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 			return total;
 		};
 		const running = Promise.resolve()
-			.then(() => lock(`albitor-sync:${ctx.owner}`, body))
+			.then(() => lock(`app-sync:${ctx.owner}`, body))
 			.finally(() => {
 				ctx.running = null;
 				emit();

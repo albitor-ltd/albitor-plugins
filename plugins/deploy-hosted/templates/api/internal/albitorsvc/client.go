@@ -247,7 +247,7 @@ func (c *Client) once(ctx context.Context, endpoint string, body []byte, o callO
 		}
 		return nil, errors.New("albitorsvc: the request failed to send")
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode/100 == 2 {
 		out, err := io.ReadAll(io.LimitReader(res.Body, maxResponse+1))
 		if err != nil {

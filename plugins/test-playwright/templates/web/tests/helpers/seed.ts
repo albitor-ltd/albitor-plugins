@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright).
+// Starting point (test-playwright).
 import { randomUUID } from "node:crypto";
 import type { TestInfo } from "@playwright/test";
 import { FixtureScope } from "./fixture-scope";

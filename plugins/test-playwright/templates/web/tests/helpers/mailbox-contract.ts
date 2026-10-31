@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The pure half of the walk mailbox (see mailbox.ts).
+// Starting point (test-playwright). The pure half of the walk mailbox (see mailbox.ts).
 import { safeOpenPath } from "./screen-rules.ts";
 
 export type WalkVerification = {

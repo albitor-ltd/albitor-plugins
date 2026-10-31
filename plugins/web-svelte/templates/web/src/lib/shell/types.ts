@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte): the shell's contract types.
+// Starting point (web-svelte): the shell's contract types.
 import type { Component, Snippet } from 'svelte';
 
 /** What a route's nav.ts exports as `nav`, and what a plugin's web.nav fragment carries. */

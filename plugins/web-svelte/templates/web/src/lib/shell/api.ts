@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte): the API client runtime. Every call goes to this app's own
+// Starting point (web-svelte): the API client runtime. Every call goes to this app's own
 // /api, which the host (or `npm run local`, or the dev server) forwards to the API.
 //
 // It is a file, not a package, until a published client exists; keep app code behind these

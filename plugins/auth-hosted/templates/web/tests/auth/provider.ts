@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-hosted). This app's auth@2 provider: the one object a spec or auth.setup.ts
+// Starting point (auth-hosted). This app's auth@2 provider: the one object a spec or auth.setup.ts
 // calls to learn the roles and to be one of them. Sign-in is the Cognito hosted page, reached by redirect from /sign-in.
 //
 //   import { auth } from "./auth/provider";

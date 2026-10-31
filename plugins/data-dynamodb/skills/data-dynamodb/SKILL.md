@@ -1,6 +1,6 @@
 ---
 name: data-dynamodb
-description: Use when adding, changing or reviewing how the Go API of an app composed with the data-dynamodb plugin (data-store@1) stores records - a new record kind, a list endpoint over stored records, an update that must not lose a concurrent write, the table's keys, or running the API locally without AWS. The store under api/internal/store is already in the repository and managed; the build adds record kinds and handlers in api/internal/app and never edits the store.
+description: Use when adding, changing or reviewing how the Go API of an app composed with the data-dynamodb plugin (data-store@1) stores records - a new record kind, a list endpoint over stored records, an update that must not lose a concurrent write, the table's keys, or running the API locally without AWS. The store under api/internal/store is already in the repository as a starting point; the build adds record kinds and handlers in api/internal/app and edits the store only when it must.
 metadata:
   capability: data-store
 ---
@@ -12,11 +12,12 @@ plugin owns that directory; the build owns `api/internal/app/`. Deployed it is o
 local it is process memory, and one conformance suite holds both to the same behaviour, so a
 handler that works in a local run works deployed.
 
-## What is managed (never edit)
+## Starting points
 
-Everything under `api/internal/store/`, including `storetest/`. A finding there is the plugin's,
-not yours: do not "fix" it in place. The table itself is declared in `albitor.yaml` as
-`services.tables` (`data`, string `pk` and `sk`); the deploy target creates it.
+Everything under `api/internal/store/`, including `storetest/`, is seeded once and is yours from
+then on. Extend the app around the store rather than editing it where you can, and keep the
+`storetest` conformance suite passing against both adapters. The table itself is declared in
+`albitor.yaml` as `services.tables` (`data`, string `pk` and `sk`); the deploy target creates it.
 
 ## The interface
 

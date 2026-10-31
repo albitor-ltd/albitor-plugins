@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (web-svelte, offline data layer): the web.providers entry that creates the sync engine,
+<!-- Starting point (web-svelte, offline data layer): the web.providers entry that creates the sync engine,
      follows whoever is signed in, and syncs on its own. One engine per page load. -->
 <script lang="ts">
 	import { onMount, setContext } from 'svelte';

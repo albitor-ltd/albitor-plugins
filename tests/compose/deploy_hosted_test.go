@@ -218,6 +218,18 @@ func TestDeployHostedComposes(t *testing.T) {
 	if modes[".github/workflows/ci.yml"] != "managed" {
 		t.Errorf("ci.yml should be managed, got %q", modes[".github/workflows/ci.yml"])
 	}
+	// COMPOSE_OUT_HOSTED writes the composed tree so the floor's gate scripts can be run over it.
+	if out := os.Getenv("COMPOSE_OUT_HOSTED"); out != "" {
+		for path, content := range res.Files {
+			dst := filepath.Join(out, filepath.FromSlash(path))
+			if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(dst, content, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
 	// No infrastructure and no deploy path: the platform compiles albitor.yaml and deploys.
 	for p := range res.Files {
 		if strings.HasPrefix(p, "infrastructure/") || p == ".github/workflows/deploy.yml" || p == "scripts/tf-unlock-stale.sh" {
@@ -244,9 +256,9 @@ func TestDeployHostedComposes(t *testing.T) {
 	}
 }
 
-// TestDeployHostedShipsTheGatewayClientManaged pins the albitorsvc client (albitor ADR-0099 3.1):
-// it lands under api/internal, managed so a build cannot edit the signer, with its tests.
-func TestDeployHostedShipsTheGatewayClientManaged(t *testing.T) {
+// TestDeployHostedShipsTheGatewayClient pins the albitorsvc client (albitor ADR-0099 3.1):
+// it lands under api/internal, seeded once, with its tests.
+func TestDeployHostedShipsTheGatewayClient(t *testing.T) {
 	res, err := composeHosted(t, "deploy-hosted")
 	if err != nil {
 		t.Fatal(err)
@@ -264,8 +276,8 @@ func TestDeployHostedShipsTheGatewayClientManaged(t *testing.T) {
 		if _, ok := res.Files[full]; !ok {
 			t.Errorf("%s is not in the composed tree", full)
 		}
-		if modes[full] != "managed" {
-			t.Errorf("%s should be managed, got %q", full, modes[full])
+		if modes[full] != "example" {
+			t.Errorf("%s should be an example, got %q", full, modes[full])
 		}
 	}
 }

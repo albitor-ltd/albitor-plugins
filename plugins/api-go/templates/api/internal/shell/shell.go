@@ -1,12 +1,11 @@
-// Package shell is the managed API shell: the HTTP server skeleton every
-// Albitor Go API shares. It owns the health route, the JSON 404, the request
+// Package shell is the API shell: the HTTP server skeleton every
+// Go API starts from. It owns the health route, the JSON 404, the request
 // logging and the middleware chain, and it is rendered by the api-go plugin,
-// so a fix reaches every app on upgrade.
+// so it starts every app the same way.
 //
-// An app does not edit this package. It adds handlers in internal/app (see
-// app.Routes) and the plugins it composes add middleware and routes through
-// the api.middleware and api.routes slots, which the generated router.go
-// places. router.go is the only file here that varies per app.
+// An app usually adds handlers in internal/app (see app.Routes) rather than here; the plugins it
+// composes add middleware and routes through the api.middleware and api.routes slots, which
+// router.go places once at compose time. router.go is the only file here that varies per app.
 package shell
 
 import (

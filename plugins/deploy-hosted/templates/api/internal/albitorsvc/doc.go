@@ -14,6 +14,6 @@
 // adds nothing to the module's go.mod. The request and response types are the
 // app's own structs, written to AWS's documented JSON field names.
 //
-// This package is managed: do not edit it. Declare what the app calls in
-// albitor.yaml under services.callable, and use Client from api/internal/app.
+// Declare what the app calls in albitor.yaml under services.callable, and use Client from
+// api/internal/app. The package is a starting point: keep the signing as it is.
 package albitorsvc

@@ -84,16 +84,17 @@ func TestKitCarbonFileModes(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	// The accessibility gate (contrast, axe, and the Showcase they render) is platform-owned; the
+	// Every kit file is seeded once and app-owned; the contrast and axe tests stay managed only because
+	// the platform's kit certification still demands it; the
 	// components and the theme choice are the app's to edit.
 	for p, want := range map[string]string{
-		"web/vitest.config.ts":              "managed",
-		"web/src/lib/kit/vitest.setup.ts":   "managed",
+		"web/vitest.config.ts":              "example",
+		"web/src/lib/kit/vitest.setup.ts":   "example",
 		"web/src/lib/kit/contrast.test.ts":  "managed",
 		"web/src/lib/kit/kit.test.ts":       "managed",
 		"web/src/lib/kit/dialog.test.ts":    "managed",
-		"web/src/lib/kit/shell.test.ts":     "managed",
-		"web/src/lib/kit/Showcase.svelte":   "managed",
+		"web/src/lib/kit/shell.test.ts":     "example",
+		"web/src/lib/kit/Showcase.svelte":   "example",
 		"web/src/lib/kit/AppShell.svelte":   "example",
 		"web/src/lib/kit/Button.svelte":     "example",
 		"web/src/lib/kit/Dialog.svelte":     "example",

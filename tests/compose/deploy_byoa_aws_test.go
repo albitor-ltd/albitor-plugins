@@ -185,7 +185,8 @@ func TestDeployBYOAComposes(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	// Deploy plumbing is pinned: a build cannot weaken the pipeline or the rendered stack.
+	// Deploy plumbing is a starting point: the workflows (still managed, the parser admits no other
+	// mode) and the rendered stack the app owns from the first compose.
 	for _, p := range []string{
 		".github/workflows/ci.yml", ".github/workflows/deploy.yml", ".github/workflows/destroy.yml", ".github/workflows/invite.yml",
 		"infrastructure/aws/main.tf", "infrastructure/aws/variables.tf", "infrastructure/aws/versions.tf",
@@ -195,8 +196,14 @@ func TestDeployBYOAComposes(t *testing.T) {
 		if _, ok := res.Files[p]; !ok {
 			t.Errorf("%s is not in the composed tree", p)
 		}
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed, got %q", p, modes[p])
+		// The platform's manifest parser still admits a workflow in managed mode only; every other
+		// file here is seeded once and app-owned.
+		want := "example"
+		if strings.HasPrefix(p, ".github/workflows/") {
+			want = "managed"
+		}
+		if modes[p] != want {
+			t.Errorf("%s should be %s, got %q", p, want, modes[p])
 		}
 	}
 	// The one app-owned file: per-environment choices (DNS, alarm address) the person makes.

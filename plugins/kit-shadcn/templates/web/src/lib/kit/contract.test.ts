@@ -2,7 +2,7 @@
 // kit's index with the same props in every kit, so an auth plugin composes against the contract and
 // not against one kit. Rendered on the server the way a build prerenders, loaded into a DOM and
 // audited with axe (colour contrast is audited from the tokens in contrast.test.ts, and jsdom has
-// no layout, so it is off here). Managed: do not edit to make it pass.
+// no layout, so it is off here). Fix the kit, not this test, to make it pass.
 import axe from 'axe-core';
 import { JSDOM } from 'jsdom';
 import { render } from 'svelte/server';

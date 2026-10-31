@@ -1,4 +1,4 @@
-# Managed by Albitor (deploy-byoa-aws). Invites one person to the app: the pool emails them a
+# Starting point (deploy-byoa-aws). Invites one person to the app: the pool emails them a
 # temporary password, and the app asks them to choose their own at their first sign-in. Run it from
 # the repository's Actions tab ("Run workflow", then the person's email) by someone who may deploy.
 #

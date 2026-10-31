@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
+// Starting point (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -38,10 +38,10 @@ describe("parseDeclaredRoles", () => {
 
 describe("readDeclaredRoles", () => {
 	it("has no roles when there is no albitor.yaml", () => {
-		assert.deepEqual(readDeclaredRoles(mkdtempSync(join(tmpdir(), "albitor-roles-"))), []);
+		assert.deepEqual(readDeclaredRoles(mkdtempSync(join(tmpdir(), "roles-"))), []);
 	});
 	it("reads the file at the repository root", () => {
-		const dir = mkdtempSync(join(tmpdir(), "albitor-roles-"));
+		const dir = mkdtempSync(join(tmpdir(), "roles-"));
 		writeFileSync(join(dir, "albitor.yaml"), "services:\n  auth:\n    groups: [manager]\n");
 		assert.deepEqual(readDeclaredRoles(dir), ["manager"]);
 	});
@@ -53,7 +53,7 @@ describe("role accounts", () => {
 		assert.equal(localRoleIdentity("manager"), "role-manager");
 	});
 	it("reads a role's password only from the credentials file", () => {
-		const dir = mkdtempSync(join(tmpdir(), "albitor-roles-"));
+		const dir = mkdtempSync(join(tmpdir(), "roles-"));
 		const file = join(dir, "creds.json");
 		writeFileSync(file, JSON.stringify({ password: "demo", roles: { manager: { password: "from-file" }, other: { username: "o@x.invalid", password: "p2" }, empty: { password: "" } } }));
 		const env = { ALBITOR_JOURNEY_CREDENTIALS: file, ALBITOR_ROLE_MANAGER_ACCOUNT_PASSWORD: "from-env", ALBITOR_ROLE_EMPTY_ACCOUNT_PASSWORD: "env-empty" };

@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The accessibility audit.
+// Starting point (test-playwright). The accessibility audit.
 //
 // WHAT IT IS: axe-core, run in the page, against WCAG 2.2 Level A and AA - the bar the Internal
 // Tool governance profile sets. It fails on a violation and says which rule, where to read about

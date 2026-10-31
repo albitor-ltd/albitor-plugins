@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (web-svelte, online data layer): loading, offline, error, empty and ready for one query.
+<!-- Starting point (web-svelte, online data layer): loading, offline, error, empty and ready for one query.
      Pass the query result; every state has a default, and each can be replaced by a snippet. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';

@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-cognito). This app's auth@2 provider: the one object a spec or auth.setup.ts
+// Starting point (auth-cognito). This app's auth@2 provider: the one object a spec or auth.setup.ts
 // calls to learn the roles and to be one of them. Sign-in is the app's own form (component-kit@2 SignInPage).
 //
 //   import { auth } from "./auth/provider";

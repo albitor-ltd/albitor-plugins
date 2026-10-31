@@ -1,6 +1,6 @@
 ---
 name: deploy-hosted
-description: Use when an app composed with the deploy-hosted plugin (deploy-target@1) needs a table, a site or API setting, a schedule or a config key, or when its ci workflow fails. There is no infrastructure in the repository; the build changes albitor.yaml, never the managed workflow.
+description: Use when an app composed with the deploy-hosted plugin (deploy-target@1) needs a table, a site or API setting, a schedule or a config key, or when its ci workflow fails. There is no infrastructure in the repository; the build changes albitor.yaml, and the seeded ci workflow is the app's to keep green.
 metadata:
   capability: deploy-target
 ---
@@ -11,10 +11,10 @@ This repository holds no infrastructure code. What the app needs from AWS is dec
 `albitor.yaml`, and the platform compiles that file and deploys it. There is nothing to render or
 regenerate: change the manifest and the next deploy changes what runs.
 
-## What is managed (never edit)
+## Starting points
 
-`.github/workflows/ci.yml`. A finding in it is the plugin's, not yours: a change to how the gate
-builds is a new release of the plugin, offered as an upgrade change request.
+`.github/workflows/ci.yml` is seeded once and is yours from then on. Change it when the app needs
+it, and do not weaken the checks it runs.
 
 ## What you may change
 

@@ -39,7 +39,7 @@ It comes from the starter's `web/tests` harness and the harness fixes made while
 ```text
 .claude-plugin/plugin.json   schema-2 manifest
 templates/web/tests/**       composed into the app at the same paths
-templates/.github/workflows/ the managed CI workflow
+templates/.github/workflows/ the CI workflow: starting point (manifest mode `managed` until the platform admits example)
 skills/                      test-playwright, wcag-22-aa
 ```
 
@@ -51,14 +51,14 @@ web-framework plugin owns that file, so the harness resolves `@playwright/test` 
 
 ## Who may change what
 
-Everything the plugin ships is `managed` (pinned by path and hash; builders cannot edit it) except
-`web/tests/journeys/README.md`. Journey specs (`web/tests/journeys/`) and fixtures
+Everything the plugin ships is seeded once and is the app's from then on, so a spec author may
+change the harness when the app needs it. Journey specs (`web/tests/journeys/`) and fixtures
 (`web/tests/fixtures/`) belong to the spec author; the plugin writes nothing there.
 
 ## The workflow is the one sanctioned `.github/` file
 
 A plugin that provides `test-harness` (or `deploy-target`) may write `.github/workflows/*.yml` in
-`managed` mode. The conformance suite lints it at ingest under `DefaultWorkflowPolicy`: a top-level
+`managed` mode (the platform's manifest parser admits a workflow in no other). The conformance suite lints it at ingest under `DefaultWorkflowPolicy`: a top-level
 `permissions` block with no write, no privileged trigger, every `uses:` pinned to a full SHA, only
 `secrets.GITHUB_TOKEN`, no step that prints or uploads the environment. `tests/compose` runs that
 lint over `journeys.yml` and proves each unsafe edit of it fails.
@@ -67,7 +67,7 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
 
 - The auth plugin's sign-in screen is the component-kit@2 `SignInPage`, found by role and label, not
   test ids: a field labelled "Email...", a field labelled "Password" and a button named "Sign in". It
-  may set `ALBITOR_SIGN_IN_SCREEN=1` for the run so the setup is strict about it (a front end that
+  may set `SIGN_IN_SCREEN=1` for the run so the setup is strict about it (a front end that
   renders `SignInPage` outside the kit's own files, or names `sign-in-email`, makes it strict already).
   A hosted sign-in (the auth-hosted plugin: `/sign-in` redirects to the Cognito classic hosted UI on
   another host) is recognised by the page landing on a host other than the app's with a visible
@@ -79,7 +79,7 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
   cookies on Cognito's own host do not count). Cognito's visible error message fails the setup
   at once. For a hosted sign-in the new cookie must also look like a session: by default a `__Host-` cookie
   that is not auth-hosted's transient `auth_state` / `auth_verifier` / `auth_next`, so a locale or consent
-  cookie set by the landing page cannot pass for one. `ALBITOR_SESSION_COOKIE_PATTERN` (a regular expression
+  cookie set by the landing page cannot pass for one. `SESSION_COOKIE_PATTERN` (a regular expression
   on the cookie name) overrides that for an app whose session cookie is named otherwise. The demo and verifier accounts are seeded with permanent passwords
   (`deploy-byoa-aws/templates/scripts/seed-platform-accounts.sh`), so there is no change-password step.
   Only an app with no sign-in runs signed out: no demo password, no `services.auth` in `albitor.yaml`, no
@@ -93,7 +93,7 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
   separate full-page load.
 - The api-runtime plugin's local issuer lives at `/api/_local/auth` (`api-go` provides it).
 - The web-framework plugin has an `npm run local` that serves the build on `PORT` with `/api`
-  forwarded to `ALBITOR_API_ORIGIN` and `/healthz` answering (`web-svelte` does).
+  forwarded to `APP_API_ORIGIN` and `/healthz` answering (`web-svelte` does).
 
 ## Run it
 

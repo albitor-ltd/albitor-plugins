@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Managed by Albitor (deploy-byoa-aws). Seeds the app's two platform accounts into its Cognito user
+# Starting point (deploy-byoa-aws). Seeds the app's two platform accounts into its Cognito user
 # pool, once per deploy, from the deploy job and never from the request-serving function.
 #
 #   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group> [<roles>]]

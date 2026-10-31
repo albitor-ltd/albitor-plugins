@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte). A single-page app: no server rendering, and every navigation
+// Starting point (web-svelte). A single-page app: no server rendering, and every navigation
 // first runs the web.route-guard guard, which may redirect.
 import { redirect } from '@sveltejs/kit';
 import { runGuards } from '../lib/shell/guard';

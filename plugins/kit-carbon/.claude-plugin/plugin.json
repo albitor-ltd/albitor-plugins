@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "kit-carbon",
   "displayName": "Component kit (Carbon)",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
   "author": {
     "name": "Albitor Ltd",
@@ -26,8 +26,8 @@
       ]
     },
     "files": [
-      { "path": "web/vitest.config.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/vitest.setup.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/vitest.config.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/vitest.setup.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/contrast.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/AppShell.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/Button.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
@@ -50,16 +50,16 @@
       { "path": "web/src/lib/kit/pages/SettingsSection.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/SignInPage.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/pages/index.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/Showcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/Showcase.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/kit.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/contract.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/SignInHarness.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/signin.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/ContractProbe.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/contract.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/SignInHarness.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/signin.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/ContractProbe.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/dialog.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/shell.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/pages/PagesShowcase.svelte", "mode": "managed", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/kit/pages/pages.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } }
+      { "path": "web/src/lib/kit/shell.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/PagesShowcase.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/pages/pages.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } }
     ],
     "skills": ["kit-carbon"]
   }

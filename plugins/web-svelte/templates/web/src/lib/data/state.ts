@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, online data layer): which of the five states a query is in, and what to tell the
+// Starting point (web-svelte, online data layer): which of the five states a query is in, and what to tell the
 // person about a failure.
 import { ApiError, NetworkError } from '../shell/api';
 

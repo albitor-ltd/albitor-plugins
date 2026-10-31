@@ -265,7 +265,7 @@ describe('concurrent flushes', () => {
 		await a.attach('alice');
 		await a.create('todos', { title: 'x' });
 		await Promise.all([a.flush(), a.flush()]);
-		expect(names).toEqual(['albitor-sync:alice']);
+		expect(names).toEqual(['app-sync:alice']);
 	});
 });
 

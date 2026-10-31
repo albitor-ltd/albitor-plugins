@@ -1,4 +1,4 @@
-// Managed by Albitor (auth-hosted): the calls the sign-in, sign-out and account screens make.
+// Starting point (auth-hosted): the calls the sign-in, sign-out and account screens make.
 //
 // There is no password in this app. A person signs in on the app's Cognito hosted page: the browser
 // is sent to the API's GET /api/auth/login, which redirects to Cognito, and Cognito sends it back to

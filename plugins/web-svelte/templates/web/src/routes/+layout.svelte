@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (web-svelte): the slot host. Providers wrap the kit's app shell, which
+<!-- Starting point (web-svelte): the slot host. Providers wrap the kit's app shell, which
      receives the nav and the app's name (the platform's app_name token, sanitised for a quoted
      attribute). Per-area chrome belongs in a route group's own +layout.svelte. -->
 <script lang="ts">

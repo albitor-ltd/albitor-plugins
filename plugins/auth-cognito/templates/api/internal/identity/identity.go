@@ -1,7 +1,7 @@
 // Package identity is the verified person a request acts for, and nothing
 // else. It is the one identity API an app's handlers use, whichever auth
 // plugin the app composes: handlers call Owner and FromContext, never a token
-// or a cookie. This is platform code (the auth plugin): do not edit it.
+// or a cookie. Keep the exported names: handlers depend on them.
 //
 // The package imports nothing from the app or the shell, so the shell (which
 // imports the app) and the app's handlers can both depend on it.

@@ -1,4 +1,4 @@
-<!-- Managed by Albitor (web-svelte): tells the person when the browser loses its network. -->
+<!-- Starting point (web-svelte): tells the person when the browser loses its network. -->
 <script lang="ts">
 	let online = $state(true);
 

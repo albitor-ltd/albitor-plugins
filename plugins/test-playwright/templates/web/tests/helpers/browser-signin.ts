@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Signing in through a browser, in the app's own form or on
+// Starting point (test-playwright). Signing in through a browser, in the app's own form or on
 // the identity provider's hosted page. Moved out of auth.setup.ts so one implementation serves the
 // suite's demo sign-in and auth@2's signInAs(role) on a deployed app.
 import type { Locator, Page } from "@playwright/test";
@@ -284,7 +284,7 @@ export async function browserSignIn(
         cookiesBefore,
         // The hosted path also needs the cookie to look like a session (default: a `__Host-` cookie that is not
         // a transient state one), so a locale or consent cookie from the landing page cannot pass for it.
-        landing === "hosted" ? sessionCookiePredicate(process.env.ALBITOR_SESSION_COOKIE_PATTERN) : undefined,
+        landing === "hosted" ? sessionCookiePredicate(process.env.SESSION_COOKIE_PATTERN) : undefined,
       )) {
       throw new NoSessionError(
         "the sign-in returned to the app but the callback set no session: no new cookie for the app's host " +

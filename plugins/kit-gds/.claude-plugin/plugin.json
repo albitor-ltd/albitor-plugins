@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "kit-gds",
   "displayName": "Component kit (GOV.UK Frontend)",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
   "author": {
     "name": "Albitor Ltd",
@@ -41,7 +41,7 @@
     "files": [
       {
         "path": "web/vitest.config.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
@@ -111,7 +111,7 @@
       },
       {
         "path": "web/src/lib/kit/Showcase.svelte",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
@@ -125,14 +125,14 @@
       },
       {
         "path": "web/src/lib/kit/RootClassesProbe.svelte",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/kit/rootclasses.test.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
@@ -160,28 +160,28 @@
       },
       {
         "path": "web/src/lib/kit/SignInHarness.svelte",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/kit/signin.test.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/kit/ContractProbe.svelte",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }
       },
       {
         "path": "web/src/lib/kit/contract.test.ts",
-        "mode": "managed",
+        "mode": "example",
         "when": {
           "web-framework": "web-svelte"
         }

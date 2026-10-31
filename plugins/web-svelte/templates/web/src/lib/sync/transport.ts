@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): the default Transport, over the app's own REST API and the
+// Starting point (web-svelte, offline data layer): the default Transport, over the app's own REST API and the
 // shell's API client (path checks, bearer token, error types).
 //
 // The contract an API must meet for a collection `items` (all under /api):

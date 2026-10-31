@@ -14,7 +14,7 @@ Journeys are Playwright specs under `web/tests`. The harness is its own npm pack
 | --- | --- | --- |
 | `web/tests/journeys/<journey>.spec.ts` | Spec author | One spec per journey; first line `// @journey <id>` |
 | `web/tests/fixtures/**` | Spec author | Records the specs need, created through the app's own API |
-| `web/tests/helpers/**`, `auth.setup.ts`, `playwright.config.ts`, `package*.json`, `smoke.spec.ts`, `a11y.spec.ts`, `roles.spec.ts`, `unit/**`, `.github/workflows/journeys.yml` | The plugin (managed) | Builders cannot edit them; report a needed change |
+| `web/tests/helpers/**`, `auth.setup.ts`, `playwright.config.ts`, `package*.json`, `smoke.spec.ts`, `a11y.spec.ts`, `roles.spec.ts`, `unit/**`, `.github/workflows/journeys.yml` | The plugin (seeded once) | Yours to change when the harness needs it; keep the audits and the sign-in checks |
 
 ## Writing a journey
 

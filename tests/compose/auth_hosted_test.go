@@ -112,8 +112,8 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/lib/auth/client.ts",
 		"web/src/lib/shell/scope.d/auth-hosted.ts",
 	} {
-		if modes[p] != "managed" {
-			t.Errorf("%s should be managed, got %q", p, modes[p])
+		if modes[p] != "example" {
+			t.Errorf("%s should be an example (seeded once, app-owned), got %q", p, modes[p])
 		}
 	}
 	for _, p := range []string{

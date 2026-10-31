@@ -17,12 +17,12 @@ password reset, an invited person's new password and any MFA.
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `api/internal/identity/` | managed | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
-| `api/internal/shell/identity_verify.go` | managed | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `/api/auth/*` |
-| `api/internal/shell/identity_token.go` | managed | RS256 check against the pool's JWKS, standard library only |
-| `api/internal/shell/identity_hosted.go` | managed | The environment, login, callback, refresh, sign-out, account deletion, the sign-up domain rule, the cookies |
-| `web/src/lib/auth/` | managed | `getSession()`, the `requireSession` route guard, the API calls, and their tests |
-| `web/src/lib/shell/scope.d/auth-hosted.ts` | managed | Exports the name `web.route-guard` resolves to |
+| `api/internal/identity/` | starting point | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
+| `api/internal/shell/identity_verify.go` | starting point | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `/api/auth/*` |
+| `api/internal/shell/identity_token.go` | starting point | RS256 check against the pool's JWKS, standard library only |
+| `api/internal/shell/identity_hosted.go` | starting point | The environment, login, callback, refresh, sign-out, account deletion, the sign-up domain rule, the cookies |
+| `web/src/lib/auth/` | starting point | `getSession()`, the `requireSession` route guard, the API calls, and their tests |
+| `web/src/lib/shell/scope.d/auth-hosted.ts` | starting point | Exports the name `web.route-guard` resolves to |
 | `web/src/routes/(auth)/` | example | Sign-in (redirect), sign-out, account, delete-account confirmation and refusal screens, written against the `component-kit@2` exports (`Button`) |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: the hand-over, a failed sign-in that does not loop, the refusal page, account and sign-out |
 
@@ -143,7 +143,7 @@ clear message; Cognito's own refusal of the scope reads the same. **The deploy m
 cleared and the logout URL is returned.
 
 To remove an app's own data for the person, set `shell.OnAccountDeleted` from the app's code (an `init`
-in a file of its own, never an edit to the managed file). It runs once after the account is deleted with
+in a file of its own, never an edit to the seeded file). It runs once after the account is deleted with
 the session's identity. The person cannot retry (the account is gone), so a failure is logged, not
 returned: make it idempotent and keep an erasure job as the backstop.
 
@@ -165,7 +165,8 @@ returned: make it idempotent and keep an erasure job as the backstop.
   a fixed `<site>/`, and the home page is the app's. An app with every page private sends a signed-out
   visitor straight back to Cognito's sign-in; give the app a public landing page if that is not wanted.
 - The refusal page's "contact" line is generic; reword it for the service.
-- Logic ships as managed files, not a versioned module, so a fix reaches an app on a compose or upgrade.
+- Logic ships as files seeded once into the app, not a versioned module. An app owns its copy from
+  the first compose; a fix in a later release reaches new apps only.
 
 ## Verification
 

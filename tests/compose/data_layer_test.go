@@ -93,10 +93,7 @@ func TestBothDataLayersShipManaged(t *testing.T) {
 		default:
 			continue
 		}
-		want := "managed"
-		if f.Path == "web/src/lib/sync/collections.ts" {
-			want = "example" // the app lists its own collections here
-		}
+		want := "example"
 		if f.Mode != want {
 			t.Errorf("%s should be %s, got %q", f.Path, want, f.Mode)
 		}

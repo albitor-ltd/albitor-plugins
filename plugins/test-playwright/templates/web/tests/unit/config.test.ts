@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Run with `npm run unit` from web/tests.
+// Starting point (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";

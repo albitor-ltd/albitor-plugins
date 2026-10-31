@@ -8,8 +8,8 @@ declares what it provides and contributes, and the platform composer renders it 
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | managed | Advisory manifest check, then build and test of the API and the web app; read-only |
-| `api/internal/albitorsvc/**` | managed | `albitorsvc`, the thin Go client for the Albitor service gateway, with its tests (below) |
+| `.github/workflows/ci.yml` | starting point (manifest mode `managed` until the platform admits example) | Advisory manifest check, then build and test of the API and the web app; read-only |
+| `api/internal/albitorsvc/**` | starting point | `albitorsvc`, the thin Go client for the Albitor service gateway, with its tests (below) |
 
 It contributes the `github-actions` entry of the held `dependabot.yml`.
 

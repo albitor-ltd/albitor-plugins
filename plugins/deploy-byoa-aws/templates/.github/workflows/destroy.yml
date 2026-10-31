@@ -1,4 +1,4 @@
-# Managed by Albitor (deploy-byoa-aws). Destroys one environment of the app: it empties the site
+# Starting point (deploy-byoa-aws). Destroys one environment of the app: it empties the site
 # bucket, lifts the deletion protection on the DynamoDB tables and the Cognito user pool, then runs
 # `terraform destroy` against the state in infrastructure/aws. This is the "Delete app" path; it
 # removes data and cannot be undone.

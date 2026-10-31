@@ -1,6 +1,6 @@
 ---
 name: api-go
-description: Use when adding to or reviewing the Go API of an app composed with the api-go plugin (api-runtime@1) - a new endpoint, a list endpoint, a handler's errors and logging, the OpenAPI contract, or running the API locally. The server skeleton under api/ is already in the repository and managed; the build adds handlers in api/internal/app and never edits the shell.
+description: Use when adding to or reviewing the Go API of an app composed with the api-go plugin (api-runtime@1) - a new endpoint, a list endpoint, a handler's errors and logging, the OpenAPI contract, or running the API locally. The server skeleton under api/ is already in the repository as a starting point; the build adds handlers in api/internal/app and edits the shell only when it must.
 metadata:
   capability: api-runtime
 ---
@@ -8,14 +8,15 @@ metadata:
 # Go API (api-go)
 
 The API is `api/` in the repository: module `webapp`, stdlib only, `go build -o dist/api .` from
-`api/`. The plugin owns the skeleton; the build owns `api/internal/app/`.
+`api/`. The plugin seeds the skeleton; the app owns all of it.
 
-## What is managed (never edit)
+## Starting points
 
-`main.go`, `internal/shell/` (except what is generated below), `internal/apikit/` and
-`internal/localauth/` are rendered from the plugin and pinned. A finding in one is the plugin's, not
-yours: do not "fix" it in place. `internal/shell/router.go` is generated from the
-`api.middleware` and `api.routes` slots and rewritten on every compose.
+`main.go`, `internal/shell/`, `internal/apikit/` and `internal/localauth/` are seeded once from the
+plugin and are yours from then on. Prefer adding handlers in `internal/app/` to editing them, and
+change them when the app needs it. `internal/shell/router.go` was written once from the
+`api.middleware` and `api.routes` slots; a plugin added later does not rewire it, so add its
+middleware or routes by hand.
 
 ## Add an endpoint
 
@@ -71,7 +72,7 @@ and grants the function's role `ssm:GetParameter` and `ssm:GetParameters` on exa
 
 A fragment in `api.middleware` or `api.routes` is an identifier that resolves in package
 `internal/shell`: a `func(http.Handler) http.Handler` or a `func(*http.ServeMux)`. The plugin that
-contributes it ships a managed file in `api/internal/shell/` that declares it (importing its own
+contributes it ships a file in `api/internal/shell/` that declares it (importing its own
 package there if it needs one). The first `api.middleware` entry is the outermost, inside request
 logging; a middleware that refuses unauthenticated requests must leave `GET /api/health` open.
 

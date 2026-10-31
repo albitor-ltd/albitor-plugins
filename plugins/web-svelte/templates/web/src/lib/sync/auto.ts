@@ -1,4 +1,4 @@
-// Managed by Albitor (web-svelte, offline data layer): when to sync without being asked. After a local write (a
+// Starting point (web-svelte, offline data layer): when to sync without being asked. After a local write (a
 // short delay, so a burst is one run), when the browser comes back online, when the tab becomes
 // visible again, and on a timer. Every trigger calls engine.sync(), which shares one guarded run.
 import type { SyncEngine } from './engine';

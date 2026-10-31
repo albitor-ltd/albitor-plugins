@@ -1,11 +1,11 @@
-// Managed by Albitor (web-svelte): the web side of the local run contract.
+// Starting point (web-svelte): the web side of the local run contract.
 //
 // Serves the built SPA from ./build with the single-page fallback, forwards /api/* to the API
 // (the api-runtime plugin starts it on :8080 in local mode), and answers /healthz so the runner
 // can wait for it. `npm run local` builds first, then runs this.
 //
 //   PORT                 listen port (default 3000)
-//   ALBITOR_API_ORIGIN   where /api goes (default http://127.0.0.1:8080)
+//   APP_API_ORIGIN   where /api goes (default http://127.0.0.1:8080)
 import { createReadStream, statSync } from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('../build', import.meta.url)));
 const port = Number(process.env.PORT ?? 3000);
-const api = new URL(process.env.ALBITOR_API_ORIGIN ?? 'http://127.0.0.1:8080');
+const api = new URL(process.env.APP_API_ORIGIN ?? 'http://127.0.0.1:8080');
 
 const types = {
 	'.html': 'text/html; charset=utf-8',

@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright).
+// Starting point (test-playwright).
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 import { authFor } from "./screen-rules";
 

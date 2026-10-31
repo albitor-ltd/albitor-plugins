@@ -45,7 +45,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `kit-carbon` | The `component-kit@1` and `component-kit@2` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
 | `kit-gds` | The `component-kit@1` and `component-kit@2` plugin for Svelte in GOV.UK Design System style: GOV.UK Frontend v6 markup, a text-only header (no Crown or logotype), the GOV.UK design-system and accessibility skills, contrast and axe audits that ship with the app; not themeable |
 | `deploy-byoa-aws` | The `deploy-target@1` plugin for a customer's own AWS account: Terraform rendered from `albitor.yaml` (site, API, tables, alarms, DNS) from versioned modules, the CI and deploy workflows (OIDC), the stale state-lock guard |
-| `deploy-hosted` | The `deploy-target@1` plugin for the hosted lane: no infrastructure in the repo, the platform compiles `albitor.yaml` and deploys; the managed CI workflow (manifest check, API and web build and test), and `albitorsvc`, the thin Go client for the service gateway (`services.callable`) |
+| `deploy-hosted` | The `deploy-target@1` plugin for the hosted lane: no infrastructure in the repo, the platform compiles `albitor.yaml` and deploys; the CI workflow (manifest check, API and web build and test), and `albitorsvc`, the thin Go client for the service gateway (`services.callable`) |
 | `auth-cognito` | The `auth@1` plugin for the default profile: Cognito sign-up and sign-in, the API's identity seam, a session module and route guard, sign-up, sign-in and reset screens on any `component-kit@2` kit, `services.auth` |
 | `auth-hosted` | The `auth@1` plugin for the hosted lane: sign-in through the app's Cognito hosted page (authorization code with PKCE), the API's identity seam and callback, a session module and route guard, sign-out, account deletion and sign-up domain refusal screens with no password field, `services.auth` |
 | `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
@@ -133,10 +133,10 @@ import type { FooterLink } from '../lib/kit';
 </AppShell>
 ```
 
-Each kit ships `contract.test.ts` and `ContractProbe.svelte` (managed): the exports exist, the
+Each kit ships `contract.test.ts` and `ContractProbe.svelte` (seeded once): the exports exist, the
 landmarks above hold, the sign-in page and the footer pass axe. A kit's other pieces (`Button`,
 `Field`, `Table`, ...) stay kit-specific in props that match across kits where they can, but only
-these three are the contract. **Upgrading an existing app.** The managed
+these three are the contract. **Upgrading an existing app.** The
 tests import the kit's `index.ts`, which is the app's after the first compose, so the new tests fail
 until the app adopts the exports: take the kit's new `Footer.svelte` and its changed `SignInPage.svelte` (kit-shadcn and
 kit-carbon: `pages/SignInPage.svelte`, whose error-focus effect changed, so `signin.test.ts` fails

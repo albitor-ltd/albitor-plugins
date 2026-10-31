@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The auth@2 interface every auth plugin implements, and the
+// Starting point (test-playwright). The auth@2 interface every auth plugin implements, and the
 // one a spec or auth.setup.ts calls to be a role: roles(), seed(role), signInAs(role).
 //
 // A SPEC NEVER SIGNS IN BY HAND AND NEVER NAMES A TEST USER. It asks the app's auth plugin
@@ -18,7 +18,7 @@
 //             in the running API (POST /api/_local/auth/seed), signInAs(role) mints its tokens and
 //             attaches them to the context's calls to the app. No sign-up, no email, no AWS.
 //   deployed  the account deploy-byoa-aws's seed created, `<role>@albitor-role.invalid`, with the
-//             password Albitor wrote to the app's secret store (see roles.ts for how it reaches the
+//             password the deploy wrote to the app's secret store (see roles.ts for how it reaches the
 //             run). seed(role) only confirms the credentials reached this run: the deploy seeds, a
 //             spec never creates an account. signInAs(role) signs in through the browser, in the
 //             plugin's own sign-in (in-app form or hosted page).

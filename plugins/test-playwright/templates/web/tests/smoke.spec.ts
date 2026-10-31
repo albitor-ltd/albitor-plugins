@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). The harness's own smoke test: the shell loads, the API (if
+// Starting point (test-playwright). The harness's own smoke test: the shell loads, the API (if
 // the app has one) is up and keeps the edge error contract. State-free: it asserts no records.
 import { expect, test } from "./helpers/journey";
 import { journeyStep } from "./helpers/journey";

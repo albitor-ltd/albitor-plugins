@@ -7,8 +7,8 @@ The `auth@1` plugin for an app with no sign-in (albitor-ltd/albitor#3170, ADR-00
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `api/internal/identity/identity.go` | managed | `Owner(r)` always answers `FixedOwner`; the same API as `auth-cognito`'s `identity` package |
-| `api/internal/identity/identity_test.go` | managed | Unit tests |
+| `api/internal/identity/identity.go` | starting point | `Owner(r)` always answers `FixedOwner`; the same API as `auth-cognito`'s `identity` package |
+| `api/internal/identity/identity_test.go` | starting point | Unit tests |
 
 That is all: a stub identity seam with a fixed owner. No screens, no route guard, no middleware, no
 routes and no `services.auth`. It requires nothing, so a web-only profile composes it (the files

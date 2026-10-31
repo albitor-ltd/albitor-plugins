@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Where the one sign-in gets its account.
+// Starting point (test-playwright). Where the one sign-in gets its account.
 import { readFileSync } from "node:fs";
 import { safeOpenPath } from "./screen-rules.ts";
 

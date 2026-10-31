@@ -1,4 +1,4 @@
-// Managed by Albitor (test-playwright). Every declared role signs in, and holds only its own group.
+// Starting point (test-playwright). Every declared role signs in, and holds only its own group.
 //
 // This is the foundation's per-role check, and it calls only the auth@2 interface of the app's auth
 // plugin (./auth/provider): roles() names the roles, seed(role) makes the account, signInAs(role)
