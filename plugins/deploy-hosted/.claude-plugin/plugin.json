@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "deploy-hosted",
   "displayName": "Hosted deploy target",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "kind": "socket",
   "renders": ["site", "http", "services.tables", "services.objects", "services.auth", "services.callable", "schedules", "config"],
   "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",

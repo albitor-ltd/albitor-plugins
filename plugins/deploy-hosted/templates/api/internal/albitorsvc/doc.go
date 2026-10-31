@@ -1,4 +1,4 @@
-// Package albitorsvc is the thin client for the Albitor service gateway, the
+// Package albitorsvc is the thin client for the hosted service gateway, the
 // keyless, credit-metered way a hosted app calls AWS AI services.
 //
 // The app calls POST <ALBITOR_SERVICES_URL>/v1/<service>/<Operation> with the
