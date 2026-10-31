@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.3.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "api-go/v0.3.1",
+        "sha": "2b1149cfcc190557db1e1ad99e7c26625d72ffe2"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.5.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "test-playwright/v0.5.1",
+        "sha": "2b1149cfcc190557db1e1ad99e7c26625d72ffe2"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.5.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "auth-cognito/v0.5.1",
+        "sha": "2b1149cfcc190557db1e1ad99e7c26625d72ffe2"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.3.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "auth-hosted/v0.3.1",
+        "sha": "2b1149cfcc190557db1e1ad99e7c26625d72ffe2"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
       "category": "development",
