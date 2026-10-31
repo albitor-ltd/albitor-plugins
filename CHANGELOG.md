@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- Seeds boot as shipped (albitor-ltd/albitor#4228; patch releases `test-playwright` `0.5.1`, `api-go`
+  `0.3.1`, `auth-cognito` `0.5.1`, `auth-hosted` `0.3.1`; untagged until released):
+  `test-playwright`'s Playwright config installs `web/` dependencies (`npm ci --include=dev`, then
+  `npm install --include=dev`) when `node_modules` is absent before `npm run local`, which exited
+  127 on a fresh checkout. `auth-cognito` and `auth-hosted` now seed `api/openapi.yaml` with the
+  `GET /api/me` entry their sign-in probe depends on; `api-go` seeds its base contract only for
+  `auth-none` (`scripts/check-openapi-variants.sh` keeps the copies in step).
 - `deploy-hosted` `0.3.1`: the `albitorsvc` package comment no longer names the platform, so the
   seeded client passes the handover check (albitor-ltd/albitor#4216).
 - Starting points, not managed files (albitor-ltd/albitor#4216, ADR-0103; minor releases of `api-go`

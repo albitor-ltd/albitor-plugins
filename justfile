@@ -10,6 +10,7 @@ ci: manifests catalogue lint api-go data-dynamodb auth deploy-byoa-aws deploy-ho
 manifests:
     scripts/validate-plugins.sh
     scripts/check-runner-playwright.sh
+    scripts/check-openapi-variants.sh
     scripts/test-catalogue-guards.sh
     scripts/validate-preview-tokens.sh
     scripts/test-preview-tokens.sh
@@ -53,3 +54,9 @@ deploy-hosted:
 # Usage: just compose ~/albitor/albitor
 compose albitor:
     scripts/compose-check.sh --build {{albitor}}
+
+# Compose the default shells, build them and boot each locally under Playwright (the journeys),
+# with no GitHub Actions. Same prerequisites as `compose`, plus Chromium (npx playwright install).
+# Usage: just compose-journeys ~/albitor/albitor
+compose-journeys albitor:
+    scripts/compose-check.sh --build --journeys {{albitor}}
