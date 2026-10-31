@@ -72,6 +72,8 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth-hosted does not compose in the default shell: %v", composer.Problems(err))
 	}
+
+	requireOneContractWithMe(t, res)
 	providers := string(res.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{"const { requireSession } = scope;", "checkGuards([requireSession])"} {
 		if !strings.Contains(providers, want) {

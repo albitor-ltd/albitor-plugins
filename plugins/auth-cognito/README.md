@@ -24,6 +24,9 @@ Terraform: the deploy target realises the pool and hands the function `AUTH_USER
 `AUTH_CLIENT_ID` and `AWS_REGION`. The module stays stdlib-only, because `api/go.mod` is `api-go`'s
 (ADR-0090 amendment 3).
 
+Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
+app-owned): remove its `/api/me` entry yourself if the app no longer serves it.
+
 ## Behaviour worth knowing
 
 - Every `/api/` request needs a verified token except `/api/health`, `/api/auth/*` and a path the

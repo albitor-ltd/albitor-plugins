@@ -125,6 +125,24 @@ func composeAuth(t *testing.T, auth string, extra ...string) (*composer.Result, 
 	return composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
 }
 
+// requireOneContractWithMe asserts the composed tree has exactly one api/openapi.yaml and that it
+// defines GET /api/me, the entry the sign-in probe depends on.
+func requireOneContractWithMe(t *testing.T, res *composer.Result) {
+	t.Helper()
+	n := 0
+	for path, body := range res.Files {
+		if path == "api/openapi.yaml" {
+			n++
+			if !strings.Contains(string(body), "\n  /api/me:\n") {
+				t.Errorf("api/openapi.yaml does not define /api/me")
+			}
+		}
+	}
+	if n != 1 {
+		t.Errorf("want exactly one api/openapi.yaml in the composed tree, got %d", n)
+	}
+}
+
 func lockModes(t *testing.T, res *composer.Result) map[string]string {
 	t.Helper()
 	var lock composer.Lock
@@ -144,6 +162,7 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		t.Fatalf("auth-cognito does not compose in the default shell: %v", composer.Problems(err))
 	}
 
+	requireOneContractWithMe(t, res)
 	providers := string(res.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{"const { requireSession } = scope;", "checkGuards([requireSession])"} {
 		if !strings.Contains(providers, want) {

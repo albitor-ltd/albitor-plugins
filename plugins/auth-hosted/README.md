@@ -32,6 +32,9 @@ target realises the pool from `services.auth`). It contributes `services.auth` (
 `posture: private`, `sign_up: open`) and no Terraform. The module stays stdlib-only, because
 `api/go.mod` is `api-go`'s.
 
+Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
+app-owned): remove its `/api/me` entry yourself if the app no longer serves it.
+
 ## The environment
 
 All of these come from the auth module's `environment` output; **if any is missing or malformed, every
