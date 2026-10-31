@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.2.0",
-        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
+        "ref": "api-go/v0.2.1",
+        "sha": "fb99e57df38dfd624c1bc9a8eaec825566289fc8"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.4.1",
-        "sha": "042be202938b1cb6864de217da750a4d645e704e"
+        "ref": "test-playwright/v0.4.2",
+        "sha": "fb99e57df38dfd624c1bc9a8eaec825566289fc8"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
