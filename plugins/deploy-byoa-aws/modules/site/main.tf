@@ -3,7 +3,7 @@ locals {
   custom_domain = var.dns_mode != "none"
 
   # Whether to attach the domain to CloudFront and wait on ACM validation. Staged behind
-  # domain_ready so the first apply never blocks on a delegation that is not live yet (ADR-0041).
+  # domain_ready so the first apply never blocks on a delegation that is not live yet.
   attach_custom_domain = local.custom_domain && var.domain_ready
 
   # in_account is the only mode where Terraform owns the parent zone and can write the delegation.

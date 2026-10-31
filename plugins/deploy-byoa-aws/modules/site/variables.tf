@@ -99,7 +99,7 @@ variable "hsts_preload" {
 variable "dns_mode" {
   description = <<-EOT
     How the app is served. No default: DNS is the one thing that varies per deployment and the
-    biggest source of deploy pain, so the person chooses (ADR-0041).
+    biggest source of deploy pain, so the person chooses.
       - none               serve on the CloudFront URL; no Route 53, no ACM.
       - in_account         the parent zone is in this account: the child zone, the certificate, its
                            validation and the NS delegation are all created, with no operator step.
@@ -147,7 +147,7 @@ variable "parent_zone_id" {
 
 variable "domain_ready" {
   description = <<-EOT
-    Staging gate for attaching the custom domain (ADR-0041). False: the apply creates the zone, the
+    Staging gate for attaching the custom domain. False: the apply creates the zone, the
     certificate and its validation records but neither waits for validation nor attaches the alias,
     so it cannot hang on a delegation that is not live yet. in_account can set it true from the
     start; external_delegated sets it true on the second apply, once delegation is live.

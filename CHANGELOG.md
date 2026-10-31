@@ -26,6 +26,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `ALBITOR_APP_SECRETS_SEGMENT`. The `api-go` skill records the variable and the read convention.
   The catalogue still pins `deploy-byoa-aws` `0.6.0` and `api-go` `0.2.0` until released.
 
+- `deploy-byoa-aws` `0.6.1` (albitor-ltd/albitor#4188, stream #3944): every file the plugin renders,
+  and the modules the stack fetches, passes the platform's internal-references check, so no agent is
+  asked to edit a managed file. The resource tag is `Template = "deploy-byoa-aws"` (was prefixed with
+  the platform's name), the `main.tf` and seed-script headers and comments no longer cite the platform,
+  an issue or an ADR, and the manifest path is joined from segments. No resource address changes
+  (`module.site[0]` and the rest stay), so no `moved` block is needed; the tag value updates in place.
+  `scripts/check-internal-references.sh` runs the check (a mirror of the platform's handover gate; that
+  script is the source of truth) over the manifest's `contributes.files` and `modules/`, and
+  `scripts/test-check-internal-references.sh` proves it fails on each kind of reference. Both run in
+  `just deploy-byoa-aws`. Release `0.6.1` together with the #4173 change above; the version is bumped and
+  the module refs point at `deploy-byoa-aws/v0.6.1`, and the catalogue still pins `0.6.0` until the tag
+  exists.
+
 ### Added
 
 - `deploy-byoa-aws` (albitor-ltd/albitor-plugins#105, albitor#4040 Delete app): a managed

@@ -27,6 +27,10 @@ case "${1:-}" in
 esac
 command -v terraform >/dev/null || { echo "terraform is required" >&2; exit 2; }
 
+echo "== internal references in what the plugin renders"
+"$root/scripts/check-internal-references.sh" "$plugin"
+"$root/scripts/test-check-internal-references.sh"
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 

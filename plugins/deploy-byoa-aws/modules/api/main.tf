@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "tables" {
   policy = data.aws_iam_policy_document.tables[0].json
 }
 
-# The platform writes each app secret as an SSM SecureString at <prefix><NAME> (ADR-0057). The
+# The platform writes each app secret as an SSM SecureString at <prefix><NAME>. The
 # function may read exactly those parameters and nothing wider: no GetParametersByPath, no write.
 # Parameters sealed with the AWS-managed alias/aws/ssm key need no grant of their own (its key policy
 # admits the account's principals through SSM); a customer-managed key needs kms:Decrypt on it.
