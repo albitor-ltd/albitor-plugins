@@ -107,8 +107,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth",
-        "ref": "auth/v0.7.0",
-        "sha": "f5f76d09f9e76b240e761b2b18339e0f18b675bb"
+        "ref": "auth/v0.7.1",
+        "sha": "042be202938b1cb6864de217da750a4d645e704e"
       },
       "description": "The default auth pack: end-user sign-up and sign-in for a delivered app, backed by an Amazon Cognito user pool. Ships templated files (pool and public client, the API's token check and GET /api/me, the sign-in, sign-up, confirm-code and reset screens) that the platform renders into a new BYOA app's first commit, and a skill for what each build still writes. Self-sign-up is on by default; email verification is required.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.4.0",
-        "sha": "7ca5d24ed10790fe82c21769b2e0bb8f880c2927"
+        "ref": "test-playwright/v0.4.1",
+        "sha": "042be202938b1cb6864de217da750a4d645e704e"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.6.0",
-        "sha": "c4ca02d0d3c1dbb1e862ead59a98eaeefebd9812"
+        "ref": "deploy-byoa-aws/v0.6.1",
+        "sha": "f1318b6714430e16de98caed4c6815d032e0ff40"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
       "category": "development",
