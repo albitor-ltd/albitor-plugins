@@ -215,8 +215,8 @@ func TestDeployHostedComposes(t *testing.T) {
 	if _, ok := res.Files[".github/workflows/ci.yml"]; !ok {
 		t.Error(".github/workflows/ci.yml is not in the composed tree")
 	}
-	if modes[".github/workflows/ci.yml"] != "managed" {
-		t.Errorf("ci.yml should be managed, got %q", modes[".github/workflows/ci.yml"])
+	if modes[".github/workflows/ci.yml"] != "example" {
+		t.Errorf("ci.yml should be seeded once (example), got %q", modes[".github/workflows/ci.yml"])
 	}
 	// COMPOSE_OUT_HOSTED writes the composed tree so the floor's gate scripts can be run over it.
 	if out := os.Getenv("COMPOSE_OUT_HOSTED"); out != "" {

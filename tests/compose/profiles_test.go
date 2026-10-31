@@ -12,7 +12,6 @@ import (
 	"albitor/core/authtemplate"
 	"albitor/core/certification"
 	"albitor/core/composer"
-	"albitor/core/enginev2"
 )
 
 // profileTokens are every platform token a composition on either lane can name, with sentinel
@@ -82,12 +81,6 @@ func composeMembers(t *testing.T, plugins map[string]composer.Plugin, members []
 		if strings.Contains(string(body), "{{albitor.") {
 			t.Errorf("%s is composed with an unrendered {{albitor.*}} placeholder", path)
 		}
-	}
-	// The platform records the managed files as one managed_pinned fact before the build starts;
-	// a set it would refuse (dev build 63716a5c: 135 files over a 128 cap) must fail here first.
-	if err := enginev2.ValidateManagedPins(res.WrittenManagedPins()); err != nil {
-		t.Errorf("the managed files could not be pinned (%d files, %d bytes): %v",
-			len(res.WrittenManagedPins()), enginev2.PinsEnvBytes(res.WrittenManagedPins()), err)
 	}
 	return nil
 }

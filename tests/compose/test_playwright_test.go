@@ -171,9 +171,6 @@ func TestTestPlaywrightComposes(t *testing.T) {
 		"web/tests/package-lock.json",
 	} {
 		want := "example"
-		if p == ".github/workflows/journeys.yml" {
-			want = "managed" // the parser admits a workflow in managed mode only
-		}
 		if modes[p] != want {
 			t.Errorf("%s should be %s, got %q", p, want, modes[p])
 		}
