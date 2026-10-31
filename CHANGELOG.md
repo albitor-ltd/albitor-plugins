@@ -8,8 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
-- `api-go` and `test-playwright` (albitor-ltd/albitor#4175, stream #3944; unreleased, the release PR
-  bumps `api-go` to `0.2.1`, with the #4173 change, and `test-playwright` to `0.4.2`): the `api-go`
+- `api-go` `0.2.1` and `test-playwright` `0.4.2` (albitor-ltd/albitor#4175, stream #3944; `api-go`
+  `0.2.1` also carries the #4173 change below; untagged until released): the `api-go`
   skill forbids a nil slice for any array field (build with `make`, clone with `make` and `copy`,
   never `append([]T(nil), ...)`), after a build shipped `defects: null` against an `openapi.yaml`
   array; the `test-playwright` skill forbids either-branch assertions, so a spec asserts exactly
@@ -26,8 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `helpers/storage-state.ts`, so it requires `test-playwright` >= 0.4.1. Release and pin the two
   together.
 
-- `deploy-byoa-aws` and `api-go` (albitor#4173; unreleased, the release PR bumps `deploy-byoa-aws`
-  to `0.6.1` and `api-go` to `0.2.1`): the API function can read the app's own SSM secrets. The `api` module takes `secrets_parameter_prefix` (empty grants nothing), grants
+- `deploy-byoa-aws` and `api-go` (albitor#4173; `api-go` `0.2.1` ships it; unreleased, the release PR
+  bumps `deploy-byoa-aws` to `0.6.1`): the API function can read the app's own SSM secrets. The `api` module takes `secrets_parameter_prefix` (empty grants nothing), grants
   `ssm:GetParameter` and `ssm:GetParameters` on it, sets `ALBITOR_SECRETS_PARAMETER_PREFIX` and outputs
   the role; the root stack derives the prefix from `secrets_segment`, which `deploy.yml` passes from
   `ALBITOR_APP_SECRETS_SEGMENT`. The `api-go` skill records the variable and the read convention.
