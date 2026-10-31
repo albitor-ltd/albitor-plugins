@@ -200,10 +200,10 @@ func TestKitShadcnFileModes(t *testing.T) {
 	}
 	// Every kit file is seeded once and app-owned; the token file and the contrast and axe tests stay managed only because the platform's kit certification still demands them.
 	for p, want := range map[string]string{
-		"web/src/lib/kit/tokens.css":        "managed",
-		"web/src/lib/kit/contrast.test.ts":  "managed",
-		"web/src/lib/kit/kit.test.ts":       "managed",
-		"web/src/lib/kit/dialog.test.ts":    "managed",
+		"web/src/lib/kit/tokens.css":        "example",
+		"web/src/lib/kit/contrast.test.ts":  "example",
+		"web/src/lib/kit/kit.test.ts":       "example",
+		"web/src/lib/kit/dialog.test.ts":    "example",
 		"web/src/lib/kit/Showcase.svelte":   "example",
 		"web/src/lib/kit/AppShell.svelte":   "example",
 		"web/src/lib/kit/Dialog.svelte":     "example",

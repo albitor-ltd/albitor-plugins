@@ -98,9 +98,9 @@ func TestKitGDSFileModes(t *testing.T) {
 	// kit certification still demands them: those tests and the themeable token file.
 	for p, want := range map[string]string{
 		"web/vitest.config.ts":             "example",
-		"web/src/lib/kit/contrast.test.ts": "managed",
-		"web/src/lib/kit/kit.test.ts":      "managed",
-		"web/src/lib/kit/dialog.test.ts":   "managed",
+		"web/src/lib/kit/contrast.test.ts": "example",
+		"web/src/lib/kit/kit.test.ts":      "example",
+		"web/src/lib/kit/dialog.test.ts":   "example",
 		"web/src/lib/kit/Showcase.svelte":  "example",
 		"web/src/lib/kit/AppShell.svelte":  "example",
 		"web/src/lib/kit/Button.svelte":    "example",

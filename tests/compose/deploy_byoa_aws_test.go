@@ -196,12 +196,9 @@ func TestDeployBYOAComposes(t *testing.T) {
 		if _, ok := res.Files[p]; !ok {
 			t.Errorf("%s is not in the composed tree", p)
 		}
-		// The platform's manifest parser still admits a workflow in managed mode only; every other
-		// file here is seeded once and app-owned.
+		// The manifest declares workflows managed (the parser admits no other mode), but the composer
+		// seeds every file once (ADR-0103), so the lock records each as an example.
 		want := "example"
-		if strings.HasPrefix(p, ".github/workflows/") {
-			want = "managed"
-		}
 		if modes[p] != want {
 			t.Errorf("%s should be %s, got %q", p, want, modes[p])
 		}

@@ -96,7 +96,7 @@
     },
     {
       "path": "web/src/app.html",
-      "mode": "managed",
+      "mode": "example",
       "plugins": "web-svelte"
     },
     {
@@ -166,7 +166,7 @@
     },
     {
       "path": "web/src/lib/kit/AppShell.svelte",
-      "mode": "managed",
+      "mode": "example",
       "plugins": "kit-stub"
     },
     {
@@ -201,7 +201,7 @@
     },
     {
       "path": "web/src/lib/shell/nav.generated.ts",
-      "mode": "managed",
+      "mode": "example",
       "plugins": "web-svelte"
     },
     {
@@ -216,12 +216,12 @@
     },
     {
       "path": "web/src/lib/shell/providers.generated.ts",
-      "mode": "managed",
+      "mode": "example",
       "plugins": "web-svelte"
     },
     {
       "path": "web/src/lib/shell/scope.d/auth-stub.ts",
-      "mode": "managed",
+      "mode": "example",
       "plugins": "auth-stub"
     },
     {
@@ -246,7 +246,7 @@
     },
     {
       "path": "web/src/lib/stub/StubProvider.svelte",
-      "mode": "managed",
+      "mode": "example",
       "plugins": "auth-stub"
     },
     {
