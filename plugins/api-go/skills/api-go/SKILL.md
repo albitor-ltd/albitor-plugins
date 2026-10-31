@@ -36,6 +36,11 @@ registered twice panics at start.
   `apikit.EncodeCursor(collection, lastKey)` and read them with `apikit.DecodeCursor`; return its
   `ErrInvalidCursor` unchanged so the client gets a 400. The collection name must not contain `:`
   (both functions panic on one: it is a programming error).
+- **Never emit a nil slice for an array field.** A nil slice marshals to `null`, and a client
+  that maps over the field crashes on the first empty result (a real build shipped `defects: null`
+  against an `openapi.yaml` array). Build with `make([]T, 0, n)`, clone with `make` and `copy`, and
+  never `append([]T(nil), ...)` or `var out []T` returned as is. The same goes for a slice inside a
+  nested struct or a map value. Assert the field is `[]` in the handler's test.
 - **Errors are `{"error": "..."}`** (`apikit.WriteError`). A storage fault is an opaque 500 through
   `apikit.WriteFailure`; the cause is logged with the correlation id and never sent to the client. A handler that panics is contained the same way: the shell logs it with
   the correlation id and answers the JSON 500, so do not add your own recover.
