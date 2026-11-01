@@ -56,6 +56,32 @@ export function readCredentials(env: Record<string, string | undefined>): DemoCr
 	}
 }
 
+export type VerifierBCredentials = { username: string; password: string };
+
+// THE SECOND IDENTITY. A deployed walk is given a second seeded
+// account beside the first, under "verifier_b" in the same credentials file, so a spec proving
+// "another account cannot ..." has a second real person to be and runs instead of skipping for
+// want of the local issuer. Absent on every other run, and on any file that does not hold both a
+// username and a password: the answer is then null, never a guess.
+export function readVerifierB(env: Record<string, string | undefined>): VerifierBCredentials | null {
+	const credentialsPath = env.ALBITOR_JOURNEY_CREDENTIALS || "";
+	if (!credentialsPath) {
+		return null;
+	}
+	try {
+		const parsed = JSON.parse(readFileSync(credentialsPath, "utf8")) as {
+			verifier_b?: { username?: unknown; password?: unknown };
+		};
+		const b = parsed.verifier_b;
+		if (typeof b?.username === "string" && b.username && typeof b.password === "string" && b.password) {
+			return { username: b.username, password: b.password };
+		}
+		return null;
+	} catch {
+		return null;
+	}
+}
+
 /**
  * Whether the page has left the sign-in route. `signIn` is the URL recorded right after the
  * sign-in page loaded (so a redirect to /login is the route), `now` the current one. Query strings

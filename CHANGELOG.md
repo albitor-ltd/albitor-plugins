@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.5.2` signs in a second seeded identity on a deployed walk
+  (albitor-ltd/albitor#4258, O29; untagged until released). The journey credentials file may hold
+  `verifier_b` (`verifier-b@albitor-verify.invalid`); `auth.setup.ts` signs it in once after the demo
+  account and saves `verifier-b.json` (`VERIFIER_B_STORAGE_STATE`, `hasVerifierBSession()`), so
+  "another account cannot ..." specs run on a deployed app instead of skipping. It never fails the
+  suite: a failed second sign-in (a pool not seeded with it) leaves no session, logs why and
+  annotates `no-second-identity`, and only the specs that need a second person skip. New helpers
+  `readVerifierB` and `saveSecondSession`, with unit tests.
 - `deploy-byoa-aws` `0.8.0` is invite-only without email (albitor-ltd/albitor#4258; untagged until
   released). With `services.auth.sign_up: invite_only` the user pool auto-verifies nothing and
   recovers accounts by an administrator only, so Cognito sends no verification, invitation or

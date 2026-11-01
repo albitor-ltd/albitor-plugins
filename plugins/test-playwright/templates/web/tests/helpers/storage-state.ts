@@ -57,6 +57,20 @@ export function ensureAuthDir(): string {
 	return AUTH_DIR;
 }
 
+// The second seeded verifier identity's session.
+//
+// A DEPLOYED run has no local issuer, so a spec proving "another account cannot read this
+// account's records" had no second person to be and skipped. An automated walk is now given a
+// second seeded account, and tests/auth.setup.ts saves its session here. Load it into a second
+// browser context to act as that other person:
+//
+//   test.skip(!hasVerifierBSession(), "no second signed-in identity on this run");
+//   const other = await browser.newContext({ storageState: VERIFIER_B_STORAGE_STATE });
+//
+// The file exists only when the second sign-in worked. Locally the local issuer's alice and bob are
+// the two people, and this stays absent.
+export const VERIFIER_B_STORAGE_STATE = join(AUTH_DIR, "verifier-b.json");
+
 // A signed-out session, in the shape Playwright writes and reads. A spec that must NOT inherit
 // the signed-in session - the one that tests signing in or registering - opts out with
 // `test.use({ storageState: EMPTY_STORAGE_STATE })`.
@@ -78,4 +92,11 @@ export function sessionSaved(file: string): boolean {
 // spec file has been loaded.
 export function hasDemoSession(): boolean {
 	return sessionSaved(DEMO_STORAGE_STATE);
+}
+
+// Whether the setup saved a signed-in session for the second identity. False when no second
+// account reached this run, when its sign-in failed, and when the file is missing or unreadable.
+// A spec that needs a second person calls this from a beforeEach and skips on false.
+export function hasVerifierBSession(): boolean {
+	return sessionSaved(VERIFIER_B_STORAGE_STATE);
 }
