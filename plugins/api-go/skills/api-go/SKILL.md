@@ -28,6 +28,29 @@ middleware or routes by hand.
 There is no `init()` registration. A handler missing from `Routes` is not served, and a pattern
 registered twice panics at start.
 
+## Schedules: the `/events` route
+
+An `albitor.yaml` `schedules` entry runs this same binary (`handler: api`) on a rate. The platform
+runs it behind Lambda Web Adapter, in pass-through mode: the scheduler's event is not HTTP, so the
+adapter delivers it to the one server as `POST /events`, the body `{"schedule": "<name>"}` with
+`<name>` the entry's `name`. An app with a schedule must serve that route, or the schedule fires
+into a 404 and does nothing.
+
+```go
+r.HandleFunc("POST /events", handleEvents)
+```
+
+- Switch on `schedule` and run that job; answer 2xx when it ran, 5xx when it failed. The platform
+  makes a 5xx fail the invocation (`AWS_LWA_ERROR_STATUS_CODES=500-599`), so Lambda retries the run
+  and the failure is reported; any other status, a 4xx included, counts as success and is not
+  retried. An unknown name is a 400, never a silent 200.
+- The job runs inside the invocation: Lambda freezes the environment once the response is written
+  and the function timeout is 30 seconds. Do the work before answering, and keep it idempotent.
+- The HTTP function runs this binary behind API Gateway too, so `POST /events` is reachable from
+  the internet there as well. Treat it as untrusted input: act only on a known schedule name, take
+  nothing else from the body, and make the job safe to run when nobody asked for it.
+- Keep `/events` out of `openapi.yaml`: it is not part of the client contract.
+
 ## Rules every handler follows
 
 - **Lists go through `apikit.ServeList`.** It enforces `limit` (default 20, max 100, out of range

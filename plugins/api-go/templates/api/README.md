@@ -30,6 +30,15 @@ There is no `init()` registration and no generator: a handler not listed in `Rou
 Handlers reach data only through the store interface the data-store plugin gives the app, never a
 client of their own, so they work in the local run as well as deployed.
 
+## Schedules
+
+A `schedules` entry in `albitor.yaml` runs this same binary on a rate. The platform delivers each
+fire as `POST /events` with the body `{"schedule": "<name>"}`; register that route in `Routes`,
+switch on the name, run the job before answering, and answer 5xx if it failed: a 5xx fails the
+invocation and Lambda retries it, while any other status counts as success. An unknown name is a
+400. The route is also reachable through the public API, so it must act only on a known name and
+be safe to run unasked.
+
 ## Patterns to keep
 
 - **Every list is paginated.** A list endpoint takes `limit` (default 20, maximum 100, out of range
