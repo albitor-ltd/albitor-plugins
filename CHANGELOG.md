@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.5.2` signs in a second seeded identity on a deployed walk
+  (albitor-ltd/albitor#4258, O29; untagged until released). The journey credentials file may hold
+  `verifier_b` (`verifier-b@albitor-verify.invalid`); `auth.setup.ts` signs it in once after the demo
+  account and saves `verifier-b.json` (`VERIFIER_B_STORAGE_STATE`, `hasVerifierBSession()`), so
+  "another account cannot ..." specs run on a deployed app instead of skipping. It never fails the
+  suite: a failed second sign-in (a pool not seeded with it) leaves no session, logs why and
+  annotates `no-second-identity`, and only the specs that need a second person skip. New helpers
+  `readVerifierB` and `saveSecondSession`, with unit tests.
 - `auth-cognito` `0.6.0` is invite-only by default (albitor-ltd/albitor#4258, P2; untagged until
   released). It no longer hard-codes `sign_up: open` in its manifest (the plan supplies it, default
   `invite_only`). The API gains public `GET /api/auth/config`, `POST /api/auth/change-password` (both

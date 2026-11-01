@@ -1,10 +1,11 @@
 // Starting point (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
-import { chmodSync, mkdirSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { leftSignInRoute, readCredentials } from "../helpers/credentials.ts";
+import { leftSignInRoute, readCredentials, readVerifierB } from "../helpers/credentials.ts";
+import { saveSecondSession } from "../helpers/second-identity.ts";
 import { parseVerification } from "../helpers/mailbox-contract.ts";
 import { DEMO_STORAGE_STATE, sessionSaved, TESTS_DIR } from "../helpers/storage-state.ts";
 
@@ -101,6 +102,41 @@ describe("readCredentials", () => {
 		const file = write("evil.json", JSON.stringify({ password: "p", sign_in_route: "https://evil.example/" }));
 		assert.equal(readCredentials({ ALBITOR_JOURNEY_CREDENTIALS: file }).signInRoute, "/sign-in");
 		assert.equal(readCredentials({ ALBITOR_DEMO_ACCOUNT_PASSWORD: "p", DEMO_ACCOUNT_SIGN_IN_ROUTE: "//evil.example" }).signInRoute, "/sign-in");
+	});
+});
+
+describe("readVerifierB", () => {
+	it("reads the second identity from the journey credentials file, and only from it", () => {
+		const file = write("vb.json", JSON.stringify({ username: "a@x", password: "p", verifier_b: { username: "b@x", password: "bp" } }));
+		assert.deepEqual(readVerifierB({ ALBITOR_JOURNEY_CREDENTIALS: file }), { username: "b@x", password: "bp" });
+		assert.equal(readVerifierB({ ALBITOR_DEMO_ACCOUNT_PASSWORD: "p" }), null);
+	});
+	it("is null for a file without a complete second identity, or an unreadable one", () => {
+		for (const body of [{}, { verifier_b: {} }, { verifier_b: { username: "b@x" } }, { verifier_b: { password: "p" } }, { verifier_b: "x" }]) {
+			assert.equal(readVerifierB({ ALBITOR_JOURNEY_CREDENTIALS: write("vb2.json", JSON.stringify(body)) }), null);
+		}
+		assert.equal(readVerifierB({ ALBITOR_JOURNEY_CREDENTIALS: join(dir, "nope.json") }), null);
+	});
+});
+
+describe("saveSecondSession", () => {
+	const file = join(dir, "verifier-b.json");
+	it("saves the session when the sign-in worked", async () => {
+		const r = await saveSecondSession(async () => ({ cookies: [{ name: "s" }], origins: [] }), file);
+		assert.deepEqual(r, { ok: true });
+		assert.equal(sessionSaved(file), true);
+	});
+	it("never throws and leaves no file when the sign-in fails, even over an earlier session", async () => {
+		const r = await saveSecondSession(async () => {
+			throw new Error("did not sign in");
+		}, file);
+		assert.deepEqual(r, { ok: false, why: "did not sign in" });
+		assert.equal(existsSync(file), false);
+	});
+	it("treats a state holding no session as a failure and leaves no file", async () => {
+		const r = await saveSecondSession(async () => ({ cookies: [], origins: [] }), file);
+		assert.equal(r.ok, false);
+		assert.equal(existsSync(file), false);
 	});
 });
 

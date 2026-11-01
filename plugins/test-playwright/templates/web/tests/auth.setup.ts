@@ -1,5 +1,5 @@
 // Starting point (test-playwright).
-import { type Dirent, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { type Dirent, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { expect, test as setup } from "@playwright/test";
 import {
@@ -12,7 +12,8 @@ import {
   SIGN_IN_LANDING_MS,
   SIGN_IN_STEP_MS,
 } from "./helpers/browser-signin";
-import { readCredentials } from "./helpers/credentials";
+import { readCredentials, readVerifierB } from "./helpers/credentials";
+import { saveSecondSession } from "./helpers/second-identity";
 import { localIssuerRunning, localSessionCookies, localTokens } from "./helpers/local-auth";
 import { declaresServicesAuth, signInRequired } from "./helpers/hosted-signin";
 import {
@@ -20,6 +21,7 @@ import {
   EMPTY_STORAGE_STATE,
   ensureAuthDir,
   hasDemoSession,
+  VERIFIER_B_STORAGE_STATE,
   WEB_ROOT,
 } from "./helpers/storage-state";
 
@@ -266,4 +268,35 @@ setup("sign in once as the demo account", async ({ page, request }) => {
     hasDemoSession(),
     "the sign-in succeeded but saved no cookies or local storage; keep the session in a cookie or localStorage so the suite can reuse it",
   ).toBe(true);
+});
+
+// THE SECOND IDENTITY. A deployed walk is given a second seeded account
+// (verifier_b in the credentials file); this signs it in once and saves its session, so a spec
+// proving "another account cannot ..." runs instead of skipping for want of the local issuer.
+//
+// IT NEVER FAILS THE SUITE. A failed setup test fails the setup project and skips every spec that
+// depends on it, and the second account is the platform's to seed, not the app's: a pool that was
+// not seeded with it (a deploy from before the second identity existed, a partial seed) is no fault
+// of the app. So any failure here is caught, logged and annotated, and no verifier-b.json is left
+// behind; the specs that need a second person skip loudly by hasVerifierBSession(). It runs after
+// the demo sign-in above, in the same file and worker (files run their tests in order), and only
+// when that one saved a session.
+setup("sign in once as the second verifier identity", async ({ page }) => {
+  const second = readVerifierB(process.env);
+  if (!second || !password || !browsesDeployedApp || !hasDemoSession()) {
+    // Nothing to sign in: leave no stale session from an earlier run.
+    rmSync(VERIFIER_B_STORAGE_STATE, { force: true });
+    return;
+  }
+  ensureAuthDir();
+  setup.setTimeout(SIGN_IN_GOTO_MS + SIGN_IN_LANDING_MS + 3 * HOSTED_FORM_MS + HOSTED_RETURN_MS + 6 * SIGN_IN_STEP_MS + 10_000);
+  const result = await saveSecondSession(
+    () => browserSignIn(page, appBaseURL(), { username: second.username, password: second.password, signInRoute }),
+    VERIFIER_B_STORAGE_STATE,
+  );
+  if (!result.ok) {
+    const why = `the second verifier identity did not sign in (${result.why})`;
+    setup.info().annotations.push({ type: "no-second-identity", description: why });
+    console.log(`auth.setup: ${why}, so specs that need a second signed-in person skip themselves`);
+  }
 });
