@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `api-go` `0.3.2` teaches the schedule route (albitor-ltd/albitor#4247, stream #4248; untagged until
+  released): the skill, the template README and `routes.go` say a schedule runs this binary behind
+  the Lambda Web Adapter in pass-through mode, so each fire is `POST /events` with
+  `{"schedule": "<name>"}`, and what the handler must do with it. Needs the hosted-app module that
+  attaches the adapter to scheduled functions.
 - Seeds boot as shipped (albitor-ltd/albitor#4228; patch releases `test-playwright` `0.5.1`, `api-go`
   `0.3.1`, `auth-cognito` `0.5.1`, `auth-hosted` `0.3.1`; untagged until released):
   the seeded `auth.setup.ts` signs in at api-go's local issuer (alice's token as the session cookie) in a local run, since
