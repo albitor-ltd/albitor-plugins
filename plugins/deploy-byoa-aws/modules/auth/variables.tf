@@ -80,6 +80,21 @@ variable "admin_group" {
   }
 }
 
+variable "user_admin_group" {
+  description = "The group whose members administer people (the People screen) in an invite_only app. Created only in invite_only, where the owner is seeded into it; open mode has no people administration and creates nothing."
+  type        = string
+  default     = "user-admins"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{1,31}$", var.user_admin_group))
+    error_message = "user_admin_group must match ^[a-z][a-z0-9-]{1,31}$."
+  }
+  validation {
+    condition     = !contains(var.groups, var.user_admin_group)
+    error_message = "user_admin_group must not also be one of groups: it is the module's own group for people administration."
+  }
+}
+
 variable "deletion_protection" {
   description = "Refuse to delete the pool (and every account in it). Lift it deliberately to remove the pool."
   type        = bool

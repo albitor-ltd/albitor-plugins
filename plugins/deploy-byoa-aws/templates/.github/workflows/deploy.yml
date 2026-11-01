@@ -118,6 +118,7 @@ jobs:
       auth_client_id: ${{ steps.app_url.outputs.auth_client_id }}
       seed_status: ${{ steps.app_url.outputs.seed_status }}
       seeded_roles: ${{ steps.app_url.outputs.seeded_roles }}
+      owner_status: ${{ steps.app_url.outputs.owner_status }}
     permissions:
       contents: read
       id-token: write
@@ -333,7 +334,9 @@ jobs:
           pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
           admin_group="$(terraform -chdir=infrastructure/aws output -raw auth_admin_group)"
           roles="$(terraform -chdir=infrastructure/aws output -raw auth_groups)"
-          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT" "$admin_group" "$roles"
+          sign_up="$(terraform -chdir=infrastructure/aws output -raw auth_sign_up)"
+          user_admin_group="$(terraform -chdir=infrastructure/aws output -raw auth_user_admin_group)"
+          bash ./scripts/seed-platform-accounts.sh "$pool" "$SECRETS_SEGMENT" "$admin_group" "$roles" "$sign_up" "$user_admin_group"
 
       # The receipt carries what the platform's sign-in check needs: the pool, the client and what
       # the seed did. Both ids are empty for an app with no sign-in.
@@ -342,6 +345,7 @@ jobs:
         env:
           SEED_STATUS: ${{ steps.seed.outputs.seed_status }}
           SEEDED_ROLES: ${{ steps.seed.outputs.seeded_roles }}
+          OWNER_STATUS: ${{ steps.seed.outputs.owner_status }}
         run: |
           set -euo pipefail
           url="$(terraform output -raw app_url)"
@@ -369,6 +373,10 @@ jobs:
             echo "::error::the seed reported a role the receipt cannot carry" >&2
             exit 1
           fi
+          if [ -n "$OWNER_STATUS" ] && ! printf '%s' "$OWNER_STATUS" | grep -Eq '^(seeded|exists|absent|skipped_open)$'; then
+            echo "::error::the seed reported an owner status the receipt cannot carry" >&2
+            exit 1
+          fi
           if [ -z "$url" ]; then
             echo "::error::the stack applied but exposes no app_url (no site and no API), so there is nothing to report" >&2
             exit 1
@@ -380,6 +388,7 @@ jobs:
             echo "auth_client_id=$client"
             echo "seed_status=$SEED_STATUS"
             echo "seeded_roles=$SEEDED_ROLES"
+            echo "owner_status=$OWNER_STATUS"
           } >>"$GITHUB_OUTPUT"
         working-directory: infrastructure/aws
 
@@ -402,6 +411,7 @@ jobs:
           AUTH_CLIENT_ID: ${{ needs.deploy.outputs.auth_client_id }}
           SEED_STATUS: ${{ needs.deploy.outputs.seed_status }}
           SEEDED_ROLES: ${{ needs.deploy.outputs.seeded_roles }}
+          OWNER_STATUS: ${{ needs.deploy.outputs.owner_status }}
         run: |
           set -euo pipefail
           if ! printf '%s' "$APP_URL" | grep -Eq '^https://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+$'; then
@@ -428,5 +438,9 @@ jobs:
             echo "::error::the seeded role is not one the receipt carries" >&2
             exit 1
           fi
-          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s","seeded_roles":"%s"}\n' \
-            "$APP_URL" "$DEPLOY_SHA" "$AUTH_USER_POOL_ID" "$AUTH_CLIENT_ID" "$SEED_STATUS" "$SEEDED_ROLES"
+          if [ -n "$OWNER_STATUS" ] && ! printf '%s' "$OWNER_STATUS" | grep -Eq '^(seeded|exists|absent|skipped_open)$'; then
+            echo "::error::the owner status is not one the receipt carries" >&2
+            exit 1
+          fi
+          printf '::notice title=deploy-receipt::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s","seeded_roles":"%s","owner_status":"%s"}\n' \
+            "$APP_URL" "$DEPLOY_SHA" "$AUTH_USER_POOL_ID" "$AUTH_CLIENT_ID" "$SEED_STATUS" "$SEEDED_ROLES" "$OWNER_STATUS"

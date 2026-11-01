@@ -13,7 +13,7 @@ infrastructure.
 
 ## Starting points
 
-The workflows `ci.yml`, `deploy.yml`, `destroy.yml` and `invite.yml` under `.github/workflows/`,
+The workflows `ci.yml`, `deploy.yml`, `destroy.yml`, `invite.yml` and `recover-owner.yml` under `.github/workflows/`,
 `infrastructure/aws/*.tf`, `infrastructure/aws/.terraform.lock.hcl` and the three scripts under
 `scripts/` are seeded once and are yours from then on. Change them when the app needs it, and do not
 weaken the checks the pipeline runs (the tests and the receipts).
@@ -33,9 +33,14 @@ refusal: remove the block or choose another deploy target.
 
 Who can sign in is handled for you: every `dev` deploy seeds the demo and verifier accounts
 (`scripts/seed-platform-accounts.sh`, under the deploy role, passwords from the app's secret store),
-and the owner invites everyone else by running the `invite` workflow (`.github/workflows/invite.yml`).
-Do not seed or create users in the app, in the stack or with a user-pool admin call: the function
-holds none, and the floor refuses a grant. The first sign-in of an invited person is the
+and the owner adds everyone else: from the app's People screen in an invite-only app, or by running
+the `invite` workflow (`.github/workflows/invite.yml`) in an `open` one (it refuses in invite-only).
+In an invite-only app the same seed also creates the owner (a temporary password, no email, in the
+admin group and the `user-admins` group that gates the People screen), and the
+`api` module itself grants the function the eight user-administration calls the People screen needs
+on the one pool; in `open` mode it grants none. Do not seed or create users in the stack, and do not
+write a user-pool admin grant of your own: the module owns the only sanctioned one, and the floor
+refuses any other. The first sign-in of an invited person is the
 `auth-cognito` plugin's `new_password_required` step. The seed reads the passwords from the path
 segment Albitor wrote into `env/<environment>.deploy.env` (`ALBITOR_APP_SECRETS_SEGMENT`), never from
 the repository name, and the deploy receipt reports the pool, the client and the seed's status.

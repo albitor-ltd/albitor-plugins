@@ -2,7 +2,7 @@
 # Starting point (deploy-byoa-aws). Seeds the app's two platform accounts into its Cognito user
 # pool, once per deploy, from the deploy job and never from the request-serving function.
 #
-#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group> [<roles>]]
+#   scripts/seed-platform-accounts.sh <user-pool-id> <secrets-segment> [<admin-group> [<roles> [<sign-up> [<user-admin-group>]]]]
 #
 # Two accounts, one mechanism. The DEMO account is the app owner's: they sign
 # in with it to try the app on handover day. The VERIFIER account is the platform's own: its checks sign
@@ -43,6 +43,24 @@
 # and never a seed_status, which keeps its three-account vocabulary. Auth@2's signInAs reads the same
 # password, from outside the checkout, to sign in as the role (test-playwright, helpers/auth-v2.ts).
 #
+# The owner (invite_only only, <sign-up> = invite_only). The platform user who started the build is
+# the app's first person: a real account, not a fixture. The platform writes their address and a
+# one-time temporary password beside the other secrets,
+#   /albitor/apps/<secrets segment>/secrets/ALBITOR_OWNER_EMAIL
+#   /albitor/apps/<secrets segment>/secrets/ALBITOR_OWNER_TEMP_PASSWORD
+# and shows the temporary password to the owner once. This creates the owner when absent, with
+# MessageAction SUPPRESS (no auth email is ever sent), email_verified=true, that temporary password
+# (so the account sits in FORCE_CHANGE_PASSWORD and the owner chooses their own on first sign-in)
+# and the admin group. An owner who already exists never has their password touched (a redeploy
+# must not reset one they chose); only their admin-group membership is re-ensured, which is idempotent. A missing parameter is a loud skip (owner_status=absent), never a failure.
+# The temporary password reaches Cognito through a 0600 request file, never argv. In open mode
+# nothing is seeded (owner_status=skipped_open); the owner joins the admin group and, to use the
+# People screen, the <user-admin-group> (no other account is ever put in it); anyone may register. A <sign-up> of "" (an older
+# caller) seeds no owner and writes no owner_status. The platform's second verifier, verifier-b,
+# is seeded exactly like the verifier (permanent password, in no group) from
+#   /albitor/apps/<secrets segment>/secrets/ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD
+# so cross-account isolation can be proved; its absence is a warning only and not a seed_status.
+#
 # Idempotent. It creates each account when it is absent and sets its password every time. A password
 # reaches neither argv nor another step's environment: the set-password call reads a 0600 JSON file
 # that is removed on the way out, and nothing is written to $GITHUB_ENV.
@@ -53,27 +71,48 @@
 # throttling) is not "missing": it fails the step. $GITHUB_OUTPUT gets seed_status, one of
 #   seeded | no_pool | skipped_unprovisioned:<demo|verifier>[,<demo|verifier>]
 #   | failed:no_secrets_segment
+# and, when <sign-up> is given, owner_status, a separate key, one of
+#   seeded | exists | absent | skipped_open
 set -uo pipefail
 
 readonly demo_username="demo@albitor-demo.invalid"
 readonly verifier_username="verifier@albitor-verify.invalid"
+readonly verifier_b_username="verifier-b@albitor-verify.invalid"
 readonly demo_display_name="Demo User"
 
 pool_id="${1:-}"
 secrets_segment="${2:-}"
 admin_group="${3:-}"
 roles_csv="${4:-}"
+sign_up="${5:-}"
+user_admin_group="${6:-}"
 
 # seeded_roles is the group the accounts were added to, or empty. It is written beside every
 # seed_status so a reader never has to tell "absent" from "none".
 seeded_roles=""
 
+# owner_status is what the owner seed did. It is written, as a key of its own beside seed_status,
+# only for a caller that passed <sign-up>.
+owner_status=""
+
 write_status() {
   if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "seed_status=$1" >>"$GITHUB_OUTPUT"
     echo "seeded_roles=${seeded_roles}" >>"$GITHUB_OUTPUT"
+    if [ -n "$sign_up" ]; then
+      echo "owner_status=${owner_status:-absent}" >>"$GITHUB_OUTPUT"
+    fi
   fi
 }
+
+if [ -n "$user_admin_group" ] && ! printf '%s' "$user_admin_group" | grep -Eq '^[a-z][a-z0-9-]{1,31}$'; then
+  echo "::error::the user-admin group is not a group name" >&2
+  exit 1
+fi
+if [ -n "$sign_up" ] && [ "$sign_up" != "invite_only" ] && [ "$sign_up" != "open" ]; then
+  echo "::error::the sign-up mode is not invite_only or open" >&2
+  exit 1
+fi
 
 if [ -z "$pool_id" ]; then
   echo "no user pool for this app: nothing to seed"
@@ -210,11 +249,108 @@ json.dump({
   echo "the ${label} is seeded in ${pool_id}"
 }
 
+# read_secret <parameter name>: prints the value, or nothing when the parameter is missing or still
+# the placeholder. Returns 1 on any other read failure (it is not "missing", so not a skip).
+read_secret() {
+  local param="/albitor/apps/${secrets_segment}/secrets/$1" value
+  if ! value=$(aws ssm get-parameter --name "$param" --with-decryption \
+    --query Parameter.Value --output text 2>"$read_err"); then
+    if ! grep -q 'ParameterNotFound' "$read_err"; then
+      cat "$read_err" >&2
+      echo "::error::could not read ${param}: it is not missing, so this is not a skip. Check that the deploy role may read it and decrypt it, then redeploy" >&2
+      return 1
+    fi
+    return 0
+  fi
+  if [ "$value" = "None" ] || [ "$value" = "__albitor_pending__" ]; then
+    return 0
+  fi
+  printf '%s' "$value"
+}
+
+# add_owner_to_groups <email>: the admin group and the user-admin group, each only when named.
+# Idempotent and touches no password.
+add_owner_to_groups() {
+  local group
+  for group in "$admin_group" "$user_admin_group"; do
+    [ -n "$group" ] || continue
+    if ! aws cognito-idp admin-add-user-to-group \
+      --user-pool-id "$pool_id" --username "$1" --group-name "$group" >/dev/null; then
+      echo "::error::could not add the owner to the ${group} group in ${pool_id}" >&2
+      return 1
+    fi
+  done
+}
+
+# seed_owner: see the header for the contract.
+seed_owner() {
+  local email password create_out
+  if [ "$sign_up" != "invite_only" ]; then
+    owner_status="skipped_open"
+    return 0
+  fi
+  email="$(read_secret ALBITOR_OWNER_EMAIL)" || return 1
+  password="$(read_secret ALBITOR_OWNER_TEMP_PASSWORD)" || return 1
+  if [ -z "$email" ] || [ -z "$password" ]; then
+    echo "::warning title=seed-skipped::the app has user pool ${pool_id} but the owner's address or temporary password is not in the secret store, so the owner is not seeded"
+    owner_status="absent"
+    return 0
+  fi
+  # The API lowercases the address it signs in with, and the pool is case-insensitive.
+  email="$(printf '%s' "$email" | tr '[:upper:]' '[:lower:]')"
+  if ! printf '%s' "$email" | grep -Eq '^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,255}\.[a-z]{2,63}$'; then
+    echo "::error::the owner's address in the secret store is not an email address" >&2
+    return 1
+  fi
+
+  payload="$(mktemp)"
+  chmod 600 "$payload"
+  if ! SEED_POOL_ID="$pool_id" SEED_USERNAME="$email" SEED_PASSWORD="$password" \
+    python3 -c 'import json, os, sys
+json.dump({
+    "UserPoolId": os.environ["SEED_POOL_ID"],
+    "Username": os.environ["SEED_USERNAME"],
+    "TemporaryPassword": os.environ["SEED_PASSWORD"],
+    "UserAttributes": [
+        {"Name": "email", "Value": os.environ["SEED_USERNAME"]},
+        {"Name": "email_verified", "Value": "true"},
+    ],
+}, open(sys.argv[1], "w"))' "$payload"; then
+    echo "::error::could not write the create-owner request" >&2
+    return 1
+  fi
+  if ! create_out="$(aws cognito-idp admin-create-user --message-action SUPPRESS \
+    --cli-input-json "file://${payload}" 2>&1)"; then
+    rm -f "$payload"
+    payload=""
+    if printf '%s' "$create_out" | grep -q 'UsernameExistsException'; then
+      echo "the owner already exists: leaving their password alone"
+      owner_status="exists"
+      # Group membership is idempotent and touches no password, so an owner whose first run died
+      # between create and add is still made an admin.
+      add_owner_to_groups "$email" || return 1
+      return 0
+    fi
+    printf '%s\n' "$create_out" >&2
+    echo "::error::could not create the owner in ${pool_id}" >&2
+    return 1
+  fi
+  rm -f "$payload"
+  payload=""
+  add_owner_to_groups "$email" || return 1
+  owner_status="seeded"
+  echo "the owner is seeded in ${pool_id} with a temporary password"
+}
+
 # Both are attempted whichever fails: they are independent fixtures, and a reader of a red deploy is
 # owed both findings rather than the first.
 status=0
 seed_account "demo account" demo "$demo_username" ALBITOR_DEMO_ACCOUNT_PASSWORD "$demo_display_name" "$admin_group" yes || status=1
 seed_account "verifier account" verifier "$verifier_username" ALBITOR_VERIFIER_ACCOUNT_PASSWORD "" "$admin_group" yes || status=1
+seed_account "second verifier account" verifier-b "$verifier_b_username" ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD "" "" no || status=1
+if [ -n "$sign_up" ]; then
+  seed_owner || status=1
+fi
 for role in ${roles[@]+"${roles[@]}"}; do
   upper="$(printf '%s' "$role" | tr 'a-z-' 'A-Z_')"
   seed_account "${role} role account" "role-${role}" "${role}@albitor-role.invalid" \

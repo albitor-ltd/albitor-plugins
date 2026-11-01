@@ -112,6 +112,36 @@ resource "aws_iam_role_policy" "secrets" {
   policy = data.aws_iam_policy_document.secrets[0].json
 }
 
+# invite_only: the People screen creates, disables, enables and lists accounts and sets group
+# membership. Exactly these eight calls on exactly one pool; never cognito-idp:*, and no sign-up,
+# delete, attribute or password-hash action beyond AdminSetUserPassword (admin reset).
+data "aws_iam_policy_document" "user_admin" {
+  count = var.user_admin_enabled ? 1 : 0
+
+  statement {
+    sid = "UserAdmin"
+    actions = [
+      "cognito-idp:AdminAddUserToGroup",
+      "cognito-idp:AdminCreateUser",
+      "cognito-idp:AdminDisableUser",
+      "cognito-idp:AdminEnableUser",
+      "cognito-idp:AdminGetUser",
+      "cognito-idp:AdminListGroupsForUser",
+      "cognito-idp:AdminSetUserPassword",
+      "cognito-idp:ListUsers",
+    ]
+    resources = [var.user_pool_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "user_admin" {
+  count = var.user_admin_enabled ? 1 : 0
+
+  name   = "user_admin"
+  role   = aws_iam_role.lambda.id
+  policy = data.aws_iam_policy_document.user_admin[0].json
+}
+
 resource "aws_cloudwatch_log_group" "api" {
   name              = "/aws/lambda/${var.name_prefix}-api"
   retention_in_days = var.log_retention_days
