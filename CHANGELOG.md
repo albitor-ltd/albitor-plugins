@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `auth-cognito` `0.6.0` is invite-only by default (albitor-ltd/albitor#4258, P2; untagged until
+  released). It no longer hard-codes `sign_up: open` in its manifest (the plan supplies it, default
+  `invite_only`). The API gains public `GET /api/auth/config`, `POST /api/auth/change-password` (both
+  modes) and, in `invite_only` only, an administrator People admin (list, add with a generated
+  temporary password shown once, disable, enable, reset) signed with a standard-library SigV4 client
+  and guarded by the admin group (`AUTH_ADMIN_GROUP`); in `invite_only` sign-up, confirm, resend,
+  forgot and reset answer 404. `AUTH_SIGN_UP` unset means `open`, so apps already deployed are
+  unchanged. The web gains change-password and People screens and hides sign-up and reset when
+  invite-only. Needs `deploy-byoa-aws` to hand `AUTH_SIGN_UP`/`AUTH_ADMIN_GROUP` and the single-pool
+  admin policy. `plugins/auth` skill `cognito-auth` and `auth-hosted` are docs only (no version change):
+  the "no admin action on the API's role" rule is mode-aware, and hosted keeps self sign-up.
+  `scripts/check-openapi-variants.sh` now also strips `/api/auth/*` blocks from the auth-cognito variant.
 - `api-go` `0.3.2` teaches the schedule route (albitor-ltd/albitor#4247, stream #4248; untagged until
   released): the skill, the template README and `routes.go` say a schedule runs this binary behind
   the Lambda Web Adapter in pass-through mode, so each fire is `POST /events` with

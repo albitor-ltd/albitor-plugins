@@ -4,7 +4,7 @@
 // answers with a stable `code`; the session comes back as HttpOnly cookies, so no token is ever in
 // reach of page script. Every call answers a result and never throws on a refusal, so a screen
 // shows what happened instead of an error page.
-import { ApiError, NetworkError, post } from '../shell/api';
+import { ApiError, NetworkError, get, post } from '../shell/api';
 import { clearSession } from './session';
 
 /** What the screens can act on. `code` is stable; `message` is safe to show. */
@@ -16,8 +16,12 @@ const UNAVAILABLE = { ok: false, code: 'unavailable', message: 'Sign-in is unava
 const OFFLINE = { ok: false, code: 'offline', message: 'You are offline: check your connection and try again.' } as const;
 
 async function call<T extends object>(action: string, body?: unknown): Promise<AuthResult<T>> {
+	return run(() => post<T | undefined>(`/auth/${action}`, body ?? {}));
+}
+
+async function run<T extends object>(request: () => Promise<T | undefined>): Promise<AuthResult<T>> {
 	try {
-		const out = await post<T | undefined>(`/auth/${action}`, body ?? {});
+		const out = await request();
 		return { ok: true, ...(out ?? ({} as T)) };
 	} catch (err) {
 		if (err instanceof NetworkError) return err.offline ? OFFLINE : UNAVAILABLE;
@@ -76,3 +80,66 @@ export async function signOut(): Promise<AuthResult> {
 	clearSession();
 	return result;
 }
+
+/** How people get an account: `open` (anyone may sign up) or `invite_only` (an administrator adds them). */
+export type SignUpMode = 'open' | 'invite_only';
+
+let signUpMode: Promise<SignUpMode> | null = null;
+
+/**
+ * The app's sign-up mode, from the public GET /api/auth/config. It is asked once per page load. A
+ * failed or unreadable answer reads as `open` (the API refuses what it does not offer, so the
+ * worst case is a link to a screen that says so) and is not remembered. There is no API to ask on
+ * the server.
+ */
+export function getSignUpMode(): Promise<SignUpMode> {
+	if (typeof window === 'undefined') return Promise.resolve('open');
+	signUpMode ??= get<{ sign_up?: unknown }>('/auth/config')
+		.then((c): SignUpMode => (c?.sign_up === 'invite_only' ? 'invite_only' : 'open'))
+		.catch((): SignUpMode => {
+			signUpMode = null;
+			return 'open';
+		});
+	return signUpMode;
+}
+
+/** Forget the remembered mode (tests). */
+export function resetSignUpMode(): void {
+	signUpMode = null;
+}
+
+/** Changes the signed-in person's own password. Both modes. */
+export const changePassword = (currentPassword: string, newPassword: string) =>
+	call('change-password', { current_password: currentPassword, new_password: newPassword });
+
+/** One row of the People list. */
+export interface Person {
+	email: string;
+	status: string;
+	enabled: boolean;
+	admin: boolean;
+	created_at?: string;
+}
+
+/** A person's temporary password, shown once: the API never returns it again. */
+export interface TemporaryPassword {
+	email: string;
+	temporary_password: string;
+	admin?: boolean;
+}
+
+/** The People admin (invite_only, administrators only; anyone else is refused). */
+export const listPeople = (next?: string) =>
+	run(() => get<{ people: Person[]; next?: string }>('/auth/users', next ? { next } : undefined));
+
+/** Adds a person with a generated temporary password; nothing is emailed. */
+export const invitePerson = (email: string, admin: boolean) =>
+	call<TemporaryPassword>('users', { email, admin });
+
+export const disablePerson = (email: string) => call('users/disable', { email });
+
+export const enablePerson = (email: string) => call('users/enable', { email });
+
+/** Gives a person a new temporary password, shown once. */
+export const resetPersonPassword = (email: string) =>
+	call<TemporaryPassword>('users/reset-password', { email });

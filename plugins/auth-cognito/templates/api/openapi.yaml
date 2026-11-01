@@ -44,6 +44,187 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+  /api/auth/config:
+    get:
+      operationId: getAuthConfig
+      summary: How people get an account. Public; an app without AUTH_SIGN_UP answers open.
+      responses:
+        "200":
+          description: The sign-up mode.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sign_up]
+                properties:
+                  sign_up: { type: string, enum: [open, invite_only] }
+  /api/auth/change-password:
+    post:
+      operationId: changePassword
+      summary: The signed-in person changes their own password. Both sign-up modes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password: { type: string }
+                new_password: { type: string }
+      responses:
+        "204": { description: The password was changed. }
+        "400":
+          description: The new password does not meet the pool's policy (invalid_password).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: No verified session, or the current password is not right (invalid_credentials).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/auth/users:
+    get:
+      operationId: listPeople
+      summary: People with an account. Invite-only apps, administrators only; 404 in an open app.
+      parameters:
+        - { name: next, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Up to 60 people, and a token for the next page.
+          headers:
+            Cache-Control: { schema: { type: string, enum: [no-store] } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [people]
+                properties:
+                  people:
+                    type: array
+                    items:
+                      type: object
+                      required: [email, status, enabled, admin]
+                      properties:
+                        email: { type: string }
+                        status: { type: string }
+                        enabled: { type: boolean }
+                        admin: { type: boolean }
+                        created_at: { type: string, format: date-time }
+                  next: { type: string }
+        "403":
+          description: Not an administrator (forbidden).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: The app is not invite-only (not_found).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    post:
+      operationId: invitePerson
+      summary: Add a person with a generated temporary password. Nothing is emailed. Invite-only apps, administrators only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+                admin: { type: boolean }
+      responses:
+        "201":
+          description: The account exists. The temporary password is shown once and is never cached.
+          headers:
+            Cache-Control: { schema: { type: string, enum: [no-store] } }
+          content:
+            application/json:
+              schema: { type: object, required: [email, temporary_password], properties: { email: { type: string }, temporary_password: { type: string }, admin: { type: boolean } } }
+        "403":
+          description: Not an administrator (forbidden).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: An account with that email already exists (exists).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/auth/users/disable:
+    post:
+      operationId: disablePerson
+      summary: Disable a person's account. Invite-only apps, administrators only. You cannot disable yourself.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+      responses:
+        "204": { description: The account is disabled. }
+        "403":
+          description: Not an administrator (forbidden).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/auth/users/enable:
+    post:
+      operationId: enablePerson
+      summary: Enable a disabled account. Invite-only apps, administrators only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+      responses:
+        "204": { description: The account is enabled. }
+        "403":
+          description: Not an administrator (forbidden).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/auth/users/reset-password:
+    post:
+      operationId: resetPersonPassword
+      summary: Give a person a new temporary password, shown once. Invite-only apps, administrators only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string }
+      responses:
+        "200":
+          description: The temporary password is shown once and is never cached.
+          headers:
+            Cache-Control: { schema: { type: string, enum: [no-store] } }
+          content:
+            application/json:
+              schema: { type: object, required: [email, temporary_password], properties: { email: { type: string }, temporary_password: { type: string }, admin: { type: boolean } } }
+        "403":
+          description: Not an administrator (forbidden).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: There is no one with that email address (not_found).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 # A list endpoint answers the Page envelope, never a bare array, takes `limit` and `cursor`, and
 # is served with apikit.ServeList:
 #

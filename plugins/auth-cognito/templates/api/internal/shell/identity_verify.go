@@ -46,7 +46,7 @@ func IdentityVerify(next http.Handler) http.Handler {
 	return newIdentityGate(next, processSignIn, slog.Default())
 }
 
-// IdentityRoutes is the api.routes entry: GET /api/me and POST /api/auth/*.
+// IdentityRoutes is the api.routes entry: GET /api/me and /api/auth/*.
 func IdentityRoutes(mux *http.ServeMux) {
 	registerIdentityRoutes(mux, processSignIn, slog.Default())
 }
@@ -57,6 +57,11 @@ func registerIdentityRoutes(mux *http.ServeMux, setup signIn, logger *slog.Logge
 	})
 	mux.HandleFunc(authPathRoot, func(w http.ResponseWriter, r *http.Request) {
 		if setup.auth == nil {
+			if r.URL.Path == authPathRoot+"config" && r.Method == http.MethodGet {
+				// No pool, so no invitations: the screens offer what a local run always has.
+				apikit.WriteJSON(w, http.StatusOK, map[string]string{"sign_up": signUpOpen})
+				return
+			}
 			apikit.WriteJSON(w, http.StatusNotImplemented, map[string]string{
 				"error": "sign-in is not available in a local run", "code": "local",
 			})

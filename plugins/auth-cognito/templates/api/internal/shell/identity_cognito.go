@@ -34,6 +34,11 @@ const (
 	envUserPoolID = "AUTH_USER_POOL_ID"
 	envClientID   = "AUTH_CLIENT_ID"
 	envRegion     = "AWS_REGION"
+	// envSignUp is services.auth.sign_up: "invite_only" or "open". Unset means "open", so an app
+	// deployed before the variable existed behaves as it always did.
+	envSignUp = "AUTH_SIGN_UP"
+	// envAdminGroup names the group whose members may manage people (invite_only only).
+	envAdminGroup = "AUTH_ADMIN_GROUP"
 	envLambdaName = "AWS_LAMBDA_FUNCTION_NAME"
 	envLocalRun   = "ALBITOR_LOCAL"
 )
@@ -83,9 +88,15 @@ func signInFromEnv(getenv func(string) string) signIn {
 	pool := strings.TrimSpace(getenv(envUserPoolID))
 	client := strings.TrimSpace(getenv(envClientID))
 	if pool != "" || client != "" {
-		cfg := cognitoConfig{Region: strings.TrimSpace(getenv(envRegion)), UserPoolID: pool, ClientID: client}
+		cfg := cognitoConfig{
+			Region: strings.TrimSpace(getenv(envRegion)), UserPoolID: pool, ClientID: client,
+			SignUp: strings.TrimSpace(getenv(envSignUp)), AdminGroup: strings.TrimSpace(getenv(envAdminGroup)),
+		}
 		if !cfg.valid() {
 			return signIn{err: fmt.Errorf("%s, %s and %s must all be set, and well formed", envUserPoolID, envClientID, envRegion)}
+		}
+		if cfg.SignUp != "" && cfg.SignUp != signUpOpen && cfg.SignUp != signUpInviteOnly {
+			return signIn{err: fmt.Errorf("%s must be %q or %q", envSignUp, signUpInviteOnly, signUpOpen)}
 		}
 		return signIn{auth: newCognitoAuth(cfg)}
 	}
@@ -106,10 +117,21 @@ type cognitoConfig struct {
 	Region     string
 	UserPoolID string
 	ClientID   string
+	// SignUp is "invite_only", "open" or empty (open).
+	SignUp string
+	// AdminGroup is the group that manages people in an invite_only app.
+	AdminGroup string
 }
 
+// The two sign-up modes (services.auth.sign_up).
+const (
+	signUpOpen       = "open"
+	signUpInviteOnly = "invite_only"
+)
+
 func (c cognitoConfig) valid() bool {
-	return apikit.IsSafeToken(c.Region, 32) && apikit.IsSafeToken(c.UserPoolID, 128) && apikit.IsSafeToken(c.ClientID, 128)
+	return apikit.IsSafeToken(c.Region, 32) && apikit.IsSafeToken(c.UserPoolID, 128) && apikit.IsSafeToken(c.ClientID, 128) &&
+		(c.AdminGroup == "" || apikit.IsSafeToken(c.AdminGroup, 128))
 }
 
 func (c cognitoConfig) issuer() string {
@@ -129,6 +151,27 @@ type cognitoAuth struct {
 	client   *http.Client
 	verifier *cognitoVerifier
 	local    bool
+
+	// signUp is the pool's sign-up mode; the zero value is open.
+	signUp     string
+	adminGroup string
+	// poolID, region, credentials and now serve the signed admin calls (identity_people.go).
+	poolID      string
+	region      string
+	credentials func() awsCredentials
+	now         func() time.Time
+}
+
+// inviteOnly reports whether the pool is invite-only: self sign-up is off, accounts are created
+// by an administrator, and the People endpoints are live.
+func (a *cognitoAuth) inviteOnly() bool { return !a.local && a.signUp == signUpInviteOnly }
+
+// signUpMode is what GET /api/auth/config reports.
+func (a *cognitoAuth) signUpMode() string {
+	if a.inviteOnly() {
+		return signUpInviteOnly
+	}
+	return signUpOpen
 }
 
 // newLocalIssuerAuth trusts the local issuer at issuer, and nothing else.
@@ -149,6 +192,13 @@ func newCognitoAuth(cfg cognitoConfig) *cognitoAuth {
 		endpoint: cfg.endpoint(),
 		client:   client,
 		verifier: newCognitoVerifier(cfg.issuer(), cfg.ClientID, cfg.issuer()+"/.well-known/jwks.json", client),
+
+		signUp:      cfg.SignUp,
+		adminGroup:  cfg.AdminGroup,
+		poolID:      cfg.UserPoolID,
+		region:      cfg.Region,
+		credentials: awsCredentialsFromEnv,
+		now:         time.Now,
 	}
 }
 
@@ -245,6 +295,11 @@ func clearSessionCookies(w http.ResponseWriter) {
 // serveAuth answers POST /api/auth/<action>: the calls the sign-in, sign-up,
 // confirm-code and reset screens make. Each takes a small JSON body.
 func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
+	// The routes that are not one of the public sign-in calls: the mode, a signed-in person's own
+	// password, and the People admin (identity_people.go).
+	if a.serveSignedInRoute(w, r, logger) {
+		return
+	}
 	if r.Method != http.MethodPost {
 		apikit.WriteError(w, http.StatusNotFound, "not found")
 		return
@@ -257,10 +312,16 @@ func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *
 		})
 		return
 	}
+	// In an invite-only app nobody registers or recovers an account for themselves: an administrator
+	// adds people and resets passwords, so these calls do not exist.
+	if a.inviteOnly() && selfServiceActions[strings.TrimPrefix(r.URL.Path, authPathRoot)] {
+		writeAuthError(w, http.StatusNotFound, "not_found", "not found")
+		return
+	}
 	// JSON only. Another site's HTML form cannot send this content type
 	// without the browser asking first, so it cannot sign a visitor in to an
 	// account of its choosing.
-	if mt, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";"); !strings.EqualFold(strings.TrimSpace(mt), "application/json") {
+	if !isJSONRequest(r) {
 		writeAuthError(w, http.StatusUnsupportedMediaType, "invalid_input", "send application/json")
 		return
 	}
@@ -337,6 +398,14 @@ func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// selfServiceActions are the calls only a pool that lets people register themselves has.
+var selfServiceActions = map[string]bool{"sign-up": true, "confirm": true, "resend": true, "forgot": true, "reset": true}
+
+func isJSONRequest(r *http.Request) bool {
+	mt, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
+	return strings.EqualFold(strings.TrimSpace(mt), "application/json")
 }
 
 // finishSignIn checks the new ID token like any other and sets the session.
@@ -463,6 +532,17 @@ func (e *cognitoError) Unwrap() error { return e.err }
 // call makes one of Cognito's public user-pool operations. They need no AWS
 // credentials: the app client id is the whole of the authority.
 func (a *cognitoAuth) call(ctx context.Context, op string, in any, out any) *cognitoError {
+	return a.send(ctx, op, in, out, false)
+}
+
+// adminCall makes one of the user pool's administrator operations, signed with the function's
+// execution-role credentials (SigV4). The deploy target grants that role these operations on this
+// one pool, and only when the app is invite-only.
+func (a *cognitoAuth) adminCall(ctx context.Context, op string, in any, out any) *cognitoError {
+	return a.send(ctx, op, in, out, true)
+}
+
+func (a *cognitoAuth) send(ctx context.Context, op string, in any, out any, signed bool) *cognitoError {
 	payload, err := json.Marshal(in)
 	if err != nil {
 		return &cognitoError{err: err}
@@ -475,6 +555,13 @@ func (a *cognitoAuth) call(ctx context.Context, op string, in any, out any) *cog
 	}
 	req.Header.Set("Content-Type", "application/x-amz-json-1.1")
 	req.Header.Set("X-Amz-Target", "AWSCognitoIdentityProviderService."+op)
+	if signed {
+		creds := a.credentials()
+		if creds.AccessKeyID == "" || creds.SecretAccessKey == "" {
+			return &cognitoError{err: errors.New("the function has no AWS credentials")}
+		}
+		signRequest(req, payload, creds, a.region, "cognito-idp", a.now())
+	}
 	resp, err := a.client.Do(req)
 	if err != nil {
 		return &cognitoError{err: err}
@@ -513,6 +600,10 @@ func (a *cognitoAuth) call(ctx context.Context, op string, in any, out any) *cog
 func (a *cognitoAuth) writeCognitoError(w http.ResponseWriter, r *http.Request, logger *slog.Logger, action string, e *cognitoError) {
 	switch e.kind {
 	case "NotAuthorizedException", "UserNotFoundException":
+		if action == "change-password" {
+			writeAuthError(w, http.StatusUnauthorized, "invalid_credentials", "your current password is not right")
+			return
+		}
 		if action == "new-password" {
 			// The challenge session lapsed (a few minutes) or was never this person's.
 			writeAuthError(w, http.StatusUnauthorized, "session_expired", "that sign-in has expired: sign in again")
