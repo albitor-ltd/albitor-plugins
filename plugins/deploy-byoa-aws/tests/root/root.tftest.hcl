@@ -212,6 +212,46 @@ run "sign_up_defaults_to_invite_only_and_posture_does_not_remove_the_pool" {
   }
 }
 
+run "invite_only_wires_user_administration_to_the_one_pool" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-minimal.yaml"
+  }
+
+  assert {
+    condition     = module.api[0].user_admin_policy == "user_admin"
+    error_message = "invite_only: the function may administer people in the pool"
+  }
+  assert {
+    condition     = module.auth[0].env.AUTH_SIGN_UP == "invite_only"
+    error_message = "the function is told the mode"
+  }
+}
+
+run "open_sign_up_wires_no_user_administration" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth.yaml"
+  }
+
+  assert {
+    condition     = module.api[0].user_admin_policy == "" && module.auth[0].env.AUTH_SIGN_UP == "open"
+    error_message = "open: no People administration, so structurally no Cognito grant"
+  }
+}
+
+run "no_auth_means_no_user_administration" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/api-only.yaml"
+  }
+
+  assert {
+    condition     = module.api[0].user_admin_policy == ""
+    error_message = "an app with no auth has no pool to administer"
+  }
+}
+
 run "no_services_auth_renders_no_pool" {
   command = plan
   variables {

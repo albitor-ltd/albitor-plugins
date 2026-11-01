@@ -16,10 +16,11 @@ contributes, and the platform composer renders it into a new app.
 | `.github/workflows/deploy.yml` | starting point (manifest mode `managed` until the platform admits example) | Build, test, apply, seed the platform accounts and ship under an OIDC-assumed role |
 | `.github/workflows/destroy.yml` | starting point (manifest mode `managed` until the platform admits example) | Destroys one environment ("Delete app"): unblocks, `terraform destroy`, then a `destroy receipt`; manual dispatch only |
 | `.github/workflows/invite.yml` | starting point (manifest mode `managed` until the platform admits example) | Invites one person to the user pool; run by hand from the Actions tab |
+| `.github/workflows/recover-owner.yml` | starting point (manifest mode `managed` until the platform admits example) | Gets a locked-out owner back in: sets the temporary password Albitor minted and re-enables the account; manual dispatch only |
 | `scripts/tf-unlock-stale.sh` | starting point | Clears a stale same-account state lock before init |
-| `scripts/seed-platform-accounts.sh` | starting point | Seeds the demo and verifier accounts into the pool, from the deploy job |
+| `scripts/seed-platform-accounts.sh` | starting point | Seeds the demo, verifier and verifier-b accounts, and the owner when invite-only, into the pool, from the deploy job |
 | `scripts/invite-user.sh` | starting point | Sends one invitation; the invite workflow runs it |
-| `docs/inviting-people.md` | example, held for handover | Tells the owner how to invite people; written into the repository at handover |
+| `docs/inviting-people.md` | example, held for handover | Tells the owner how to add people and recover the owner; written into the repository at handover |
 
 It contributes the `github-actions` and `terraform` entries of the held `dependabot.yml`. The
 modules in `modules/{data,api,site,alarms,auth}` are not copied into the app: the root consumes them by
@@ -81,11 +82,14 @@ a composed root cannot `init` before it exists).
 - **`services.auth`** renders one Cognito user pool (the email address is the username), one public
   app client (`USER_PASSWORD_AUTH` and refresh, no secret, `PreventUserExistenceErrors` on, which
   the `auth-cognito` plugin requires), usernames case-insensitive, and one group per `groups`
-  entry. `sign_up: invite_only` (the default) refuses public sign-up; the deploy seeds the two
-  platform accounts and the owner invites everyone else (below), so the pool is never one nobody
-  can sign in to. `open` lets anyone register and confirm by email. `posture` is enforced by the app
+  entry. `sign_up: invite_only` (the default) refuses public sign-up and sends **no auth email**:
+  nothing is auto-verified and account recovery is admin-only (an in-place pool update, never a
+  replacement). The deploy seeds the platform accounts and the owner, and the owner adds everyone
+  else from the app's People screen (below), so the pool is never one nobody can sign in to. `open`
+  lets anyone register and confirm by email, exactly as before. `posture` is enforced by the app
   and changes nothing in the infrastructure. The function
-  is handed `AUTH_USER_POOL_ID` and `AUTH_CLIENT_ID` (Lambda supplies `AWS_REGION`) and the root
+  is handed `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AUTH_SIGN_UP` (the mode) and `AUTH_ADMIN_GROUP`
+  (Lambda supplies `AWS_REGION`) and the root
   outputs both ids as `auth_user_pool_id` and `auth_client_id`. Mail goes through Cognito's default
   sender, which has a daily cap. Only `provider: cognito` is accepted; the module refuses the rest.
 
@@ -106,11 +110,40 @@ function's read of the app's own secrets: `deploy.yml` passes it to the stack as
 `ALBITOR_SECRETS_PARAMETER_PREFIX` to that prefix. The platform seals them with the AWS-managed SSM
 key, so no `kms:Decrypt` is granted (the module's optional `secrets_kms_key_arn` adds one for a
 customer-managed key). No segment, no grant, and the deploy warns. Nothing here is in the app's
-Terraform or its function: the function holds no user-pool admin action. An app with no
-`services.auth` seeds nothing. A promotion to another environment seeds nothing, so a known account
+Terraform or its function: the seed's admin calls run under the deploy role (the function's own
+user-pool grant is the invite-only module policy below). An app with no `services.auth` seeds
+nothing. A promotion to another environment seeds nothing, so a known account
 never reaches a place real users depend on. A missing parameter is a warning annotation naming it,
 not a failure, and the receipt says so (`seed_status=skipped_unprovisioned:<accounts>`); any other
 read failure fails the deploy.
+
+**The owner and verifier-b** (invite-only only for the owner). The platform user who started the
+build is the app's first person. The platform writes `ALBITOR_OWNER_EMAIL` and
+`ALBITOR_OWNER_TEMP_PASSWORD` to the secret store and shows the password once; the seed creates the
+owner with `MessageAction SUPPRESS`, `email_verified=true`, that temporary password (the account
+sits in `FORCE_CHANGE_PASSWORD`) and puts them in the admin group and in the user-admin group. An
+owner who exists never has their password touched, so a redeploy cannot reset one they chose; only
+their two group memberships are re-ensured. Missing parameters are a warning and
+`owner_status=absent`, never a failure. `owner_status` (`seeded|exists|absent|skipped_open`) is a
+separate output and a separate, additive key on the receipt; `seed_status` keeps its values.
+`verifier-b@albitor-verify.invalid` is a second verifier (`ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD`,
+permanent password, no group) for cross-account isolation checks; its absence is a warning only. The
+demo, verifier and verifier-b accounts never join the user-admin group.
+
+**People administration.** When `sign_up` is `invite_only` the `auth` module creates the user-admin
+group (`user_admin_group`, default `user-admins`; the function is handed it as
+`AUTH_USER_ADMIN_GROUP`, and the People screen is for its members). The root passes the `api` module
+`user_admin_enabled` and the pool ARN, and the module attaches one inline policy to the function's
+role: `cognito-idp:AdminCreateUser`, `AdminSetUserPassword`, `AdminDisableUser`, `AdminEnableUser`,
+`ListUsers`, `AdminAddUserToGroup`, `AdminListGroupsForUser` and `AdminGetUser`, on that one pool
+and nothing else (never `cognito-idp:*`). In `open` mode there is no policy and no group. The module
+owns this grant; the tree must not add its own.
+
+**Recovering the owner.** The platform mints a fresh `ALBITOR_OWNER_TEMP_PASSWORD` and shows it
+once; the owner runs `recover-owner.yml`, which, under the deploy role, sets it as a temporary
+password and re-enables the account (the point of recovery: a locked-out sole admin). It refuses a
+password written more than an hour ago, so a stale value is never re-applied. The platform never
+assumes the role.
 
 **Roles.** `services.auth.admin_group` names the group the seed adds both accounts to (default the
 first of `groups`; it must be one of them; an app with no groups has no roles and no admin). The
@@ -129,8 +162,9 @@ deploy and never changes `seed_status`. `seeded_roles` lists the admin group (bo
 seeded into it) and every role whose own account was seeded. The `auth@2` plugins' `signInAs(role)`
 signs in as these accounts.
 
-**Inviting people.** Run the `invite` workflow from the repository's Actions tab with the person's
-email. The pool emails them a temporary password; at first sign-in the app asks them to choose their
+**Adding people.** In an invite-only app the owner uses the app's People screen, which shows a
+temporary password once and sends no email; the `invite` workflow refuses to run there. In an `open`
+app the `invite` workflow remains: run it from the repository's Actions tab with the person's email. The pool emails them a temporary password; at first sign-in the app asks them to choose their
 own (the `auth-cognito` plugin answers the `NEW_PASSWORD_REQUIRED` challenge), so no one else ever
 knows it. Running it again for someone who has not signed in yet resends the invitation; for someone
 who has, it changes nothing. The temporary password is valid for 7 days. The email names the app and,

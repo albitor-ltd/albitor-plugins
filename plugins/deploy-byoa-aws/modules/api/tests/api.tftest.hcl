@@ -87,6 +87,65 @@ run "no_tables_means_no_table_policy" {
   }
 }
 
+run "open_mode_grants_no_user_administration" {
+  command = plan
+
+  assert {
+    condition     = length(aws_iam_role_policy.user_admin) == 0 && length(data.aws_iam_policy_document.user_admin) == 0
+    error_message = "by default (and always in open mode) the function has no Cognito permission at all"
+  }
+}
+
+run "invite_only_grants_exactly_the_people_screen_calls_on_one_pool" {
+  command = plan
+  variables {
+    user_pool_arn      = "arn:aws:cognito-idp:eu-west-2:111122223333:userpool/eu-west-2_AbCdEf123"
+    user_admin_enabled = true
+  }
+
+  assert {
+    condition     = length(aws_iam_role_policy.user_admin) == 1
+    error_message = "one inline policy for user administration"
+  }
+  assert {
+    condition = sort(flatten(data.aws_iam_policy_document.user_admin[0].statement[*].actions)) == sort([
+      "cognito-idp:AdminAddUserToGroup",
+      "cognito-idp:AdminCreateUser",
+      "cognito-idp:AdminDisableUser",
+      "cognito-idp:AdminEnableUser",
+      "cognito-idp:AdminGetUser",
+      "cognito-idp:AdminListGroupsForUser",
+      "cognito-idp:AdminSetUserPassword",
+      "cognito-idp:ListUsers",
+    ])
+    error_message = "exactly the eight calls the People screen needs"
+  }
+  assert {
+    condition     = alltrue([for a in flatten(data.aws_iam_policy_document.user_admin[0].statement[*].actions) : !strcontains(a, "*")])
+    error_message = "no wildcard action, never cognito-idp:*"
+  }
+  assert {
+    condition     = flatten(data.aws_iam_policy_document.user_admin[0].statement[*].resources) == ["arn:aws:cognito-idp:eu-west-2:111122223333:userpool/eu-west-2_AbCdEf123"]
+    error_message = "the grant names the one pool, not *"
+  }
+}
+
+run "user_administration_without_a_pool_is_refused" {
+  command = plan
+  variables {
+    user_admin_enabled = true
+  }
+  expect_failures = [var.user_admin_enabled]
+}
+
+run "a_malformed_pool_arn_is_refused" {
+  command = plan
+  variables {
+    user_pool_arn = "*"
+  }
+  expect_failures = [var.user_pool_arn]
+}
+
 run "the_gateway_has_one_default_route_and_throttles_the_stage" {
   command = plan
 

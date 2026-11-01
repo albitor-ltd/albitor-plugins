@@ -98,6 +98,20 @@ jobs:
         run: terraform init -input=false -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
         working-directory: infrastructure/aws
 
+      # An invite-only app sends no sign-in email at all, and this workflow makes the pool send one.
+      # People are added from the app's People screen instead, which shows a temporary password once.
+      - name: refuse in an invite-only app
+        run: |
+          set -euo pipefail
+          if ! sign_up="$(terraform -chdir=infrastructure/aws output -raw auth_sign_up 2>/dev/null)"; then
+            echo "::error::the deployed stack predates this workflow (it has no auth_sign_up output). Run the deploy workflow once so the stack is updated, then run this again. Nothing changed" >&2
+            exit 1
+          fi
+          if [ "$sign_up" = "invite_only" ]; then
+            echo "::error::this app is invite-only and sends no email. Add people from the People screen in the app (sign in as an admin, choose Add person) and give them the temporary password it shows. Nothing changed" >&2
+            exit 1
+          fi
+
       - name: invite
         run: |
           set -euo pipefail

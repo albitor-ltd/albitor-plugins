@@ -20,6 +20,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   admin policy. `plugins/auth` skill `cognito-auth` and `auth-hosted` are docs only (no version change):
   the "no admin action on the API's role" rule is mode-aware, and hosted keeps self sign-up.
   `scripts/check-openapi-variants.sh` now also strips `/api/auth/*` blocks from the auth-cognito variant.
+- `deploy-byoa-aws` `0.8.0` is invite-only without email (albitor-ltd/albitor#4258; untagged until
+  released). With `services.auth.sign_up: invite_only` the user pool auto-verifies nothing and
+  recovers accounts by an administrator only, so Cognito sends no verification, invitation or
+  reset email (an in-place pool update, never a replacement; `open` is unchanged). The `auth`
+  module's `env` gains `AUTH_SIGN_UP` and `AUTH_ADMIN_GROUP` and an output `user_pool_arn`; the
+  `api` module gains `user_pool_arn` and `user_admin_enabled`, and in invite-only attaches one
+  `user_admin` policy of exactly eight `cognito-idp` calls on that one pool (none in `open`). The seed
+  creates the owner (`ALBITOR_OWNER_EMAIL`, `ALBITOR_OWNER_TEMP_PASSWORD`; `SUPPRESS`, a temporary
+  password, the admin group; an existing owner is never touched) and `verifier-b@albitor-verify.invalid`
+  (`ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD`). `owner_status` is a new, additive key on the seed outputs
+  and the deploy receipt; `seed_status` is unchanged. New managed workflow `recover-owner.yml`
+  (manual dispatch; sets the temporary password Albitor minted and re-enables the owner), and the
+  handover `docs/inviting-people.md` is rewritten for invite-only. The root template's five module
+  `?ref=` strings point at `deploy-byoa-aws/v0.8.0`, a tag created after this change merges, as
+  before. People administration is gated on a dedicated `user-admins` group (`AUTH_USER_ADMIN_GROUP`;
+  created only in invite-only, the owner alone is seeded into it); `recover-owner.yml` refuses a
+  temporary password written more than an hour ago; `invite.yml` refuses in invite-only. Platform-side work (the app's People screen, the plan's mode choice, the gate changes) is
+  tracked in albitor-ltd/albitor#4258.
 - `api-go` `0.3.2` teaches the schedule route (albitor-ltd/albitor#4247, stream #4248; untagged until
   released): the skill, the template README and `routes.go` say a schedule runs this binary behind
   the Lambda Web Adapter in pass-through mode, so each fire is `POST /events` with
