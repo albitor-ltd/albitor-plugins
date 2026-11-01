@@ -1,0 +1,198 @@
+# Starting point (deploy-byoa-aws). Gets the app's owner back in when they are locked out of an
+# invite-only app: it sets the owner's password to a fresh temporary one and re-enables the
+# account, so the owner signs in with it and chooses a password of their own, exactly as on their
+# first day. Nothing is emailed.
+#
+# The sequence, so nobody but the owner ever holds the password:
+#   1. On the platform, ask for owner recovery. It mints a new one-time temporary password,
+#      writes it to the app's secret store (ALBITOR_OWNER_TEMP_PASSWORD) and shows it to you once.
+#   2. Run this workflow from the Actions tab ("Run workflow"), as someone who may deploy.
+#   3. Sign in with the address you registered and the temporary password the platform showed you.
+#
+# The temporary password must be fresh: the platform rewrites the parameter when you ask to
+# recover, and this refuses a value older than one hour so a stale one is never applied again.
+# It also re-enables the owner's account. That is the point of recovery, a locked-out sole admin
+# being the case this exists for; a person you disabled on purpose is not the owner and is
+# untouched.
+#
+# This is the only way a password is set for the owner without them. It runs under the same
+# OIDC-assumed deploy role as deploy.yml and invite.yml: the platform never assumes that role. No
+# long-lived key, `id-token: write` on the one job, and only a manual dispatch from the default
+# branch can start it. The password is read from the secret store into a 0600 request file that is
+# removed on the way out; it is never printed, never an argument and never in the environment.
+name: recover owner
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment whose user pool the owner is in (its env/<name>.* files must exist)
+        required: false
+        default: dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recover-owner-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+env:
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  recover:
+    name: recover the owner
+    # Only the default branch holds the deploy role's trust.
+    if: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: ${{ inputs.environment || 'dev' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: check the environment name
+        run: |
+          set -euo pipefail
+          if ! [[ "$ENVIRONMENT" =~ ^[a-z][a-z0-9]{1,8}$ ]]; then
+            echo "::error::the environment must be 2 to 9 lower-case letters and digits, starting with a letter" >&2
+            exit 1
+          fi
+
+      # The same identity deploy.yml resolves, and the segment the platform wrote the owner's
+      # parameters under.
+      - name: resolve the deploy identity
+        id: identity
+        run: |
+          set -euo pipefail
+          cfg="infrastructure/aws/env/${ENVIRONMENT}.deploy.env"
+          backend="infrastructure/aws/env/${ENVIRONMENT}.s3.tfbackend"
+          if [ ! -f "$cfg" ] || [ ! -f "$backend" ]; then
+            echo "::error::no deploy identity: $cfg and $backend are written when the repository is bound to an AWS account" >&2
+            exit 1
+          fi
+          role="$(sed -n 's/^[[:space:]]*AWS_DEPLOY_ROLE_ARN[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          region="$(sed -n 's/^[[:space:]]*AWS_REGION[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          segment="$(sed -n 's/^[[:space:]]*ALBITOR_APP_SECRETS_SEGMENT[[:space:]]*=[[:space:]]*//p' "$cfg" | head -n1)"
+          if ! printf '%s' "$role" | grep -Eq '^arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9_+=,.@/-]{1,128}$'; then
+            echo "::error::AWS_DEPLOY_ROLE_ARN in $cfg is not a role ARN" >&2
+            exit 1
+          fi
+          region="${region:-eu-west-2}"
+          if ! printf '%s' "$region" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]$'; then
+            echo "::error::AWS_REGION in $cfg is not a region" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$segment" | grep -Eq '^[A-Za-z0-9._-]{1,100}$'; then
+            echo "::error::$cfg carries no usable ALBITOR_APP_SECRETS_SEGMENT, so the owner's recovery password cannot be found. Ask the platform to rewrite it" >&2
+            exit 1
+          fi
+          {
+            echo "role=$role"
+            echo "region=$region"
+            echo "secrets_segment=$segment"
+          } >>"$GITHUB_OUTPUT"
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ steps.identity.outputs.role }}
+          aws-region: ${{ steps.identity.outputs.region }}
+
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.17.0"
+          terraform_wrapper: false
+
+      # Reading an output needs the state, not a plan, and takes no lock.
+      - name: terraform init
+        run: terraform init -input=false -backend-config="env/${ENVIRONMENT}.s3.tfbackend"
+        working-directory: infrastructure/aws
+
+      - name: recover the owner
+        env:
+          SECRETS_SEGMENT: ${{ steps.identity.outputs.secrets_segment }}
+        run: |
+          set -uo pipefail
+          pool="$(terraform -chdir=infrastructure/aws output -raw auth_user_pool_id)"
+          if ! sign_up="$(terraform -chdir=infrastructure/aws output -raw auth_sign_up 2>/dev/null)"; then
+            echo "::error::the deployed stack predates this workflow (it has no auth_sign_up output). Run the deploy workflow once so the stack is updated, then run this again. Nothing changed" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$pool" | grep -Eq '^[a-z]{2}-[a-z]+-[0-9]_[A-Za-z0-9]{1,32}$'; then
+            echo "::error::this app has no user pool, so there is no owner to recover" >&2
+            exit 1
+          fi
+          if [ "$sign_up" != "invite_only" ]; then
+            echo "::error::this app lets anyone register (sign_up ${sign_up}); the owner recovers through Forgot your password. Nothing changed" >&2
+            exit 1
+          fi
+
+          prefix="/albitor/apps/${SECRETS_SEGMENT}/secrets"
+          err="$(mktemp)"
+          payload=""
+          trap 'rm -f "$payload" "$err"' EXIT
+          email="$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_EMAIL" --with-decryption \
+            --query Parameter.Value --output text 2>"$err")" || { cat "$err" >&2; echo "::error::could not read the owner's address from the secret store. Ask the platform for owner recovery first" >&2; exit 1; }
+          password="$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_TEMP_PASSWORD" --with-decryption \
+            --query Parameter.Value --output text 2>"$err")" || { cat "$err" >&2; echo "::error::could not read the owner's temporary password from the secret store. Ask the platform for owner recovery first" >&2; exit 1; }
+          modified="$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_TEMP_PASSWORD" \
+            --query Parameter.LastModifiedDate --output text 2>"$err")" || { cat "$err" >&2; echo "::error::could not read when the temporary password was written" >&2; exit 1; }
+          # AWS CLI v2 prints an ISO timestamp, v1 epoch seconds.
+          if printf '%s' "$modified" | grep -Eq '^[0-9]+(\.[0-9]+)?$'; then
+            written="${modified%%.*}"
+          else
+            written="$(date -d "$modified" +%s 2>/dev/null || echo 0)"
+          fi
+          age=$(( $(date +%s) - written ))
+          if [ "$written" -le 0 ] || [ "$age" -lt -300 ] || [ "$age" -gt 3600 ]; then
+            echo "::error::the owner's temporary password was written more than an hour ago, so it is not applied. Ask for a new temporary password in the platform first, then run this again. Nothing changed" >&2
+            exit 1
+          fi
+          if [ -z "$password" ] || [ "$password" = "None" ] || [ "$password" = "__albitor_pending__" ]; then
+            echo "::error::the secret store holds no temporary password for the owner. Ask the platform for owner recovery first" >&2
+            exit 1
+          fi
+          email="$(printf '%s' "$email" | tr '[:upper:]' '[:lower:]')"
+          if ! printf '%s' "$email" | grep -Eq '^[a-z0-9._%+-]{1,64}@[a-z0-9.-]{1,255}\.[a-z]{2,63}$'; then
+            echo "::error::the owner's address in the secret store is not an email address" >&2
+            exit 1
+          fi
+
+          payload="$(mktemp)"
+          chmod 600 "$payload"
+          if ! RECOVER_POOL_ID="$pool" RECOVER_USERNAME="$email" RECOVER_PASSWORD="$password" \
+            python3 -c 'import json, os, sys
+          json.dump({
+              "UserPoolId": os.environ["RECOVER_POOL_ID"],
+              "Username": os.environ["RECOVER_USERNAME"],
+              "Password": os.environ["RECOVER_PASSWORD"],
+              "Permanent": False,
+          }, open(sys.argv[1], "w"))' "$payload"; then
+            echo "::error::could not write the set-password request" >&2
+            exit 1
+          fi
+          unset password
+          if ! aws cognito-idp admin-set-user-password --cli-input-json "file://${payload}" >/dev/null 2>"$err"; then
+            if grep -q 'UserNotFoundException' "$err"; then
+              echo "::error::the owner has no account in ${pool} yet. Run deploy (it seeds the owner) instead" >&2
+            else
+              echo "::error::could not set the owner's temporary password. Check that the deploy role may administer the pool" >&2
+            fi
+            exit 1
+          fi
+          rm -f "$payload"
+          payload=""
+          aws cognito-idp admin-enable-user --user-pool-id "$pool" --username "$email" >/dev/null \
+            || { echo "::error::the password was set but the account could not be enabled" >&2; exit 1; }
+          echo "::notice title=owner recovered::Sign in as ${email} with the temporary password the platform showed you, then choose your own."
+          {
+            echo "### Owner recovered"
+            echo
+            echo "The owner's account is enabled and holds the temporary password the platform showed you."
+            echo "Sign in as ${email} with it and you will be asked to choose a password of your own."
+          } >>"$GITHUB_STEP_SUMMARY"

@@ -116,7 +116,7 @@ resource "terraform_data" "manifest" {
 }
 
 module "data" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.7.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/data?ref=deploy-byoa-aws/v0.8.0"
 
   name_prefix         = local.name_prefix
   tables              = local.tables
@@ -124,7 +124,7 @@ module "data" {
 }
 
 module "auth" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.7.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/auth?ref=deploy-byoa-aws/v0.8.0"
   count  = local.auth == null ? 0 : 1
 
   name_prefix         = local.name_prefix
@@ -138,7 +138,7 @@ module "auth" {
 }
 
 module "api" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.7.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/api?ref=deploy-byoa-aws/v0.8.0"
   count  = local.http == null ? 0 : 1
 
   name_prefix = local.name_prefix
@@ -149,10 +149,15 @@ module "api" {
   table_arns  = module.data.table_arns
 
   secrets_parameter_prefix = local.secrets_parameter_prefix
+
+  # The People screen exists only when sign-up is invite_only; open mode has no administration and
+  # so no grant. The module owns the policy, and it is the only sanctioned path to it.
+  user_pool_arn      = try(module.auth[0].user_pool_arn, "")
+  user_admin_enabled = try(module.auth[0].invite_only, false)
 }
 
 module "site" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.7.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/site?ref=deploy-byoa-aws/v0.8.0"
   count  = local.site == null ? 0 : 1
 
   providers = {
@@ -178,7 +183,7 @@ module "site" {
 }
 
 module "alarms" {
-  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.7.0"
+  source = "git::https://github.com/albitor-ltd/albitor-plugins.git//plugins/deploy-byoa-aws/modules/alarms?ref=deploy-byoa-aws/v0.8.0"
 
   name_prefix   = local.name_prefix
   api_enabled   = local.http != null

@@ -91,6 +91,28 @@ variable "secrets_kms_key_arn" {
   }
 }
 
+variable "user_pool_arn" {
+  description = "ARN of the Cognito user pool the function administers people in (invite_only). Empty when the app has no auth."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.user_pool_arn == "" || can(regex("^arn:aws:cognito-idp:[a-z0-9-]+:[0-9]{12}:userpool/[A-Za-z0-9_-]+$", var.user_pool_arn))
+    error_message = "user_pool_arn must be empty or a Cognito user pool ARN."
+  }
+}
+
+variable "user_admin_enabled" {
+  description = "Grant the function the Cognito calls the People screen needs, on user_pool_arn alone. True only when sign-up is invite_only; in open mode nothing administers people and no grant exists."
+  type        = bool
+  default     = false
+
+  validation {
+    condition     = !var.user_admin_enabled || var.user_pool_arn != ""
+    error_message = "user_admin_enabled needs user_pool_arn: the grant names exactly one pool."
+  }
+}
+
 variable "lambda_adapter_layer_arn" {
   description = "ARN of the AWS Lambda Web Adapter layer. Null derives the pinned x86_64 layer for the region."
   type        = string

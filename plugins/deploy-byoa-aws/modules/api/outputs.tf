@@ -28,6 +28,11 @@ output "role_arn" {
   value       = aws_iam_role.lambda.arn
 }
 
+output "user_admin_policy" {
+  description = "The name of the user-administration policy on the function's role, or empty when sign-up is not invite_only and there is none."
+  value       = try(aws_iam_role_policy.user_admin[0].name, "")
+}
+
 output "secrets_parameter_prefix" {
   description = "The SSM path prefix the function may read its secrets under; empty when it has no grant."
   value       = var.secrets_parameter_prefix

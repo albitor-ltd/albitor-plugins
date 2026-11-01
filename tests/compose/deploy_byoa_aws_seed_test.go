@@ -33,6 +33,12 @@ case "$1 $2" in
     ;;
   "cognito-idp admin-create-user")
     user="$(arg --username "$@")"
+    if [ -z "$user" ]; then
+      req="$(arg --cli-input-json "$@" | sed 's#^file://##')"
+      user="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["Username"])' "$req")"
+      cat "$req" >>"$FAKE/create.log"
+      echo >>"$FAKE/create.log"
+    fi
     if grep -qx "$user" "$FAKE/users" 2>/dev/null; then echo "An error occurred (UsernameExistsException)" >&2; exit 254; fi
     echo "$user" >>"$FAKE/users"
     ;;
@@ -488,5 +494,146 @@ func TestDeployWorkflowHandsTheLiveShellToTheApply(t *testing.T) {
 	}
 	if !strings.Contains(s[apply:], "TF_VAR_previous_web_build_dir: ${{ steps.live_shell.outputs.dir }}") {
 		t.Error("the apply is not handed the live shell")
+	}
+}
+
+const (
+	ownerParams = "params/ALBITOR_OWNER_EMAIL"
+	ownerPW     = "params/ALBITOR_OWNER_TEMP_PASSWORD"
+)
+
+func withOwner(extra map[string]string) map[string]string {
+	files := map[string]string{ownerParams: "Ada@Example.com", ownerPW: "Temp-Pw-0123456789"}
+	for k, v := range bothPasswords {
+		files[k] = v
+	}
+	for k, v := range extra {
+		files[k] = v
+	}
+	return files
+}
+
+// TestSeedPlatformAccountsSeedsTheOwnerWithATemporaryPasswordAndNoEmail: in invite_only the owner
+// is created with SUPPRESS, a verified address, the temporary password in the request file only,
+// and the admin group. seed_status keeps its vocabulary; owner_status is a key of its own.
+func TestSeedPlatformAccountsSeedsTheOwnerWithATemporaryPasswordAndNoEmail(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", withOwner(nil), testPool, testSegment, "admin", "admin", "invite_only")
+	if r.err != nil {
+		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
+	}
+	if r.out != "seed_status=seeded\nseeded_roles=admin,admin\nowner_status=seeded" && r.out != "seed_status=seeded\nseeded_roles=admin\nowner_status=seeded" {
+		t.Errorf("outputs = %q", r.out)
+	}
+	if !strings.Contains(r.read(t, "users"), "ada@example.com") {
+		t.Errorf("the owner was not created (lower-cased): %q", r.read(t, "users"))
+	}
+	calls := r.read(t, "calls.log")
+	if strings.Contains(calls, "Temp-Pw-0123456789") || strings.Contains(r.output, "Temp-Pw-0123456789") {
+		t.Errorf("the temporary password reached a command line or the log:\n%s", calls)
+	}
+	create := r.read(t, "create.log")
+	if !strings.Contains(create, "Temp-Pw-0123456789") || !strings.Contains(create, `"email_verified"`) {
+		t.Errorf("the create request lacks the temporary password or a verified address: %s", create)
+	}
+	if !regexp.MustCompile(`admin-create-user --message-action SUPPRESS --cli-input-json`).MatchString(calls) {
+		t.Errorf("the owner was created without SUPPRESS:\n%s", calls)
+	}
+	if !strings.Contains(r.read(t, "groups"), "ada@example.com admin") {
+		t.Errorf("the owner is not in the admin group: %q", r.read(t, "groups"))
+	}
+	if strings.Contains(r.read(t, "set.log"), "Temp-Pw-0123456789") {
+		t.Error("the owner's password was set as permanent: it must stay temporary")
+	}
+}
+
+// Only the owner joins the user-admin group (the People screen's gate); the platform's fixtures
+// never do, and an existing owner is re-ensured in both groups without a password change.
+func TestSeedPlatformAccountsPutsOnlyTheOwnerInTheUserAdminGroup(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", withOwner(map[string]string{"params/ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD": "vb-Pw-0123456789"}),
+		testPool, testSegment, "admin", "", "invite_only", "user-admins")
+	if r.err != nil {
+		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
+	}
+	groups := r.read(t, "groups")
+	if !strings.Contains(groups, "ada@example.com admin\n") || !strings.Contains(groups, "ada@example.com user-admins\n") {
+		t.Errorf("the owner is not in both groups: %q", groups)
+	}
+	if strings.Count(groups, "user-admins") != 1 {
+		t.Errorf("an account other than the owner joined user-admins: %q", groups)
+	}
+	r = runScript(t, "seed-platform-accounts.sh", withOwner(map[string]string{"users": "ada@example.com\n"}),
+		testPool, testSegment, "admin", "", "invite_only", "user-admins")
+	if r.err != nil || !strings.Contains(r.read(t, "groups"), "ada@example.com user-admins") || strings.Contains(r.read(t, "set.log"), "ada@example.com") {
+		t.Errorf("an existing owner was not re-ensured in user-admins, or had a password set: %v %q", r.err, r.read(t, "groups"))
+	}
+}
+
+// An owner who already exists keeps the password they chose: no create succeeds, no password is set.
+func TestSeedPlatformAccountsNeverTouchesAnExistingOwner(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", withOwner(map[string]string{"users": "ada@example.com\n"}),
+		testPool, testSegment, "admin", "", "invite_only")
+	if r.err != nil || !strings.HasSuffix(r.out, "owner_status=exists") {
+		t.Fatalf("= %v %q", r.err, r.out)
+	}
+	if strings.Contains(r.read(t, "set.log"), "Temp-Pw-0123456789") || strings.Contains(r.read(t, "set.log"), "ada@example.com") {
+		t.Error("an existing owner's password was touched")
+	}
+	if !strings.Contains(r.read(t, "groups"), "ada@example.com admin") {
+		t.Error("an existing owner was not re-ensured in the admin group")
+	}
+}
+
+// A platform that has not yet written the owner's parameters is a loud skip, not a red deploy.
+func TestSeedPlatformAccountsOwnerAbsentIsASkipNotAFailure(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "admin", "", "invite_only")
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=admin\nowner_status=absent" {
+		t.Fatalf("= %v %q", r.err, r.out)
+	}
+	if !strings.Contains(r.output, "::warning title=seed-skipped::") {
+		t.Errorf("no loud skip:\n%s", r.output)
+	}
+}
+
+// An unreadable owner parameter is not "missing": it fails the step.
+func TestSeedPlatformAccountsOwnerReadDeniedFails(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", withOwner(map[string]string{"denied/ALBITOR_OWNER_TEMP_PASSWORD": ""}),
+		testPool, testSegment, "admin", "", "invite_only")
+	if r.err == nil {
+		t.Errorf("a denied owner read was treated as a skip: %q", r.out)
+	}
+}
+
+// Open mode seeds no owner: anyone may register.
+func TestSeedPlatformAccountsOpenModeSeedsNoOwner(t *testing.T) {
+	r := runScript(t, "seed-platform-accounts.sh", withOwner(nil), testPool, testSegment, "admin", "", "open")
+	if r.err != nil || !strings.HasSuffix(r.out, "owner_status=skipped_open") {
+		t.Fatalf("= %v %q", r.err, r.out)
+	}
+	if strings.Contains(r.read(t, "users"), "ada@example.com") {
+		t.Error("an owner was created in open mode")
+	}
+}
+
+// verifier-b is the second verifier identity: a permanent password, in no group, and its absence
+// never changes seed_status.
+func TestSeedPlatformAccountsSeedsVerifierBWithoutAGroup(t *testing.T) {
+	files := map[string]string{"params/ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD": "vb-Pw-0123456789"}
+	for k, v := range bothPasswords {
+		files[k] = v
+	}
+	r := runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment, "admin")
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=admin" {
+		t.Fatalf("= %v %q", r.err, r.out)
+	}
+	if !strings.Contains(r.read(t, "users"), "verifier-b@albitor-verify.invalid") ||
+		!strings.Contains(r.read(t, "set.log"), "vb-Pw-0123456789") {
+		t.Error("verifier-b was not seeded with its password")
+	}
+	if strings.Contains(r.read(t, "groups"), "verifier-b") {
+		t.Error("verifier-b joined a group")
+	}
+	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "admin")
+	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=admin" {
+		t.Errorf("a missing verifier-b changed the status: %v %q", r.err, r.out)
 	}
 }

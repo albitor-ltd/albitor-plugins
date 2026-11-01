@@ -317,7 +317,7 @@ func TestDeployBYOAHonoursThePlatformDispatchContract(t *testing.T) {
 		t.Fatalf("no job named exactly %q that needs the deploy job", core.DeployReceiptJobName)
 	}
 	tail := s[idx[0]:]
-	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s","seeded_roles":"%s"}`
+	notice := `::notice title=` + core.DeployReceiptTitle + `::{"url":"%s","commit_sha":"%s","auth_user_pool_id":"%s","auth_client_id":"%s","seed_status":"%s","seeded_roles":"%s","owner_status":"%s"}`
 	if !strings.Contains(tail, notice) {
 		t.Errorf("the receipt job does not print %s", notice)
 	}
@@ -446,5 +446,36 @@ func TestDeployBYOADestroyHonoursThePlatformContract(t *testing.T) {
 	}
 	if strings.Contains(tail, "id-token") {
 		t.Error("the receipt job must hold no cloud identity")
+	}
+}
+
+// TestDeployBYOARecoverOwnerContract pins what makes recover-owner.yml safe to ship: a manual
+// dispatch from the default branch only, the cloud identity on its one job, a temporary password
+// that must have been written within the hour (a stale one is never re-applied) and a password that
+// only ever travels in a request file.
+func TestDeployBYOARecoverOwnerContract(t *testing.T) {
+	body, ok := byoaSubject(t).Tree["templates/.github/workflows/recover-owner.yml"]
+	if !ok {
+		t.Fatal("plugin ships no recover-owner.yml")
+	}
+	s := string(body)
+	for _, want := range []string{
+		"github.event.repository.default_branch",
+		"Parameter.LastModifiedDate",
+		"-gt 3600",
+		"Ask for a new temporary password in the platform first",
+		`"Permanent": False`,
+		"admin-enable-user",
+		"auth_sign_up",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("recover-owner.yml is missing %q", want)
+		}
+	}
+	if n := len(regexp.MustCompile(`(?m)^      id-token: write$`).FindAllString(s, -1)); n != 1 {
+		t.Errorf("id-token: write must be held by one job, found %d", n)
+	}
+	if strings.Contains(s, "echo \"$password") || strings.Contains(s, "RECOVER_PASSWORD=$") {
+		t.Error("recover-owner.yml prints or passes the password on a command line")
 	}
 }

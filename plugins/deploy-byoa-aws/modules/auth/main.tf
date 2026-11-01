@@ -7,8 +7,13 @@ resource "aws_cognito_user_pool" "this" {
   # Derived from the app's prefix; the manifest never names an AWS resource.
   name = "${var.name_prefix}-users"
 
-  username_attributes      = ["email"]
-  auto_verified_attributes = ["email"]
+  username_attributes = ["email"]
+
+  # open: the pool emails a confirmation code, so email is auto-verified. invite_only sends no
+  # email at all: people are created by an administrator with a suppressed invitation and a
+  # temporary password handed over out of band, so there is nothing to verify by email and no
+  # forgot-password mail (see account_recovery_setting). Both are in-place pool updates.
+  auto_verified_attributes = var.sign_up == "open" ? ["email"] : []
 
   # The auth-cognito API lowercases the email it signs in with, so the pool must not tell
   # Ada@x.com from ada@x.com. Immutable once the pool exists.
@@ -39,9 +44,11 @@ resource "aws_cognito_user_pool" "this" {
     temporary_password_validity_days = 7
   }
 
+  # invite_only: no self-service recovery. An administrator resets a password (the People screen,
+  # or the recover-owner workflow for the owner), so Cognito never sends a recovery code.
   account_recovery_setting {
     recovery_mechanism {
-      name     = "verified_email"
+      name     = var.sign_up == "open" ? "verified_email" : "admin_only"
       priority = 1
     }
   }
@@ -75,6 +82,15 @@ resource "aws_cognito_user_pool_client" "this" {
     id_token      = "hours"
     refresh_token = "days"
   }
+}
+
+# invite_only: the group that may use the People screen. It is separate from admin_group, which is
+# an app role, so who administers people is never an accident of how the app names its roles.
+resource "aws_cognito_user_group" "user_admin" {
+  count = var.sign_up == "invite_only" ? 1 : 0
+
+  name         = var.user_admin_group
+  user_pool_id = aws_cognito_user_pool.this.id
 }
 
 resource "aws_cognito_user_group" "this" {

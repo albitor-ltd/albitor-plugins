@@ -48,6 +48,16 @@ output "auth_admin_group" {
   value       = try(module.auth[0].admin_group, "")
 }
 
+output "auth_sign_up" {
+  description = "services.auth.sign_up as the pool was built (invite_only or open), empty when the manifest declares no services.auth. The deploy's seed creates the owner only in invite_only."
+  value       = try(module.auth[0].invite_only ? "invite_only" : "open", "")
+}
+
+output "auth_user_admin_group" {
+  description = "The group whose members administer people in an invite_only app (empty in open mode or with no services.auth). The deploy's seed puts the owner in it, and the demo and verifier accounts in no way."
+  value       = try(module.auth[0].user_admin_group, "")
+}
+
 output "auth_groups" {
   description = "Every services.auth group, comma-separated and sorted (empty when the manifest declares none). The deploy's seed gives each its own account, in that group and no other."
   value       = join(",", try(module.auth[0].groups, []))
