@@ -57,6 +57,33 @@ base.describe("signed out", () => {
   });
 });
 
+base.describe("an invite-only app", () => {
+  base.use({ storageState: EMPTY_STORAGE_STATE });
+
+  // GET /api/auth/config says how people get an account. Faked here, so it holds for any API.
+  const inviteOnly = (page: Page) =>
+    page.route("**/api/auth/config", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: '{"sign_up":"invite_only"}' }),
+    );
+
+  base("offers no sign-up or reset, and the screens for them are unreachable", async ({ page, request }) => {
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    await inviteOnly(page);
+    await page.goto("/sign-in");
+    await expect(page.getByTestId("invite-only-note")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Create an account" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Forgot your password?" })).toHaveCount(0);
+    await expectNoA11yViolations(page);
+
+    for (const path of ["/sign-up", "/confirm", "/reset"]) {
+      await page.goto(path);
+      await expect(page).toHaveURL(/\/sign-in$/);
+    }
+  });
+});
+
 base.describe("a refused call is announced as an alert, not hung on a field", () => {
   base.use({ storageState: EMPTY_STORAGE_STATE });
 
@@ -157,5 +184,15 @@ journey.describe("signed in through the local issuer", () => {
     const asAdmin = await (await request.get("/api/me", { headers: authHeader(admin) })).json();
     expect(asBob.sub).not.toBe(asAdmin.sub);
     expect(asAdmin.groups).toEqual(["admin"]);
+  });
+
+  journey("a signed-in person can reach the change-password screen, and People is not offered in an open app", async ({ page }) => {
+    await page.goto("/change-password");
+    await expect(page.getByRole("heading", { level: 1, name: "Change password" })).toBeVisible();
+    await expect(page.getByTestId("change-password-form")).toBeVisible();
+    await expectNoA11yViolations(page);
+
+    await page.goto("/people");
+    await expect(page.getByTestId("people-open")).toBeVisible();
   });
 });

@@ -48,6 +48,8 @@ client may send `Authorization: Bearer <token>` instead.
 - **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them. Keep
   the `data-testid` values and the headings the journey spec reads. There is **no password field**: do
   not add a sign-in form, a sign-up screen or a reset screen, because Cognito's pages do those.
+  The hosted lane keeps self sign-up with its platform-side invite flow: do not add the `auth-cognito`
+  invite-only People screen, change-password route or `AUTH_SIGN_UP` handling here.
 - **Who may sign in.** `SIGNUP_DOMAINS` (comma-separated `example.org` or `*.example.org`) limits sign-in
   by email domain. A refused person lands on `/not-allowed`; reword that page and say who to contact. The rule and `email_verified` are applied to every ID token the API takes (callback, refresh, every request), so a token from a hand-run flow gets nowhere; the gate accepts ID tokens only.
   The platform's seeded demo and verifier accounts (`@albitor-demo.invalid`,

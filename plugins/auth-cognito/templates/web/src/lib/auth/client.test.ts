@@ -1,5 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { confirm, forgot, newPassword, resend, reset, signIn, signOut, signUp } from './client';
+import {
+	changePassword,
+	confirm,
+	disablePerson,
+	enablePerson,
+	forgot,
+	getSignUpMode,
+	getUserAdminGroup,
+	invitePerson,
+	listPeople,
+	newPassword,
+	resend,
+	reset,
+	resetPersonPassword,
+	resetSignUpMode,
+	signIn,
+	signOut,
+	signUp
+} from './client';
 
 const session = vi.hoisted(() => ({ clearSession: vi.fn() }));
 vi.mock('./session', () => session);
@@ -13,7 +31,10 @@ function stubFetch(impl: (url: string, init: RequestInit) => Response | Promise<
 	return fn;
 }
 
-beforeEach(() => session.clearSession.mockReset());
+beforeEach(() => {
+	session.clearSession.mockReset();
+	resetSignUpMode();
+});
 afterEach(() => vi.unstubAllGlobals());
 
 describe('the sign-in calls', () => {
@@ -120,5 +141,87 @@ describe('an invited person\'s first sign-in', () => {
 			code: 'session_expired'
 		});
 		expect(session.clearSession).not.toHaveBeenCalled();
+	});
+});
+
+describe('the sign-up mode', () => {
+	beforeEach(() => vi.stubGlobal('window', {}));
+
+	it('is read from GET /api/auth/config, once', async () => {
+		const fetch = stubFetch(() => json(200, { sign_up: 'invite_only' }));
+		expect(await getSignUpMode()).toBe('invite_only');
+		expect(await getSignUpMode()).toBe('invite_only');
+		expect(fetch).toHaveBeenCalledOnce();
+		expect(fetch.mock.calls[0][0]).toBe('/api/auth/config');
+	});
+
+	it('carries the user-admin group name when the API names one', async () => {
+		stubFetch(() => json(200, { sign_up: 'invite_only', user_admin_group: 'user-admins' }));
+		expect(await getUserAdminGroup()).toBe('user-admins');
+		resetSignUpMode();
+		stubFetch(() => json(200, { sign_up: 'open' }));
+		expect(await getUserAdminGroup()).toBe('');
+	});
+
+	it('reads open from the API, and from anything it cannot read', async () => {
+		stubFetch(() => json(200, { sign_up: 'open' }));
+		expect(await getSignUpMode()).toBe('open');
+		resetSignUpMode();
+		stubFetch(() => json(200, { sign_up: 'something-else' }));
+		expect(await getSignUpMode()).toBe('open');
+	});
+
+	it('reads open when the API is down, and asks again next time', async () => {
+		stubFetch(() => json(502, {}));
+		expect(await getSignUpMode()).toBe('open');
+		const fetch = stubFetch(() => json(200, { sign_up: 'invite_only' }));
+		expect(await getSignUpMode()).toBe('invite_only');
+		expect(fetch).toHaveBeenCalledOnce();
+	});
+});
+
+describe('change password', () => {
+	it('posts the current and new password, and answers a wrong current password as a result', async () => {
+		const fetch = stubFetch(() => json(204, undefined));
+		expect(await changePassword('old-pw', 'new-pw')).toEqual({ ok: true });
+		expect(fetch.mock.calls[0][0]).toBe('/api/auth/change-password');
+		expect(fetch.mock.calls[0][1].body).toBe('{"current_password":"old-pw","new_password":"new-pw"}');
+		stubFetch(() => json(401, { error: 'your current password is not right', code: 'invalid_credentials' }));
+		expect(await changePassword('bad', 'new-pw')).toMatchObject({ ok: false, code: 'invalid_credentials' });
+	});
+});
+
+describe('the People calls', () => {
+	it('list, with the page token as a query', async () => {
+		const fetch = stubFetch(() => json(200, { people: [{ email: 'a@example.test', status: 'CONFIRMED', enabled: true, admin: true }], next: '' }));
+		expect(await listPeople()).toMatchObject({ ok: true, people: [{ email: 'a@example.test', admin: true }] });
+		await listPeople('tok');
+		expect(fetch.mock.calls.map(([url]) => url)).toEqual(['/api/auth/users', '/api/auth/users?next=tok']);
+	});
+
+	it('invite and reset hand back the temporary password', async () => {
+		const fetch = stubFetch(() => json(201, { email: 'b@example.test', temporary_password: 'Temp-Pass-1', admin: false }));
+		expect(await invitePerson('b@example.test', false)).toMatchObject({ ok: true, temporary_password: 'Temp-Pass-1' });
+		expect(fetch.mock.calls[0][0]).toBe('/api/auth/users');
+		expect(fetch.mock.calls[0][1].body).toBe('{"email":"b@example.test","admin":false}');
+		stubFetch(() => json(200, { email: 'b@example.test', temporary_password: 'Temp-Pass-2' }));
+		expect(await resetPersonPassword('b@example.test')).toMatchObject({ ok: true, temporary_password: 'Temp-Pass-2' });
+	});
+
+	it('disable and enable post the email', async () => {
+		const fetch = stubFetch(() => json(204, undefined));
+		await disablePerson('b@example.test');
+		await enablePerson('b@example.test');
+		expect(fetch.mock.calls.map(([url, init]) => [url, init.body])).toEqual([
+			['/api/auth/users/disable', '{"email":"b@example.test"}'],
+			['/api/auth/users/enable', '{"email":"b@example.test"}']
+		]);
+	});
+
+	it('answer a refusal as a result', async () => {
+		stubFetch(() => json(403, { error: 'only an administrator can manage people', code: 'forbidden' }));
+		expect(await listPeople()).toMatchObject({ ok: false, code: 'forbidden' });
+		stubFetch(() => json(409, { error: 'an account with that email already exists', code: 'exists' }));
+		expect(await invitePerson('b@example.test', false)).toMatchObject({ ok: false, code: 'exists' });
 	});
 });

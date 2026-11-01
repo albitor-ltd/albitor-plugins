@@ -1,14 +1,14 @@
 <!-- Seeded by Albitor (auth-cognito), then yours. The sign-in form is the kit's
      `SignInPage` (the same props in every kit), so it takes the kit's look and its error handling.
-     Restyle and reword freely. `?email=` prefills the address. A person's first sign-in with the temporary password the pool
+     Restyle and reword freely. `?email=` prefills the address. In an invite-only app the sign-up and reset links are hidden. A person's first sign-in with the temporary password the pool
      emailed swaps it for a short form of kit `Field`s and `Button`, where they choose their own
      password (data-testid new-password-form, new-password-input, new-password-button). -->
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { nextPath } from '../../../lib/auth/guard';
-	import { newPassword, signIn } from '../../../lib/auth/client';
+	import { getSignUpMode, newPassword, signIn, type SignUpMode } from '../../../lib/auth/client';
 	import { Button, Field, SignInPage } from '../../../lib/kit';
 
 	// The typed address is kept here (SignInPage starts from it), so it survives the form being
@@ -28,6 +28,14 @@
 	let challengeSession = $state('');
 	let chosenPassword = $state('');
 	let heading: HTMLHeadingElement | undefined = $state();
+
+	// Sign-up and password reset are offered only once the API says people register themselves. In
+	// an invite-only app an administrator adds people and resets their passwords, so the links
+	// would lead nowhere.
+	let mode = $state<SignUpMode | null>(null);
+	onMount(async () => {
+		mode = await getSignUpMode();
+	});
 
 	// The form is swapped for another in place, so focus would be left on a removed button and a
 	// screen-reader or keyboard user would not know the page changed (WCAG 2.4.3, 3.2.2). Moving it
@@ -103,5 +111,18 @@
 		<Button type="submit" disabled={busy} data-testid="new-password-button">Set password and sign in</Button>
 	</form>
 {:else}
-	<SignInPage {email} {error} {busy} onsubmit={submit} resetHref="/reset" signUpHref="/sign-up" />
+	<SignInPage
+		{email}
+		{error}
+		{busy}
+		onsubmit={submit}
+		resetHref={mode === 'open' ? '/reset' : undefined}
+		signUpHref={mode === 'open' ? '/sign-up' : undefined}
+	/>
+	{#if mode === 'invite_only'}
+		<p data-testid="invite-only-note">
+			Accounts are added by an administrator. If you have not been invited, or have forgotten your
+			password, ask one.
+		</p>
+	{/if}
 {/if}
