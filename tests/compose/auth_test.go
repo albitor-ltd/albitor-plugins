@@ -218,7 +218,6 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/routes/(auth)/change-password/+page.svelte",
 		"web/src/routes/(auth)/change-password/nav.ts",
 		"web/src/routes/(auth)/people/+page.svelte",
-		"web/src/routes/(auth)/people/nav.ts",
 		"web/tests/journeys/sign-in.spec.ts", // a spec author's path: seeded, never pinned
 	}
 	for _, p := range screens {

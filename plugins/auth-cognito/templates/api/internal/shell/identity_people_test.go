@@ -18,7 +18,10 @@ import (
 // the admin group, signs its Cognito calls, and hands a temporary password back once, uncached and
 // unlogged.
 
-const testAdminGroup = "admins"
+const (
+	testAdminGroup     = "admins"
+	testUserAdminGroup = "user-admins"
+)
 
 // inviteOnlyGate is the gate over a fake pool configured invite_only with admin group "admins".
 func inviteOnlyGate(f *fakeCognito, srv *httptest.Server, logger *slog.Logger) http.Handler {
@@ -29,10 +32,11 @@ func inviteOnlyGate(f *fakeCognito, srv *httptest.Server, logger *slog.Logger) h
 		client:   srv.Client(),
 		verifier: newCognitoVerifier(f.issuer, testClientID, f.issuer+"/.well-known/jwks.json", srv.Client()),
 
-		signUp:     signUpInviteOnly,
-		adminGroup: testAdminGroup,
-		poolID:     "eu-west-2_pool",
-		region:     "eu-west-2",
+		signUp:         signUpInviteOnly,
+		adminGroup:     testAdminGroup,
+		userAdminGroup: testUserAdminGroup,
+		poolID:         "eu-west-2_pool",
+		region:         "eu-west-2",
 		credentials: func() awsCredentials {
 			return awsCredentials{AccessKeyID: "AKID", SecretAccessKey: "s", SessionToken: "tok"}
 		},
@@ -43,7 +47,7 @@ func inviteOnlyGate(f *fakeCognito, srv *httptest.Server, logger *slog.Logger) h
 }
 
 func adminToken(f *fakeCognito) func(*http.Request) {
-	return withBearer(f.token("admin-1", map[string]any{"cognito:groups": []string{testAdminGroup}}))
+	return withBearer(f.token("admin-1", map[string]any{"cognito:groups": []string{testUserAdminGroup}}))
 }
 
 func hasPolicyChars(pw string) bool {
@@ -217,6 +221,8 @@ func TestPeopleEndpointsAreForTheAdminGroupOnly(t *testing.T) {
 		for who, tok := range map[string]string{
 			"a member":      f.token("member", nil),
 			"another group": f.token("other", map[string]any{"cognito:groups": []string{"editors"}}),
+			// The app's admin group (demo and verifier accounts) is not the user-admin group.
+			"an app admin": f.token("app-admin", map[string]any{"cognito:groups": []string{testAdminGroup}}),
 		} {
 			rec := authDo(t, h, c.method, c.path, body, withBearer(tok))
 			if rec.Code != http.StatusForbidden || authDecode(t, rec)["code"] != "forbidden" {
@@ -244,7 +250,7 @@ func TestPeopleListMarksAdminsAndSignsItsCalls(t *testing.T) {
 	})
 	f.answer("AdminListGroupsForUser", func(in map[string]any) (int, any) {
 		if in["Username"] == "ada@example.invalid" {
-			return http.StatusOK, map[string]any{"Groups": []map[string]string{{"GroupName": testAdminGroup}}}
+			return http.StatusOK, map[string]any{"Groups": []map[string]string{{"GroupName": testUserAdminGroup}}}
 		}
 		return http.StatusOK, map[string]any{"Groups": []map[string]string{}}
 	})
@@ -299,9 +305,14 @@ func TestPeopleCreateReturnsATemporaryPasswordOnceAndNeverLogsIt(t *testing.T) {
 	var logs bytes.Buffer
 	h := inviteOnlyGate(f, srv, slog.New(slog.NewTextHandler(&logs, nil)))
 	var sent map[string]any
-	var added map[string]any
+	var added []string
 	f.answer("AdminCreateUser", func(in map[string]any) (int, any) { sent = in; return http.StatusOK, map[string]any{} })
-	f.answer("AdminAddUserToGroup", func(in map[string]any) (int, any) { added = in; return http.StatusOK, map[string]any{} })
+	f.answer("AdminAddUserToGroup", func(in map[string]any) (int, any) {
+		if in["Username"] == "new.person@example.invalid" {
+			added = append(added, in["GroupName"].(string))
+		}
+		return http.StatusOK, map[string]any{}
+	})
 
 	rec := authDo(t, h, http.MethodPost, "/api/auth/users", `{"email":"  New.Person@Example.invalid ","admin":true}`, adminToken(f))
 	if rec.Code != http.StatusCreated {
@@ -322,8 +333,8 @@ func TestPeopleCreateReturnsATemporaryPasswordOnceAndNeverLogsIt(t *testing.T) {
 	if !strings.Contains(string(attrs), `"email_verified"`) || !strings.Contains(string(attrs), `"true"`) {
 		t.Fatalf("attributes = %s, want email_verified=true", attrs)
 	}
-	if added["GroupName"] != testAdminGroup || added["Username"] != "new.person@example.invalid" {
-		t.Fatalf("AdminAddUserToGroup = %v", added)
+	if len(added) != 2 || added[0] != testAdminGroup || added[1] != testUserAdminGroup {
+		t.Fatalf("groups added = %v, want both the admin and the user-admin group", added)
 	}
 	if strings.Contains(logs.String(), temp) {
 		t.Fatalf("the temporary password was logged: %s", logs.String())
@@ -431,12 +442,40 @@ func TestAdminCallsFailClosedWithoutCredentials(t *testing.T) {
 	setup := signIn{auth: &cognitoAuth{
 		clientID: testClientID, endpoint: srv.URL + "/", client: srv.Client(),
 		verifier: newCognitoVerifier(f.issuer, testClientID, f.issuer+"/.well-known/jwks.json", srv.Client()),
-		signUp:   signUpInviteOnly, adminGroup: testAdminGroup, poolID: "p", region: "eu-west-2",
+		signUp:   signUpInviteOnly, adminGroup: testAdminGroup, userAdminGroup: testUserAdminGroup, poolID: "p", region: "eu-west-2",
 		credentials: func() awsCredentials { return awsCredentials{} }, now: time.Now,
 	}}
 	registerIdentityRoutes(mux, setup, identityTestLogger())
 	rec := authDo(t, newIdentityGate(mux, setup, identityTestLogger()), http.MethodGet, "/api/auth/users", "", adminToken(f))
 	if rec.Code != http.StatusBadGateway || f.called("ListUsers") {
 		t.Fatalf("no credentials = %d, ListUsers called %v", rec.Code, f.called("ListUsers"))
+	}
+}
+
+func TestPeopleFailClosedWithoutAUserAdminGroup(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	mux := http.NewServeMux()
+	setup := signIn{auth: &cognitoAuth{
+		clientID: testClientID, endpoint: srv.URL + "/", client: srv.Client(),
+		verifier: newCognitoVerifier(f.issuer, testClientID, f.issuer+"/.well-known/jwks.json", srv.Client()),
+		signUp:   signUpInviteOnly, adminGroup: testAdminGroup, poolID: "p", region: "eu-west-2",
+		credentials: func() awsCredentials { return awsCredentials{AccessKeyID: "A", SecretAccessKey: "s"} }, now: time.Now,
+	}}
+	registerIdentityRoutes(mux, setup, identityTestLogger())
+	h := newIdentityGate(mux, setup, identityTestLogger())
+	rec := authDo(t, h, http.MethodGet, "/api/auth/users", "", adminToken(f))
+	if rec.Code != http.StatusForbidden || len(f.calls) != 0 {
+		t.Fatalf("no user-admin group = %d, calls %v; want 403 and no pool call", rec.Code, f.calls)
+	}
+	if got := authDecode(t, authDo(t, h, http.MethodGet, "/api/auth/config", "", nil)); got["user_admin_group"] != nil {
+		t.Fatalf("config = %v, want no user_admin_group", got)
+	}
+}
+
+func TestConfigNamesTheUserAdminGroup(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	rec := authDo(t, inviteOnlyGate(f, srv, identityTestLogger()), http.MethodGet, "/api/auth/config", "", nil)
+	if got := authDecode(t, rec)["user_admin_group"]; got != testUserAdminGroup {
+		t.Fatalf("config user_admin_group = %v", got)
 	}
 }

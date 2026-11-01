@@ -38,7 +38,8 @@
 	let alertBox: HTMLElement | undefined = $state();
 
 	const enabledAdmins = $derived(people.filter((p) => p.admin && p.enabled).length);
-	// Only a complete list can say there is a single administrator.
+	// Administrators here are the user-admin group's members. Only a complete list can say there is
+	// a single one.
 	const soleAdmin = $derived(more === '' && enabledAdmins === 1);
 
 	async function fail(message: string) {

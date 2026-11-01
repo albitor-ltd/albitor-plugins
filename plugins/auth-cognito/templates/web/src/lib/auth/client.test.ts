@@ -6,6 +6,7 @@ import {
 	enablePerson,
 	forgot,
 	getSignUpMode,
+	getUserAdminGroup,
 	invitePerson,
 	listPeople,
 	newPassword,
@@ -152,6 +153,14 @@ describe('the sign-up mode', () => {
 		expect(await getSignUpMode()).toBe('invite_only');
 		expect(fetch).toHaveBeenCalledOnce();
 		expect(fetch.mock.calls[0][0]).toBe('/api/auth/config');
+	});
+
+	it('carries the user-admin group name when the API names one', async () => {
+		stubFetch(() => json(200, { sign_up: 'invite_only', user_admin_group: 'user-admins' }));
+		expect(await getUserAdminGroup()).toBe('user-admins');
+		resetSignUpMode();
+		stubFetch(() => json(200, { sign_up: 'open' }));
+		expect(await getUserAdminGroup()).toBe('');
 	});
 
 	it('reads open from the API, and from anything it cannot read', async () => {

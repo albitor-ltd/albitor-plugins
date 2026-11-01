@@ -84,7 +84,30 @@ export async function signOut(): Promise<AuthResult> {
 /** How people get an account: `open` (anyone may sign up) or `invite_only` (an administrator adds them). */
 export type SignUpMode = 'open' | 'invite_only';
 
-let signUpMode: Promise<SignUpMode> | null = null;
+interface AuthConfig {
+	mode: SignUpMode;
+	/** The group whose members manage people (invite_only); empty when there is none. */
+	userAdminGroup: string;
+}
+
+let authConfig: Promise<AuthConfig> | null = null;
+
+function getAuthConfig(): Promise<AuthConfig> {
+	if (typeof window === 'undefined') return Promise.resolve({ mode: 'open', userAdminGroup: '' });
+	authConfig ??= get<{ sign_up?: unknown; user_admin_group?: unknown }>('/auth/config')
+		.then((c): AuthConfig => ({
+			mode: c?.sign_up === 'invite_only' ? 'invite_only' : 'open',
+			userAdminGroup: typeof c?.user_admin_group === 'string' ? c.user_admin_group : ''
+		}))
+		.catch((): AuthConfig => {
+			authConfig = null;
+			return { mode: 'open', userAdminGroup: '' };
+		});
+	return authConfig;
+}
+
+/** The group whose members manage people, for screens that offer People only to them. */
+export const getUserAdminGroup = async () => (await getAuthConfig()).userAdminGroup;
 
 /**
  * The app's sign-up mode, from the public GET /api/auth/config. It is asked once per page load. A
@@ -92,20 +115,13 @@ let signUpMode: Promise<SignUpMode> | null = null;
  * worst case is a link to a screen that says so) and is not remembered. There is no API to ask on
  * the server.
  */
-export function getSignUpMode(): Promise<SignUpMode> {
-	if (typeof window === 'undefined') return Promise.resolve('open');
-	signUpMode ??= get<{ sign_up?: unknown }>('/auth/config')
-		.then((c): SignUpMode => (c?.sign_up === 'invite_only' ? 'invite_only' : 'open'))
-		.catch((): SignUpMode => {
-			signUpMode = null;
-			return 'open';
-		});
-	return signUpMode;
+export async function getSignUpMode(): Promise<SignUpMode> {
+	return (await getAuthConfig()).mode;
 }
 
 /** Forget the remembered mode (tests). */
 export function resetSignUpMode(): void {
-	signUpMode = null;
+	authConfig = null;
 }
 
 /** Changes the signed-in person's own password. Both modes. */

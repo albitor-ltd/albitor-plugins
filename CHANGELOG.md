@@ -13,10 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `invite_only`). The API gains public `GET /api/auth/config`, `POST /api/auth/change-password` (both
   modes) and, in `invite_only` only, an administrator People admin (list, add with a generated
   temporary password shown once, disable, enable, reset) signed with a standard-library SigV4 client
-  and guarded by the admin group (`AUTH_ADMIN_GROUP`); in `invite_only` sign-up, confirm, resend,
+  and guarded by the dedicated user-admin group (`AUTH_USER_ADMIN_GROUP`; empty fails closed); in `invite_only` sign-up, confirm, resend,
   forgot and reset answer 404. `AUTH_SIGN_UP` unset means `open`, so apps already deployed are
   unchanged. The web gains change-password and People screens and hides sign-up and reset when
-  invite-only. Needs `deploy-byoa-aws` to hand `AUTH_SIGN_UP`/`AUTH_ADMIN_GROUP` and the single-pool
+  invite-only. Needs `deploy-byoa-aws` to hand `AUTH_SIGN_UP`/`AUTH_ADMIN_GROUP`/`AUTH_USER_ADMIN_GROUP` and the single-pool
   admin policy. `plugins/auth` skill `cognito-auth` and `auth-hosted` are docs only (no version change):
   the "no admin action on the API's role" rule is mode-aware, and hosted keeps self sign-up.
   `scripts/check-openapi-variants.sh` now also strips `/api/auth/*` blocks from the auth-cognito variant.

@@ -22,8 +22,8 @@ provides, requires and contributes, and the platform composer renders it into a 
 It requires `api-runtime@1`, `web-framework@1` and `component-kit@2` (an exact major: a kit that provides only `component-kit@1` does not satisfy it), so an API-less profile uses `auth-none`. It
 contributes `services.auth` (`provider: cognito`, `posture: private`) and no Terraform. It does not
 set `sign_up`: the plan supplies it (default `invite_only`). The deploy target realises the pool and
-hands the function `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AWS_REGION`, `AUTH_SIGN_UP` and
-`AUTH_ADMIN_GROUP`. The module stays stdlib-only, because `api/go.mod` is `api-go`'s
+hands the function `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AWS_REGION`, `AUTH_SIGN_UP`,
+`AUTH_ADMIN_GROUP` and `AUTH_USER_ADMIN_GROUP`. The module stays stdlib-only, because `api/go.mod` is `api-go`'s
 (ADR-0090 amendment 3).
 
 Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
@@ -60,8 +60,8 @@ existed behaves as it always did. `GET /api/auth/config` (public) answers `{"sig
 the screens read.
 
 - **`invite_only`**: sign-up, confirm, resend, forgot and reset answer 404 `not_found`; the sign-in
-  screen hides those links and `/sign-up`, `/confirm`, `/reset` redirect to `/sign-in`. Administrators
-  (members of `AUTH_ADMIN_GROUP`) manage people on `/people`: `GET`/`POST /api/auth/users`,
+  screen hides those links and `/sign-up`, `/confirm`, `/reset` redirect to `/sign-in`. User administrators
+  (members of `AUTH_USER_ADMIN_GROUP`, not merely of `AUTH_ADMIN_GROUP`) manage people on `/people`: `GET`/`POST /api/auth/users`,
   `POST /api/auth/users/{disable,enable,reset-password}`. Creating a person calls `AdminCreateUser`
   with `MessageAction=SUPPRESS` and `email_verified=true` and a generated temporary password; nothing
   is emailed. The password is in the response once, with `Cache-Control: no-store`, and is never

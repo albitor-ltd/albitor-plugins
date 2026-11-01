@@ -39,8 +39,12 @@ const (
 	envSignUp = "AUTH_SIGN_UP"
 	// envAdminGroup names the group whose members may manage people (invite_only only).
 	envAdminGroup = "AUTH_ADMIN_GROUP"
-	envLambdaName = "AWS_LAMBDA_FUNCTION_NAME"
-	envLocalRun   = "ALBITOR_LOCAL"
+	// envUserAdminGroup names the dedicated group that may manage people (invite_only only). It is
+	// not AUTH_ADMIN_GROUP, which the platform's demo and verifier accounts also belong to. Empty
+	// means nobody may: the People endpoints fail closed.
+	envUserAdminGroup = "AUTH_USER_ADMIN_GROUP"
+	envLambdaName     = "AWS_LAMBDA_FUNCTION_NAME"
+	envLocalRun       = "ALBITOR_LOCAL"
 )
 
 // The session cookies. Both HttpOnly, Secure and SameSite=Strict: no script
@@ -91,6 +95,7 @@ func signInFromEnv(getenv func(string) string) signIn {
 		cfg := cognitoConfig{
 			Region: strings.TrimSpace(getenv(envRegion)), UserPoolID: pool, ClientID: client,
 			SignUp: strings.TrimSpace(getenv(envSignUp)), AdminGroup: strings.TrimSpace(getenv(envAdminGroup)),
+			UserAdminGroup: strings.TrimSpace(getenv(envUserAdminGroup)),
 		}
 		if !cfg.valid() {
 			return signIn{err: fmt.Errorf("%s, %s and %s must all be set, and well formed", envUserPoolID, envClientID, envRegion)}
@@ -119,8 +124,10 @@ type cognitoConfig struct {
 	ClientID   string
 	// SignUp is "invite_only", "open" or empty (open).
 	SignUp string
-	// AdminGroup is the group that manages people in an invite_only app.
+	// AdminGroup is the app's admin group (AUTH_ADMIN_GROUP).
 	AdminGroup string
+	// UserAdminGroup is the group that manages people in an invite_only app.
+	UserAdminGroup string
 }
 
 // The two sign-up modes (services.auth.sign_up).
@@ -131,7 +138,8 @@ const (
 
 func (c cognitoConfig) valid() bool {
 	return apikit.IsSafeToken(c.Region, 32) && apikit.IsSafeToken(c.UserPoolID, 128) && apikit.IsSafeToken(c.ClientID, 128) &&
-		(c.AdminGroup == "" || apikit.IsSafeToken(c.AdminGroup, 128))
+		(c.AdminGroup == "" || apikit.IsSafeToken(c.AdminGroup, 128)) &&
+		(c.UserAdminGroup == "" || apikit.IsSafeToken(c.UserAdminGroup, 128))
 }
 
 func (c cognitoConfig) issuer() string {
@@ -153,8 +161,9 @@ type cognitoAuth struct {
 	local    bool
 
 	// signUp is the pool's sign-up mode; the zero value is open.
-	signUp     string
-	adminGroup string
+	signUp         string
+	adminGroup     string
+	userAdminGroup string
 	// poolID, region, credentials and now serve the signed admin calls (identity_people.go).
 	poolID      string
 	region      string
@@ -193,12 +202,13 @@ func newCognitoAuth(cfg cognitoConfig) *cognitoAuth {
 		client:   client,
 		verifier: newCognitoVerifier(cfg.issuer(), cfg.ClientID, cfg.issuer()+"/.well-known/jwks.json", client),
 
-		signUp:      cfg.SignUp,
-		adminGroup:  cfg.AdminGroup,
-		poolID:      cfg.UserPoolID,
-		region:      cfg.Region,
-		credentials: awsCredentialsFromEnv,
-		now:         time.Now,
+		signUp:         cfg.SignUp,
+		adminGroup:     cfg.AdminGroup,
+		userAdminGroup: cfg.UserAdminGroup,
+		poolID:         cfg.UserPoolID,
+		region:         cfg.Region,
+		credentials:    awsCredentialsFromEnv,
+		now:            time.Now,
 	}
 }
 

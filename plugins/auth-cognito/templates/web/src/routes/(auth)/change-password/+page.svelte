@@ -3,7 +3,9 @@
      nav; delete nav.ts to take it out. -->
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { changePassword } from '../../../lib/auth/client';
+	import { onMount } from 'svelte';
+	import { changePassword, getUserAdminGroup } from '../../../lib/auth/client';
+	import { getSession } from '../../../lib/auth/session';
 	import { Button, Field } from '../../../lib/kit';
 
 	let current = $state('');
@@ -13,6 +15,13 @@
 	let done = $state(false);
 	let busy = $state(false);
 	let alertBox: HTMLElement | undefined = $state();
+	// People is offered only to the members of the user-admin group (the nav is static, so the link
+	// lives here, on the account screen).
+	let canManagePeople = $state(false);
+	onMount(async () => {
+		const group = await getUserAdminGroup();
+		canManagePeople = group !== '' && ((await getSession())?.groups ?? []).includes(group);
+	});
 
 	// The button is disabled while busy, which drops focus to <body>; a failure takes it back, on the alert.
 	async function fail(message: string) {
@@ -46,6 +55,10 @@
 </svelte:head>
 
 <h1>Change password</h1>
+
+{#if canManagePeople}
+	<p><a href="/people" data-testid="people-link">Manage people</a></p>
+{/if}
 
 <form data-testid="change-password-form" onsubmit={submit} novalidate>
 	<Field

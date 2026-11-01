@@ -46,7 +46,12 @@ func (a *cognitoAuth) serveSignedInRoute(w http.ResponseWriter, r *http.Request,
 			return true
 		}
 		w.Header().Set("Cache-Control", "no-store")
-		apikit.WriteJSON(w, http.StatusOK, map[string]string{"sign_up": a.signUpMode()})
+		out := map[string]string{"sign_up": a.signUpMode()}
+		if a.inviteOnly() && a.userAdminGroup != "" {
+			// A group name is not a secret: the screens use it to offer People only to its members.
+			out["user_admin_group"] = a.userAdminGroup
+		}
+		apikit.WriteJSON(w, http.StatusOK, out)
 	case "change-password":
 		a.serveChangePassword(w, r, logger)
 	case "users":
@@ -123,7 +128,8 @@ func (a *cognitoAuth) serveChangePassword(w http.ResponseWriter, r *http.Request
 
 // ---- People ----
 
-// requireAdmin lets an invite_only app's admin through. On a refusal it has answered: 404 when
+// requireAdmin lets an invite_only app's user administrator (a member of AUTH_USER_ADMIN_GROUP, not
+// merely of AUTH_ADMIN_GROUP) through. On a refusal it has answered: 404 when
 // the app is not invite-only (the endpoints do not exist), 401 with no session, 403 for anyone
 // outside the admin group.
 func (a *cognitoAuth) requireAdmin(w http.ResponseWriter, r *http.Request, logger *slog.Logger) (identity.Identity, bool) {
@@ -135,7 +141,7 @@ func (a *cognitoAuth) requireAdmin(w http.ResponseWriter, r *http.Request, logge
 	if !ok {
 		return identity.Identity{}, false
 	}
-	if a.adminGroup == "" || !id.InGroup(a.adminGroup) {
+	if a.userAdminGroup == "" || !id.InGroup(a.userAdminGroup) {
 		writeAuthError(w, http.StatusForbidden, "forbidden", "only an administrator can manage people")
 		return identity.Identity{}, false
 	}
@@ -203,10 +209,10 @@ func (a *cognitoAuth) servePeopleList(w http.ResponseWriter, r *http.Request, lo
 	apikit.WriteJSON(w, http.StatusOK, map[string]any{"people": people, "next": out.PaginationToken})
 }
 
-// markAdmins sets Admin on each person in the admin group, looking at a few people at a time. A
+// markAdmins sets Admin on each person in the user-admin group, looking at a few people at a time. A
 // lookup that fails leaves that person unmarked: the list is information, not a decision.
 func (a *cognitoAuth) markAdmins(r *http.Request, users []cognitoUser, people []person) {
-	if a.adminGroup == "" {
+	if a.userAdminGroup == "" {
 		return
 	}
 	var wg sync.WaitGroup
@@ -228,7 +234,7 @@ func (a *cognitoAuth) markAdmins(r *http.Request, users []cognitoUser, people []
 				return
 			}
 			for _, g := range out.Groups {
-				if g.GroupName == a.adminGroup {
+				if g.GroupName == a.userAdminGroup {
 					people[i].Admin = true
 				}
 			}
@@ -276,18 +282,24 @@ func (a *cognitoAuth) servePeopleCreate(w http.ResponseWriter, r *http.Request, 
 		a.writePeopleError(w, r, logger, "create", cerr)
 		return
 	}
+	// "Make an administrator" is the app's admin group (when it has one) and the user-admin group.
 	admin := false
-	if body.Admin && a.adminGroup != "" {
-		if cerr := a.adminCall(r.Context(), "AdminAddUserToGroup", map[string]any{
-			"UserPoolId": a.poolID, "Username": email, "GroupName": a.adminGroup,
-		}, nil); cerr != nil {
-			// The account exists and the password must still reach the administrator: report the
-			// person as not (yet) an administrator rather than lose it.
-			logger.ErrorContext(r.Context(), "could not add a new person to the admin group",
-				slog.String("correlation_id", apikit.CorrelationIDFromContext(r.Context())),
-				slog.String("error", cerr.Error()))
-		} else {
-			admin = true
+	if body.Admin {
+		admin = true
+		for _, group := range []string{a.adminGroup, a.userAdminGroup} {
+			if group == "" {
+				continue
+			}
+			if cerr := a.adminCall(r.Context(), "AdminAddUserToGroup", map[string]any{
+				"UserPoolId": a.poolID, "Username": email, "GroupName": group,
+			}, nil); cerr != nil {
+				// The account exists and the password must still reach the administrator: report the
+				// person as not (yet) an administrator rather than lose it.
+				admin = false
+				logger.ErrorContext(r.Context(), "could not add a new person to an admin group",
+					slog.String("correlation_id", apikit.CorrelationIDFromContext(r.Context())),
+					slog.String("error", cerr.Error()))
+			}
 		}
 	}
 	writeTempPassword(w, http.StatusCreated, map[string]any{"email": email, "temporary_password": temp, "admin": admin})
