@@ -13,6 +13,10 @@ People sign in on the app's own Cognito hosted page (the classic hosted UI). **T
 field, no sign-up screen and no reset screen**: Cognito's pages do sign-up, email confirmation,
 password reset, an invited person's new password and any MFA.
 
+**Sign-up mode.** The hosted lane keeps self sign-up (`sign_up: open`) with its platform-side invite
+flow; the invite-only, no-email People screen belongs to `auth-cognito` on the BYOA lane and is not
+part of this plugin. Nothing here changes with that screen.
+
 ## What it ships
 
 | Repository path in the app | Mode | What |

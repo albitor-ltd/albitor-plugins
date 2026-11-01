@@ -56,8 +56,12 @@ this.** Build the same shape by hand, with this pack's `templates/` as the refer
 
 - **Do not weaken the pool.** No `lambda_config`, no `pre_sign_up` trigger, no auto-confirm flag:
   not count-gated, not dev-only. The floor gates refuse all of them.
-- **No user-pool admin action on the API's role.** The demo and verifier accounts are seeded by
-  the deploy identity (`scripts/seed-demo-account.sh`), never by the function serving requests.
+- **No user-pool admin action on the API's role, except the module-owned one.** The demo and
+  verifier accounts are seeded by the deploy identity (`scripts/seed-demo-account.sh`), never by
+  the function serving requests. The `auth-cognito` plugin's invite-only People screen is the one
+  sanctioned exception: the deploy module attaches its own single-pool admin policy to the API role
+  only when `sign_up` is `invite_only` (self sign-up off), and nothing in the app's tree adds one. In
+  an `open` app no admin action is granted at all. The auto-confirm bans above hold in both modes.
 - **Keep the password policy at or above the template's** (ASVS 2.1.1: at least 12 characters).
 - **Keep what the verifier needs**: the `auth_user_pool_id` and `auth_client_id` outputs,
   `ALLOW_USER_PASSWORD_AUTH` on the client, and no required second factor. A brief that asks for

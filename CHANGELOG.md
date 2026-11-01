@@ -16,6 +16,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   suite: a failed second sign-in (a pool not seeded with it) leaves no session, logs why and
   annotates `no-second-identity`, and only the specs that need a second person skip. New helpers
   `readVerifierB` and `saveSecondSession`, with unit tests.
+- `auth-cognito` `0.6.0` is invite-only by default (albitor-ltd/albitor#4258, P2; untagged until
+  released). It no longer hard-codes `sign_up: open` in its manifest (the plan supplies it, default
+  `invite_only`). The API gains public `GET /api/auth/config`, `POST /api/auth/change-password` (both
+  modes) and, in `invite_only` only, an administrator People admin (list, add with a generated
+  temporary password shown once, disable, enable, reset) signed with a standard-library SigV4 client
+  and guarded by the dedicated user-admin group (`AUTH_USER_ADMIN_GROUP`; empty fails closed); in `invite_only` sign-up, confirm, resend,
+  forgot and reset answer 404. `AUTH_SIGN_UP` unset means `open`, so apps already deployed are
+  unchanged. The web gains change-password and People screens and hides sign-up and reset when
+  invite-only. Needs `deploy-byoa-aws` to hand `AUTH_SIGN_UP`/`AUTH_ADMIN_GROUP`/`AUTH_USER_ADMIN_GROUP` and the single-pool
+  admin policy. `plugins/auth` skill `cognito-auth` and `auth-hosted` are docs only (no version change):
+  the "no admin action on the API's role" rule is mode-aware, and hosted keeps self sign-up.
+  `scripts/check-openapi-variants.sh` now also strips `/api/auth/*` blocks from the auth-cognito variant.
 - `deploy-byoa-aws` `0.8.0` is invite-only without email (albitor-ltd/albitor#4258; untagged until
   released). With `services.auth.sign_up: invite_only` the user pool auto-verifies nothing and
   recovers accounts by an administrator only, so Cognito sends no verification, invitation or

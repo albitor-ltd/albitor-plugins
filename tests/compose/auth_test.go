@@ -174,10 +174,14 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 	}
 
 	yaml := string(res.Files["albitor.yaml"])
-	for _, want := range []string{"auth:", `provider: "cognito"`, `posture: "private"`, `sign_up: "open"`} {
+	for _, want := range []string{"auth:", `provider: "cognito"`, `posture: "private"`} {
 		if !strings.Contains(yaml, want) {
 			t.Errorf("albitor.yaml lacks %q:\n%s", want, yaml)
 		}
+	}
+	// The plan supplies sign_up (default invite_only); a value here would conflict with it.
+	if strings.Contains(yaml, "sign_up") {
+		t.Errorf("auth-cognito must not set services.auth.sign_up itself:\n%s", yaml)
 	}
 	// No pool ids, ARNs or Terraform: the deploy target realises the pool from services.auth.
 	for path := range res.Files {
@@ -192,6 +196,8 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"api/internal/shell/identity_verify.go",
 		"api/internal/shell/identity_token.go",
 		"api/internal/shell/identity_cognito.go",
+		"api/internal/shell/identity_people.go",
+		"api/internal/shell/identity_sigv4.go",
 		"web/src/lib/auth/session.ts",
 		"web/src/lib/auth/guard.ts",
 		"web/src/lib/auth/client.ts",
@@ -209,6 +215,9 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/routes/(auth)/reset/+page.svelte",
 		"web/src/routes/(auth)/sign-out/+page.svelte",
 		"web/src/routes/(auth)/sign-out/nav.ts",
+		"web/src/routes/(auth)/change-password/+page.svelte",
+		"web/src/routes/(auth)/change-password/nav.ts",
+		"web/src/routes/(auth)/people/+page.svelte",
 		"web/tests/journeys/sign-in.spec.ts", // a spec author's path: seeded, never pinned
 	}
 	for _, p := range screens {

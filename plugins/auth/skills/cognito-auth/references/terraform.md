@@ -171,4 +171,8 @@ for an address they do not control. So the app's Terraform carries none of:
 - an `auth_dev_auto_confirm` variable, or any similar flag;
 - a `lambda_config` block on the pool, dynamic or otherwise;
 - a `pre_sign_up` or `pre_authentication` trigger, count-gated or otherwise;
-- a user-pool admin action (`cognito-idp:Admin*`) on the API's role.
+- a user-pool admin action (`cognito-idp:Admin*`) on the API's role, written into the app's own
+  tree. The one sanctioned grant is the deploy module's own single-pool policy (create, enable,
+  disable and set the password of a user, list users, and their groups), attached only when
+  `sign_up` is `invite_only` so self sign-up is off, for the `auth-cognito` People screen. An
+  `open` app gets none, and the bans on the first three items hold in both modes.
