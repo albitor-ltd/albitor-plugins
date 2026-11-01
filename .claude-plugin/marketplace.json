@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.5.1",
-        "sha": "2b1149cfcc190557db1e1ad99e7c26625d72ffe2"
+        "ref": "test-playwright/v0.5.2",
+        "sha": "9db7a8230e851db7e1af1cefade7c1c5b024d916"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.7.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "deploy-byoa-aws/v0.8.0",
+        "sha": "5e162b6717a576acd7f76bc8ba9c5b7488254d7c"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.5.1",
-        "sha": "2b1149cfcc190557db1e1ad99e7c26625d72ffe2"
+        "ref": "auth-cognito/v0.6.0",
+        "sha": "d5273aaa83affd9f177dcbfc83fd12e9a2826950"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
       "category": "development",
