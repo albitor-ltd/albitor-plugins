@@ -11,17 +11,27 @@ This repository holds no infrastructure code. What the app needs from AWS is dec
 `albitor.yaml`, and the platform compiles that file and deploys it. There is nothing to render or
 regenerate: change the manifest and the next deploy changes what runs.
 
-## Starting points
+## Seeded files (the app's own)
 
 `.github/workflows/ci.yml` is seeded once and is yours from then on. Change it when the app needs
 it, and do not weaken the checks it runs.
+
+## Examples (copy, then alter)
+
+Worked examples sit in `examples/` beside this skill, laid out by repository path.
+
+| Example | Copy it when |
+| --- | --- |
+| `examples/api/internal/gateway/` | The app calls platform services or uses queues (`services.callable` or `queues` in `albitor.yaml`). `cp -r` the directory to `api/internal/gateway`, then edit; a client for the service gateway (`client.go`, SigV4, uploads) and the queues (`queue.go`, `queue_local.go`), with its tests. Standard library only. See the `gateway-services` skill |
+
+An app with neither takes none of it.
 
 ## What you may change
 
 | To | Edit |
 | --- | --- |
 | Add or change a table, a schedule or a config key | the matching block of `albitor.yaml` |
-| Call translate, transcribe, textract, bedrock or another AWS AI service | `services.callable` in `albitor.yaml`, then `api/internal/albitorsvc`; see the `gateway-services` skill |
+| Call translate, transcribe, textract, bedrock or another AWS AI service | `services.callable` in `albitor.yaml`, then copy the gateway example to `api/internal/gateway`; see the `gateway-services` skill |
 | Change how the site or the API is built | `build.static` and `build.api` in `albitor.yaml` |
 
 Do not add Terraform, a deploy workflow, a cloud credential or a role: the platform deploys with

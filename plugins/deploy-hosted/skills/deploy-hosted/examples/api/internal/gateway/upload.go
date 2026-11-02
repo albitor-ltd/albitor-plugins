@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"bytes"
@@ -50,7 +50,7 @@ func (c *Client) CreateUploadSlot(ctx context.Context, service, contentType stri
 	}
 	exp, err := time.Parse(time.RFC3339, r.ExpiresAt)
 	if err != nil || r.UploadHandle == "" || r.URL == "" {
-		return Slot{}, errors.New("albitorsvc: malformed upload slot")
+		return Slot{}, errors.New("gateway: malformed upload slot")
 	}
 	return Slot{Handle: r.UploadHandle, URL: r.URL, Fields: r.Fields, ExpiresAt: exp, MaxBytes: maxBytes, ContentType: contentType}, nil
 }
@@ -61,11 +61,11 @@ func (c *Client) CreateUploadSlot(ctx context.Context, service, contentType stri
 // storage service's body, which can name the key.
 func (c *Client) Upload(ctx context.Context, s Slot, data []byte) error {
 	if len(data) == 0 || int64(len(data)) > s.MaxBytes {
-		return fmt.Errorf("albitorsvc: upload is %d bytes, the slot allows 1 to %d", len(data), s.MaxBytes)
+		return fmt.Errorf("gateway: upload is %d bytes, the slot allows 1 to %d", len(data), s.MaxBytes)
 	}
 	u, err := url.Parse(s.URL)
 	if err != nil || u.Scheme != "https" {
-		return errors.New("albitorsvc: the upload URL must be https")
+		return errors.New("gateway: the upload URL must be https")
 	}
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
@@ -103,12 +103,12 @@ func (c *Client) Upload(ctx context.Context, s Slot, data []byte) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		return errors.New("albitorsvc: the upload failed to send")
+		return errors.New("gateway: the upload failed to send")
 	}
 	defer func() { _ = res.Body.Close() }()
 	_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, maxErrorBody))
 	if res.StatusCode/100 != 2 {
-		return fmt.Errorf("albitorsvc: upload refused with status %d", res.StatusCode)
+		return fmt.Errorf("gateway: upload refused with status %d", res.StatusCode)
 	}
 	return nil
 }

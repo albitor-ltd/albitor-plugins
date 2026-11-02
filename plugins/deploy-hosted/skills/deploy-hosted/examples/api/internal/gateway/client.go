@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"bytes"
@@ -87,10 +87,10 @@ func Open(getenv func(string) string) (*Client, error) {
 func New(cfg Config) (*Client, error) {
 	u, err := url.Parse(cfg.BaseURL)
 	if err != nil || u.Host == "" || (u.Scheme != "https" && !isLoopback(u)) {
-		return nil, errors.New("albitorsvc: the gateway URL must be https")
+		return nil, errors.New("gateway: the gateway URL must be https")
 	}
 	if u.RawQuery != "" || u.Fragment != "" || u.User != nil {
-		return nil, errors.New("albitorsvc: the gateway URL carries a query, fragment or user")
+		return nil, errors.New("gateway: the gateway URL carries a query, fragment or user")
 	}
 	region := cfg.Region
 	if region == "" {
@@ -99,10 +99,10 @@ func New(cfg Config) (*Client, error) {
 		}
 	}
 	if region == "" {
-		return nil, errors.New("albitorsvc: no signing Region: set AWS_REGION")
+		return nil, errors.New("gateway: no signing Region: set AWS_REGION")
 	}
 	if cfg.Credentials.AccessKeyID == "" || cfg.Credentials.SecretAccessKey == "" {
-		return nil, errors.New("albitorsvc: no credentials: the function's role credentials are not in the environment")
+		return nil, errors.New("gateway: no credentials: the function's role credentials are not in the environment")
 	}
 	if cfg.MaxAttempts <= 0 {
 		cfg.MaxAttempts = 4
@@ -175,20 +175,20 @@ func WithIdempotencyKey(key string) CallOption {
 // gateway's rule; Call refuses any other before sending.
 func (c *Client) Call(ctx context.Context, service, operation string, req, resp any, opts ...CallOption) error {
 	if !servicePattern.MatchString(service) || !operationPattern.MatchString(operation) {
-		return fmt.Errorf("albitorsvc: %q/%q is not a service and operation name", service, operation)
+		return fmt.Errorf("gateway: %q/%q is not a service and operation name", service, operation)
 	}
 	var o callOptions
 	for _, f := range opts {
 		f(&o)
 	}
 	if o.idempotencyKey != "" && !idempotencyKeyPattern.MatchString(o.idempotencyKey) {
-		return errors.New("albitorsvc: the idempotency key must match [A-Za-z0-9_-]{8,64}")
+		return errors.New("gateway: the idempotency key must match [A-Za-z0-9_-]{8,64}")
 	}
 	body := []byte("{}")
 	if req != nil {
 		var err error
 		if body, err = json.Marshal(req); err != nil {
-			return fmt.Errorf("albitorsvc: encode request: %w", err)
+			return fmt.Errorf("gateway: encode request: %w", err)
 		}
 	}
 	endpoint := c.base.JoinPath("v1", service, operation).String()
@@ -200,7 +200,7 @@ func (c *Client) Call(ctx context.Context, service, operation string, req, resp 
 				return nil
 			}
 			if err := json.Unmarshal(out, resp); err != nil {
-				return fmt.Errorf("albitorsvc: decode response: %w", err)
+				return fmt.Errorf("gateway: decode response: %w", err)
 			}
 			return nil
 		}
@@ -245,16 +245,16 @@ func (c *Client) once(ctx context.Context, endpoint string, body []byte, o callO
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
-		return nil, errors.New("albitorsvc: the request failed to send")
+		return nil, errors.New("gateway: the request failed to send")
 	}
 	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode/100 == 2 {
 		out, err := io.ReadAll(io.LimitReader(res.Body, maxResponse+1))
 		if err != nil {
-			return nil, errors.New("albitorsvc: the response could not be read")
+			return nil, errors.New("gateway: the response could not be read")
 		}
 		if len(out) > maxResponse {
-			return nil, errors.New("albitorsvc: response too large")
+			return nil, errors.New("gateway: response too large")
 		}
 		return out, nil
 	}

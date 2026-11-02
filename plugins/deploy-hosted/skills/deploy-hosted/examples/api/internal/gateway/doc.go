@@ -1,4 +1,4 @@
-// Package albitorsvc is the thin client for the hosted service gateway, the
+// Package gateway is the thin client for the hosted service gateway, the
 // keyless, credit-metered way a hosted app calls AWS AI services.
 //
 // The app calls POST <ALBITOR_SERVICES_URL>/v1/<service>/<Operation> with the
@@ -15,9 +15,9 @@
 // app's own structs, written to AWS's documented JSON field names.
 //
 // Declare what the app calls in albitor.yaml under services.callable, and use Client from
-// api/internal/app. The package is a starting point: keep the signing as it is.
+// api/internal/app. Keep the signing as it is.
 //
 // queue.go is the queue half: Send to the app's own SQS queues with the function role,
 // ParseEvent and WriteResult for the POST /events consumer, and an in-process queue under
 // ALBITOR_LOCAL=1. It does not use the gateway.
-package albitorsvc
+package gateway

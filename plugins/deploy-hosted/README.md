@@ -9,7 +9,9 @@ declares what it provides and contributes, and the platform composer renders it 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
 | `.github/workflows/ci.yml` | starting point (manifest mode `managed` until the platform admits example) | Advisory manifest check, then build and test of the API and the web app; read-only |
-| `api/internal/albitorsvc/**` | starting point | `albitorsvc`, the thin Go client for the Albitor service gateway, with its tests (below) |
+
+The gateway client is a skill example, not a seed: `skills/deploy-hosted/examples/api/internal/gateway/`
+(below), copied in only by an app that calls platform services or uses queues.
 
 It contributes the `github-actions` entry of the held `dependabot.yml`.
 
@@ -29,11 +31,11 @@ It contributes the `github-actions` entry of the held `dependabot.yml`.
 - **Pins are exact.** Every action is a full commit SHA, the Node version is a literal; the Go
   version comes from `api/go.mod`.
 
-## The service gateway client (`albitorsvc`)
+## The service gateway client (`gateway` example)
 
 albitor-ltd/albitor#4005, ADR-0099 section 3.1. An app declares `services.callable` in
 `albitor.yaml` (`renders` lists it, so the composer accepts the block) and calls AWS AI services
-through the gateway, keyless and credit-metered, with `api/internal/albitorsvc`:
+through the gateway, keyless and credit-metered, with the `gateway` example, copied to `api/internal/gateway`:
 
 - `POST <ALBITOR_SERVICES_URL>/v1/<service>/<Operation>`, the AWS API's JSON body, SigV4 for service
   `lambda` with the function role's credentials from the environment. Standard library only, so it
@@ -54,9 +56,9 @@ Denial of wallet), and treat `402` as "feature unavailable".
 
 ## Verification
 
-`scripts/verify-deploy-hosted.sh` (the `deploy-hosted` recipe of `just ci`) lays the template over
-api-go's, then builds, vets and tests `albitorsvc` with `-race` and fails if `go.mod` gains a
-dependency.
+`scripts/verify-deploy-hosted.sh` (the `deploy-hosted` recipe of `just ci`) lays api-go's tree out,
+copies the `gateway` example in as an app would, then builds, vets and tests it with `-race` and
+fails if `go.mod` gains a dependency.
 
 `tests/compose/deploy_hosted_test.go` (run by `scripts/compose-check.sh`) runs the real
 deploy-target@1 conformance suite and workflow lint over the plugin, certifies it in a hosted
