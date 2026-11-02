@@ -28,28 +28,104 @@ middleware or routes by hand.
 There is no `init()` registration. A handler missing from `Routes` is not served, and a pattern
 registered twice panics at start.
 
-## Schedules: the `/events` route
+## `POST /events`: schedules and queues
 
-An `albitor.yaml` `schedules` entry runs this same binary (`handler: api`) on a rate. The platform
-runs it behind Lambda Web Adapter, in pass-through mode: the scheduler's event is not HTTP, so the
-adapter delivers it to the one server as `POST /events`, the body `{"schedule": "<name>"}` with
-`<name>` the entry's `name`. An app with a schedule must serve that route, or the schedule fires
-into a 404 and does nothing.
+An `albitor.yaml` `schedules` or `queues` entry runs this same binary (`handler: api`). The platform
+runs it behind Lambda Web Adapter in pass-through mode: the trigger is not HTTP, so the adapter
+delivers it to the one server as `POST /events`. An app that declares either must serve that route,
+or every fire (and every queue message, which then lands in the dead-letter queue) hits a 404. The
+body says which trigger it is:
+
+- a schedule: `{"schedule": "<name>"}`, `<name>` the entry's `name`;
+- a queue: `{"Records": [...]}`, SQS's own event (a batch of 1 to 10 messages, or an empty
+  `Records` list from the deploy probe).
 
 ```go
 r.HandleFunc("POST /events", handleEvents)
+
+func handleEvents(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
+	if err != nil { /* 400 */ }
+	if ev, err := albitorsvc.ParseEvent(body); err == nil { // a queue event
+		var failed []string
+		for _, m := range ev.Messages {
+			if err := handleMessage(r.Context(), m); err != nil {
+				failed = append(failed, m.ID) // log it with the correlation id
+			}
+		}
+		albitorsvc.WriteResult(w, failed) // 200, listing only the failures
+		return
+	}
+	var s struct{ Schedule string `json:"schedule"` }
+	_ = json.Unmarshal(body, &s)
+	switch s.Schedule { // answer 400 for a name you do not know, never a silent 200
+	}
+}
 ```
 
-- Switch on `schedule` and run that job; answer 2xx when it ran, 5xx when it failed. The platform
-  makes a 5xx fail the invocation (`AWS_LWA_ERROR_STATUS_CODES=500-599`), so Lambda retries the run
-  and the failure is reported; any other status, a 4xx included, counts as success and is not
-  retried. An unknown name is a 400, never a silent 200.
-- The job runs inside the invocation: Lambda freezes the environment once the response is written
-  and the function timeout is 30 seconds. Do the work before answering, and keep it idempotent.
-- The HTTP function runs this binary behind API Gateway too, so `POST /events` is reachable from
-  the internet there as well. Treat it as untrusted input: act only on a known schedule name, take
-  nothing else from the body, and make the job safe to run when nobody asked for it.
+- **Schedules.** Answer 2xx when the job ran and 5xx when it failed. The platform makes a 5xx fail
+  the invocation (`AWS_LWA_ERROR_STATUS_CODES=500-599`), so Lambda retries the run and the failure
+  is reported; any other status, a 4xx included, counts as success and is not retried.
+- **The job runs inside the invocation.** Lambda freezes the environment once the response is
+  written and the function timeout is 30 seconds. Do the work before answering.
+- **Idempotent, always.** A schedule can fire twice (a retry after a 5xx) and a standard queue
+  delivers at least once and unordered, so a second run of the same job or message must change
+  nothing: key writes on a record id or a conditional write, check "already done" first, and never
+  assume order between messages.
+- **Untrusted input.** `/events` answers 404 at the public API, so only the platform (the
+  scheduler, the queue's event source mapping, the deploy probe) reaches it. Still act only on a
+  schedule or queue name the app declares, and carry a reference (an object key, a record id) in a
+  payload, not data, re-checking ownership of what it names.
 - Keep `/events` out of `openapi.yaml`: it is not part of the client contract.
+
+### No app-side schedule loop
+
+The platform owns the tick. Under `ALBITOR_LOCAL=1` it POSTs each declared schedule to the local
+server's `/events` every second so a handler is exercised; deployed, the scheduler fires it at its
+rate (15 minutes at the fastest). Never add a `time.Ticker`, a goroutine loop or a start-up
+trigger that calls the job: it runs twice locally, runs on every cold start and on every instance.
+Do not plan **work a user is waiting on** on a schedule: a schedule fires at most every 15 minutes
+whether or not there is work, so the user waits up to that long. That work belongs inline (within
+the 30 second request) or on a queue.
+
+### Queues
+
+A `queues` entry is an SQS standard queue with one consumer, this binary at `POST /events`. Declare
+it only when the app's deploy target renders `queues`. Use the queue half of `albitorsvc` (in the
+`deploy-hosted` plugin; it does not go through the gateway):
+
+```go
+q, err := albitorsvc.OpenQueues(os.Getenv)   // in main; a local run gives the in-process queue
+q.Register(handler)                          // local only, once the http.Handler exists
+err = q.Send(ctx, "transcribe", jobRef{ID: id}, albitorsvc.SendOptions{})
+```
+
+- **Send** from a route, a schedule or another consumer with `Send` or `SendBatch` (up to 10). The
+  platform sets `ALBITOR_QUEUE_<NAME>_URL` (upper-cased, `-` as `_`) from the declared name; an
+  undeclared queue is `ErrQueueNotConfigured`. A message is at most 256 KiB, so queue a reference.
+  `SendOptions.Delay` (0 to 900 s) holds delivery back.
+- **Re-enqueue is bounded.** The envelope carries `attempt` and `deadline`. A handler that
+  re-enqueues passes the message it is handling as `SendOptions{Parent: &m, Delay: ...}`: `attempt`
+  increments, the deadline stays, and `Send` returns `ErrAttemptsExceeded` past 50 or
+  `ErrDeadlinePassed` after it. The first send sets the deadline from `Horizon` (at most one hour,
+  which is also the default). On either error stop and mark the job failed; do not retry around it.
+- **Failure semantics.** `ParseEvent` returns the messages (`ID`, `Queue`, `Payload`, `Attempt`,
+  `Deadline`, `ReceiveCount`); dispatch on `m.Queue`. Collect the ids of messages that failed and
+  answer with `albitorsvc.WriteResult(w, failed)`: a 2xx listing them in `batchItemFailures` retries
+  only those, a 2xx listing none deletes the batch, and a 5xx or a timeout returns the whole
+  batch. After `max_receives` deliveries a message goes to the dead-letter queue, which nobody
+  reads, so do not rely on it. A message in `ev.Malformed` can never succeed: log it and leave it
+  out of the failures. Whether the adapter returns the response body to Lambda is still to be
+  confirmed on the first deployed queue; if not, `WriteResult` answers 5xx for any failure and the
+  whole batch retries, so handlers must be idempotent either way. Only a 5xx counts as an error:
+  a 4xx is a success and deletes the batch, so a handler that wants a retry must answer 5xx (or
+  use `batchItemFailures`), never a 4xx.
+- **Empty batch.** The deploy probes each consumer with `{"Records": []}`. Answer 2xx and do
+  nothing; a 404 there fails the deploy.
+- **Local run.** `OpenQueues` returns the in-process queue under `ALBITOR_LOCAL=1`: `Send` calls
+  your handler at `POST /events` with an SQS-shaped body, one message per call, honours `Delay`,
+  retries up to three times and logs a message it drops. It keeps nothing across restarts and is
+  not SQS: do not test visibility timeouts or dead-lettering against it.
 
 ## Rules every handler follows
 

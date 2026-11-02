@@ -16,4 +16,8 @@
 //
 // Declare what the app calls in albitor.yaml under services.callable, and use Client from
 // api/internal/app. The package is a starting point: keep the signing as it is.
+//
+// queue.go is the queue half: Send to the app's own SQS queues with the function role,
+// ParseEvent and WriteResult for the POST /events consumer, and an in-process queue under
+// ALBITOR_LOCAL=1. It does not use the gateway.
 package albitorsvc

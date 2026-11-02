@@ -30,14 +30,17 @@ There is no `init()` registration and no generator: a handler not listed in `Rou
 Handlers reach data only through the store interface the data-store plugin gives the app, never a
 client of their own, so they work in the local run as well as deployed.
 
-## Schedules
+## Schedules and queues
 
-A `schedules` entry in `albitor.yaml` runs this same binary on a rate. The platform delivers each
-fire as `POST /events` with the body `{"schedule": "<name>"}`; register that route in `Routes`,
-switch on the name, run the job before answering, and answer 5xx if it failed: a 5xx fails the
-invocation and Lambda retries it, while any other status counts as success. An unknown name is a
-400. The route is also reachable through the public API, so it must act only on a known name and
-be safe to run unasked.
+A `schedules` or `queues` entry in `albitor.yaml` runs this same binary. The platform delivers each
+fire as `POST /events`: `{"schedule": "<name>"}` for a schedule, SQS's `{"Records": [...]}` for a
+queue. Register that route in `Routes`, dispatch on the body, run the job before answering, and
+answer 5xx if it failed: a 5xx fails the invocation and Lambda retries it, while any other status
+counts as success. An unknown name is a 400. The route is not reachable from the public API, but
+act only on a declared name anyway, and make every job idempotent: a schedule can fire twice and a
+queue delivers at least once. The platform owns the schedule tick (locally too), so never add a
+ticker of your own, and do not put work a user is waiting on on a schedule. The api-go skill has
+the dispatch code and the queue client.
 
 ## Patterns to keep
 

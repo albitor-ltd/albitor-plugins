@@ -75,6 +75,31 @@ A slot expires in 5 minutes: upload at once, and never log it, store it or send 
 result the gateway returns as a URL expires in 5 minutes too; fetch it server-side and return the
 content, not the URL, unless the user needs the file.
 
+## Async jobs: poll by delayed re-enqueue, not on a schedule
+
+Transcribe and Textract's `Start...` operations return at once and the result arrives later; the
+app polls (`GetTranscriptionJob`, the Textract `Get...`). Do not poll from a `schedules` entry: a
+schedule fires at most every 15 minutes, so a user waiting on the result waits up to that long for
+a job that took seconds. Use a queue and a consumer that re-enqueues itself with a delay:
+
+1. The route that starts the job calls `Start...` (with its idempotency key), then
+   `q.Send(ctx, "transcribe", jobRef{JobID: id}, albitorsvc.SendOptions{Delay: 5 * time.Second})`.
+   Queue the job id and the record it belongs to, never the audio or the result.
+2. The consumer (`POST /events`, see the api-go skill) calls the `Get...` operation. Still running:
+   `q.Send(ctx, queue, ref, albitorsvc.SendOptions{Parent: &m, Delay: 10 * time.Second})`, which
+   bumps `attempt` and keeps the chain's deadline. Done: store the result on the record and, for
+   the next step of a pipeline, `Send` that step's message. Failed: mark the record failed.
+3. `Send` returns `ErrAttemptsExceeded` (50 re-enqueues) or `ErrDeadlinePassed` (the chain's
+   horizon, at most one hour) when the job never finishes: mark the record failed and stop. A
+   polling loop is finite by construction; do not catch the error and send again with no parent.
+4. Keep every step under the 30 second function timeout and idempotent: a message can arrive twice,
+   so a `Get...` on a finished job must store the same result, not start a second job. Each poll is
+   a gateway call and bills like one, so back the delay off (5, 10, 20 seconds) rather than polling
+   tightly; the delay is at most 900 seconds.
+5. Answer a `402`/`403` from the gateway as "unavailable": mark the job failed, do not re-enqueue.
+
+Queues need a deploy target that renders `queues`; until then a user-awaited step runs inline.
+
 ## Errors: say "unavailable", never retry around it
 
 `svc.Call` returns `*albitorsvc.Error` (status and code; AWS's message never arrives). On a `400
@@ -107,6 +132,7 @@ proxy for the internet. By default:
 - Bound what one call can cost: cap input length and file size in the app below the gateway's own
   caps, and never let a request choose the model, the feature set or how many calls fan out.
 - Never put a gateway-backed call on an unauthenticated schedule or webhook without a counter.
+- Never use a schedule to wait on a gateway job a user is waiting for; see the async section above.
 
 The platform also holds the app to a daily cap and a rate limit; those protect Albitor, not your end
 users, and an app that burns its cap turns the feature off for everyone.

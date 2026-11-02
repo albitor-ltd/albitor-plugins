@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `deploy-hosted` `0.5.0` and `api-go` `0.3.3` (albitor-ltd/albitor#4285, ADR-0104; tags
+  `deploy-hosted/v0.5.0` and `api-go/v0.3.3` follow the merge). The `api-go` skill teaches the
+  `POST /events` dispatch for schedules and queues (a schedule body has `schedule`, a queue's has
+  `Records`), the idempotency rule, that `/events` is no longer public, and that the platform owns
+  the local schedule tick so an app never runs its own loop or plans user-awaited work on a
+  schedule. The seeded `albitorsvc` gains the queue half (`queue.go`): `OpenQueues`, `Send` and
+  `SendBatch` to `ALBITOR_QUEUE_<NAME>_URL` signed with the function role, the envelope's `attempt`
+  (at most 50) and `deadline` (at most one hour) bound, `ParseEvent`, `Failures` and `WriteResult`
+  for `ReportBatchItemFailures`, and the in-process local queue; still standard library only. The
+  `gateway-services` skill says to poll an async job by delayed re-enqueue, not on a schedule.
+  `deploy-hosted` does not yet render `queues`: a manifest declaring one still fails early with
+  `manifest_unrendered`.
+
 - `deploy-hosted` `0.4.1` (albitor-ltd/albitor#4268, albitor#4273; tagged `deploy-hosted/v0.4.1`). The
   `gateway-services` request-shapes reference states the new 5,500,000-byte body ceiling (was 1 MiB)
   and documents Bedrock Converse media by `uploadHandle`: an image, document or video `source` is
