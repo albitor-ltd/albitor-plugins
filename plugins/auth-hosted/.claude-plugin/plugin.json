@@ -2,9 +2,9 @@
   "schema": 2,
   "name": "auth-hosted",
   "displayName": "Auth (hosted sign-in)",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "kind": "socket",
-  "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
+  "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes, the email domain rule's refusal screens and the sign-in screens on component-kit@2 are worked examples in the skill to copy and alter. It declares services.auth.",
   "author": {
     "name": "Albitor Ltd",
     "email": "jamie@albitor.com"
@@ -31,13 +31,6 @@
   ],
   "contributes": {
     "files": [
-      {
-        "path": "api/openapi.yaml",
-        "mode": "example",
-        "when": {
-          "api-runtime": "api-go"
-        }
-      },
       {
         "path": "api/internal/identity/identity.go",
         "mode": "example",
@@ -81,13 +74,6 @@
         }
       },
       {
-        "path": "api/internal/shell/identity_hosted_test.go",
-        "mode": "example",
-        "when": {
-          "api-runtime": "api-go"
-        }
-      },
-      {
         "path": "web/src/lib/auth/session.ts",
         "mode": "example",
         "when": {
@@ -116,28 +102,7 @@
         }
       },
       {
-        "path": "web/src/lib/auth/client.ts",
-        "mode": "example",
-        "when": {
-          "web-framework": "web-svelte"
-        }
-      },
-      {
-        "path": "web/src/lib/auth/client.test.ts",
-        "mode": "example",
-        "when": {
-          "web-framework": "web-svelte"
-        }
-      },
-      {
         "path": "web/src/lib/shell/scope.d/auth-hosted.ts",
-        "mode": "example",
-        "when": {
-          "web-framework": "web-svelte"
-        }
-      },
-      {
-        "path": "web/src/routes/(auth)/**",
         "mode": "example",
         "when": {
           "web-framework": "web-svelte"
@@ -147,14 +112,6 @@
         "path": "web/tests/auth/provider.ts",
         "mode": "example",
         "when": {
-          "test-harness": "test-playwright"
-        }
-      },
-      {
-        "path": "web/tests/journeys/sign-in.spec.ts",
-        "mode": "example",
-        "when": {
-          "web-framework": "web-svelte",
           "test-harness": "test-playwright"
         }
       }

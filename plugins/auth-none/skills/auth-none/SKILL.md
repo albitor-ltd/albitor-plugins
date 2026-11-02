@@ -10,9 +10,17 @@ metadata:
 This app has no sign-in. Anyone who can reach it can use all of it, and that is the choice that was
 made: say so in the delivery record, and do not describe the app as private.
 
-## What it gives you
+## Seeded files (the app's own)
 
-`api/internal/identity` (seeded once, yours to edit), with the same API as the auth-cognito plugin's:
+Written once and plain app code, yours to edit:
+
+- `api/internal/identity/identity.go`, `identity_test.go`: the identity package, with the same API a
+  real sign-in plugin (such as auth-cognito) gives.
+- `web/tests/auth/provider.ts`: the `auth@2` provider the specs call (with the Playwright harness).
+
+There are no examples: an app with no sign-in has nothing to copy.
+
+## What it gives you
 
 | Call | Answers |
 | --- | --- |
@@ -25,8 +33,7 @@ all.
 
 ## Roles
 
-There are none. `web/tests/auth/provider.ts` (seeded with the Playwright harness) is this plugin's
-`auth@2` provider: `auth.roles()` is always empty, and `seed` and `signInAs` refuse, so no spec can
+There are none. `web/tests/auth/provider.ts` is the `auth@2` provider: `auth.roles()` is always empty, and `seed` and `signInAs` refuse, so no spec can
 pretend to be someone. An app that needs roles needs a real auth plugin.
 
 ## Writing handlers
