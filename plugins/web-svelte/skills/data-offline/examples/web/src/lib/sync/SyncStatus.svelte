@@ -1,4 +1,4 @@
-<!-- Starting point (web-svelte, offline data layer): a polite status line for the sync state. Place it in the
+<!-- A polite status line for the sync state. Place it in the
      layout or a page; it renders nothing until someone is signed in. -->
 <script lang="ts">
 	import { getSync } from './context';

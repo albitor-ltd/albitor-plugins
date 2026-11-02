@@ -1,20 +1,35 @@
 ---
 name: data-offline
-description: How to read and write data that must work offline on a SvelteKit app composed with the web-svelte offline data layer (lib/sync): collections, the outbox, sync status, sign-out, and what the API must provide. Use when a build adds or changes a page that reads or writes synced data.
+description: How to read and write data that must work offline on a SvelteKit app using the web-svelte offline data layer (lib/sync): how to make an app offline by copying the worked example in, collections, the outbox, sync status, sign-out, and what the API must provide. Use when an app must work offline, or a build adds or changes a page that reads or writes synced data.
 ---
 
 # Offline-first data (web-svelte, offline data layer)
 
 Records live on the device first. A write lands in the local store and in an outbox, the page
 updates at once, and the outbox is sent to the API whenever there is a network. Reads never wait
-for the network. This is the data layer an app is composed with when its plan has the `offline`
-need (`lib/data-layer/index.ts` says which, and its `DataProvider` is `SyncProvider`); an
-online-only app uses the data-online skill. Do not use TanStack Query (`lib/data`) for synced
-collections: it ships in every app but is not imported unless the online layer is selected.
+for the network. An online-only app uses the data-online skill, and the seeded data layer is that
+one. Do not use TanStack Query (`lib/data`) for synced collections.
+
+## Make the app offline
+
+The offline layer is a worked example, not seeded code. It lives in this skill at
+`examples/web/src/lib/` (the `data-offline` example), laid out as the app's own paths:
+
+- `sync/**` (engine, stores, transport, auto-sync, status, `SyncProvider.svelte`,
+  `SyncStatus.svelte`, `collections.ts`, and its tests)
+- `data-layer/offline.ts` (the entry point, exporting `SyncProvider` as `DataProvider`)
+
+1. Copy `examples/web/src/lib/sync/` and `examples/web/src/lib/data-layer/offline.ts` to the same
+   paths under the app's `web/src/lib/`.
+2. Swap the entry point: in `web/src/lib/data-layer/index.ts` change `'./online'` to `'./offline'`.
+   Nothing else imports a layer, and the shell's `scope.d/data-layer.ts` already follows `index.ts`.
+3. Declare the collections, wire `setSyncUser` (below) and put `<SyncStatus />` in the layout.
+4. Keep the copied tests green: `fake-indexeddb` is already in `package.json` for them, and
+   `sync/shell.test.ts` reads the seeded service worker, which must stay.
 
 ## Declare the collection
 
-Add each kind of synced record to `src/lib/sync/collections.ts` (app-owned):
+Add each kind of synced record to `src/lib/sync/collections.ts` (the app's, once copied in):
 
 ```ts
 export const collections = ['todos'] as const;
@@ -66,17 +81,18 @@ change was rejected. For rejected changes, `sync.failures()` lists them (no serv
 - The auth integration calls `setSyncUser(userId)` (`lib/sync/session.ts`) with the stable user id
   when a session starts or the person changes, and `setSyncUser(null)` when it ends. Call it before the bearer token source switches to the new person (and before it is cleared). Each person has
   their own local database; one never sees or uploads another's.
-- **No auth plugin makes that call yet.** Until one does, wire it in the app's own code where the
-  session is read (for `auth-cognito`, beside `getSession()`; for `auth-none`, once at start-up
-  with its fixed owner id). Without it the engine never attaches, and nothing syncs.
+- **No auth plugin makes that call.** Wire it in the app's own code where the session is read (for
+  `auth-cognito`, beside `getSession()`; for `auth-none`, once at start-up with its fixed owner id).
+  Without it the engine never attaches, and nothing syncs.
 - Before ending a session, `await sync.signOut()`. If it returns `{ ok: false, pending }`, tell the
   person that many changes have not been saved and let them wait, or choose `signOut({ discard: true })`
   explicitly. Never discard silently.
 
 ## Rules that stay
 
-- Treat `lib/sync/*` as a starting point: `collections.ts` is where the app lists its collections;
-  change the rest only when the app needs it, and keep `engine.test.ts` and `shell.test.ts` passing.
+- Once copied in, `lib/sync/*` is the app's code: `collections.ts` is where the app lists its
+  collections; change the rest only when the app needs it, and keep `engine.test.ts` and
+  `shell.test.ts` passing.
 - Do not unregister or bypass the service worker (`src/service-worker`): it is what lets the shell
   open offline, and it deliberately never caches `/api/`.
 - A route guard hides pages, it does not protect data: the API must check the caller on every call.

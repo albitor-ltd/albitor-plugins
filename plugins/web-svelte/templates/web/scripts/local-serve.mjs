@@ -1,4 +1,4 @@
-// Starting point (web-svelte): the web side of the local run contract.
+// The web side of the local run contract.
 //
 // Serves the built SPA from ./build with the single-page fallback, forwards /api/* to the API
 // (the api-runtime plugin starts it on :8080 in local mode), and answers /healthz so the runner

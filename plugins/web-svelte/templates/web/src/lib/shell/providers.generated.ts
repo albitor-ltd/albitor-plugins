@@ -1,4 +1,4 @@
-// Starting point (web-svelte): the providers and route guards the plugins composed with the shell
+// The providers and route guards the plugins composed with the shell
 // declared, written once. It is yours from here on: add or remove entries as the app needs.
 // Identifiers resolve against the scope in ./scope (see the
 // svelte-shell skill).
