@@ -125,21 +125,39 @@ func composeAuth(t *testing.T, auth string, extra ...string) (*composer.Result, 
 	return composer.Compose(composer.Input{Plugins: plugins, Tokens: tokens})
 }
 
-// requireOneContractWithMe asserts the composed tree has exactly one api/openapi.yaml and that it
-// defines GET /api/me, the entry the sign-in probe depends on.
-func requireOneContractWithMe(t *testing.T, res *composer.Result) {
+// requireBaseContract asserts the composed tree has exactly one api/openapi.yaml, api-go's base
+// contract: the auth plugin's variant with GET /api/me is a skill example, not a seed, so the two
+// never collide.
+func requireBaseContract(t *testing.T, res *composer.Result) {
 	t.Helper()
 	n := 0
-	for path, body := range res.Files {
+	for path := range res.Files {
 		if path == "api/openapi.yaml" {
 			n++
-			if !strings.Contains(string(body), "\n  /api/me:\n") {
-				t.Errorf("api/openapi.yaml does not define /api/me")
-			}
 		}
 	}
 	if n != 1 {
 		t.Errorf("want exactly one api/openapi.yaml in the composed tree, got %d", n)
+	}
+}
+
+// exampleDir is where a plugin's skill keeps its worked examples, laid out by repository path.
+func exampleDir(t *testing.T, name string) string {
+	t.Helper()
+	return filepath.Join(authDir(t, name), "skills", name, "examples")
+}
+
+// requireExamplesNotComposed asserts each repository path is a skill example only: the plugin
+// ships it under examples/, and the composer writes nothing there.
+func requireExamplesNotComposed(t *testing.T, res *composer.Result, name string, paths []string) {
+	t.Helper()
+	for _, p := range paths {
+		if _, ok := res.Files[p]; ok {
+			t.Errorf("%s is a skill example of %s and must not be composed", p, name)
+		}
+		if _, err := os.Stat(filepath.Join(exampleDir(t, name), filepath.FromSlash(p))); err != nil {
+			t.Errorf("%s does not ship the example %s: %v", name, p, err)
+		}
 	}
 }
 
@@ -162,7 +180,7 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		t.Fatalf("auth-cognito does not compose in the default shell: %v", composer.Problems(err))
 	}
 
-	requireOneContractWithMe(t, res)
+	requireBaseContract(t, res)
 	providers := string(res.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{"const { requireSession } = scope;", "checkGuards([requireSession])"} {
 		if !strings.Contains(providers, want) {
@@ -196,11 +214,8 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"api/internal/shell/identity_verify.go",
 		"api/internal/shell/identity_token.go",
 		"api/internal/shell/identity_cognito.go",
-		"api/internal/shell/identity_people.go",
-		"api/internal/shell/identity_sigv4.go",
 		"web/src/lib/auth/session.ts",
 		"web/src/lib/auth/guard.ts",
-		"web/src/lib/auth/client.ts",
 		"web/src/lib/shell/scope.d/auth-cognito.ts",
 	}
 	for _, p := range managed {
@@ -208,7 +223,11 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 			t.Errorf("%s should be an example (seeded once, app-owned), got %q", p, modes[p])
 		}
 	}
-	screens := []string{
+	requireExamplesNotComposed(t, res, "auth-cognito", []string{
+		"api/internal/shell/identity_flows.go",
+		"api/internal/shell/identity_people.go",
+		"api/internal/shell/identity_sigv4.go",
+		"web/src/lib/auth/client.ts",
 		"web/src/routes/(auth)/sign-in/+page.svelte",
 		"web/src/routes/(auth)/sign-up/+page.svelte",
 		"web/src/routes/(auth)/confirm/+page.svelte",
@@ -218,22 +237,30 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/routes/(auth)/change-password/+page.svelte",
 		"web/src/routes/(auth)/change-password/nav.ts",
 		"web/src/routes/(auth)/people/+page.svelte",
-		"web/tests/journeys/sign-in.spec.ts", // a spec author's path: seeded, never pinned
-	}
-	for _, p := range screens {
-		if modes[p] != "example" {
-			t.Errorf("%s should be an app-owned example, got %q", p, modes[p])
-		}
+		"web/tests/journeys/sign-in.spec.ts",
+	})
+	// The contract example is api-go's base plus /api/me, which the seeded API serves.
+	contract, err := os.ReadFile(filepath.Join(exampleDir(t, "auth-cognito"), "api", "openapi.yaml"))
+	if err != nil || !strings.Contains(string(contract), "\n  /api/me:\n") {
+		t.Errorf("the example api/openapi.yaml must define /api/me: %v", err)
 	}
 }
 
-// TestAuthCognitoScreensComposeOnEveryComponentKit2Kit: the screens are written against the
-// component-kit@2 standard exports, not a named kit, so every kit that provides that major gets
-// the same screens, and a kit that provides only component-kit@1 is refused (no implicit
-// compatibility). kit-carbon is the non-GDS proof beside kit-shadcn and kit-gds.
-func TestAuthCognitoScreensComposeOnEveryComponentKit2Kit(t *testing.T) {
+// TestAuthCognitoScreensAreWrittenAgainstTheStandardKitExports: the screen examples are written
+// against the component-kit@2 standard exports, not a named kit, so every kit that provides that
+// major exports what they import, and a kit that provides only component-kit@1 is refused (no
+// implicit compatibility). kit-carbon is the non-GDS proof beside kit-shadcn and kit-gds. The
+// screens are examples, so the composition writes none of them.
+func TestAuthCognitoScreensAreWrittenAgainstTheStandardKitExports(t *testing.T) {
 	root := repoRoot(t)
 	peers := authPeers(t)
+	signIn, err := os.ReadFile(filepath.Join(exampleDir(t, "auth-cognito"), "web", "src", "routes", "(auth)", "sign-in", "+page.svelte"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(signIn), "SignInPage") {
+		t.Error("the sign-in screen example must render the kit's SignInPage")
+	}
 	for _, kit := range []string{"kit-shadcn", "kit-carbon", "kit-gds"} {
 		t.Run(kit, func(t *testing.T) {
 			plugins := []composer.Plugin{
@@ -245,31 +272,15 @@ func TestAuthCognitoScreensComposeOnEveryComponentKit2Kit(t *testing.T) {
 			if err != nil {
 				t.Fatalf("auth-cognito does not compose on %s: %v", kit, composer.Problems(err))
 			}
-			for _, p := range []string{
-				"web/src/routes/(auth)/sign-in/+page.svelte",
-				"web/src/routes/(auth)/sign-up/+page.svelte",
-				"web/src/routes/(auth)/confirm/+page.svelte",
-				"web/src/routes/(auth)/reset/+page.svelte",
-				"web/src/routes/(auth)/sign-out/+page.svelte",
-				"web/src/lib/kit/index.ts",
-			} {
-				if _, ok := out.Files[p]; !ok {
-					t.Errorf("%s: %s was not written", kit, p)
-				}
-			}
-			// The kit's own barrel exports what the sign-in screen imports.
+			// The kit's own barrel exports what the sign-in screen example imports.
 			index := string(out.Files["web/src/lib/kit/index.ts"])
-			signIn := string(out.Files["web/src/routes/(auth)/sign-in/+page.svelte"])
-			if !strings.Contains(signIn, "SignInPage") {
-				t.Error("the sign-in screen must render the kit's SignInPage")
-			}
 			for _, name := range []string{"SignInPage", "Field", "Button"} {
 				if !strings.Contains(index, name) {
 					t.Errorf("%s's index.ts does not export %s, which the screens import", kit, name)
 				}
 			}
-			if modes := lockModes(t, out); modes["web/src/routes/(auth)/sign-in/+page.svelte"] != "example" {
-				t.Errorf("the sign-in screen should be an app-owned example, got %q", modes["web/src/routes/(auth)/sign-in/+page.svelte"])
+			if _, ok := out.Files["web/src/routes/(auth)/sign-in/+page.svelte"]; ok {
+				t.Error("the sign-in screen is an example and must not be composed")
 			}
 		})
 	}
@@ -295,7 +306,7 @@ func TestAuthCognitoNamesNoKit(t *testing.T) {
 	if !found {
 		t.Errorf("auth-cognito must require component-kit@2, requires %v", p.Manifest.Requires)
 	}
-	err := filepath.WalkDir(filepath.Join(authDir(t, "auth-cognito"), "templates", "web", "src", "routes"), func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(filepath.Join(exampleDir(t, "auth-cognito"), "web", "src", "routes"), func(path string, d os.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}

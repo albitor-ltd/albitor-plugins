@@ -73,7 +73,7 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		t.Fatalf("auth-hosted does not compose in the default shell: %v", composer.Problems(err))
 	}
 
-	requireOneContractWithMe(t, res)
+	requireBaseContract(t, res)
 	providers := string(res.Files["web/src/lib/shell/providers.generated.ts"])
 	for _, want := range []string{"const { requireSession } = scope;", "checkGuards([requireSession])"} {
 		if !strings.Contains(providers, want) {
@@ -111,14 +111,15 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"api/internal/shell/identity_hosted.go",
 		"web/src/lib/auth/session.ts",
 		"web/src/lib/auth/guard.ts",
-		"web/src/lib/auth/client.ts",
 		"web/src/lib/shell/scope.d/auth-hosted.ts",
 	} {
 		if modes[p] != "example" {
 			t.Errorf("%s should be an example (seeded once, app-owned), got %q", p, modes[p])
 		}
 	}
-	for _, p := range []string{
+	requireExamplesNotComposed(t, res, "auth-hosted", []string{
+		"api/internal/shell/identity_flows.go",
+		"web/src/lib/auth/client.ts",
 		"web/src/routes/(auth)/sign-in/+page.svelte",
 		"web/src/routes/(auth)/sign-out/+page.svelte",
 		"web/src/routes/(auth)/sign-out/nav.ts",
@@ -127,16 +128,17 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/routes/(auth)/account/nav.ts",
 		"web/src/routes/(auth)/account/delete/+page.svelte",
 		"web/tests/journeys/sign-in.spec.ts",
-	} {
-		if modes[p] != "example" {
-			t.Errorf("%s should be an app-owned example, got %q", p, modes[p])
-		}
+	})
+	// The contract example is api-go's base plus /api/me, which the seeded API serves.
+	contract, err := os.ReadFile(filepath.Join(exampleDir(t, "auth-hosted"), "api", "openapi.yaml"))
+	if err != nil || !strings.Contains(string(contract), "\n  /api/me:\n") {
+		t.Errorf("the example api/openapi.yaml must define /api/me: %v", err)
 	}
 }
 
-// TestAuthHostedScreensComposeOnEveryComponentKit2Kit: the screens use the component-kit@2 exports
-// only, so every kit that provides that major gets them.
-func TestAuthHostedScreensComposeOnEveryComponentKit2Kit(t *testing.T) {
+// TestAuthHostedComposesOnEveryComponentKit2Kit: the screen examples use the component-kit@2
+// exports only, so every kit that provides that major composes with it and exports what they use.
+func TestAuthHostedComposesOnEveryComponentKit2Kit(t *testing.T) {
 	root := repoRoot(t)
 	peers := authPeers(t)
 	for _, kit := range []string{"kit-shadcn", "kit-carbon", "kit-gds"} {
@@ -190,27 +192,32 @@ func TestAuthHostedRequiresWhatItUses(t *testing.T) {
 // TestAuthHostedHasNoPasswordFieldAndNamesNoKit: the app never sees a password, and no screen
 // names a kit.
 func TestAuthHostedHasNoPasswordFieldAndNamesNoKit(t *testing.T) {
-	err := filepath.WalkDir(filepath.Join(authDir(t, "auth-hosted"), "templates", "web", "src"), func(path string, d os.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
-		}
-		b, rerr := os.ReadFile(path)
-		if rerr != nil {
-			return rerr
-		}
-		if strings.HasSuffix(path, ".test.ts") {
+	for _, root := range []string{
+		filepath.Join(authDir(t, "auth-hosted"), "templates", "web", "src"),
+		filepath.Join(exampleDir(t, "auth-hosted"), "web", "src"),
+	} {
+		err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return err
+			}
+			b, rerr := os.ReadFile(path)
+			if rerr != nil {
+				return rerr
+			}
+			if strings.HasSuffix(path, ".test.ts") {
+				return nil
+			}
+			if m := regexp.MustCompile(`(?i)type=["']password["']|autocomplete=["'](new-|current-)password`).Find(b); m != nil {
+				t.Errorf("%s has a password field (%s)", path, m)
+			}
+			if m := regexp.MustCompile(`(?i)kit-(shadcn|carbon|gds)`).Find(b); m != nil {
+				t.Errorf("%s names a kit (%s)", path, m)
+			}
 			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
 		}
-		if m := regexp.MustCompile(`(?i)type=["']password["']|autocomplete=["'](new-|current-)password`).Find(b); m != nil {
-			t.Errorf("%s has a password field (%s)", path, m)
-		}
-		if m := regexp.MustCompile(`(?i)kit-(shadcn|carbon|gds)`).Find(b); m != nil {
-			t.Errorf("%s names a kit (%s)", path, m)
-		}
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
 	}
 }
 

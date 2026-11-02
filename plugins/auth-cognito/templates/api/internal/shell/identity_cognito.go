@@ -17,16 +17,13 @@ import (
 	"webapp/internal/localauth"
 )
 
-// The Cognito half of sign-in: where the pool comes from, the sign-in calls the
-// web app makes (POST /api/auth/*), and the session cookies.
+// The Cognito half of the identity seam: where the pool comes from, the calls the API makes to
+// Cognito, and the session cookies.
 //
-// WHY THE API MAKES THE SIGN-IN CALLS, NOT THE BROWSER. The page's
-// Content-Security-Policy allows connections to its own origin only
-// (connect-src 'self'), and the web app is a static build that carries no pool
-// ids. So the browser posts to /api/auth/*, and the API calls Cognito's public,
-// unauthenticated operations on its behalf. The tokens come back as HttpOnly
-// cookies the page's JavaScript cannot read, which is the hardened shape
-// anyway: no token in localStorage for an injected script to steal.
+// The API makes those calls, not the browser. The page's Content-Security-Policy allows
+// connections to its own origin only (connect-src 'self'), and the web app is a static build that
+// carries no pool ids. Tokens travel as HttpOnly cookies the page's JavaScript cannot read, which
+// is the hardened shape anyway: no token in localStorage for an injected script to steal.
 
 // The environment the deploy target hands the function (services.auth in
 // albitor.yaml): the pool, its public client, and the region.
@@ -59,10 +56,7 @@ const (
 	sessionMaxAge = 30 * 24 * time.Hour
 )
 
-const (
-	maxAuthBodyBytes = 16 << 10
-	cognitoTimeout   = 10 * time.Second
-)
+const cognitoTimeout = 10 * time.Second
 
 // signIn is how this process answers who a request is, decided once from the
 // environment: a pool, the local issuer, nobody (a local run with no sign-in),
@@ -80,7 +74,7 @@ type signIn struct {
 //     fallback.
 //   - a deployed function (AWS_LAMBDA_FUNCTION_NAME) with no pool: a failure.
 //   - a local run (ALBITOR_LOCAL=1) with ALBITOR_LOCAL_AUTH=1: the local issuer
-//     api-go starts, alone. The sign-in calls say they are not available.
+//     the API starts, alone. The sign-in calls say they are not available.
 //   - a local run with neither: nobody, and every request acts as the
 //     anonymous owner.
 //   - anything else: a failure. An API that is neither local nor configured
@@ -151,7 +145,7 @@ func (c cognitoConfig) endpoint() string {
 }
 
 // cognitoAuth is one pool and client: the token check and the public calls.
-// With local set it is api-go's local issuer instead: tokens are checked the
+// With local set it is the local issuer instead: tokens are checked the
 // same way, and there is no pool to make the sign-in calls to.
 type cognitoAuth struct {
 	clientID string
@@ -164,11 +158,8 @@ type cognitoAuth struct {
 	signUp         string
 	adminGroup     string
 	userAdminGroup string
-	// poolID, region, credentials and now serve the signed admin calls (identity_people.go).
-	poolID      string
-	region      string
-	credentials func() awsCredentials
-	now         func() time.Time
+	poolID         string
+	region         string
 }
 
 // inviteOnly reports whether the pool is invite-only: self sign-up is off, accounts are created
@@ -207,8 +198,6 @@ func newCognitoAuth(cfg cognitoConfig) *cognitoAuth {
 		userAdminGroup: cfg.UserAdminGroup,
 		poolID:         cfg.UserPoolID,
 		region:         cfg.Region,
-		credentials:    awsCredentialsFromEnv,
-		now:            time.Now,
 	}
 }
 
@@ -302,148 +291,6 @@ func clearSessionCookies(w http.ResponseWriter) {
 	setSessionCookie(w, refreshCookie, "", refreshCookiePath, -time.Second)
 }
 
-// serveAuth answers POST /api/auth/<action>: the calls the sign-in, sign-up,
-// confirm-code and reset screens make. Each takes a small JSON body.
-func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
-	// The routes that are not one of the public sign-in calls: the mode, a signed-in person's own
-	// password, and the People admin (identity_people.go).
-	if a.serveSignedInRoute(w, r, logger) {
-		return
-	}
-	if r.Method != http.MethodPost {
-		apikit.WriteError(w, http.StatusNotFound, "not found")
-		return
-	}
-	if a.local {
-		// A local run has no pool to sign in to. A spec signs in through the
-		// local issuer instead (web/tests/helpers/local-auth.ts).
-		apikit.WriteJSON(w, http.StatusNotImplemented, map[string]string{
-			"error": "sign-in is not available in a local run: use the local issuer", "code": "local",
-		})
-		return
-	}
-	// In an invite-only app nobody registers or recovers an account for themselves: an administrator
-	// adds people and resets passwords, so these calls do not exist.
-	if a.inviteOnly() && selfServiceActions[strings.TrimPrefix(r.URL.Path, authPathRoot)] {
-		writeAuthError(w, http.StatusNotFound, "not_found", "not found")
-		return
-	}
-	// JSON only. Another site's HTML form cannot send this content type
-	// without the browser asking first, so it cannot sign a visitor in to an
-	// account of its choosing.
-	if !isJSONRequest(r) {
-		writeAuthError(w, http.StatusUnsupportedMediaType, "invalid_input", "send application/json")
-		return
-	}
-	var body struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Code     string `json:"code"`
-		Session  string `json:"session"`
-	}
-	if err := json.NewDecoder(io.LimitReader(r.Body, maxAuthBodyBytes)).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
-		writeAuthError(w, http.StatusBadRequest, "invalid_input", "invalid json")
-		return
-	}
-	email := strings.ToLower(strings.TrimSpace(body.Email))
-	code := strings.TrimSpace(body.Code)
-
-	action := strings.TrimPrefix(r.URL.Path, authPathRoot)
-	if action != "sign-out" && email == "" {
-		writeAuthError(w, http.StatusBadRequest, "invalid_input", "email is required")
-		return
-	}
-
-	var cerr *cognitoError
-	switch action {
-	case "sign-in":
-		var tokens cognitoTokens
-		tokens, cerr = a.initiateAuth(r.Context(), "USER_PASSWORD_AUTH", map[string]string{"USERNAME": email, "PASSWORD": body.Password})
-		if cerr == nil {
-			a.finishSignIn(w, r, tokens, logger)
-			return
-		}
-	case "new-password":
-		// The second half of a first sign-in: an invited person signed in with
-		// the temporary password the pool emailed and was asked for their own.
-		var tokens cognitoTokens
-		tokens, cerr = a.respondNewPassword(r.Context(), email, body.Password, body.Session)
-		if cerr == nil {
-			a.finishSignIn(w, r, tokens, logger)
-			return
-		}
-	case "sign-up":
-		var out struct {
-			UserConfirmed bool `json:"UserConfirmed"`
-		}
-		cerr = a.call(r.Context(), "SignUp", map[string]any{
-			"ClientId": a.clientID, "Username": email, "Password": body.Password,
-			"UserAttributes": []map[string]string{{"Name": "email", "Value": email}},
-		}, &out)
-		if cerr == nil {
-			apikit.WriteJSON(w, http.StatusCreated, map[string]bool{"confirmation_required": !out.UserConfirmed})
-			return
-		}
-	case "confirm":
-		cerr = a.call(r.Context(), "ConfirmSignUp", map[string]any{
-			"ClientId": a.clientID, "Username": email, "ConfirmationCode": code,
-		}, nil)
-	case "resend":
-		cerr = a.call(r.Context(), "ResendConfirmationCode", map[string]any{"ClientId": a.clientID, "Username": email}, nil)
-	case "forgot":
-		cerr = a.call(r.Context(), "ForgotPassword", map[string]any{"ClientId": a.clientID, "Username": email}, nil)
-	case "reset":
-		cerr = a.call(r.Context(), "ConfirmForgotPassword", map[string]any{
-			"ClientId": a.clientID, "Username": email, "ConfirmationCode": code, "Password": body.Password,
-		}, nil)
-	case "sign-out":
-		a.signOut(w, r)
-		return
-	default:
-		apikit.WriteError(w, http.StatusNotFound, "not found")
-		return
-	}
-	if cerr != nil {
-		a.writeCognitoError(w, r, logger, action, cerr)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// selfServiceActions are the calls only a pool that lets people register themselves has.
-var selfServiceActions = map[string]bool{"sign-up": true, "confirm": true, "resend": true, "forgot": true, "reset": true}
-
-func isJSONRequest(r *http.Request) bool {
-	mt, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
-	return strings.EqualFold(strings.TrimSpace(mt), "application/json")
-}
-
-// finishSignIn checks the new ID token like any other and sets the session.
-func (a *cognitoAuth) finishSignIn(w http.ResponseWriter, r *http.Request, tokens cognitoTokens, logger *slog.Logger) {
-	id, err := a.verifier.verify(r.Context(), tokens.IDToken)
-	if err != nil {
-		logger.ErrorContext(r.Context(), "the pool issued a token this API does not accept",
-			slog.String("correlation_id", apikit.CorrelationIDFromContext(r.Context())),
-			slog.String("error", err.Error()))
-		writeAuthError(w, http.StatusBadGateway, "unavailable", "sign-in is unavailable")
-		return
-	}
-	setSessionCookie(w, sessionCookie, tokens.IDToken, "/", sessionMaxAge)
-	if tokens.RefreshToken != "" {
-		setSessionCookie(w, refreshCookie, tokens.RefreshToken, refreshCookiePath, sessionMaxAge)
-	}
-	apikit.WriteJSON(w, http.StatusOK, id)
-}
-
-// signOut revokes the refresh token, best effort, and clears the session.
-func (a *cognitoAuth) signOut(w http.ResponseWriter, r *http.Request) {
-	if c, err := r.Cookie(refreshCookie); err == nil && c.Value != "" {
-		_ = a.call(r.Context(), "RevokeToken", map[string]any{"ClientId": a.clientID, "Token": c.Value}, nil)
-	}
-	clearSessionCookies(w)
-	w.WriteHeader(http.StatusNoContent)
-}
-
 type cognitoTokens struct {
 	IDToken      string `json:"IdToken"`
 	AccessToken  string `json:"AccessToken"`
@@ -475,9 +322,9 @@ const (
 
 // challengeOrTokens turns a sign-in answer into tokens, or into the error that
 // says what the pool wants instead. A temporary password to replace
-// (NEW_PASSWORD_REQUIRED, an invited person's first sign-in) is a step this
-// plugin ships; any other challenge (MFA) needs a screen it does not, so the
-// app adds it when it turns one on.
+// (NEW_PASSWORD_REQUIRED, an invited person's first sign-in) is a step the
+// sign-in screens handle; any other challenge (MFA) needs a screen of its own,
+// so the app adds it when it turns one on.
 func challengeOrTokens(name, session string, tokens cognitoTokens) (cognitoTokens, *cognitoError) {
 	switch {
 	case name == challengeNewPassword && session != "":
@@ -486,38 +333,6 @@ func challengeOrTokens(name, session string, tokens cognitoTokens) (cognitoToken
 		return cognitoTokens{}, &cognitoError{kind: kindChallengeRequired, message: name}
 	}
 	return tokens, nil
-}
-
-// respondNewPassword answers a NEW_PASSWORD_REQUIRED challenge with the
-// person's own password. The session is the opaque token the pool handed back
-// with the challenge; it is bound to this user and lasts a few minutes, so
-// holding it in the page between the two calls gives nobody anything the
-// temporary password did not.
-func (a *cognitoAuth) respondNewPassword(ctx context.Context, email, password, session string) (cognitoTokens, *cognitoError) {
-	if password == "" || session == "" || len(session) > maxChallengeSessionBytes {
-		return cognitoTokens{}, &cognitoError{kind: "InvalidParameterException", message: "a new password and the sign-in session are required"}
-	}
-	var out struct {
-		ChallengeName        string        `json:"ChallengeName"`
-		Session              string        `json:"Session"`
-		AuthenticationResult cognitoTokens `json:"AuthenticationResult"`
-	}
-	if cerr := a.call(ctx, "RespondToAuthChallenge", map[string]any{
-		"ClientId":      a.clientID,
-		"ChallengeName": challengeNewPassword,
-		"Session":       session,
-		"ChallengeResponses": map[string]string{
-			"USERNAME":     email,
-			"NEW_PASSWORD": password,
-		},
-	}, &out); cerr != nil {
-		return cognitoTokens{}, cerr
-	}
-	// Asked for the same step again would loop the screen: only tokens succeed.
-	if out.ChallengeName == challengeNewPassword {
-		return cognitoTokens{}, &cognitoError{kind: kindChallengeRequired, message: out.ChallengeName}
-	}
-	return challengeOrTokens(out.ChallengeName, out.Session, out.AuthenticationResult)
 }
 
 // cognitoError is a failed call. kind is Cognito's exception name, or empty
@@ -542,17 +357,12 @@ func (e *cognitoError) Unwrap() error { return e.err }
 // call makes one of Cognito's public user-pool operations. They need no AWS
 // credentials: the app client id is the whole of the authority.
 func (a *cognitoAuth) call(ctx context.Context, op string, in any, out any) *cognitoError {
-	return a.send(ctx, op, in, out, false)
+	return a.send(ctx, op, in, out, nil)
 }
 
-// adminCall makes one of the user pool's administrator operations, signed with the function's
-// execution-role credentials (SigV4). The deploy target grants that role these operations on this
-// one pool, and only when the app is invite-only.
-func (a *cognitoAuth) adminCall(ctx context.Context, op string, in any, out any) *cognitoError {
-	return a.send(ctx, op, in, out, true)
-}
-
-func (a *cognitoAuth) send(ctx context.Context, op string, in any, out any, signed bool) *cognitoError {
+// send posts one operation. sign, when set, signs the request before it is sent; the public
+// operations pass nil.
+func (a *cognitoAuth) send(ctx context.Context, op string, in any, out any, sign func(req *http.Request, payload []byte) error) *cognitoError {
 	payload, err := json.Marshal(in)
 	if err != nil {
 		return &cognitoError{err: err}
@@ -565,12 +375,10 @@ func (a *cognitoAuth) send(ctx context.Context, op string, in any, out any, sign
 	}
 	req.Header.Set("Content-Type", "application/x-amz-json-1.1")
 	req.Header.Set("X-Amz-Target", "AWSCognitoIdentityProviderService."+op)
-	if signed {
-		creds := a.credentials()
-		if creds.AccessKeyID == "" || creds.SecretAccessKey == "" {
-			return &cognitoError{err: errors.New("the function has no AWS credentials")}
+	if sign != nil {
+		if err := sign(req, payload); err != nil {
+			return &cognitoError{err: err}
 		}
-		signRequest(req, payload, creds, a.region, "cognito-idp", a.now())
 	}
 	resp, err := a.client.Do(req)
 	if err != nil {
@@ -603,61 +411,4 @@ func (a *cognitoAuth) send(ctx context.Context, op string, in any, out any, sign
 		return &cognitoError{err: fmt.Errorf("decode %s: %w", op, err)}
 	}
 	return nil
-}
-
-// writeCognitoError turns Cognito's answer into one the screens can act on.
-// The code is stable; the message is safe to show.
-func (a *cognitoAuth) writeCognitoError(w http.ResponseWriter, r *http.Request, logger *slog.Logger, action string, e *cognitoError) {
-	switch e.kind {
-	case "NotAuthorizedException", "UserNotFoundException":
-		if action == "change-password" {
-			writeAuthError(w, http.StatusUnauthorized, "invalid_credentials", "your current password is not right")
-			return
-		}
-		if action == "new-password" {
-			// The challenge session lapsed (a few minutes) or was never this person's.
-			writeAuthError(w, http.StatusUnauthorized, "session_expired", "that sign-in has expired: sign in again")
-			return
-		}
-		writeAuthError(w, http.StatusUnauthorized, "invalid_credentials", "incorrect email or password")
-	case "UserNotConfirmedException":
-		writeAuthError(w, http.StatusForbidden, "not_confirmed", "confirm your email address first")
-	case "UsernameExistsException", "AliasExistsException":
-		writeAuthError(w, http.StatusConflict, "exists", "an account with that email already exists")
-	case "InvalidPasswordException":
-		writeAuthError(w, http.StatusBadRequest, "invalid_password", passwordMessage(e.message))
-	case "CodeMismatchException":
-		writeAuthError(w, http.StatusBadRequest, "invalid_code", "that code is not right")
-	case "ExpiredCodeException":
-		writeAuthError(w, http.StatusBadRequest, "expired_code", "that code has expired: ask for a new one")
-	case "InvalidParameterException":
-		writeAuthError(w, http.StatusBadRequest, "invalid_input", "check the details and try again")
-	case "LimitExceededException", "TooManyRequestsException", "TooManyFailedAttemptsException", "CodeDeliveryFailureException":
-		writeAuthError(w, http.StatusTooManyRequests, "rate_limited", "too many attempts: wait a while and try again")
-	case kindNewPasswordRequired:
-		apikit.WriteJSON(w, http.StatusConflict, map[string]string{
-			"error": "choose a new password to finish signing in", "code": "new_password_required", "session": e.session,
-		})
-	case kindChallengeRequired:
-		writeAuthError(w, http.StatusConflict, "challenge_unsupported", "this account needs a sign-in step the app does not have yet")
-	default:
-		logger.ErrorContext(r.Context(), "sign-in call failed",
-			slog.String("correlation_id", apikit.CorrelationIDFromContext(r.Context())),
-			slog.String("action", action),
-			slog.String("error", e.Error()))
-		writeAuthError(w, http.StatusBadGateway, "unavailable", "sign-in is unavailable: try again shortly")
-	}
-}
-
-// passwordMessage keeps Cognito's description of the policy a password missed,
-// which names the rule and nothing about the account.
-func passwordMessage(msg string) string {
-	if _, rule, ok := strings.Cut(msg, ": "); ok && rule != "" {
-		return "password does not meet the policy: " + rule
-	}
-	return "password does not meet the policy"
-}
-
-func writeAuthError(w http.ResponseWriter, status int, code, msg string) {
-	apikit.WriteJSON(w, status, map[string]string{"error": msg, "code": code})
 }

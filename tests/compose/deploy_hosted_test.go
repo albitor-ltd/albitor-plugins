@@ -265,7 +265,7 @@ func TestDeployHostedSeedsNoGatewayClient(t *testing.T) {
 		t.Fatal(err)
 	}
 	for p := range res.Files {
-		if strings.HasPrefix(p, "api/internal/gateway/") || strings.HasPrefix(p, "api/internal/albitorsvc/") {
+		if strings.HasPrefix(p, "api/internal/gateway/") {
 			t.Errorf("%s is in the composed tree; the gateway client is a skill example", p)
 		}
 	}
