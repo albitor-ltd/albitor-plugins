@@ -133,7 +133,7 @@ func TestNilMiddlewareAndNilRouteAreStartErrors(t *testing.T) {
 	}
 }
 
-// The composed router: with no plugin contributions it still serves health and
+// The composed router: with no extra middleware or route groups it still serves health and
 // the JSON 404. This runs against the generated router.go.
 func TestComposedHandlerServesHealth(t *testing.T) {
 	h, err := Handler(quietLogger())

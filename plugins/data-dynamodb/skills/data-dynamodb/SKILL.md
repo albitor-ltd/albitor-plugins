@@ -7,16 +7,19 @@ metadata:
 
 # DynamoDB data store (data-dynamodb)
 
-Records live behind `store.Store` in `api/internal/store/` (package `webapp/internal/store`). The
-plugin owns that directory; the build owns `api/internal/app/`. Deployed it is one DynamoDB table,
+Records live behind `store.Store` in `api/internal/store/` (package `webapp/internal/store`). It is
+seeded at compose and is the app's own from then on; record kinds and handlers go in
+`api/internal/app/`. Deployed it is one DynamoDB table,
 local it is process memory, and one conformance suite holds both to the same behaviour, so a
 handler that works in a local run works deployed.
 
-## Starting points
+## Seeded files (the app's own)
 
-Everything under `api/internal/store/`, including `storetest/`, is seeded once and is yours from
-then on. Extend the app around the store rather than editing it where you can, and keep the
-`storetest` conformance suite passing against both adapters. The table itself is declared in
+Everything under `api/internal/store/` is seeded once: `store.go` (the interface, `Key`, errors),
+`open.go` (`Open`, `TableEnv`), `memory.go` (the local adapter), `dynamodb.go` and `sigv4.go` (the
+deployed adapter), their tests, and `storetest/` (the conformance suite). Extend the app around the
+store rather than editing it where you can, and keep the `storetest` conformance suite passing
+against both adapters. The table itself is declared in
 `albitor.yaml` as `services.tables` (`data`, string `pk` and `sk`); the deploy target creates it.
 
 ## The interface
@@ -42,6 +45,28 @@ read-modify-write without the revision.
    ids make "newest first" a `Reverse` query.
 3. Write the handler against `store.Store`. Open it once at start with
    `store.Open(os.Getenv, store.DataTable)` and hand it to your handlers.
+
+## Add a table
+
+The seeded `data` table (`DataTable`) holds every record kind in one partition-keyed space, which
+is usually enough. For a genuinely separate keyspace, declare a second table and open it by its
+logical name (lowercase, hyphens allowed, 2 to 32 characters):
+
+```yaml
+# albitor.yaml
+services:
+  tables:
+    - name: audit
+      partition_key: {name: pk, type: string}
+      sort_key: {name: sk, type: string}
+```
+
+```go
+audit, err := store.Open(os.Getenv, "audit") // reads ALBITOR_TABLE_AUDIT; memory when local
+```
+
+Keep the keys string `pk` and `sk`, since both adapters assume them. Hand each store to the
+handlers that need it. Test with `store.NewMemory()`.
 
 ## Rules every handler follows
 

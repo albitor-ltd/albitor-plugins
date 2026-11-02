@@ -16,8 +16,8 @@ import (
 // stand-in for the user pool, so specs sign in as named test identities with
 // no sign-up, no e-mail and no call to AWS. It only issues tokens, and it
 // refuses to start on a deployed function or beside a configured user pool
-// (localauth.Open). Whether the API verifies those tokens is the auth
-// plugin's middleware, not the shell's.
+// (localauth.Open). Whether the API verifies those tokens is the
+// auth middleware's concern, not the shell's.
 func Boot(getenv func(string) string, logger *slog.Logger) (http.Handler, error) {
 	handler, err := Handler(logger)
 	if err != nil {

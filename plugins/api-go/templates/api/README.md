@@ -1,6 +1,6 @@
 # api
 
-The Go API, from the `api-go` plugin (`api-runtime@1`). It runs behind Lambda Web Adapter in the
+The Go API. It runs behind Lambda Web Adapter in the
 delivered app and as a plain HTTP server locally:
 
 ```sh
@@ -11,8 +11,8 @@ ALBITOR_LOCAL=1 PORT=8080 go run .
 
 | Path | Whose | What |
 |---|---|---|
-| `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Starting point | The server skeleton. Yours from the first compose |
-| `internal/shell/router.go` | Starting point | Places the `api.middleware` and `api.routes` slots once, at compose time |
+| `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Yours | The server skeleton |
+| `internal/shell/router.go` | Yours | Lists the middleware chain and any extra route groups |
 | `internal/app/routes.go` | Yours | Registers your handlers. Add a file per handler and one line here |
 | `openapi.yaml` | Yours | The API contract. Add each endpoint in the same change as its handler |
 
@@ -27,7 +27,7 @@ func Routes(r *http.ServeMux) {
 ```
 
 There is no `init()` registration and no generator: a handler not listed in `Routes` is not served.
-Handlers reach data only through the store interface the data-store plugin gives the app, never a
+Handlers reach data only through the app's store interface, never a
 client of their own, so they work in the local run as well as deployed.
 
 ## Schedules and queues
@@ -39,8 +39,7 @@ answer 5xx if it failed: a 5xx fails the invocation and Lambda retries it, while
 counts as success. An unknown name is a 400. The route is not reachable from the public API, but
 act only on a declared name anyway, and make every job idempotent: a schedule can fire twice and a
 queue delivers at least once. The platform owns the schedule tick (locally too), so never add a
-ticker of your own, and do not put work a user is waiting on on a schedule. The api-go skill has
-the dispatch code and the queue client.
+ticker of your own, and do not put work a user is waiting on on a schedule.
 
 ## Patterns to keep
 
@@ -69,7 +68,7 @@ A role of `services.auth.groups` is seeded the same way, `POST /api/_local/auth/
 `auth@2` interface (`roles`, `seed`, `signInAs`) drives this in a spec.
 
 It only issues tokens (keys at `/api/_local/auth/.well-known/jwks.json`); verifying them is the auth
-plugin's middleware. It refuses to start without `ALBITOR_LOCAL=1`, on a deployed function, or
+middleware's job. It refuses to start without `ALBITOR_LOCAL=1`, on a deployed function, or
 beside a configured user pool.
 
 ## Verify

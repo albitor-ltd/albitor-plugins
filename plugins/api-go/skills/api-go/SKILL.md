@@ -8,15 +8,23 @@ metadata:
 # Go API (api-go)
 
 The API is `api/` in the repository: module `webapp`, stdlib only, `go build -o dist/api .` from
-`api/`. The plugin seeds the skeleton; the app owns all of it.
+`api/`. The skeleton is seeded at compose; the app owns all of it from then on.
 
-## Starting points
+## Seeded files (the app's own)
 
-`main.go`, `internal/shell/`, `internal/apikit/` and `internal/localauth/` are seeded once from the
-plugin and are yours from then on. Prefer adding handlers in `internal/app/` to editing them, and
-change them when the app needs it. `internal/shell/router.go` was written once from the
-`api.middleware` and `api.routes` slots; a plugin added later does not rewire it, so add its
-middleware or routes by hand.
+These are written once and are plain app code. Prefer adding handlers in `internal/app/` to editing
+them, and change them when the app needs it.
+
+- `main.go`, `go.mod`, `README.md`
+- `internal/shell/` (`boot.go`, `shell.go`, `shell_test.go`, `router.go`): server, health route,
+  JSON 404, request logging, middleware chain
+- `internal/apikit/`: JSON and error writers, correlation ids, paging
+- `internal/localauth/`: the local test issuer
+- `internal/app/routes.go`: where your handlers are registered
+- `openapi.yaml` (when no auth plugin is composed)
+
+`internal/shell/router.go` was written once from the middleware and route groups composed at that
+time; one added later does not rewire it, so add its middleware or routes by hand.
 
 ## Add an endpoint
 
@@ -24,6 +32,47 @@ middleware or routes by hand.
 2. One line in `Routes` in `api/internal/app/routes.go`:
    `r.HandleFunc("GET /api/widgets", listWidgets)` (Go 1.22 method-and-path patterns).
 3. The endpoint in `api/openapi.yaml`, in the same change. The web client is generated from it.
+
+A worked example, `internal/app/widgets.go`. The handlers take no dependencies, so they register
+directly in `Routes(r *http.ServeMux)`; an app that needs a store opens it once and keeps it in a
+package variable or a struct that `Routes` builds:
+
+```go
+package app
+
+import (
+	"encoding/json"
+	"log/slog"
+	"net/http"
+
+	"webapp/internal/apikit"
+)
+
+type Widget struct {
+	Name string `json:"name"`
+}
+
+func listWidgets(w http.ResponseWriter, r *http.Request) {
+	apikit.ServeList(w, r, slog.Default(), func(q apikit.PageQuery) (apikit.Page[Widget], error) {
+		// Read one page using q.Cursor and q.Limit; mint next_cursor with apikit.EncodeCursor.
+		return apikit.Page[Widget]{Items: make([]Widget, 0)}, nil
+	})
+}
+
+func createWidget(w http.ResponseWriter, r *http.Request) {
+	var in Widget
+	body := http.MaxBytesReader(w, r.Body, 1<<20)
+	if err := json.NewDecoder(body).Decode(&in); err != nil || in.Name == "" {
+		apikit.WriteError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+	// Take the owner from the verified identity, never the body; write through the store.
+	apikit.WriteJSON(w, http.StatusCreated, in)
+}
+```
+
+Register them in `Routes` (`GET /api/widgets`, `POST /api/widgets`), describe both in
+`openapi.yaml`, and test them with `httptest` against `shell.Handler`.
 
 There is no `init()` registration. A handler missing from `Routes` is not served, and a pattern
 registered twice panics at start.
@@ -153,7 +202,7 @@ err = q.Send(ctx, "transcribe", jobRef{ID: id}, albitorsvc.SendOptions{})
 
 ## Read secrets from the app's secret store
 
-Credentials the app needs (a supplier API key, say) are SSM SecureString parameters Albitor writes
+Credentials the app needs (a supplier API key, say) are SSM SecureString parameters the platform writes
 at `<prefix><NAME>`. The deploy target hands the function the prefix in the environment variable
 `ALBITOR_SECRETS_PARAMETER_PREFIX` (for example `/albitor/apps/<segment>/secrets/`, ending in `/`)
 and grants the function's role `ssm:GetParameter` and `ssm:GetParameters` on exactly that prefix.

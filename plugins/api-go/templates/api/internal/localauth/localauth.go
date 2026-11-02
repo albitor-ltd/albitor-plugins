@@ -18,9 +18,6 @@
 // THE CONTRACT A VERIFIER READS. Issuer is http://localhost:<PORT>/api/_local/auth
 // (PORT defaults to 8080), its keys are at Issuer + "/.well-known/jwks.json",
 // and its tokens are for ClientID.
-//
-// It is a starting point for the local run it serves: extend the app around it where you can,
-// and keep the contract above.
 package localauth
 
 import (
