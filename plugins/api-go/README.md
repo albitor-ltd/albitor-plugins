@@ -14,7 +14,7 @@ provides, requires and contributes, and the platform composer renders it into a 
 | `api/internal/apikit/**` | starting point | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
 | `api/internal/localauth/**` | starting point | The Go side of the local run contract: the in-process test issuer |
 | `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)`, where product handlers are registered |
-| `api/openapi.yaml` | example | The API contract; seeded only with `auth-none` (the other auth plugins seed their own copy plus `GET /api/me`, since the composer has no contract slot) |
+| `api/openapi.yaml` | example | The API contract. An auth plugin that serves `GET /api/me` carries a variant with that path as a skill example, which an app merges in |
 | `api/README.md`, `api/.gitignore` | example | Notes |
 
 It contributes the `gomod` entry for `/api` to `repo.dependabot`, the `build.api` and `http` blocks

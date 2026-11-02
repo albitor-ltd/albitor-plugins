@@ -1,18 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { isSafeRedirect, runGuards } from '../shell/guard';
-import { PUBLIC_PATHS, SELF_SERVICE_PATHS, isPublicPath, nextPath, requireSession, signInPath } from './guard';
+import { PUBLIC_PATHS, isPublicPath, nextPath, requireSession, signInPath } from './guard';
 
 const session = vi.hoisted(() => ({ getSession: vi.fn() }));
 vi.mock('./session', () => session);
-const client = vi.hoisted(() => ({ getSignUpMode: vi.fn() }));
-vi.mock('./client', () => client);
 
 const at = (path: string) => new URL(path, 'https://app.test');
 
 beforeEach(() => {
 	session.getSession.mockReset();
-	client.getSignUpMode.mockReset();
-	client.getSignUpMode.mockResolvedValue('open');
 });
 
 describe('requireSession', () => {
@@ -47,35 +43,6 @@ describe('requireSession', () => {
 		}
 		// The shell's own runner agrees: it returns the redirect rather than throwing.
 		expect(await runGuards([requireSession], at('/reports'))).toBe('/sign-in?next=%2Freports');
-	});
-});
-
-describe('requireSession in an invite-only app', () => {
-	beforeEach(() => client.getSignUpMode.mockResolvedValue('invite_only'));
-
-	it.each(SELF_SERVICE_PATHS)('sends a visitor from %s to sign-in', async (path) => {
-		expect(await requireSession({ url: at(path) })).toBe('/sign-in');
-		expect(session.getSession).not.toHaveBeenCalled();
-	});
-
-	it('still lets anyone reach sign-in, sign-out and offline', async () => {
-		for (const path of ['/sign-in', '/sign-out', '/offline']) {
-			expect(await requireSession({ url: at(path) })).toBeUndefined();
-		}
-	});
-
-	it('leaves the other screens to the session check', async () => {
-		session.getSession.mockResolvedValue(null);
-		expect(await requireSession({ url: at('/people') })).toBe('/sign-in?next=%2Fpeople');
-		session.getSession.mockResolvedValue({ sub: 'u1' });
-		expect(await requireSession({ url: at('/change-password') })).toBeUndefined();
-	});
-
-	it('does not ask for the mode on a path that has no self-service screen', async () => {
-		session.getSession.mockResolvedValue({ sub: 'u1' });
-		client.getSignUpMode.mockClear();
-		await requireSession({ url: at('/reports') });
-		expect(client.getSignUpMode).not.toHaveBeenCalled();
 	});
 });
 

@@ -6,16 +6,24 @@ provides, requires and contributes, and the platform composer renders it into a 
 
 ## What it ships
 
-| Repository path in the app | Mode | What |
+The identity core is seeded once into the app (the app owns it from then on). The sign-in calls,
+screens and People admin are worked examples under `skills/auth-cognito/examples/`, laid out by
+repository path, which the skill tells a coder to copy and alter.
+
+| Repository path in the app | Seeded | What |
 | --- | --- | --- |
-| `api/internal/identity/` | starting point | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use |
-| `api/internal/shell/identity_verify.go` | starting point | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `POST /api/auth/*` |
-| `api/internal/shell/identity_people.go`, `identity_sigv4.go` | starting point | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it |
-| `api/internal/shell/identity_token.go` | starting point | RS256 check against the pool's JWKS, standard library only |
-| `api/internal/shell/identity_cognito.go` | starting point | Pool from the environment, the sign-in calls, the session cookies |
-| `api/openapi.yaml` | starting point | api-go's contract plus the `GET /api/me` entry (200 identity, 401 signed out) |
-| `web/src/lib/auth/` | starting point | `getSession()`, the `requireSession` route guard, the sign-in client, and their tests |
-| `web/src/lib/shell/scope.d/auth-cognito.ts` | starting point | Exports the name `web.route-guard` resolves to |
+| `api/internal/identity/` | yes | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use |
+| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
+| `api/internal/shell/identity_token.go` | yes | RS256 check against the pool's JWKS, standard library only |
+| `api/internal/shell/identity_cognito.go` | yes | Pool from the environment, the session cookies, refresh |
+| `api/internal/shell/identity_test.go`, `identity_hardening_test.go` | yes | The gate and the token hardening tests |
+| `web/src/lib/auth/session.ts`, `guard.ts` and tests | yes | `getSession()` and the `requireSession` route guard |
+| `web/src/lib/shell/scope.d/auth-cognito.ts` | yes | Exports the name `web.route-guard` resolves to |
+| `web/tests/auth/provider.ts` | yes | The `auth@2` provider |
+| `api/internal/shell/identity_flows.go` | example | `POST /api/auth/*`: sign-in, sign-up, confirm, reset, new-password, sign-out |
+| `api/internal/shell/identity_people.go`, `identity_sigv4.go` | example | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it |
+| `api/openapi.yaml` | example | api-go's contract plus `GET /api/me` and `/api/auth/*` |
+| `web/src/lib/auth/client.ts`, a self-service `guard.ts` | example | The sign-in client and a guard that redirects the self-service screens in an invite-only app |
 | `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset, sign-out, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: redirect, screens, local identity |
 
@@ -26,8 +34,8 @@ hands the function `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AWS_REGION`, `AUTH_SI
 `AUTH_ADMIN_GROUP` and `AUTH_USER_ADMIN_GROUP`. The module stays stdlib-only, because `api/go.mod` is `api-go`'s
 (ADR-0090 amendment 3).
 
-Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
-app-owned): remove its `/api/me` entry yourself if the app no longer serves it.
+Switching auth after the first compose keeps the files you were seeded with (they are app-owned):
+remove the `/api/me` entry from `api/openapi.yaml` yourself if the app no longer serves it.
 
 ## Behaviour worth knowing
 
@@ -104,8 +112,9 @@ deploy seeds are permanent from the start and never meet this step.
 - Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
 - No MFA, no social sign-in. The one challenge handled is `NEW_PASSWORD_REQUIRED` (below); any other
   answers 409 `challenge_unsupported`.
-- Logic ships as files seeded once into the app, not a versioned module. An app owns its copy from
-  the first compose; a fix in a later release reaches new apps only.
+- Logic ships as files seeded once into the app (and examples copied from the skill), not a
+  versioned module. An app owns its copy from the first compose; a fix in a later release reaches
+  new apps only.
 
 ## Upgrading from 0.2.0
 

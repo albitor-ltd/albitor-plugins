@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"math/big"
@@ -23,7 +24,7 @@ import (
 	"webapp/internal/localauth"
 )
 
-// These tests hold the identity seam to its contract: /api/health and the sign-in routes open,
+// These tests hold the identity seam to its contract: /api/health open,
 // every other /api/ route refused without a verified token, the owner taken from the token's sub,
 // and nothing let through when the pool is not configured or cannot be reached. A fake Cognito
 // serves the JWKS, the hosted token and revoke endpoints and the user pool's DeleteUser.
@@ -266,14 +267,13 @@ func cookieNamed(rec *httptest.ResponseRecorder, name string) *http.Cookie {
 	return nil
 }
 
-func TestOnlyHealthAndTheSignInRoutesAreOpen(t *testing.T) {
+func TestOnlyHealthIsOpen(t *testing.T) {
 	h := gateFor(newFakeCognito(t))
 	for _, tc := range []struct {
 		method, path string
 		want         int
 	}{
 		{http.MethodGet, "/api/health", http.StatusOK},
-		{http.MethodGet, "/api/auth/login", http.StatusFound},
 		{http.MethodGet, "/api/items", http.StatusUnauthorized},
 		{http.MethodGet, "/api/me", http.StatusUnauthorized},
 		{http.MethodPost, "/api/items", http.StatusUnauthorized},
@@ -575,13 +575,10 @@ func TestAMissingOrBadVariableClosesEveryAPIRoute(t *testing.T) {
 				t.Fatalf("setup = %+v, want an error and no auth", setup)
 			}
 			h := composeIdentity(setup)
-			for _, path := range []string{"/api/items", "/api/me", "/api/auth/login", "/api/auth/callback"} {
+			for _, path := range []string{"/api/items", "/api/me"} {
 				if rec := authDo(t, h, http.MethodGet, path, "", nil); rec.Code != http.StatusServiceUnavailable {
 					t.Errorf("GET %s = %d, want 503", path, rec.Code)
 				}
-			}
-			if rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "{}", nil); rec.Code != http.StatusServiceUnavailable {
-				t.Errorf("POST /api/auth/sign-out = %d, want 503", rec.Code)
 			}
 			// Only the health check stays up, so the deploy can see the function is alive.
 			if rec := authDo(t, h, http.MethodGet, "/api/health", "", nil); rec.Code != http.StatusOK {
@@ -619,23 +616,117 @@ func TestWhereIdentityComesFrom(t *testing.T) {
 	}
 }
 
-func TestALocalRunHasNoHostedSignIn(t *testing.T) {
-	h := composeIdentity(signIn{auth: newLocalIssuerAuth("http://localhost:8080/api/_local/auth")})
-	for _, path := range []string{"/api/auth/login", "/api/auth/callback"} {
-		rec := authDo(t, h, http.MethodGet, path, "", nil)
-		if rec.Code != http.StatusFound || rec.Header().Get("Location") != "/sign-in?error=local" {
-			t.Errorf("GET %s = %d %q, want a redirect to the page that says why", path, rec.Code, rec.Header().Get("Location"))
-		}
-	}
-	if rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "{}", nil); rec.Code != http.StatusNotImplemented {
-		t.Errorf("POST sign-out = %d, want 501", rec.Code)
-	}
-	// And with no sign-in at all, every request acts for the anonymous owner.
+func TestANoSignInRunActsForTheAnonymousOwner(t *testing.T) {
 	anon := composeIdentity(signIn{anonymous: true})
 	if rec := authDo(t, anon, http.MethodGet, "/api/items", "", nil); rec.Code != http.StatusOK || authDecode(t, rec)["owner"] != identity.AnonymousOwner {
 		t.Errorf("anonymous run = %d %s", rec.Code, rec.Body.String())
 	}
-	if rec := authDo(t, anon, http.MethodGet, "/api/auth/login", "", nil); rec.Code != http.StatusFound {
-		t.Errorf("anonymous run GET login = %d, want the local-run redirect", rec.Code)
+}
+
+func TestTheEmailRuleHoldsOnEveryRequestAndRefresh(t *testing.T) {
+	t.Run("the seeded domains are exact, and still need a verified address", func(t *testing.T) {
+		a := &hostedAuth{domains: []string{"northgate.gov.uk"}}
+		for _, email := range []string{
+			"x@evil.albitor-demo.invalid", "x@albitor-demo.invalid.evil.test", "albitor-demo.invalid",
+			"x@notalbitor-verify.invalid", "x@albitor-demo.invalid@evil.test",
+			"albitor-demo.invalid@evil.test", " x@albitor-demo.invalid.evil.test ",
+		} {
+			if err := a.acceptIDToken(jwtClaims{TokenUse: "id", Email: email, EmailVerified: true}); !errors.Is(err, errEmailNotAllowed) {
+				t.Errorf("%q = %v, want errEmailNotAllowed", email, err)
+			}
+		}
+		// The address is trimmed once, so padding does not hide a seeded address either.
+		if err := a.acceptIDToken(jwtClaims{TokenUse: "id", Email: "  Demo@albitor-demo.invalid\t", EmailVerified: true}); err != nil {
+			t.Errorf("padded seeded address = %v, want accepted", err)
+		}
+		if err := a.acceptIDToken(jwtClaims{TokenUse: "id", Email: "demo@albitor-demo.invalid"}); !errors.Is(err, errEmailUnverified) {
+			t.Errorf("unverified seeded address = %v, want errEmailUnverified", err)
+		}
+	})
+	t.Run("a seeded address passes on every request and on refresh, whatever the rule says", func(t *testing.T) {
+		f := newFakeCognito(t)
+		a := f.auth()
+		a.domains = []string{"northgate.gov.uk"}
+		h := composeIdentity(signIn{auth: a})
+		seeded := f.idToken("user-a", map[string]any{"email": "demo@albitor-demo.invalid"})
+		other := f.idToken("user-a", map[string]any{"email": "sam@gmail.com"})
+		bearer := func(tok string) func(*http.Request) {
+			return func(r *http.Request) { r.Header.Set("Authorization", "Bearer "+tok) }
+		}
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", bearer(seeded)); rec.Code != http.StatusOK {
+			t.Errorf("bearer, seeded = %d, want 200", rec.Code)
+		}
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", withCookies(&http.Cookie{Name: sessionCookie, Value: seeded})); rec.Code != http.StatusOK {
+			t.Errorf("cookie, seeded = %d, want 200", rec.Code)
+		}
+		// Controls: the rule still bites an ordinary address on both paths.
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", bearer(other)); rec.Code != http.StatusUnauthorized {
+			t.Errorf("bearer, other = %d, want 401", rec.Code)
+		}
+		if rec := authDo(t, h, http.MethodGet, "/api/items", "", withCookies(&http.Cookie{Name: sessionCookie, Value: other})); rec.Code != http.StatusUnauthorized {
+			t.Errorf("cookie, other = %d, want 401", rec.Code)
+		}
+		f.answerToken(func(url.Values) (int, any) { return http.StatusOK, map[string]string{"id_token": seeded} })
+		expired := f.idToken("user-a", map[string]any{"exp": time.Now().Add(-time.Minute).Unix(), "email": "demo@albitor-demo.invalid"})
+		rec := authDo(t, h, http.MethodGet, "/api/items", "", withCookies(
+			&http.Cookie{Name: sessionCookie, Value: expired}, &http.Cookie{Name: refreshCookie, Value: "refresh-a"}))
+		if rec.Code != http.StatusOK {
+			t.Errorf("refresh to a seeded address = %d, want 200", rec.Code)
+		}
+	})
+	t.Run("a refresh is checked against the rule again, and a refusal ends the session", func(t *testing.T) {
+		f := newFakeCognito(t)
+		a := f.auth()
+		a.domains = []string{"council.gov.uk"}
+		changed := f.idToken("user-a", map[string]any{"email": "sam@gmail.com"})
+		f.answerToken(func(url.Values) (int, any) { return http.StatusOK, map[string]string{"id_token": changed} })
+		expired := f.idToken("user-a", map[string]any{"exp": time.Now().Add(-time.Minute).Unix(), "email": "sam@council.gov.uk"})
+		rec := authDo(t, composeIdentity(signIn{auth: a}), http.MethodGet, "/api/items", "", withCookies(
+			&http.Cookie{Name: sessionCookie, Value: expired}, &http.Cookie{Name: refreshCookie, Value: "refresh-a"}))
+		body := authDecode(t, rec)
+		if rec.Code != http.StatusUnauthorized || body["code"] != "email_not_allowed" {
+			t.Fatalf("refresh to a refused address = %d %s, want 401 email_not_allowed", rec.Code, rec.Body.String())
+		}
+		if c := cookieNamed(rec, sessionCookie); c == nil || c.MaxAge >= 0 {
+			t.Errorf("the session cookie was not cleared: %v", c)
+		}
+		// Control: an allowed address refreshes.
+		f.answerToken(func(url.Values) (int, any) {
+			return http.StatusOK, map[string]string{"id_token": f.idToken("user-a", map[string]any{"email": "sam@council.gov.uk"})}
+		})
+		rec = authDo(t, composeIdentity(signIn{auth: a}), http.MethodGet, "/api/items", "", withCookies(
+			&http.Cookie{Name: sessionCookie, Value: expired}, &http.Cookie{Name: refreshCookie, Value: "refresh-a"}))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("refresh to an allowed address = %d", rec.Code)
+		}
+	})
+}
+
+func TestTheSignupDomainRuleIsParsedStrictly(t *testing.T) {
+	for _, ok := range []string{"", "  ", "example.org", "a.example.org,b.example.org", "*.example.org", "@example.org", "example.org example.com", "EXAMPLE.ORG"} {
+		if _, err := parseSignupDomains(ok); err != nil {
+			t.Errorf("parseSignupDomains(%q) = %v, want ok", ok, err)
+		}
+	}
+	for _, bad := range []string{"org", "*.org", "*", "example", "exa mple.org!", "example..org", "-example.org", "http://example.org", "user@example.org", "*example.org", "example.org/"} {
+		if _, err := parseSignupDomains(bad); err == nil {
+			t.Errorf("parseSignupDomains(%q) accepted a malformed entry", bad)
+		}
+	}
+	if signupAllowed([]string{"example.org"}, "no-at-sign") || signupAllowed([]string{"example.org"}, "@example.org") || signupAllowed([]string{"example.org"}, "a@") {
+		t.Error("an address with no local part or no domain was allowed")
+	}
+}
+
+func TestARefreshKeepsARotatedRefreshToken(t *testing.T) {
+	f := newFakeCognito(t)
+	f.answerToken(func(url.Values) (int, any) {
+		return http.StatusOK, map[string]string{"id_token": f.idToken("user-a", nil), "refresh_token": "refresh-b"}
+	})
+	expired := f.idToken("user-a", map[string]any{"exp": time.Now().Add(-time.Minute).Unix()})
+	rec := authDo(t, gateFor(f), http.MethodGet, "/api/items", "", withCookies(
+		&http.Cookie{Name: sessionCookie, Value: expired}, &http.Cookie{Name: refreshCookie, Value: "refresh-a"}))
+	if c := cookieNamed(rec, refreshCookie); rec.Code != http.StatusOK || c == nil || c.Value != "refresh-b" || c.MaxAge <= 0 {
+		t.Fatalf("refresh = %d, refresh cookie %v; want the rotated token kept", rec.Code, c)
 	}
 }

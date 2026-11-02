@@ -1,8 +1,7 @@
 // Package identity is the person a request acts for, and nothing else. It is
-// the one identity API an app's handlers use, whichever auth plugin the app
-// composes: handlers call Owner and FromContext. This is the auth-none
-// plugin's version: there is no sign-in, so every request acts for the one
-// fixed owner. Keep the exported names: handlers depend on them.
+// the one identity API an app's handlers use, whatever signs people in:
+// handlers call Owner and FromContext. Here there is no sign-in, so every
+// request acts for the one fixed owner. Keep the exported names: handlers depend on them.
 //
 // The package imports nothing from the app or the shell, so the shell (which
 // imports the app) and the app's handlers can both depend on it.
@@ -16,9 +15,9 @@ import (
 )
 
 func init() {
-	// The one runtime marker that an app is open to anyone: a log line, since this plugin has no
+	// The one runtime marker that an app is open to anyone: a log line, since there is no
 	// middleware or route to carry one. Whether that is allowed is the policy packs' call.
-	slog.Warn("auth-none: this API has no sign-in; every request acts for the fixed owner")
+	slog.Warn("this API has no sign-in; every request acts for the fixed owner")
 }
 
 // FixedOwner owns every record of an app with no sign-in.
@@ -36,9 +35,9 @@ func (i Identity) InGroup(name string) bool { return slices.Contains(i.Groups, n
 
 type contextKey struct{}
 
-// With returns ctx carrying id. This plugin has no middleware, so nothing in
-// the platform calls it; it exists so code and tests written against
-// auth-cognito's package compile unchanged.
+// With returns ctx carrying id. There is no middleware, so nothing calls it;
+// it exists so code and tests written against a signed-in identity package
+// compile unchanged.
 func With(ctx context.Context, id Identity) context.Context {
 	return context.WithValue(ctx, contextKey{}, id)
 }
@@ -50,8 +49,8 @@ func FromContext(ctx context.Context) (Identity, bool) {
 }
 
 // Owner names the user a request acts for: always FixedOwner, because nobody
-// signs in. Handlers call it exactly as they would with a real sign-in, so an
-// app can swap this plugin for auth-cognito without touching them. Never take
+// signs in. Handlers call it exactly as they would with a real sign-in, so adding
+// a real sign-in later changes who the owner is and nothing in them. Never take
 // the owner from the request body or a query parameter.
 func Owner(r *http.Request) string {
 	if id, ok := FromContext(r.Context()); ok {
