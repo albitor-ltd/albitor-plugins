@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.4.0",
-        "sha": "9d7220e5dc69e7246f7dcf7e6119498029c5f3f0"
+        "ref": "api-go/v0.5.0",
+        "sha": "fcdf5f9eadd59ecd83327fcb2bab2efb88031ed4"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.5.1",
-        "sha": "46afb9a315f0199e91709b148c04f188eee76205"
+        "ref": "deploy-hosted/v0.6.0",
+        "sha": "fcdf5f9eadd59ecd83327fcb2bab2efb88031ed4"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
