@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `deploy-hosted` `0.5.1` (albitor-ltd/albitor#4285, ADR-0104; tag `deploy-hosted/v0.5.1` follows
+  the merge). `renders` gains `queues`: the hosted target now renders a declared queue, so a manifest
+  declaring one no longer fails with `manifest_unrendered`. The `gateway-services` skill no longer
+  says queues wait for a deploy target that renders them. Merge only after the cell has applied
+  albitor-hosted-cells#59 and the dev channel pins module `v1.6.1`.
+
 - `deploy-hosted` `0.5.0` and `api-go` `0.3.3` (albitor-ltd/albitor#4285, ADR-0104; tags
   `deploy-hosted/v0.5.0` and `api-go/v0.3.3` follow the merge). The `api-go` skill teaches the
   `POST /events` dispatch for schedules and queues (a schedule body has `schedule`, a queue's has
