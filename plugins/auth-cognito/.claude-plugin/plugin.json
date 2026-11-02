@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "auth-cognito",
   "displayName": "Auth (Amazon Cognito)",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "kind": "socket",
   "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me and the sign-in calls (managed, standard library only), the web side keeps a provider-independent session and a route guard, and the sign-in, sign-up, confirm, reset and sign-out screens are seeded against the component-kit@2 standard shell exports (SignInPage, Field, Button), so they work on every kit that provides it. It declares services.auth; the local issuer comes from api-go.",
   "author": {
@@ -24,36 +24,19 @@
   "requires": ["api-runtime@1", "web-framework@1", "component-kit@2"],
   "contributes": {
     "files": [
-      { "path": "api/openapi.yaml", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/identity/identity.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/identity/identity_test.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/shell/identity_verify.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/shell/identity_token.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/shell/identity_cognito.go", "mode": "example", "when": { "api-runtime": "api-go" } },
-      { "path": "api/internal/shell/identity_people.go", "mode": "example", "when": { "api-runtime": "api-go" } },
-      { "path": "api/internal/shell/identity_sigv4.go", "mode": "example", "when": { "api-runtime": "api-go" } },
-      { "path": "api/internal/shell/identity_sigv4_test.go", "mode": "example", "when": { "api-runtime": "api-go" } },
-      { "path": "api/internal/shell/identity_people_test.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/shell/identity_test.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "api/internal/shell/identity_hardening_test.go", "mode": "example", "when": { "api-runtime": "api-go" } },
       { "path": "web/src/lib/auth/session.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/auth/session.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/auth/guard.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/auth/guard.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/auth/client.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
-      { "path": "web/src/lib/auth/client.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/shell/scope.d/auth-cognito.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
-      {
-        "path": "web/src/routes/(auth)/**",
-        "mode": "example",
-        "when": { "web-framework": "web-svelte" }
-      },
-      { "path": "web/tests/auth/provider.ts", "mode": "example", "when": { "test-harness": "test-playwright" } },
-      {
-        "path": "web/tests/journeys/sign-in.spec.ts",
-        "mode": "example",
-        "when": { "web-framework": "web-svelte", "test-harness": "test-playwright" }
-      }
+      { "path": "web/tests/auth/provider.ts", "mode": "example", "when": { "test-harness": "test-playwright" } }
     ],
     "slots": {
       "api.middleware": ["IdentityVerify"],

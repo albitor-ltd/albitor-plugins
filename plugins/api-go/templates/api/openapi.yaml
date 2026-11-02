@@ -1,4 +1,4 @@
-# The API contract. The web-framework plugin's client generation reads this file, so it is the one
+# The API contract. The web client is generated from this file, so it is the one
 # place an endpoint is described: add each route here in the same change as the handler.
 openapi: 3.1.0
 info:

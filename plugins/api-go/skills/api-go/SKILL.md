@@ -21,7 +21,7 @@ them, and change them when the app needs it.
 - `internal/apikit/`: JSON and error writers, correlation ids, paging
 - `internal/localauth/`: the local test issuer
 - `internal/app/routes.go`: where your handlers are registered
-- `openapi.yaml` (when no auth plugin is composed)
+- `openapi.yaml`: the base contract (an auth plugin's skill carries the variant with `GET /api/me`)
 
 `internal/shell/router.go` was written once from the middleware and route groups composed at that
 time; one added later does not rewire it, so add its middleware or routes by hand.

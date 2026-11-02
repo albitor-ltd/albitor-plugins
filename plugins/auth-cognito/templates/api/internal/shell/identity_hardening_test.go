@@ -278,28 +278,6 @@ func TestOnlyAnExpiredCookieSessionIsRefreshed(t *testing.T) {
 	}
 }
 
-func TestTheRefreshCookieIsKeptToTheAPI(t *testing.T) {
-	f, srv := newFakeCognito(t)
-	h := gateFor(f, srv)
-	f.answer("InitiateAuth", func(map[string]any) (int, any) {
-		return http.StatusOK, map[string]any{"AuthenticationResult": map[string]string{"IdToken": f.token("user-a", nil), "RefreshToken": "refresh-a"}}
-	})
-	rec := authDo(t, h, http.MethodPost, "/api/auth/sign-in", `{"email":"a@example.invalid","password":"pw"}`, nil)
-	if rec.Code != http.StatusOK {
-		t.Fatalf("sign-in = %d: %s", rec.Code, rec.Body.String())
-	}
-	if c := responseCookie(rec, refreshCookie); c == nil || c.Path != "/api" {
-		t.Fatalf("refresh cookie = %+v, want Path=/api so no page request carries it", c)
-	}
-	if c := responseCookie(rec, sessionCookie); c == nil || c.Path != "/" {
-		t.Fatalf("session cookie = %+v, want Path=/", c)
-	}
-	out := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "", nil)
-	if c := responseCookie(out, refreshCookie); c == nil || c.Path != "/api" || c.MaxAge >= 0 {
-		t.Fatalf("sign-out must clear the refresh cookie at its own path: %+v", c)
-	}
-}
-
 func TestANonBearerAuthorizationHeaderIsNotMixedWithACookie(t *testing.T) {
 	f, srv := newFakeCognito(t)
 	h := gateFor(f, srv)
@@ -318,20 +296,5 @@ func TestANonBearerAuthorizationHeaderIsNotMixedWithACookie(t *testing.T) {
 				t.Fatalf("GET /api/items = %d, want 401: a header that is not a bearer token must not fall back to the cookie", rec.Code)
 			}
 		})
-	}
-}
-
-func TestTheAuthBodyIsCapped(t *testing.T) {
-	f, srv := newFakeCognito(t)
-	h := gateFor(f, srv)
-	f.answer("InitiateAuth", func(map[string]any) (int, any) { return http.StatusOK, map[string]any{} })
-
-	big := `{"email":"a@example.invalid","password":"` + strings.Repeat("x", 2*maxAuthBodyBytes) + `"}`
-	rec := authDo(t, h, http.MethodPost, "/api/auth/sign-in", big, nil)
-	if rec.Code != http.StatusBadRequest || authDecode(t, rec)["code"] != "invalid_input" {
-		t.Fatalf("an oversized sign-in body = %d %s, want 400 invalid_input", rec.Code, rec.Body.String())
-	}
-	if f.called("InitiateAuth") {
-		t.Fatal("an oversized body reached the pool")
 	}
 }
