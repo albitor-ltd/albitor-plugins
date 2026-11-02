@@ -241,3 +241,15 @@ func TestLocalQueueRefusesOnALambda(t *testing.T) {
 		t.Error("the local queue started on a deployed function")
 	}
 }
+
+func TestLocalQueueTreatsA4xxAsDeliveredLikeTheAdapter(t *testing.T) {
+	l := newLocalQueue()
+	l.setHandler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadRequest) }))
+	if !l.deliverOnce(Envelope{Queue: "transcribe"}, "id", 1) {
+		t.Error("a 4xx was treated as a failure; deployed it deletes the message")
+	}
+	l.handler = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusInternalServerError) })
+	if l.deliverOnce(Envelope{Queue: "transcribe"}, "id", 1) {
+		t.Error("a 5xx was treated as delivered")
+	}
+}

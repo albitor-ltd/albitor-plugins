@@ -271,7 +271,7 @@ func TestDeployHostedShipsTheGatewayClient(t *testing.T) {
 	for _, f := range lock.Files {
 		modes[f.Path] = f.Mode
 	}
-	for _, p := range []string{"client.go", "errors.go", "sigv4.go", "upload.go", "client_test.go"} {
+	for _, p := range []string{"client.go", "errors.go", "sigv4.go", "upload.go", "queue.go", "queue_local.go", "client_test.go", "queue_test.go"} {
 		full := "api/internal/albitorsvc/" + p
 		if _, ok := res.Files[full]; !ok {
 			t.Errorf("%s is not in the composed tree", full)

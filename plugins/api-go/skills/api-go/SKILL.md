@@ -112,12 +112,14 @@ err = q.Send(ctx, "transcribe", jobRef{ID: id}, albitorsvc.SendOptions{})
 - **Failure semantics.** `ParseEvent` returns the messages (`ID`, `Queue`, `Payload`, `Attempt`,
   `Deadline`, `ReceiveCount`); dispatch on `m.Queue`. Collect the ids of messages that failed and
   answer with `albitorsvc.WriteResult(w, failed)`: a 2xx listing them in `batchItemFailures` retries
-  only those, a 2xx listing none deletes the batch, and a non-2xx or a timeout returns the whole
+  only those, a 2xx listing none deletes the batch, and a 5xx or a timeout returns the whole
   batch. After `max_receives` deliveries a message goes to the dead-letter queue, which nobody
   reads, so do not rely on it. A message in `ev.Malformed` can never succeed: log it and leave it
   out of the failures. Whether the adapter returns the response body to Lambda is still to be
   confirmed on the first deployed queue; if not, `WriteResult` answers 5xx for any failure and the
-  whole batch retries, so handlers must be idempotent either way.
+  whole batch retries, so handlers must be idempotent either way. Only a 5xx counts as an error:
+  a 4xx is a success and deletes the batch, so a handler that wants a retry must answer 5xx (or
+  use `batchItemFailures`), never a 4xx.
 - **Empty batch.** The deploy probes each consumer with `{"Records": []}`. Answer 2xx and do
   nothing; a 404 there fails the deploy.
 - **Local run.** `OpenQueues` returns the in-process queue under `ALBITOR_LOCAL=1`: `Send` calls

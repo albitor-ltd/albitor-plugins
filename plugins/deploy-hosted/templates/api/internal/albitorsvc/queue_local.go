@@ -43,7 +43,7 @@ func (l *localQueue) setHandler(h http.Handler) {
 }
 
 // enqueue delivers env on its own goroutine, one message per call, after delay. A message sent
-// before Register waits for the handler.
+// before Register waits for the handler: the goroutine blocks until Register is called.
 func (l *localQueue) enqueue(env Envelope, delay time.Duration) {
 	go func() {
 		if delay > 0 {
@@ -103,7 +103,7 @@ func (l *localQueue) deliverOnce(env Envelope, id string, receive int) (ok bool)
 	if rec.status == 0 {
 		rec.status = http.StatusOK
 	}
-	if rec.status/100 != 2 {
+	if rec.status/100 == 5 { // the adapter treats only 5xx as an error; a 4xx would delete the message
 		return false
 	}
 	var res struct {
