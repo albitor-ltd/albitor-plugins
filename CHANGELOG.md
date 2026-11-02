@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
-- `deploy-hosted` `0.4.1` (albitor-ltd/albitor#4268, albitor#4273; untagged until released). The
+- `deploy-hosted` `0.4.1` (albitor-ltd/albitor#4268, albitor#4273; tagged `deploy-hosted/v0.4.1`). The
   `gateway-services` request-shapes reference states the new 5,500,000-byte body ceiling (was 1 MiB)
   and documents Bedrock Converse media by `uploadHandle`: an image, document or video `source` is
   exactly one of `bytes` or `uploadHandle` (a video by handle only), obtained through
