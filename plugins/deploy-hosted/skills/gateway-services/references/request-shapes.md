@@ -20,11 +20,11 @@ An S3 URI, bucket, key, ARN or URL in any field is refused.
 Wrong, from a real failure: Transcribe with the SDK's `TranscriptionJobName`, `MediaFormat`, `Media`
 or `OutputBucketName` is `400` every time. Right: `UploadHandle` and a language.
 
-**Body ceiling.** The whole request body, JSON and base64 included, is capped at 1 MiB (1,048,576
-bytes) by default, and larger is `413 body_too_large`. Base64 adds a third, so inline raw bytes top
-out near 750 KB once the rest of the JSON is counted. Per operation: every Location operation
-overrides it down to 4,096 bytes; no other operation overrides it. Send bigger inputs through an
-upload slot (Transcribe, Textract async), never inline.
+**Body ceiling.** The whole request body, JSON and base64 included, is capped at **5,500,000 bytes**
+by default (it was 1 MiB before albitor#4273), and larger is `413 body_too_large`. Base64 adds a
+third, so inline raw bytes top out near 4 MB once the rest of the JSON is counted. Per operation:
+every Location operation overrides it down to 4,096 bytes; no other operation overrides it. Send
+bigger inputs through an upload slot (Transcribe, Textract async), never inline.
 
 Reading a refusal: `*albitorsvc.Error` carries `Field` and `Detail` when the gateway can say which
 field it refused, so the text reads `albitorsvc: 400 bad_request (field MediaFormat: unknown
@@ -174,9 +174,9 @@ Synchronous (one page, bytes in the request, no key, not idempotent so a retry i
 - `AnalyzeDocument`: `{Document: {Bytes}, FeatureTypes, QueriesConfig?}`.
 
 `Bytes` must be a single-page document (JPEG, PNG, one-page PDF or TIFF). Textract allows 10 MiB,
-but the whole request body is capped at 1 MiB (see Body ceiling), so with base64 the raw document
-must be under about 750 KB; larger is `413 body_too_large`. A bigger or multi-page document goes
-through the asynchronous path below (upload slot, up to 500 MiB).
+but the whole request body is capped at 5,500,000 bytes (see Body ceiling), so with base64 the raw
+document must be under about 4 MB; larger is `413 body_too_large`. A bigger or multi-page document
+goes through the asynchronous path below (upload slot, up to 500 MiB).
 
 Asynchronous (a PDF or TIFF, through an upload slot; **starts need an `Idempotency-Key`**):
 
@@ -220,22 +220,73 @@ feature `tables`, `forms`, `queries`. `SIGNATURES` and `LAYOUT` are not offered.
 | `inferenceConfig` | opt | `{maxTokens?, temperature?, topP?, stopSequences?}`: `temperature` and `topP` 0 to 1, up to 4 stop sequences of 64 bytes. `maxTokens` above the model's cap is `400` (not clamped); unset means 4,096 |
 | `toolConfig` | opt | `{tools: [{toolSpec: {name, description?, inputSchema: {json: {...}}}}], toolChoice?}`, 1 to 64 tools; `toolChoice` is exactly one of `{auto: {}}`, `{any: {}}`, `{tool: {name}}` |
 
-A content block has exactly one of: `text`, `image` (`{format: png|jpeg|gif|webp, source: {bytes}}`),
-`document` (`{format: pdf|txt|md|csv|html, name, source: {bytes}}`), `toolUse` (`{toolUseId, name,
-input}`), `toolResult` (`{toolUseId, content: [{text}|{json}], status?}`), `cachePoint`
-(`{type: "default"}`, Claude only). `bytes` is base64. Counts are at most
-1,024 content blocks in all, 20 images and 5 documents (a PDF up to 100 pages), and only for a model
-that takes them. The per-item caps (an image 3.66 MiB, a document 4 MiB) are not reachable inline:
-the whole request body is capped at 1 MiB, so with base64 all images and documents together must be
-under about 750 KB raw. Do not send larger files to Bedrock; resize or extract text first.
+A content block has exactly one of: `text`, `image` (`{format: png|jpeg|gif|webp, source}`),
+`document` (`{format: pdf|txt|md|csv|html, name, source}`), `video` (`{format: mkv|mov|mp4|webm|flv|
+mpeg|mpg|wmv|three_gp, source}`, only for a model that takes video, such as Nova Lite or Pro),
+`toolUse` (`{toolUseId, name, input}`), `toolResult` (`{toolUseId, content: [{text}|{json}], status?}`),
+`cachePoint` (`{type: "default"}`, Claude only). Counts are at most 1,024 content blocks in all, 20
+images, 5 documents (a PDF up to 100 pages) and 1 video, and only for a model that takes them.
+
+**Media `source` is exactly one of two things.** `{"bytes": "<base64>"}` is inline; or
+`{"uploadHandle": "<handle>"}` names a file you uploaded first. A video takes the handle only.
+
+- **Inline bytes** share the whole request body, which is capped at **5,500,000 bytes** (`413`
+  above it), JSON and base64 framing included. That is about 4 MB of raw image or document in all
+  the inline blocks together. Per item the caps are an image 3750 KiB and a document 4 MiB.
+- **Anything bigger, and every video, goes by handle.** The handle names an object the gateway
+  holds, so it adds almost nothing to the body. Get it with `CreateUploadSlot` on the `bedrock`
+  service, then upload, then send `slot.Handle` as `uploadHandle`:
+
+  ```go
+  slot, err := svc.CreateUploadSlot(ctx, "bedrock", "video/mp4", int64(len(data))) // MaxBytes up to 1,000,000,000
+  err = svc.Upload(ctx, slot, data)   // at once: the slot lasts 5 minutes
+  // then Call(ctx, "bedrock", "Converse", req, &resp) with the handle in the block
+  ```
+
+  `ContentType` is one of `image/png|jpeg|gif|webp`, `application/pdf`,
+  `text/plain|markdown|csv|html`, `video/mp4|quicktime|x-matroska|webm|x-flv|mpeg|x-ms-wmv|3gpp`.
+  Upload before the `Converse` call and call at once; a handle that names nothing of yours (expired,
+  another app's, not a handle) is `404 unknown_upload`. Never send an S3 URI, bucket or key:
+  `source.s3Location` is `400`.
+
+Exact blocks (one per media type; `bytes` is base64 of the file):
+
+```json
+{"image": {"format": "png", "source": {"bytes": "iVBORw0KGgo..."}}}
+{"image": {"format": "jpeg", "source": {"uploadHandle": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}}}
+{"document": {"format": "pdf", "name": "invoice-2026-11", "source": {"uploadHandle": "01ARZ3NDEKTSV4RRFFQ69G5FAW"}}}
+{"document": {"format": "txt", "name": "notes", "source": {"bytes": "SGVsbG8="}}}
+{"video": {"format": "mp4", "source": {"uploadHandle": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}}}
+```
+
+A whole request with a video:
+
+```json
+{"modelId": "nova-lite", "messages": [{"role": "user", "content": [
+  {"text": "What happens in this clip?"},
+  {"video": {"format": "mp4", "source": {"uploadHandle": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}}}]}]}
+```
+
+The `400` names the field (`Field` on `*albitorsvc.Error`):
+
+| You sent | `Field` |
+| --- | --- |
+| both `bytes` and `uploadHandle`, or neither | `messages[].content[].<block>.source` (`image`, `document` or `video`), detail "exactly one of bytes and uploadHandle" |
+| a video with `bytes` | `messages[].content[].video.source.bytes`: send a handle |
+| `source.s3Location` | `source.s3Location` (unknown field) |
+
+Also `400` before anything is billed: an image whose leading bytes are not its format, a PDF over
+100 pages or not a PDF, an empty file, more than one video, or a media block for a model that does not
+take it. A video reserves the model's whole input window against the app's balance up front (settled
+from the tokens actually used), so a low balance can refuse it with `402`.
 
 A document's `name` must match `^[A-Za-z0-9][A-Za-z0-9 ()\[\]-]{0,199}$`: letters, digits, spaces,
 parentheses, square brackets and hyphens, starting with a letter or digit. **No dots, no
 underscores**, so `invoice-2026-11` is valid and `invoice_2026.11.pdf` is `400`.
 
 **Not fields**: `guardrailConfig`, `promptVariables`, `additionalModelRequestFields`,
-`additionalModelResponseFieldPaths`, `performanceConfig`, `serviceTier`, `requestMetadata`, any
-`s3Location`, a cache `ttl`. Do not paste a Bedrock SDK input struct.
+`additionalModelResponseFieldPaths`, `performanceConfig`, `serviceTier`, `requestMetadata`,
+an `s3Location` source, a cache `ttl`. Do not paste a Bedrock SDK input struct.
 
 ```json
 {"modelId": "claude-haiku",

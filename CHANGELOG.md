@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `deploy-hosted` `0.4.1` (albitor-ltd/albitor#4268, albitor#4273; untagged until released). The
+  `gateway-services` request-shapes reference states the new 5,500,000-byte body ceiling (was 1 MiB)
+  and documents Bedrock Converse media by `uploadHandle`: an image, document or video `source` is
+  exactly one of `bytes` or `uploadHandle` (a video by handle only), obtained through
+  `CreateUploadSlot` on `bedrock`, with an exact JSON block per media type and the `400` field names
+  for both/neither and video-as-bytes. The Textract sync note and the Bedrock inline caps are
+  reworded to the new ceiling (about 4 MB raw inline). Docs only; the seeded `albitorsvc` code is unchanged (its
+  `Call` takes any request value).
+
 - `deploy-hosted` `0.4.0` (albitor-ltd/albitor#4268; tagged `deploy-hosted/v0.4.0`). The `gateway-services`
   skill gains `references/request-shapes.md`: for every operation the gateway serves (Translate,
   Transcribe, Comprehend, Polly, Textract, Bedrock, Location) the fields allowed and required, what

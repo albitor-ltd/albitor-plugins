@@ -66,6 +66,11 @@ err = svc.Upload(ctx, slot, data)          // multipart POST; the slot is the cr
 // then name the input by slot.Handle in the operation's request
 ```
 
+The same applies to Bedrock media: an image, document or video block's `source` is exactly one of
+`{"bytes": ...}` (inline, within the 5,500,000-byte body ceiling) or `{"uploadHandle": slot.Handle}`
+from `CreateUploadSlot(ctx, "bedrock", contentType, maxBytes)`; a video is by handle only. See the
+Bedrock section of the reference for exact blocks.
+
 A slot expires in 5 minutes: upload at once, and never log it, store it or send it to a browser. A
 result the gateway returns as a URL expires in 5 minutes too; fetch it server-side and return the
 content, not the URL, unless the user needs the file.
