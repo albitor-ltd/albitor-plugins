@@ -78,6 +78,8 @@ the top of `registerIdentityRoutes` in `identity_verify.go`:
 registerAuthRoutes(mux, setup, logger)
 ```
 
+The routes `/sign-in`, `/sign-up`, `/confirm`, `/reset` and `/sign-out` are fixed: seeded `guard.ts` hard-code them, so a screen keeps its path.
+
 The browser never talks to Cognito (the page's CSP allows its own origin only) and no token is
 readable by page script. A script or test client may send `Authorization: Bearer <token>` instead.
 

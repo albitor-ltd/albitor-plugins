@@ -4,7 +4,7 @@
   "displayName": "Auth (hosted sign-in)",
   "version": "0.4.0",
   "kind": "socket",
-  "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes, the email domain rule's refusal screens and the sign-in screens on component-kit@2 are worked examples in the skill to copy and alter. It declares services.auth.",
+  "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API redirects, finishes the callback, verifies the ID token, keeps the session in HttpOnly cookies, and serves GET /api/me, sign-out, account deletion and an email domain rule; the web side adds a route guard and the sign-in, sign-out, account and refusal screens on component-kit@2. It declares services.auth.",
   "author": {
     "name": "Albitor Ltd",
     "email": "jamie@albitor.com"

@@ -57,6 +57,8 @@ To adopt the hosted routes, copy `identity_flows.go` and its test, then add one 
 registerAuthRoutes(mux, setup, logger)
 ```
 
+The routes `/sign-in`, `/sign-out` and `/not-allowed` are fixed: seeded `guard.ts` and `identity_hosted.go` hard-code them, so a screen keeps its path.
+
 The browser never talks to Cognito's API and no token is readable by page script. A script or test
 client may send `Authorization: Bearer <token>` instead.
 
