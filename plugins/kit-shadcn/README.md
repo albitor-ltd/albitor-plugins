@@ -9,7 +9,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark) and `SignInPage`
-  (its own file, `SignInPage.svelte`, also re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
+  (its own file, `SignInPage.svelte`). The contract is in the repository README; `contract.test.ts` and
   `ContractProbe.svelte` (seeded once) audit it.
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
@@ -26,11 +26,11 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - Tests that ship with the app (seeded once): `kit.test.ts` renders the shell pieces on the server and
   runs axe over them, plus behaviour checks (current page, label wiring, live regions, text not
   markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
-- The page templates, `web/src/lib/kit/pages/` (`example`): `ListPage`, `DetailPage`, `FormPage`,
+- The page templates, worked examples in the skill's `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
-  empty states, one `<h1>`, and form errors in a focused summary. `pages/PagesShowcase.svelte` and
-  `pages/pages.test.ts`  render every template in every state and run axe over them
+  empty states, one `<h1>`, and form errors in a focused summary. `PagesShowcase.svelte` and
+  `pages.test.ts` render every template in every state and run axe over them
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
 - The `kit-shadcn` skill: rules, components, patterns, tokens and design-system notes (the Bits

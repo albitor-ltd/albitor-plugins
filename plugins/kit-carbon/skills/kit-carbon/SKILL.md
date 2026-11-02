@@ -60,11 +60,13 @@ and error states.
 
 ## Page templates
 
-Start every new page from the template that matches it. The templates are example files in
-`web/src/lib/kit/pages/` (import from `'../../lib/kit/pages'`): seeded once, then yours to edit.
-They are built from the kit's own pieces, so the header, the loading and failed states, the error
-summary and the labelling are already right and already audited (`pages/pages.test.ts` runs axe over
-every template in every state, in addition to the contrast test). Do not rebuild them by hand.
+Start every new page from the template that matches it. The templates are worked examples, not
+seeded files: they sit in `examples/web/src/lib/kit/pages/` beside this skill, laid out by
+repository path. Copy the ones the app needs to `web/src/lib/kit/pages/` (with `PagesShowcase.svelte`
+and `pages.test.ts`, which run axe over every template in every state, in addition to the contrast
+test), import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
+never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and the rest) and
+`SignInPage` are already in the repository. Do not rebuild a template by hand.
 
 | The page is | Start from | It gives you |
 |---|---|---|

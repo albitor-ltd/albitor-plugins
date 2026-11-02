@@ -13,7 +13,7 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet, placed beside the side nav the way Carbon places `Content`), `Footer` (new, in
   Carbon's tokens: links and text in a `contentinfo` landmark) and `SignInPage` (its own file,
-  `SignInPage.svelte`, also re-exported from `pages/`). The contract is in the repository README; `contract.test.ts` and
+  `SignInPage.svelte`). The contract is in the repository README; `contract.test.ts` and
   `ContractProbe.svelte` (seeded once) audit it.
 - The styled shell pieces in the Carbon style: `AppShell` (Carbon's UI shell: header, skip link,
   a labelled side nav with the current page marked, one `main`), `Button`, `Field` (label, hint and
@@ -29,11 +29,11 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
   and variants, text not markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus (trap,
   Escape, return) and the Close button; `shell.test.ts` mounts the shell and checks the theme
   follows the colour-scheme preference and `data-theme`, including when either changes.
-- The page templates, `web/src/lib/kit/pages/` (`example`): `ListPage`, `DetailPage`, `FormPage`,
+- The page templates, worked examples in the skill's `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
-  empty states, one `<h1>`, and form errors in a focused summary. `pages/PagesShowcase.svelte` and
-  `pages/pages.test.ts`  render every template in every state and run axe over them
+  empty states, one `<h1>`, and form errors in a focused summary. `PagesShowcase.svelte` and
+  `pages.test.ts` render every template in every state and run axe over them
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
 - The `kit-carbon` skill: rules, components, patterns and tokens, Svelte-first. The shared WCAG 2.2
