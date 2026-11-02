@@ -27,7 +27,7 @@ command -v jq >/dev/null || { echo "jq is required" >&2; exit 2; }
 tokens=(
   albitor-tfstate- /albitor/apps/ /albitor/platform/apps/ .albitor-reports/
   albitor_demo_account_password albitor_verifier_account_password albitor_app_secrets_segment
-  albitor_journey_ albitor_local albitor_table_ albitor_secrets_prefix albitor_secrets_parameter_prefix
+  albitor_journey_ albitor_local albitor_table_ albitor_queue_ albitor_secrets_prefix albitor_secrets_parameter_prefix
   albitor_role_ __albitor_pending__
   albitor_owner_email albitor_owner_temp_password albitor_verifier_b_account_password
   albitor-demo.invalid albitor-verify.invalid albitor-role.invalid
