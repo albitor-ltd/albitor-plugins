@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `deploy-hosted` `0.4.0` (albitor-ltd/albitor#4268; untagged until released). The `gateway-services`
+  skill gains `references/request-shapes.md`: for every operation the gateway serves (Translate,
+  Transcribe, Comprehend, Polly, Textract, Bedrock, Location) the fields allowed and required, what
+  the gateway sets itself, and a minimal valid body, with the rule stated plainly that unknown fields
+  are refused and AWS-SDK-only fields (Transcribe's `TranscriptionJobName`, `MediaFormat`) are never
+  sent. The skill's idempotency step is corrected: the key is for `StartTranscriptionJob`, Textract's
+  starts and Polly only, not Bedrock. The seeded `albitorsvc.Error` gains `Field` and `Detail`, read
+  from the gateway's `field` and `detail` on a 400 (albitor#4271; empty until that gateway ships) and shown in `Error()`
+  (`albitorsvc: 400 bad_request (field MediaFormat: unknown field)`); absent from an older gateway,
+  the text is unchanged.
 - `test-playwright` `0.5.2` signs in a second seeded identity on a deployed walk
   (albitor-ltd/albitor#4258, O29; untagged until released). The journey credentials file may hold
   `verifier_b` (`verifier-b@albitor-verify.invalid`); `auth.setup.ts` signs it in once after the demo

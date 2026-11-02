@@ -253,6 +253,46 @@ func TestErrorTextCarriesNoUpstreamMessage(t *testing.T) {
 	}
 }
 
+func TestErrorCarriesTheRefusedFieldAndWhy(t *testing.T) {
+	for _, tc := range []struct {
+		name, body, want string
+		field, detail    string
+	}{
+		{"both", `{"error":"bad_request","field":"MediaFormat","detail":"unknown field"}`,
+			"albitorsvc: 400 bad_request (field MediaFormat: unknown field)", "MediaFormat", "unknown field"},
+		{"field only", `{"error":"bad_request","field":"Text"}`,
+			"albitorsvc: 400 bad_request (field Text)", "Text", ""},
+		{"detail only", `{"error":"bad_request","detail":"body is not an object"}`,
+			"albitorsvc: 400 bad_request (body is not an object)", "", "body is not an object"},
+		{"absent, as an older gateway sends", `{"error":"bad_request"}`,
+			"albitorsvc: 400 bad_request", "", ""},
+		{"not JSON", `nope`, "albitorsvc: 400 unknown", "", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(400)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer srv.Close()
+			err := testClient(t, srv, nil).Call(context.Background(), "transcribe", "StartTranscriptionJob", nil, nil)
+			var ge *Error
+			if !errors.As(err, &ge) || ge.Field != tc.field || ge.Detail != tc.detail {
+				t.Fatalf("err = %#v", err)
+			}
+			if err.Error() != tc.want {
+				t.Errorf("text = %q, want %q", err, tc.want)
+			}
+		})
+	}
+}
+
+func TestErrorFieldAndDetailDoNotChangeSentinelMatching(t *testing.T) {
+	e := &Error{Status: 403, Code: "not_declared", Field: "x", Detail: "y"}
+	if !errors.Is(e, ErrForbidden) || errors.Is(e, ErrCapReached) {
+		t.Errorf("sentinel matching changed: %v", e)
+	}
+}
+
 func TestOpenReadsTheEnvironment(t *testing.T) {
 	if _, err := Open(func(string) string { return "" }); !errors.Is(err, ErrNotConfigured) {
 		t.Fatalf("unset URL: err = %v", err)

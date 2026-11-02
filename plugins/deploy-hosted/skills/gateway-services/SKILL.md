@@ -40,15 +40,20 @@ which the gateway cannot verify, and that is why this client exists.
 2. **Open the client once** in `main` or the app's setup:
    `svc, err := albitorsvc.Open(os.Getenv)`. `albitorsvc.ErrNotConfigured` means no URL is set (a
    local run, or nothing declared): keep the feature off and carry on, do not fail the start.
-3. **Define request and response structs** with AWS's documented JSON field names
-   (`TranslateText`: `Text`, `SourceLanguageCode`, `TargetLanguageCode`) and call
-   `svc.Call(ctx, "translate", "TranslateText", req, &resp)`. The gateway rebuilds the request from
-   an allow-list: a field it does not list is `400 bad_request`, so send only the fields the
-   operation needs.
-4. **Pass a fresh `albitorsvc.WithIdempotencyKey(...)`** on operations that start work or bill by
-   the call (Bedrock, job starts), or the gateway answers `400 idempotency_key_required`. The key
-   must match `^[A-Za-z0-9_-]{8,64}$` (a random hex or base64url string; no spaces, slashes or dots),
-   and `Call` refuses any other before sending.
+3. **Look up the operation in [references/request-shapes.md](references/request-shapes.md)**,
+   define request and response structs with exactly the fields listed there, and call
+   `svc.Call(ctx, "translate", "TranslateText", req, &resp)`. This is not the AWS SDK's request: the
+   gateway rebuilds each request from a per-operation allow-list, **refuses any field it does not
+   list (`400 bad_request`) and never ignores one**, and sets the rest itself (the Transcribe job
+   name, media and output locations, role, settings). Never copy an AWS SDK input struct. For
+   Transcribe that means `UploadHandle` plus a language, not `TranscriptionJobName`, `MediaFormat`
+   or `Media`.
+4. **Pass a fresh `albitorsvc.WithIdempotencyKey(...)`** on exactly the operations marked in the
+   reference: `StartTranscriptionJob`, Textract's two `Start...` operations and Polly
+   `SynthesizeSpeech`. The gateway answers `400 idempotency_key_required` without one. Bedrock,
+   Translate, Comprehend, Location and the Get operations take no key. The key must match
+   `^[A-Za-z0-9_-]{8,64}$` (a random hex or base64url string; no spaces, slashes or dots), and `Call`
+   refuses any other before sending.
 
 ## Inputs and outputs are handles, never locations
 
@@ -67,14 +72,18 @@ content, not the URL, unless the user needs the file.
 
 ## Errors: say "unavailable", never retry around it
 
-`svc.Call` returns `*albitorsvc.Error` (status and code only; AWS's message never arrives):
+`svc.Call` returns `*albitorsvc.Error` (status and code; AWS's message never arrives). On a `400
+bad_request` it also carries `Field` and `Detail` when the gateway names the refused field (needs
+the gateway change in albitor PR #4271; empty on an older gateway, and some checks never name one), and the
+text shows them: `albitorsvc: 400 bad_request (field MediaFormat: unknown field)`. Log that text;
+a `400` is a build bug in the request shape, never retry it:
 
 | Answer | Test | The app does |
 | --- | --- | --- |
 | `402 credits_exhausted`, `402 cap_reached` | `errors.Is(err, albitorsvc.ErrCreditsExhausted)` or `ErrCapReached` | Treat the feature as unavailable: tell the user it is unavailable right now and carry on. Do not retry, and do not queue the work to retry later |
 | `403` (`not_declared`, `service_disabled`, `app_disabled`, residency) | `errors.Is(err, albitorsvc.ErrForbidden)` | The same: unavailable. A `not_declared` is a build bug, so log it once at startup of the feature |
 | `429` | `errors.Is(err, albitorsvc.ErrRateLimited)` | The client has already retried with jittered, capped backoff and given up, or returned at once because the wait asked for is over its 5 second cap: answer "busy, try again shortly" |
-| anything else | `*albitorsvc.Error` | A fault: log the code and `RequestID` against the correlation id, answer an opaque 500 through `apikit.WriteFailure` |
+| anything else | `*albitorsvc.Error` | A fault: log the error text (code, and `Field`/`Detail` on a 400) and `RequestID` against the correlation id, answer an opaque 500 through `apikit.WriteFailure` |
 
 `albitorsvc.Unavailable(err)` is true for the first two rows. Never show a user the code, a credit
 figure or the word "credits"; the owner sees spend in Albitor, the end user sees the feature

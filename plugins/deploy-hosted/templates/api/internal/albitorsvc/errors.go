@@ -9,15 +9,16 @@ import (
 
 // The gateway's refusal codes the client branches on. The
 // wire body is {"error": code}, plus {"aws_code", "request_id"} for an upstream
-// failure.
+// failure and {"field", "detail"} for a 400 bad_request that can say which part
+// of the request it refused.
 const (
 	CodeCreditsExhausted = "credits_exhausted"
 	CodeCapReached       = "cap_reached"
 )
 
 // Error is a refusal or failure the gateway answered with. Its text is the
-// status and code only: the gateway never sends AWS's message, and neither does
-// this client.
+// status, the code and, when the gateway names them, the refused field and why:
+// the gateway never sends AWS's message, and neither does this client.
 type Error struct {
 	Status int
 	Code   string
@@ -26,11 +27,24 @@ type Error struct {
 	// AWSCode and RequestID are set for an upstream failure.
 	AWSCode   string
 	RequestID string
+	// Field and Detail are set when the gateway says which request field it
+	// refused (a 400 bad_request): Field is the JSON name as sent and Detail a
+	// short reason such as "unknown field". Both are empty when the gateway sent
+	// neither, as an older gateway does not.
+	Field  string
+	Detail string
 }
 
 func (e *Error) Error() string {
-	if e.AWSCode != "" {
+	switch {
+	case e.AWSCode != "":
 		return fmt.Sprintf("albitorsvc: %d %s (%s)", e.Status, e.Code, e.AWSCode)
+	case e.Field != "" && e.Detail != "":
+		return fmt.Sprintf("albitorsvc: %d %s (field %s: %s)", e.Status, e.Code, e.Field, e.Detail)
+	case e.Field != "":
+		return fmt.Sprintf("albitorsvc: %d %s (field %s)", e.Status, e.Code, e.Field)
+	case e.Detail != "":
+		return fmt.Sprintf("albitorsvc: %d %s (%s)", e.Status, e.Code, e.Detail)
 	}
 	return fmt.Sprintf("albitorsvc: %d %s", e.Status, e.Code)
 }

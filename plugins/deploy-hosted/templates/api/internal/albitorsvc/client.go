@@ -268,9 +268,12 @@ func parseError(status int, retryAfter string, raw []byte) *Error {
 		Error     string `json:"error"`
 		AWSCode   string `json:"aws_code"`
 		RequestID string `json:"request_id"`
+		Field     string `json:"field"`
+		Detail    string `json:"detail"`
 	}
 	if json.Unmarshal(raw, &b) == nil && b.Error != "" {
 		e.Code, e.AWSCode, e.RequestID = b.Error, b.AWSCode, b.RequestID
+		e.Field, e.Detail = b.Field, b.Detail
 	}
 	if n, err := strconv.Atoi(retryAfter); err == nil && n > 0 {
 		e.RetryAfter = time.Duration(n) * time.Second
