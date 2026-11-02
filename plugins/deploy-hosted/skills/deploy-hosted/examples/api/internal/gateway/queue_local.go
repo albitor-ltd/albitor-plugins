@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"bytes"
@@ -59,7 +59,7 @@ func (l *localQueue) enqueue(env Envelope, delay time.Duration) {
 				time.Sleep(localRetryDelay)
 			}
 		}
-		log.Printf("albitorsvc: local queue %q dropped message %s after %d failed deliveries", env.Queue, id, localReceives)
+		log.Printf("gateway: local queue %q dropped message %s after %d failed deliveries", env.Queue, id, localReceives)
 	}()
 }
 
@@ -95,7 +95,7 @@ func (l *localQueue) deliverOnce(env Envelope, id string, receive int) (ok bool)
 	rec := &recorder{header: http.Header{}}
 	defer func() {
 		if p := recover(); p != nil { // a deployed panic is a 5xx; so is this
-			log.Printf("albitorsvc: local queue handler panicked: %v", p)
+			log.Printf("gateway: local queue handler panicked: %v", p)
 			ok = false
 		}
 	}()

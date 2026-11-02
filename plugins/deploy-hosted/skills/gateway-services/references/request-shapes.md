@@ -26,8 +26,8 @@ third, so inline raw bytes top out near 4 MB once the rest of the JSON is counte
 every Location operation overrides it down to 4,096 bytes; no other operation overrides it. Send
 bigger inputs through an upload slot (Transcribe, Textract async), never inline.
 
-Reading a refusal: `*albitorsvc.Error` carries `Field` and `Detail` when the gateway can say which
-field it refused, so the text reads `albitorsvc: 400 bad_request (field MediaFormat: unknown
+Reading a refusal: `*gateway.Error` carries `Field` and `Detail` when the gateway can say which
+field it refused, so the text reads `gateway: 400 bad_request (field MediaFormat: unknown
 field)`. This depends on the gateway change in albitor PR #4271; **until it is deployed, and on any
 older gateway, `Field` and `Detail` are empty** and the text is a bare `400 bad_request`. Even then
 only the Transcribe and Translate value checks name a field, plus unknown-field, duplicate-key and
@@ -35,7 +35,7 @@ wrong-scalar-type errors on every operation; any other failed check returns a ba
 text names no field, compare the request with the shape below.
 
 "Req" below means required; "opt" means optional. `Idempotency-Key` is needed only where marked
-(`albitorsvc.WithIdempotencyKey(...)`); on any other operation do not send one.
+(`gateway.WithIdempotencyKey(...)`); on any other operation do not send one.
 
 ## translate
 
@@ -267,7 +267,7 @@ A whole request with a video:
   {"video": {"format": "mp4", "source": {"uploadHandle": "01ARZ3NDEKTSV4RRFFQ69G5FAV"}}}]}]}
 ```
 
-The `400` names the field (`Field` on `*albitorsvc.Error`):
+The `400` names the field (`Field` on `*gateway.Error`):
 
 | You sent | `Field` |
 | --- | --- |

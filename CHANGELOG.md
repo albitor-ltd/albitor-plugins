@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `deploy-hosted` `0.6.0` (albitor-ltd/albitor#4300, albitor-ltd/albitor-plugins#144; tag follows the
+  merge). The gateway client is a skill example, not a seed: `api/internal/albitorsvc/**` no longer
+  lands in a new app, and the package, renamed `gateway`, sits in
+  `skills/deploy-hosted/examples/api/internal/gateway/` (with `queue.go` and its tests) for an app
+  that declares `services.callable` or `queues` to copy in and edit. Only `ci.yml` is seeded. The
+  example carries no platform name beyond the `ALBITOR_SERVICES_URL` and `ALBITOR_QUEUE_*`
+  environment names. The `deploy-hosted` and `gateway-services` skills say when to copy it.
+
 - `data-dynamodb` `0.3.0` and `api-go` `0.4.0` (albitor-ltd/albitor#4300; tags follow the merge).
   The seeded store, shell, router, routes, apikit and README are plain app code: the "Starting
   point" banners and every pointer back to the plugin or its skill are gone, and behaviour is

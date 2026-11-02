@@ -256,28 +256,23 @@ func TestDeployHostedComposes(t *testing.T) {
 	}
 }
 
-// TestDeployHostedShipsTheGatewayClient pins the albitorsvc client (albitor ADR-0099 3.1):
-// it lands under api/internal, seeded once, with its tests.
-func TestDeployHostedShipsTheGatewayClient(t *testing.T) {
+// TestDeployHostedSeedsNoGatewayClient pins the gateway client as a skill example, not a seed
+// (albitor ADR-0099 3.1): nothing under api/internal/gateway lands in the composed tree, and the
+// example sits in the skill, whole, for an app that calls platform services or uses queues.
+func TestDeployHostedSeedsNoGatewayClient(t *testing.T) {
 	res, err := composeHosted(t, "deploy-hosted")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var lock composer.Lock
-	if err := json.Unmarshal(res.Files[".albitor/lock.json"], &lock); err != nil {
-		t.Fatal(err)
-	}
-	modes := map[string]string{}
-	for _, f := range lock.Files {
-		modes[f.Path] = f.Mode
-	}
-	for _, p := range []string{"client.go", "errors.go", "sigv4.go", "upload.go", "queue.go", "queue_local.go", "client_test.go", "queue_test.go"} {
-		full := "api/internal/albitorsvc/" + p
-		if _, ok := res.Files[full]; !ok {
-			t.Errorf("%s is not in the composed tree", full)
+	for p := range res.Files {
+		if strings.HasPrefix(p, "api/internal/gateway/") || strings.HasPrefix(p, "api/internal/albitorsvc/") {
+			t.Errorf("%s is in the composed tree; the gateway client is a skill example", p)
 		}
-		if modes[full] != "example" {
-			t.Errorf("%s should be an example, got %q", full, modes[full])
+	}
+	dir := filepath.Join(hostedDir(t), "skills", "deploy-hosted", "examples", "api", "internal", "gateway")
+	for _, p := range []string{"client.go", "errors.go", "sigv4.go", "upload.go", "queue.go", "queue_local.go", "client_test.go", "queue_test.go"} {
+		if _, err := os.Stat(filepath.Join(dir, p)); err != nil {
+			t.Errorf("example file %s: %v", p, err)
 		}
 	}
 }

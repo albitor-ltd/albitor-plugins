@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"bytes"
@@ -49,15 +49,15 @@ const PartialRetry = true
 var (
 	// ErrQueueNotConfigured means no ALBITOR_QUEUE_<NAME>_URL is set for the queue: the manifest
 	// does not declare it. Fix albitor.yaml; the send cannot work.
-	ErrQueueNotConfigured = errors.New("albitorsvc: no URL for this queue: declare it under queues in albitor.yaml")
+	ErrQueueNotConfigured = errors.New("gateway: no URL for this queue: declare it under queues in albitor.yaml")
 	// ErrAttemptsExceeded means a handler re-enqueued more than MaxAttempt times down one chain.
-	ErrAttemptsExceeded = errors.New("albitorsvc: this message chain has been re-enqueued too many times")
+	ErrAttemptsExceeded = errors.New("gateway: this message chain has been re-enqueued too many times")
 	// ErrDeadlinePassed means the chain's deadline (set at its first send) has passed.
-	ErrDeadlinePassed = errors.New("albitorsvc: this message chain's deadline has passed")
+	ErrDeadlinePassed = errors.New("gateway: this message chain's deadline has passed")
 	// ErrMessageTooLarge means the envelope is over MaxMessageBytes.
-	ErrMessageTooLarge = errors.New("albitorsvc: the message is over 256 KiB; queue a reference, not the data")
+	ErrMessageTooLarge = errors.New("gateway: the message is over 256 KiB; queue a reference, not the data")
 	// ErrNotQueueEvent is ParseEvent's answer to a body with no Records key, such as a schedule's.
-	ErrNotQueueEvent = errors.New("albitorsvc: not a queue event")
+	ErrNotQueueEvent = errors.New("gateway: not a queue event")
 
 	queueNamePattern = regexp.MustCompile(`^[a-z][a-z0-9-]{1,31}$`)
 )
@@ -130,7 +130,7 @@ func OpenQueues(getenv func(string) string) (*Queues, error) {
 	env := func(k string) string { return strings.TrimSpace(getenv(k)) }
 	if env("ALBITOR_LOCAL") == "1" {
 		if env("AWS_LAMBDA_FUNCTION_NAME") != "" {
-			return nil, errors.New("albitorsvc: ALBITOR_LOCAL=1 on a deployed function: refusing the in-process queue")
+			return nil, errors.New("gateway: ALBITOR_LOCAL=1 on a deployed function: refusing the in-process queue")
 		}
 		return &Queues{local: newLocalQueue()}, nil
 	}
@@ -141,7 +141,7 @@ func OpenQueues(getenv func(string) string) (*Queues, error) {
 		SessionToken:    env("AWS_SESSION_TOKEN"),
 	}
 	if region == "" || creds.AccessKeyID == "" || creds.SecretAccessKey == "" {
-		return nil, errors.New("albitorsvc: no Region or role credentials in the environment")
+		return nil, errors.New("gateway: no Region or role credentials in the environment")
 	}
 	hc := &http.Client{Timeout: 20 * time.Second}
 	hc.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
@@ -179,7 +179,7 @@ func (q *Queues) SendBatch(ctx context.Context, queue string, payloads []any, op
 		return nil
 	}
 	if len(payloads) > MaxBatch {
-		return fmt.Errorf("albitorsvc: a batch holds at most %d messages", MaxBatch)
+		return fmt.Errorf("gateway: a batch holds at most %d messages", MaxBatch)
 	}
 	envs := make([]Envelope, 0, len(payloads))
 	total := 0
@@ -199,14 +199,14 @@ func (q *Queues) SendBatch(ctx context.Context, queue string, payloads []any, op
 
 func (q *Queues) envelope(queue string, payload any, opts SendOptions) (Envelope, error) {
 	if !queueNamePattern.MatchString(queue) {
-		return Envelope{}, fmt.Errorf("albitorsvc: %q is not a queue name", queue)
+		return Envelope{}, fmt.Errorf("gateway: %q is not a queue name", queue)
 	}
 	if opts.Delay < 0 || opts.Delay > MaxDelay {
-		return Envelope{}, errors.New("albitorsvc: the delay must be 0 to 900 seconds")
+		return Envelope{}, errors.New("gateway: the delay must be 0 to 900 seconds")
 	}
 	raw, err := json.Marshal(payload)
 	if err != nil {
-		return Envelope{}, fmt.Errorf("albitorsvc: encode payload: %w", err)
+		return Envelope{}, fmt.Errorf("gateway: encode payload: %w", err)
 	}
 	now := q.clock()
 	env := Envelope{Queue: queue, Payload: raw}
@@ -222,7 +222,7 @@ func (q *Queues) envelope(queue string, payload any, opts SendOptions) (Envelope
 	} else {
 		h := opts.Horizon
 		if h < 0 || h > MaxHorizon {
-			return Envelope{}, errors.New("albitorsvc: the horizon must be at most one hour")
+			return Envelope{}, errors.New("gateway: the horizon must be at most one hour")
 		}
 		if h == 0 {
 			h = MaxHorizon
@@ -249,7 +249,7 @@ func (q *Queues) deliver(ctx context.Context, queue string, envs []Envelope, del
 	}
 	u, err := url.Parse(queueURL)
 	if err != nil || u.Host == "" || (u.Scheme != "https" && !isLoopback(u)) {
-		return errors.New("albitorsvc: the queue URL must be https")
+		return errors.New("gateway: the queue URL must be https")
 	}
 	endpoint := q.endpoint
 	if endpoint == "" {
@@ -280,7 +280,7 @@ func (q *Queues) deliver(ctx context.Context, queue string, envs []Envelope, del
 		return err
 	}
 	if len(resp.Failed) > 0 {
-		return fmt.Errorf("albitorsvc: %d of %d messages were not accepted by the queue", len(resp.Failed), len(envs))
+		return fmt.Errorf("gateway: %d of %d messages were not accepted by the queue", len(resp.Failed), len(envs))
 	}
 	return nil
 }
@@ -304,7 +304,7 @@ func (q *Queues) call(ctx context.Context, endpoint, action string, req, resp an
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		return errors.New("albitorsvc: the queue request failed to send")
+		return errors.New("gateway: the queue request failed to send")
 	}
 	defer func() { _ = res.Body.Close() }()
 	raw, _ := io.ReadAll(io.LimitReader(res.Body, maxQueueResponse))
@@ -320,11 +320,11 @@ func (q *Queues) call(ctx context.Context, endpoint, action string, req, resp an
 		if e.Type == "" {
 			e.Type = "unknown"
 		}
-		return fmt.Errorf("albitorsvc: sqs %s: %d %s", action, res.StatusCode, e.Type)
+		return fmt.Errorf("gateway: sqs %s: %d %s", action, res.StatusCode, e.Type)
 	}
 	if resp != nil {
 		if err := json.Unmarshal(raw, resp); err != nil {
-			return fmt.Errorf("albitorsvc: decode sqs response: %w", err)
+			return fmt.Errorf("gateway: decode sqs response: %w", err)
 		}
 	}
 	return nil

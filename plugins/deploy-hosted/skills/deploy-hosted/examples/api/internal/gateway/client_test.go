@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"context"
@@ -259,14 +259,14 @@ func TestErrorCarriesTheRefusedFieldAndWhy(t *testing.T) {
 		field, detail    string
 	}{
 		{"both", `{"error":"bad_request","field":"MediaFormat","detail":"unknown field"}`,
-			"albitorsvc: 400 bad_request (field MediaFormat: unknown field)", "MediaFormat", "unknown field"},
+			"gateway: 400 bad_request (field MediaFormat: unknown field)", "MediaFormat", "unknown field"},
 		{"field only", `{"error":"bad_request","field":"Text"}`,
-			"albitorsvc: 400 bad_request (field Text)", "Text", ""},
+			"gateway: 400 bad_request (field Text)", "Text", ""},
 		{"detail only", `{"error":"bad_request","detail":"body is not an object"}`,
-			"albitorsvc: 400 bad_request (body is not an object)", "", "body is not an object"},
+			"gateway: 400 bad_request (body is not an object)", "", "body is not an object"},
 		{"absent, as an older gateway sends", `{"error":"bad_request"}`,
-			"albitorsvc: 400 bad_request", "", ""},
-		{"not JSON", `nope`, "albitorsvc: 400 unknown", "", ""},
+			"gateway: 400 bad_request", "", ""},
+		{"not JSON", `nope`, "gateway: 400 unknown", "", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {

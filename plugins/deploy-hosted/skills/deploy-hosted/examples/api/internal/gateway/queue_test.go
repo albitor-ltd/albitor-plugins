@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"context"

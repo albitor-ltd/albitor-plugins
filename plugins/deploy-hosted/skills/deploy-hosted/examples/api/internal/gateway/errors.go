@@ -1,4 +1,4 @@
-package albitorsvc
+package gateway
 
 import (
 	"errors"
@@ -38,15 +38,15 @@ type Error struct {
 func (e *Error) Error() string {
 	switch {
 	case e.AWSCode != "":
-		return fmt.Sprintf("albitorsvc: %d %s (%s)", e.Status, e.Code, e.AWSCode)
+		return fmt.Sprintf("gateway: %d %s (%s)", e.Status, e.Code, e.AWSCode)
 	case e.Field != "" && e.Detail != "":
-		return fmt.Sprintf("albitorsvc: %d %s (field %s: %s)", e.Status, e.Code, e.Field, e.Detail)
+		return fmt.Sprintf("gateway: %d %s (field %s: %s)", e.Status, e.Code, e.Field, e.Detail)
 	case e.Field != "":
-		return fmt.Sprintf("albitorsvc: %d %s (field %s)", e.Status, e.Code, e.Field)
+		return fmt.Sprintf("gateway: %d %s (field %s)", e.Status, e.Code, e.Field)
 	case e.Detail != "":
-		return fmt.Sprintf("albitorsvc: %d %s (%s)", e.Status, e.Code, e.Detail)
+		return fmt.Sprintf("gateway: %d %s (%s)", e.Status, e.Code, e.Detail)
 	}
-	return fmt.Sprintf("albitorsvc: %d %s", e.Status, e.Code)
+	return fmt.Sprintf("gateway: %d %s", e.Status, e.Code)
 }
 
 // Sentinels for errors.Is. A sentinel with a Code matches that status and code;
@@ -84,4 +84,4 @@ func Unavailable(err error) bool {
 
 // ErrNotConfigured is returned by Open when ALBITOR_SERVICES_URL is unset: the
 // manifest declares no services.callable, or this is a local run.
-var ErrNotConfigured = errors.New("albitorsvc: ALBITOR_SERVICES_URL is not set; declare services.callable in albitor.yaml")
+var ErrNotConfigured = errors.New("gateway: ALBITOR_SERVICES_URL is not set; declare services.callable in albitor.yaml")

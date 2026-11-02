@@ -1,6 +1,6 @@
 ---
 name: gateway-services
-description: Use when an app composed with the deploy-hosted plugin needs to translate, transcribe, read documents, speak, detect language or call a model, or any AWS AI service, from its Go API. Declare it under services.callable in albitor.yaml and call it through api/internal/albitorsvc. Never add an AWS SDK client for these services, an API key or an IAM permission for them.
+description: Use when an app composed with the deploy-hosted plugin needs to translate, transcribe, read documents, speak, detect language or call a model, or any AWS AI service, from its Go API. Declare it under services.callable in albitor.yaml and call it through the gateway example (copied to api/internal/gateway). Never add an AWS SDK client for these services, an API key or an IAM permission for them.
 metadata:
   capability: deploy-target
 ---
@@ -9,15 +9,24 @@ metadata:
 
 A hosted app has no AWS AI-service permission and holds no supplier key. It calls the Albitor
 service gateway, which makes the call from Albitor's account, meters it and bills it in credits.
-The client is `api/internal/albitorsvc/` (package `webapp/internal/albitorsvc`, standard library
-only). The plugin owns that directory; the build owns `api/internal/app/`.
+The client is a worked example, `examples/api/internal/gateway/` beside the `deploy-hosted` skill
+(package `gateway`, standard library only), and nothing seeds it. The plugin owns no app code under
+`api/`; the build owns `api/internal/app/`.
 
 ## Starting points
 
-Everything under `api/internal/albitorsvc/`, tests included, is seeded once and is yours from then
-on. Keep the client's signing as it is: do not point an AWS SDK client at the gateway or add a
-custom signer, because a stock SDK signs for the target service's name (`translate`, `transcribe`),
-which the gateway cannot verify, and that is why this client exists.
+Copy the example only when the app calls platform services or uses queues (`services.callable` or
+`queues` in `albitor.yaml`); an app with neither carries none of it. From the app's repository root:
+
+```sh
+cp -r <skill dir>/examples/api/internal/gateway api/internal/gateway
+```
+
+Then edit it: it is the app's code from then on, tests included, and its module path is
+`webapp/internal/gateway` (change the import if the module is named otherwise). Keep the client's
+signing as it is: do not point an AWS SDK client at the gateway or add a custom signer, because a
+stock SDK signs for the target service's name (`translate`, `transcribe`), which the gateway cannot
+verify, and that is why this client exists.
 
 ## Steps to add a feature
 
@@ -38,7 +47,7 @@ which the gateway cannot verify, and that is why this client exists.
    manifest. The platform sets `ALBITOR_SERVICES_URL` and the role's permission to call the gateway
    at deploy.
 2. **Open the client once** in `main` or the app's setup:
-   `svc, err := albitorsvc.Open(os.Getenv)`. `albitorsvc.ErrNotConfigured` means no URL is set (a
+   `svc, err := gateway.Open(os.Getenv)`. `gateway.ErrNotConfigured` means no URL is set (a
    local run, or nothing declared): keep the feature off and carry on, do not fail the start.
 3. **Look up the operation in [references/request-shapes.md](references/request-shapes.md)**,
    define request and response structs with exactly the fields listed there, and call
@@ -48,7 +57,7 @@ which the gateway cannot verify, and that is why this client exists.
    name, media and output locations, role, settings). Never copy an AWS SDK input struct. For
    Transcribe that means `UploadHandle` plus a language, not `TranscriptionJobName`, `MediaFormat`
    or `Media`.
-4. **Pass a fresh `albitorsvc.WithIdempotencyKey(...)`** on exactly the operations marked in the
+4. **Pass a fresh `gateway.WithIdempotencyKey(...)`** on exactly the operations marked in the
    reference: `StartTranscriptionJob`, Textract's two `Start...` operations and Polly
    `SynthesizeSpeech`. The gateway answers `400 idempotency_key_required` without one. Bedrock,
    Translate, Comprehend, Location and the Get operations take no key. The key must match
@@ -83,10 +92,10 @@ schedule fires at most every 15 minutes, so a user waiting on the result waits u
 a job that took seconds. Use a queue and a consumer that re-enqueues itself with a delay:
 
 1. The route that starts the job calls `Start...` (with its idempotency key), then
-   `q.Send(ctx, "transcribe", jobRef{JobID: id}, albitorsvc.SendOptions{Delay: 5 * time.Second})`.
+   `q.Send(ctx, "transcribe", jobRef{JobID: id}, gateway.SendOptions{Delay: 5 * time.Second})`.
    Queue the job id and the record it belongs to, never the audio or the result.
 2. The consumer (`POST /events`, see the api-go skill) calls the `Get...` operation. Still running:
-   `q.Send(ctx, queue, ref, albitorsvc.SendOptions{Parent: &m, Delay: 10 * time.Second})`, which
+   `q.Send(ctx, queue, ref, gateway.SendOptions{Parent: &m, Delay: 10 * time.Second})`, which
    bumps `attempt` and keeps the chain's deadline. Done: store the result on the record and, for
    the next step of a pipeline, `Send` that step's message. Failed: mark the record failed.
 3. `Send` returns `ErrAttemptsExceeded` (50 re-enqueues) or `ErrDeadlinePassed` (the chain's
@@ -102,20 +111,20 @@ Declare the queue under `queues` in `albitor.yaml`; the hosted target renders it
 
 ## Errors: say "unavailable", never retry around it
 
-`svc.Call` returns `*albitorsvc.Error` (status and code; AWS's message never arrives). On a `400
+`svc.Call` returns `*gateway.Error` (status and code; AWS's message never arrives). On a `400
 bad_request` it also carries `Field` and `Detail` when the gateway names the refused field (needs
 the gateway change in albitor PR #4271; empty on an older gateway, and some checks never name one), and the
-text shows them: `albitorsvc: 400 bad_request (field MediaFormat: unknown field)`. Log that text;
+text shows them: `gateway: 400 bad_request (field MediaFormat: unknown field)`. Log that text;
 a `400` is a build bug in the request shape, never retry it:
 
 | Answer | Test | The app does |
 | --- | --- | --- |
-| `402 credits_exhausted`, `402 cap_reached` | `errors.Is(err, albitorsvc.ErrCreditsExhausted)` or `ErrCapReached` | Treat the feature as unavailable: tell the user it is unavailable right now and carry on. Do not retry, and do not queue the work to retry later |
-| `403` (`not_declared`, `service_disabled`, `app_disabled`, residency) | `errors.Is(err, albitorsvc.ErrForbidden)` | The same: unavailable. A `not_declared` is a build bug, so log it once at startup of the feature |
-| `429` | `errors.Is(err, albitorsvc.ErrRateLimited)` | The client has already retried with jittered, capped backoff and given up, or returned at once because the wait asked for is over its 5 second cap: answer "busy, try again shortly" |
-| anything else | `*albitorsvc.Error` | A fault: log the error text (code, and `Field`/`Detail` on a 400) and `RequestID` against the correlation id, answer an opaque 500 through `apikit.WriteFailure` |
+| `402 credits_exhausted`, `402 cap_reached` | `errors.Is(err, gateway.ErrCreditsExhausted)` or `ErrCapReached` | Treat the feature as unavailable: tell the user it is unavailable right now and carry on. Do not retry, and do not queue the work to retry later |
+| `403` (`not_declared`, `service_disabled`, `app_disabled`, residency) | `errors.Is(err, gateway.ErrForbidden)` | The same: unavailable. A `not_declared` is a build bug, so log it once at startup of the feature |
+| `429` | `errors.Is(err, gateway.ErrRateLimited)` | The client has already retried with jittered, capped backoff and given up, or returned at once because the wait asked for is over its 5 second cap: answer "busy, try again shortly" |
+| anything else | `*gateway.Error` | A fault: log the error text (code, and `Field`/`Detail` on a 400) and `RequestID` against the correlation id, answer an opaque 500 through `apikit.WriteFailure` |
 
-`albitorsvc.Unavailable(err)` is true for the first two rows. Never show a user the code, a credit
+`gateway.Unavailable(err)` is true for the first two rows. Never show a user the code, a credit
 figure or the word "credits"; the owner sees spend in Albitor, the end user sees the feature
 unavailable. Do not wrap `Call` in a retry loop: the client's retries already spend the app's own
 rate budget.
@@ -128,7 +137,7 @@ proxy for the internet. By default:
 - Put every gateway-backed route **behind the app's sign-in** (the `auth` plugin's guard), and take
   the end user's identity from the verified session, never from the body.
 - Where the app has no sign-in, or a route must be public, **rate-limit per end user** (or per
-  address) in the app itself, with a low daily allowance, before the call reaches `albitorsvc`.
+  address) in the app itself, with a low daily allowance, before the call reaches `gateway`.
 - Bound what one call can cost: cap input length and file size in the app below the gateway's own
   caps, and never let a request choose the model, the feature set or how many calls fan out.
 - Never put a gateway-backed call on an unauthenticated schedule or webhook without a counter.
@@ -140,7 +149,7 @@ users, and an app that burns its cap turns the feature off for everyone.
 ## Tests
 
 The app's own tests do not call the gateway. Put the calls behind a small interface the handler
-depends on (`Translate(ctx, text, lang) (string, error)`), implement it with `albitorsvc` in
-`main`, and fake it in tests, including the unavailable path: a fake that returns `albitorsvc.ErrCreditsExhausted` or
-`albitorsvc.ErrForbidden` (both are ready-made `*albitorsvc.Error` values) must produce the
+depends on (`Translate(ctx, text, lang) (string, error)`), implement it with `gateway` in
+`main`, and fake it in tests, including the unavailable path: a fake that returns `gateway.ErrCreditsExhausted` or
+`gateway.ErrForbidden` (both are ready-made `*gateway.Error` values) must produce the
 handler's "unavailable" answer.
