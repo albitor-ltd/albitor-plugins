@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `0.6.0` (albitor-ltd/albitor#4300, albitor-plugins#142; tag follows the merge).
+  Breaking seed change: the seeded data layer is online-only. `data-layer/index.ts` exports the
+  online layer with no `{{albitor.data_layer}}` token, so the plugin no longer reads that platform
+  token (a composer must still accept it until no lock names an older web-svelte). `lib/sync/**` and
+  `data-layer/offline.ts` move to `skills/data-offline/examples/web/src/lib/`, to copy in and swap
+  `index.ts` to `./offline`; the skill says how. `scope.d/data-layer.ts`, the shell, slot hosts,
+  service worker and toolchain stay seeded, and the seeded tests import only seeded code. The
+  "Starting point" and "Seeded by Albitor" banners and the pointers back to the plugin are gone.
+
 - `data-dynamodb` `0.3.0` and `api-go` `0.4.0` (albitor-ltd/albitor#4300; tags follow the merge).
   The seeded store, shell, router, routes, apikit and README are plain app code: the "Starting
   point" banners and every pointer back to the plugin or its skill are gone, and behaviour is

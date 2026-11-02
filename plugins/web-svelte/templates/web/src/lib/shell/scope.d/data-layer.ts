@@ -1,3 +1,2 @@
-// Starting point (web-svelte): the identifier web-svelte's own web.providers fragment names,
-// the provider of the data layer this app was composed with (lib/data-layer).
+// The provider of the data layer this app uses (lib/data-layer), named by the shell's providers.
 export { DataProvider } from '../../data-layer';

@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): the sync engine, the sync package.
+// The sync engine, the sync package.
 //
 // Offline-first: every write lands in the local store first and in an outbox second, and the
 // outbox is replayed to the server when there is a network. The rules below exist because

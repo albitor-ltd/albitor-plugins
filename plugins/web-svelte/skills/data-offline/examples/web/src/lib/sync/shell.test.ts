@@ -1,7 +1,7 @@
 // The offline promise needs the shell itself to open with no network. SvelteKit emits a service
 // worker only when src/service-worker exists, and the worker only helps if it caches the app shell
-// and stays away from the API. These checks read the worker the shell ships (web-svelte), so a
-// build that drops or guts it fails here, and the compose check confirms the built output.
+// and stays away from the API. These checks read the worker the shell ships, so a
+// build that drops or guts it fails here.
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';

@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (web-svelte), then yours: the error and 404 page. -->
+<!-- The error and 404 page. -->
 <script lang="ts">
 	import { page } from '$app/state';
 </script>

@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): what to tell the person about their data, in plain words.
+// What to tell the person about their data, in plain words.
 import type { SyncStatus } from './types';
 
 export type StatusTone = 'ok' | 'busy' | 'warn';

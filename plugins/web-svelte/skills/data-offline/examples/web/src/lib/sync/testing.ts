@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): an in-memory server for tests, speaking the Transport
+// An in-memory server for tests, speaking the Transport
 // contract. It keeps one account per owner, with tombstones for deletions.
 import { ApiError, NetworkError } from '../shell/api';
 import type { OutboxEntry, PullResult, SyncRecord, Transport } from './types';

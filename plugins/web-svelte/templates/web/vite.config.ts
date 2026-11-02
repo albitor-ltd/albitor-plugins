@@ -1,4 +1,4 @@
-// Starting point (web-svelte). SvelteKit 3 is configured here, not in svelte.config.js.
+// SvelteKit 3 is configured here, not in svelte.config.js.
 //
 // A static single-page app: every route renders in the browser and the host rewrites unknown
 // paths to index.html (albitor.yaml `site.spa`).

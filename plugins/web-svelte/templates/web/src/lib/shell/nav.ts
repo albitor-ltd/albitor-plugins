@@ -1,4 +1,4 @@
-// Starting point (web-svelte): turns route nav.ts modules and plugin web.nav entries into the
+// Turns route nav.ts modules and plugin web.nav entries into the
 // grouped, ordered list the kit's AppShell renders.
 import type { NavGroup, NavItem, NavMeta } from './types';
 

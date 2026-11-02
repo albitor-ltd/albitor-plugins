@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): the default Transport, over the app's own REST API and the
+// The default Transport, over the app's own REST API and the
 // shell's API client (path checks, bearer token, error types).
 //
 // The contract an API must meet for a collection `items` (all under /api):
@@ -17,7 +17,7 @@ import type { OutboxEntry, PullResult, SyncRecord, Transport } from './types';
 export interface ApiTransportOptions {
 	/** The collection's path; defaults to `/<collection>`. */
 	path?: (collection: string) => string;
-	/** Who the API's credentials belong to. Defaults to the user the auth plugin reported. */
+	/** Who the API's credentials belong to. Defaults to the user reported by the auth integration. */
 	whoami?: () => string | null;
 	/** A request that takes longer is abandoned (and retried later); a hung one would hold the sync lock. */
 	timeoutMs?: number;
