@@ -15,6 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `kit-gds` gains the page examples it lacked, built from its own GOV.UK components (summary list,
   error summary, notification banner), so it now passes `kit-pages-examples-are-sound`. Each kit's
   skill gains a page-templates section saying to copy from `examples/`.
+- `auth-cognito` `0.7.0`, `auth-hosted` `0.4.0`, `auth-none` `0.4.0` and `api-go` `0.5.0`
+  (albitor-ltd/albitor#4300, albitor-plugins#141; tags follow the merge). Breaking seed changes: the
+  identity core stays seeded (`identity.go`, verify, token, the cookies and refresh, the hardening
+  tests, `session.ts`, `guard.ts`, the slot fills and `provider.ts`) and is plain app code, with no
+  banners or pointers back to the plugin. The sign-in calls, People admin, `client.ts`, the
+  `(auth)` screens, the sign-in journey and the `/api/me` contract variant move to
+  `skills/<plugin>/examples/`, to copy and alter; the skills say how, and the one join is a line in
+  `registerIdentityRoutes`. `auth-cognito`'s guard no longer redirects the self-service screens in an
+  invite-only app (that guard is an example). `api-go` always seeds `api/openapi.yaml`
+  (the `when: auth-none` is gone) and its line 1 no longer names a plugin. `scripts/verify-auth.sh`
+  now checks the seeded API alone and with the examples copied in.
 
 - `data-dynamodb` `0.3.0` and `api-go` `0.4.0` (albitor-ltd/albitor#4300; tags follow the merge).
   The seeded store, shell, router, routes, apikit and README are plain app code: the "Starting

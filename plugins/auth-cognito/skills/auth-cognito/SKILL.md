@@ -1,6 +1,6 @@
 ---
 name: auth-cognito
-description: Use when building or reviewing sign-in for an app composed with the auth-cognito plugin (auth@1) - who owns a record, which routes need a person, a group-gated action, the sign-in, sign-up, confirm or reset screens, the route guard, or signing in as a test identity in a local run. The identity seam, the session module, the guard and the sign-in calls are already in the repository and managed; the build writes authorisation and edits the seeded screens.
+description: Use when building or reviewing sign-in for an app composed with the auth-cognito plugin (auth@1) - who owns a record, which routes need a person, a group-gated action, the sign-in, sign-up, confirm or reset screens, the People admin, the route guard, or signing in as a test identity in a local run. The identity seam, the session module and the guard are in the repository; the sign-in calls, screens and People admin are worked examples to copy, then alter.
 metadata:
   capability: auth
 ---
@@ -32,21 +32,53 @@ All of that is in the repository: read it, then extend it. The plugin declares `
 and hands the function `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AWS_REGION`, `AUTH_SIGN_UP`,
 `AUTH_ADMIN_GROUP` and `AUTH_USER_ADMIN_GROUP`. There is no Terraform and no pool id in the repository.
 
-## Starting points
+## Seeded files (the app's own)
 
-These files are seeded once and are yours from then on. They are the working sign-in for the app: change them when the app needs it, and keep the identity API (`identity.Owner`, `identity.FromContext`) and the checks the API makes on every token, which is what keeps one person's records from another.
-
+These are written once and are plain app code. Change them when the app needs it, and keep the
+identity API (`identity.Owner`, `identity.FromContext`) and the checks the API makes on every token,
+which is what keeps one person's records from another.
 
 | File | What it does |
 | --- | --- |
 | `api/internal/identity/identity.go` | `identity.Owner(r)`, `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
-| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every `/api/` request without a verified token except `/api/health`, `/api/auth/*` and an unknown path; `IdentityRoutes` serves `GET /api/me` and `POST /api/auth/*` |
+| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every `/api/` request without a verified token except `/api/health`, `/api/auth/*` and an unknown path; `IdentityRoutes` serves `GET /api/me` |
 | `api/internal/shell/identity_token.go` | The RS256 check against the pool's JWKS: signature, `iss`, `token_use`, client, expiry. Standard library only |
-| `api/internal/shell/identity_cognito.go` | Where the pool comes from, and the sign-in, sign-up, confirm, resend, forgot, reset and sign-out calls. The session is two HttpOnly, Secure, SameSite=Strict cookies |
-| `api/internal/shell/identity_people.go`, `identity_sigv4.go` | `GET /api/auth/config`, `POST /api/auth/change-password`, and the invite-only People admin (`/api/auth/users`, `.../disable`, `.../enable`, `.../reset-password`), each guarded by the user-admin group and signed (SigV4, standard library) with the function role's credentials. Temporary passwords are generated here, returned once with `Cache-Control: no-store`, never logged |
+| `api/internal/shell/identity_cognito.go` | Where the pool comes from (`signInFromEnv`), the session cookies, refresh, and the one call helper to Cognito |
+| `api/internal/shell/identity_test.go`, `identity_hardening_test.go` | The gate, the token checks, key rotation, refresh and the local issuer. Each fails when the check it is named for is removed |
 | `web/src/lib/auth/session.ts` | `getSession()`, which asks `GET /api/me`. Provider-independent: the guard and the screens both read it |
 | `web/src/lib/auth/guard.ts` | `requireSession`, the `web.route-guard` entry. Sends a signed-out person to `/sign-in?next=...` |
-| `web/src/lib/auth/client.ts` | `signIn`, `signUp`, `confirm`, `resend`, `forgot`, `reset`, `signOut`, `getSignUpMode`, `changePassword` and the People calls. They return `{ ok: false, code, message }` rather than throw |
+| `web/src/lib/shell/scope.d/auth-cognito.ts` | Exports the name the `web.route-guard` slot resolves to |
+| `web/tests/auth/provider.ts` | The `auth@2` provider the specs call |
+
+Out of the box a person cannot yet sign in: the sign-in calls and the screens are the examples
+below. The seeded API answers `GET /api/me` and refuses everything else without a token.
+
+## Examples (copy, then alter)
+
+Worked examples sit in `examples/` beside this skill, laid out by repository path: copy a file to the
+same path in the app. They are the app's code once copied; they never reference this skill. The
+foundation node writes the sign-in shell from them.
+
+| Example | What it is |
+| --- | --- |
+| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the sign-in calls: `POST /api/auth/sign-in`, `sign-up`, `confirm`, `resend`, `forgot`, `reset`, `new-password`, `sign-out`, and the Cognito error mapping |
+| `examples/api/internal/shell/identity_people.go`, `identity_sigv4.go` | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it. Temporary passwords are generated here, returned once with `Cache-Control: no-store`, never logged |
+| `examples/api/internal/shell/identity_flows_test.go`, `identity_people_test.go`, `identity_sigv4_test.go` | Their tests, run against the seeded helpers |
+| `examples/api/openapi.yaml` | The contract with `GET /api/me` and `/api/auth/*` added to the base. Merge those paths into the app's `api/openapi.yaml` |
+| `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `signIn`, `signUp`, `confirm`, `resend`, `forgot`, `reset`, `signOut`, `getSignUpMode`, `changePassword` and the People calls. They return `{ ok: false, code, message }` rather than throw |
+| `examples/web/src/lib/auth/guard.ts`, `guard.test.ts` | A guard that also sends a visitor from `/sign-up`, `/confirm` and `/reset` to `/sign-in` in an invite-only app. Replaces the seeded guard when you adopt the self-service screens |
+| `examples/web/src/routes/(auth)/**` | Sign-in, sign-up, confirm, reset, sign-out, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on every kit that provides it |
+| `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey: redirect, screens, local identity |
+
+To adopt the sign-in calls, copy the three API files together (`identity_flows.go` hands the
+signed-in routes to `identity_people.go`, which signs with `identity_sigv4.go`), then add one line at
+the top of `registerIdentityRoutes` in `identity_verify.go`:
+
+```go
+registerAuthRoutes(mux, setup, logger)
+```
+
+The routes `/sign-in`, `/sign-up`, `/confirm`, `/reset` and `/sign-out` are fixed: seeded `guard.ts` hard-code them, so a screen keeps its path.
 
 The browser never talks to Cognito (the page's CSP allows its own origin only) and no token is
 readable by page script. A script or test client may send `Authorization: Bearer <token>` instead.
@@ -64,7 +96,7 @@ readable by page script. A script or test client may send `Authorization: Bearer
   (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
   request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
   hand-made user, never a password in a spec. Each role's account holds that group and no other. Locally it is the `api-go` local issuer; deployed it is the seeded `<role>@albitor-role.invalid` signed in on the app's own form.
-- **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them,
+- **The screens** in `web/src/routes/(auth)/` (copied from the examples) are yours: restyle and reword them,
   add sign-up fields (and the field in `client.ts`'s call), but **keep the `data-testid` values**
   on the sign-up, confirm, reset and new-password forms. The sign-in form is the kit's `SignInPage`
   (component-kit@2), found by role and label; keep it rather than rebuilding it. `sign-out/nav.ts` puts "Sign out" in the
@@ -73,7 +105,8 @@ readable by page script. A script or test client may send `Authorization: Bearer
   `GET /api/auth/config` names as `user_admin_group`. People keeps its `people-*` test ids, shows the
   one-time password with a copy button, and nudges the administrator to add a second one while
   there is only one user administrator.
-- **Public pages.** `PUBLIC_PATHS` in `guard.ts` lists the public paths. A page that must be public (a landing
+- **Public pages.** `PUBLIC_PATHS` in `guard.ts` lists the public paths (the sign-in, sign-up, confirm,
+  reset, sign-out and offline paths are in it already). A page that must be public (a landing
   page, say) means adding the path there: say why in the delivery record. The
   guard only shapes what the browser shows; the API enforces access.
 - **Anything the brief adds** (MFA, social sign-in) is a change to `services.auth` in
@@ -111,6 +144,6 @@ test. With `ALBITOR_LOCAL=1` and no issuer, every request acts for `identity.Ano
 
 ## Verification
 
-`web/tests/journeys/sign-in.spec.ts` (seeded, yours to extend) proves a signed-out visitor is sent
+`web/tests/journeys/sign-in.spec.ts` (copied from the examples, yours to extend) proves a signed-out visitor is sent
 to sign-in, the screens render and pass axe, and a local identity reaches the app. The universal
 `api-auth` floor still applies: declared non-public endpoints return `401` unauthenticated.

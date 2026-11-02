@@ -10,17 +10,15 @@ import (
 	"webapp/internal/identity"
 )
 
-// THE API IDENTITY SEAM of the auth-hosted plugin (auth@1). It fills two
-// slots of the generated router: IdentityVerify in api.middleware and
-// IdentityRoutes in api.routes. Every /api/ request now needs a verified
-// sign-in, except /api/health and the sign-in calls themselves.
+// THE API IDENTITY SEAM. It fills two slots of the generated router: IdentityVerify in
+// api.middleware and IdentityRoutes in api.routes. Every /api/ request needs a verified sign-in,
+// except /api/health and the sign-in routes under /api/auth/.
 //
 // The pieces:
-//   - identity_verify.go (this file): the middleware, GET /api/me, the routes.
+//   - identity_verify.go (this file): the middleware and GET /api/me.
 //   - identity_token.go: verifies a Cognito token against the pool's JWKS.
-//   - identity_hosted.go: where the pool comes from, and /api/auth/*: the redirect to
-//     Cognito's hosted sign-in, the callback that finishes it, refresh, sign-out and
-//     account deletion. The app never sees a password.
+//   - identity_hosted.go: where the pool comes from, the token endpoint, refresh and the
+//     session cookies.
 //
 // Handlers never see any of this. They call identity.Owner(r) from
 // webapp/internal/identity, which answers the verified token's `sub`.
@@ -47,7 +45,8 @@ func IdentityVerify(next http.Handler) http.Handler {
 	return newIdentityGate(next, processSignIn, slog.Default())
 }
 
-// IdentityRoutes is the api.routes entry: GET /api/me and /api/auth/*.
+// IdentityRoutes is the api.routes entry: GET /api/me. The sign-in routes under /api/auth/ are
+// registered here too, by the app, when it has screens that use them.
 func IdentityRoutes(mux *http.ServeMux) {
 	registerIdentityRoutes(mux, processSignIn, slog.Default())
 }
@@ -55,20 +54,6 @@ func IdentityRoutes(mux *http.ServeMux) {
 func registerIdentityRoutes(mux *http.ServeMux, setup signIn, logger *slog.Logger) {
 	mux.HandleFunc(mePath, func(w http.ResponseWriter, r *http.Request) {
 		serveMe(w, r, setup)
-	})
-	mux.HandleFunc(authPathRoot, func(w http.ResponseWriter, r *http.Request) {
-		if setup.auth == nil {
-			if r.Method == http.MethodGet {
-				// A browser that followed the sign-in link lands on a page that says why, not on JSON.
-				http.Redirect(w, r, signInErrorPath("local"), http.StatusFound)
-				return
-			}
-			apikit.WriteJSON(w, http.StatusNotImplemented, map[string]string{
-				"error": "sign-in is not available in a local run", "code": "local",
-			})
-			return
-		}
-		setup.auth.serveAuth(w, r, logger)
 	})
 }
 

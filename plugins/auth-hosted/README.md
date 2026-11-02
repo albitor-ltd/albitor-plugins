@@ -19,15 +19,23 @@ part of this plugin. Nothing here changes with that screen.
 
 ## What it ships
 
-| Repository path in the app | Mode | What |
+The identity core is seeded once into the app (the app owns it from then on). The hosted sign-in
+routes and the screens are worked examples under `skills/auth-hosted/examples/`, laid out by
+repository path, which the skill tells a coder to copy and alter.
+
+| Repository path in the app | Seeded | What |
 | --- | --- | --- |
-| `api/internal/identity/` | starting point | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
-| `api/internal/shell/identity_verify.go` | starting point | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me`, `/api/auth/*` |
-| `api/internal/shell/identity_token.go` | starting point | RS256 check against the pool's JWKS, standard library only |
-| `api/internal/shell/identity_hosted.go` | starting point | The environment, login, callback, refresh, sign-out, account deletion, the sign-up domain rule, the cookies |
-| `api/openapi.yaml` | starting point | api-go's contract plus the `GET /api/me` entry (200 identity, 401 signed out) |
-| `web/src/lib/auth/` | starting point | `getSession()`, the `requireSession` route guard, the API calls, and their tests |
-| `web/src/lib/shell/scope.d/auth-hosted.ts` | starting point | Exports the name `web.route-guard` resolves to |
+| `api/internal/identity/` | yes | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
+| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
+| `api/internal/shell/identity_token.go` | yes | RS256 check against the pool's JWKS, standard library only |
+| `api/internal/shell/identity_hosted.go` | yes | The environment, the ID-token gate, refresh, the sign-up domain rule, the cookies |
+| `api/internal/shell/identity_test.go` | yes | The gate, token and domain-rule hardening tests |
+| `web/src/lib/auth/session.ts`, `guard.ts` and tests | yes | `getSession()` and the `requireSession` route guard |
+| `web/src/lib/shell/scope.d/auth-hosted.ts` | yes | Exports the name `web.route-guard` resolves to |
+| `web/tests/auth/provider.ts` | yes | The `auth@2` provider |
+| `api/internal/shell/identity_flows.go` | example | `/api/auth/*`: login, callback, sign-out and account deletion, and `OnAccountDeleted` |
+| `api/openapi.yaml` | example | api-go's contract plus the `GET /api/me` entry (200 identity, 401 signed out) |
+| `web/src/lib/auth/client.ts` | example | `loginUrl`, `signOut`, `deleteAccount` |
 | `web/src/routes/(auth)/` | example | Sign-in (redirect), sign-out, account, delete-account confirmation and refusal screens, written against the `component-kit@2` exports (`Button`) |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: the hand-over, a failed sign-in that does not loop, the refusal page, account and sign-out |
 
@@ -36,8 +44,8 @@ target realises the pool from `services.auth`). It contributes `services.auth` (
 `posture: private`, `sign_up: open`) and no Terraform. The module stays stdlib-only, because
 `api/go.mod` is `api-go`'s.
 
-Switching auth after the first compose keeps the `api/openapi.yaml` you were seeded with (it is
-app-owned): remove its `/api/me` entry yourself if the app no longer serves it.
+Switching auth after the first compose keeps the files you were seeded with (they are app-owned):
+remove the `/api/me` entry from `api/openapi.yaml` yourself if the app no longer serves it.
 
 ## The environment
 

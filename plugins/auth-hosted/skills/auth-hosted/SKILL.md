@@ -1,6 +1,6 @@
 ---
 name: auth-hosted
-description: Use when building or reviewing sign-in for a hosted-lane app composed with the auth-hosted plugin (auth@1) - who owns a record, which routes need a person, a group-gated action, the sign-in redirect, sign-out, the account and deletion screens, the sign-up domain refusal, the route guard, or acting as a test identity in a local run. The identity seam, the session module, the guard and the hosted sign-in calls are already in the repository and managed; the build writes authorisation and edits the seeded screens.
+description: Use when building or reviewing sign-in for a hosted-lane app composed with the auth-hosted plugin (auth@1) - who owns a record, which routes need a person, a group-gated action, the sign-in redirect, sign-out, the account and deletion screens, the sign-up domain refusal, the route guard, or acting as a test identity in a local run. The identity seam, the session module and the guard are in the repository; the hosted sign-in routes and the screens are worked examples to copy, then alter.
 metadata:
   capability: auth
 ---
@@ -14,20 +14,50 @@ deploy realises the pool and hands the function `AUTH_ISSUER`, `AUTH_CLIENT_ID`,
 `AUTH_POSTURE`, `AUTH_LOGIN_URL` and `AUTH_LOGOUT_URL`. There is no Terraform and no pool id in the
 repository.
 
-## Starting points
+## Seeded files (the app's own)
 
-These files are seeded once and are yours from then on. They are the working sign-in for the app: change them when the app needs it, and keep the identity API (`identity.Owner`, `identity.FromContext`) and the checks the API makes on every token, which is what keeps one person's records from another.
-
+These are written once and are plain app code. Change them when the app needs it, and keep the
+identity API (`identity.Owner`, `identity.FromContext`) and the checks the API makes on every token,
+which is what keeps one person's records from another.
 
 | File | What it does |
 | --- | --- |
 | `api/internal/identity/identity.go` | `identity.Owner(r)`, `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
-| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every `/api/` request without a verified token except `/api/health`, `/api/auth/*` and an unknown path; `IdentityRoutes` serves `GET /api/me` and `/api/auth/*` |
+| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every `/api/` request without a verified token except `/api/health`, `/api/auth/*` and an unknown path; `IdentityRoutes` serves `GET /api/me` |
 | `api/internal/shell/identity_token.go` | The RS256 check against the pool's JWKS: signature, `iss`, `token_use`, client, expiry. Standard library only |
-| `api/internal/shell/identity_hosted.go` | The environment, `GET /api/auth/login` and `/callback` (authorization code with PKCE), refresh, `POST /api/auth/sign-out` and `/delete`, the `SIGNUP_DOMAINS` rule. The session is `__Host-` HttpOnly, Secure, SameSite=Strict cookies |
+| `api/internal/shell/identity_hosted.go` | The environment, the ID-token gate and the `SIGNUP_DOMAINS` rule, refresh at the token endpoint, and the `__Host-` session cookies (HttpOnly, Secure, SameSite=Strict) |
+| `api/internal/shell/identity_test.go` | The gate, the token checks, the email and domain rule on every request and refresh, key rotation and the local issuer |
 | `web/src/lib/auth/session.ts` | `getSession()`, which asks `GET /api/me`. Provider-independent: the guard and the screens both read it |
 | `web/src/lib/auth/guard.ts` | `requireSession`, the `web.route-guard` entry. Sends a signed-out person to `/sign-in?next=...` |
-| `web/src/lib/auth/client.ts` | `loginUrl`, `signOut`, `deleteAccount`. They return `{ ok: false, code, message }` rather than throw |
+| `web/src/lib/shell/scope.d/auth-hosted.ts` | Exports the name the `web.route-guard` slot resolves to |
+| `web/tests/auth/provider.ts` | The `auth@2` provider the specs call |
+
+Out of the box a person cannot yet sign in: the hosted sign-in routes and the screens are the
+examples below. The seeded API answers `GET /api/me` and refuses everything else without a token.
+
+## Examples (copy, then alter)
+
+Worked examples sit in `examples/` beside this skill, laid out by repository path: copy a file to the
+same path in the app. They are the app's code once copied; they never reference this skill. The
+foundation node writes the sign-in shell from them.
+
+| Example | What it is |
+| --- | --- |
+| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the hosted flow: `GET /api/auth/login` and `/callback` (authorization code with PKCE), `POST /api/auth/sign-out` and `/delete`, and `OnAccountDeleted` |
+| `examples/api/internal/shell/identity_flows_test.go` | The flow's tests: state and verifier, the callback's order of checks, cookies, sign-out, deletion, CSRF |
+| `examples/api/openapi.yaml` | The contract with `GET /api/me` added to the base. Merge that path into the app's `api/openapi.yaml` |
+| `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `loginUrl`, `signOut`, `deleteAccount`. They return `{ ok: false, code, message }` rather than throw |
+| `examples/web/src/routes/(auth)/**` | The sign-in, sign-out, account, account deletion and refusal screens, on the `component-kit@2` exports |
+| `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey |
+
+To adopt the hosted routes, copy `identity_flows.go` and its test, then add one line at the top of
+`registerIdentityRoutes` in `identity_verify.go`:
+
+```go
+registerAuthRoutes(mux, setup, logger)
+```
+
+The routes `/sign-in`, `/sign-out` and `/not-allowed` are fixed: seeded `guard.ts` and `identity_hosted.go` hard-code them, so a screen keeps its path.
 
 The browser never talks to Cognito's API and no token is readable by page script. A script or test
 client may send `Authorization: Bearer <token>` instead.
@@ -45,7 +75,7 @@ client may send `Authorization: Bearer <token>` instead.
   (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
   request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
   hand-made user, never a password in a spec. Each role's account holds that group and no other. Locally it is the `api-go` local issuer; deployed it is the seeded `<role>@albitor-role.invalid` signed in on the Cognito hosted page.
-- **The screens** in `web/src/routes/(auth)/` are seeded once and yours: restyle and reword them. Keep
+- **The screens** in `web/src/routes/(auth)/` (copied from the examples) are yours: restyle and reword them. Keep
   the `data-testid` values and the headings the journey spec reads. There is **no password field**: do
   not add a sign-in form, a sign-up screen or a reset screen, because Cognito's pages do those.
   The hosted lane keeps self sign-up with its platform-side invite flow: do not add the `auth-cognito`
@@ -86,7 +116,7 @@ for `identity.AnonymousOwner`.
 
 ## Verification
 
-`web/tests/journeys/sign-in.spec.ts` (seeded, yours to extend) proves a signed-out visitor is handed to
+`web/tests/journeys/sign-in.spec.ts` (copied from the examples, yours to extend) proves a signed-out visitor is handed to
 the API's sign-in with where they were headed, a failed sign-in does not loop, the refusal and account
 screens render and pass axe, and sign-out goes through Cognito's logout. It never types into Cognito:
 the suite's `auth.setup.ts` signs in once. The universal `api-auth` floor still applies: declared
