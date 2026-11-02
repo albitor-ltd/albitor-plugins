@@ -155,10 +155,10 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.5.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "web-svelte/v0.6.0",
+        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
       },
-      "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, both client data layers (online-only TanStack Query, or offline-first outbox and sync) with the one the platform selects as the entry point, and the web side of the local run contract.",
+      "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
       "keywords": [
         "web-framework",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.6.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "kit-shadcn/v0.7.0",
+        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -371,8 +371,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.6.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "kit-carbon/v0.7.0",
+        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -391,8 +391,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.6.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "kit-gds/v0.7.0",
+        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
