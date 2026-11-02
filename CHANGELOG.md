@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
-- `deploy-hosted` `0.4.0` (albitor-ltd/albitor#4268; untagged until released). The `gateway-services`
+- `deploy-hosted` `0.4.0` (albitor-ltd/albitor#4268; tagged `deploy-hosted/v0.4.0`). The `gateway-services`
   skill gains `references/request-shapes.md`: for every operation the gateway serves (Translate,
   Transcribe, Comprehend, Polly, Textract, Bedrock, Location) the fields allowed and required, what
   the gateway sets itself, and a minimal valid body, with the rule stated plainly that unknown fields
