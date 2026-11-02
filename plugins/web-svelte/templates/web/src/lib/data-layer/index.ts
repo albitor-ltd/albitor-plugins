@@ -1,6 +1,4 @@
-// Starting point (web-svelte): the data layer this app was composed with. The platform decides
-// it before Start from the plan's `offline` capability and renders it here (the data_layer token):
-// `online` is TanStack Query (lib/data), `offline` is the outbox and sync (lib/sync). Both ship;
-// only the one named here is imported, so the other never reaches the bundle. Changing layer is a
-// recompose, not an edit (see the data-online and data-offline skills).
-export { DataProvider, DATA_LAYER } from './{{albitor.data_layer}}';
+// The data layer this app uses: online-only TanStack Query over the app's own API (lib/data).
+// The shell's DataProvider slot (lib/shell/scope.d/data-layer.ts) reads this file, so a change of
+// layer is a change here: export the other layer's DataProvider and DATA_LAYER from this file.
+export { DataProvider, DATA_LAYER } from './online';

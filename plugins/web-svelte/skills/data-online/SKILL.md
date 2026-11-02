@@ -1,16 +1,15 @@
 ---
 name: data-online
-description: How to fetch and cache data from the app's own API on a SvelteKit app composed with the web-svelte online data layer (TanStack Query), and how to show loading, offline, error and empty states. Use when a build adds or changes a page that reads or writes API data.
+description: How to fetch and cache data from the app's own API on a SvelteKit app using the web-svelte online data layer (TanStack Query), and how to show loading, offline, error and empty states. Use when a build adds or changes a page that reads or writes API data.
 ---
 
 # Online data (web-svelte, online data layer)
 
 Data comes from this app's own `/api` through TanStack Query for Svelte. The shell already wraps the
 app in the query client (the `DataProvider` in `web.providers` is `QueryProvider`), so a page only
-asks for data. Nothing is stored on the device: this is the online-only data layer, used when the
-plan has no `offline` need (`lib/data-layer/index.ts` says which layer the app was composed with).
-An app that must work offline is composed with the offline data layer instead (the data-offline
-skill); `lib/sync` ships in every app but is not imported unless that layer is selected.
+asks for data. Nothing is stored on the device: this is the online-only data layer, and
+`lib/data-layer/index.ts` exports it. An app that must work offline copies the offline data layer in
+instead (the data-offline skill).
 
 ## Read data
 

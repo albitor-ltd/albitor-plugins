@@ -1,4 +1,4 @@
-// Starting point (web-svelte): checks and runs what the web.providers and web.route-guard
+// Checks and runs what the web.providers and web.route-guard
 // slots resolved to.
 import type { Guard, ProviderComponent } from './types';
 

@@ -15,55 +15,44 @@ dedicated shell, composed into a new app's `web/` by the platform's composer.
   `ApiError` and `NetworkError`.
 - The web side of the local run contract: `npm run local` builds and serves `build/` with `/api`
   forwarded and `/healthz`; `npm run dev` forwards `/api` too.
-- Both client data layers, and the entry point the platform selects (below), with the
-  `data-online` and `data-offline` skills.
+- The online data layer as the seeded entry point, and the offline-first layer as a worked example
+  (below), with the `data-online` and `data-offline` skills.
 - The `svelte-shell` skill: how to add a route, a page and a nav entry.
 
-## The data layer: online or offline-first
+## The data layer: online seeded, offline as an example
 
-The client data layer was the `client-data@1` socket with two plugins, `client-online` and
-`client-offline`. It is now part of this plugin (albitor-ltd/albitor ADR-0090, amendment of
-2026-10-15), so an app that must work offline needs no extra plugin registered. Both layers ship in
-every app; the platform decides which one is live **before Start**, from the plan's `offline`
-capability need, and passes it as the `data_layer` platform token (`online` or `offline`, nothing
-else). One file reads it:
+The seeded data layer is online-only: TanStack Query over the app's own API (`src/lib/data/`).
+`web/src/lib/data-layer/index.ts` exports its `DataProvider` and `DATA_LAYER`, and the shell's
+`scope.d/data-layer.ts` (the `web.providers` fragment) re-exports that provider. Nothing is stored on
+the device.
 
-```ts
-// web/src/lib/data-layer/index.ts
-export { DataProvider, DATA_LAYER } from './{{albitor.data_layer}}';
-```
+An app that must work offline copies the offline-first layer in from the `data-offline` skill's
+worked example, `skills/data-offline/examples/web/src/lib/` (`sync/**` and `data-layer/offline.ts`),
+to the same paths in the app, then points `data-layer/index.ts` at `./offline`. The seeded files never
+import the example, so an online app carries none of it.
 
-`DataProvider` is this plugin's own `web.providers` fragment (`scope.d/data-layer.ts`), so the
-unselected layer is never imported and never reaches the bundle. Changing layer is a recompose,
-not an edit.
-
-- **Online** (`src/lib/data/`, was `client-online`): TanStack Query for Svelte
+- **Online** (`src/lib/data/`, seeded): TanStack Query for Svelte
   (`@tanstack/svelte-query` 6.3.2) with one query client per page load; a shared retry policy
   (server errors, timeouts, throttling and an unreachable API retry twice with backoff; client
   errors never; an offline browser pauses rather than fails; mutations never retry); `apiQuery`
   through the shell's API client; `DataState.svelte` and `viewState` for loading, offline, error,
   empty and ready, with `errorMessage` never repeating a response body.
-- **Offline-first** (`src/lib/sync/`, was `client-offline`; the sync package as seeded source until
-  a published package exists): a local store per signed-in person (IndexedDB, in memory without
-  it), an outbox of creates, updates and deletes replayed when there is a network, device-chosen
-  ids, one guarded run at a time (and a Web Lock across tabs), tombstones for deletions, failed
-  changes after 5 backed-off tries visible to the person, sign-out that never discards unsynced
-  work, automatic sync and a status line. `collections.ts` is the app's (example mode).
+- **Offline-first** (the example, `lib/sync/`): a local store per signed-in person (IndexedDB, in
+  memory without it), an outbox of creates, updates and deletes replayed when there is a network,
+  device-chosen ids, one guarded run at a time (and a Web Lock across tabs), tombstones for
+  deletions, failed changes after 5 backed-off tries visible to the person, sign-out that never
+  discards unsynced work, automatic sync and a status line. `collections.ts` is the app's list of
+  collections.
 
-The offline layer needs, from the **auth** plugin, a call to `setSyncUser(userId)`
-(`lib/sync/session.ts`) when a session starts, changes or ends, before the bearer token source
-changes; and from the **API**, the routes in `lib/sync/transport.ts` (create with a client id,
-partial update, delete with a tombstone, a `?since=` pull returning `{items, deleted, cursor}`).
-
-Defects of plantrain's regenerated sync layer that `engine.test.ts` keeps out: an edit made while
-its create is in flight being lost; a different person after a lapsed session seeing or uploading
-the last person's data; deletions never reaching other devices; sign-out silently discarding
-unsynced work; concurrent flushes bypassing the guard.
-
-**Known gap: no auth plugin calls `setSyncUser` yet.** Neither `auth-cognito` nor `auth-none`
-wires it, so in a composed offline app the sync engine never attaches to a person, and so never
-syncs, until the build wires the call (the data-offline skill says where). `lib/sync/session.ts`
-ships in every app, so the auth plugins can import it unconditionally; that is a follow-up there.
+The offline layer needs a call to `setSyncUser(userId)` (`lib/sync/session.ts`) when a session
+starts, changes or ends, before the bearer token source changes; and from the **API**, the routes in
+`lib/sync/transport.ts` (create with a client id, partial update, delete with a tombstone, a
+`?since=` pull returning `{items, deleted, cursor}`). No auth plugin makes that call, so the app
+wires it where it reads the session (the data-offline skill says where). Its tests keep out an edit
+made while its create is in flight being lost; a different person after a lapsed session seeing or
+uploading the last person's data; deletions never reaching other devices; sign-out silently
+discarding unsynced work; concurrent flushes bypassing the guard. The service worker that opens the
+shell offline is seeded in every app.
 
 `DataProvider` is the outermost provider: slot fragments merge in socket order and this plugin's
 socket comes first. No other plugin fills `web.providers` today; a provider whose context the data
@@ -104,9 +93,8 @@ writes.
 - `component-kit@1`: a `web/src/lib/kit/AppShell.svelte` taking `nav: NavGroup[]`,
   `path: string`, `title: string` and `children: Snippet` (see the skill).
 - `deploy-target@1`: only because this plugin contributes the npm entry for `repo.dependabot`.
-- From the platform: the `data_layer` and `app_name` tokens. A composer that does not own one
-  refuses the composition (`unknown_token`), so this version needs an albitor composer with both
-  (`app_name` from albitor-ltd/albitor#3428). The root layout passes `app_name` to `AppShell` as
+- From the platform: the `app_name` token. A composer that does not own it refuses the composition
+  (`unknown_token`), so this version needs an albitor composer with it (albitor-ltd/albitor#3428). The root layout passes `app_name` to `AppShell` as
   its `title`, so the header names the app.
 
 ## Layout
@@ -119,7 +107,7 @@ templates/web/**             the files composed into the app, at their repositor
                              in plugin.json
 skills/svelte-shell/         the shell skill
 skills/data-online/          the online data layer skill
-skills/data-offline/         the offline data layer skill
+skills/data-offline/         the offline data layer skill; examples/ is the layer to copy in
 ```
 
 Slot templates are declared in the manifest (`mode: "slot-template"`, `syntax: "ts"`, or `"html"` for `app.html`; ADR-0090

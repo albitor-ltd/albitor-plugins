@@ -15,6 +15,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `kit-gds` gains the page examples it lacked, built from its own GOV.UK components (summary list,
   error summary, notification banner), so it now passes `kit-pages-examples-are-sound`. Each kit's
   skill gains a page-templates section saying to copy from `examples/`.
+- `deploy-hosted` `0.6.0` (albitor-ltd/albitor#4300, albitor-ltd/albitor-plugins#144; tag follows the
+  merge). The gateway client is a skill example, not a seed: `api/internal/albitorsvc/**` no longer
+  lands in a new app, and the package, renamed `gateway`, sits in
+  `skills/deploy-hosted/examples/api/internal/gateway/` (with `queue.go` and its tests) for an app
+  that declares `services.callable` or `queues` to copy in and edit. Only `ci.yml` is seeded. The
+  example carries no platform name beyond the `ALBITOR_SERVICES_URL` and `ALBITOR_QUEUE_*`
+  environment names. The `deploy-hosted` and `gateway-services` skills say when to copy it.
+
+- `web-svelte` `0.6.0` (albitor-ltd/albitor#4300, albitor-plugins#142; tag follows the merge).
+  Breaking seed change: the seeded data layer is online-only. `data-layer/index.ts` exports the
+  online layer with no `{{albitor.data_layer}}` token, so the plugin no longer reads that platform
+  token (a composer must still accept it until no lock names an older web-svelte). `lib/sync/**` and
+  `data-layer/offline.ts` move to `skills/data-offline/examples/web/src/lib/`, to copy in and swap
+  `index.ts` to `./offline`; the skill says how. `scope.d/data-layer.ts`, the shell, slot hosts,
+  service worker and toolchain stay seeded, and the seeded tests import only seeded code. The
+  "Starting point" and "Seeded by Albitor" banners and the pointers back to the plugin are gone.
 - `auth-cognito` `0.7.0`, `auth-hosted` `0.4.0`, `auth-none` `0.4.0` and `api-go` `0.5.0`
   (albitor-ltd/albitor#4300, albitor-plugins#141; tags follow the merge). Breaking seed changes: the
   identity core stays seeded (`identity.go`, verify, token, the cookies and refresh, the hardening
@@ -25,7 +41,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `registerIdentityRoutes`. `auth-cognito`'s guard no longer redirects the self-service screens in an
   invite-only app (that guard is an example). `api-go` always seeds `api/openapi.yaml`
   (the `when: auth-none` is gone) and its line 1 no longer names a plugin. `scripts/verify-auth.sh`
-  now checks the seeded API alone and with the examples copied in.
+  now checks the seeded API alone and with the examples copied in. The `api-go` skill's queue
+  guidance now names the `gateway` package, which the app first copies from the `deploy-hosted`
+  skill's gateway example (see `deploy-hosted` `0.6.0`).
 
 - `data-dynamodb` `0.3.0` and `api-go` `0.4.0` (albitor-ltd/albitor#4300; tags follow the merge).
   The seeded store, shell, router, routes, apikit and README are plain app code: the "Starting

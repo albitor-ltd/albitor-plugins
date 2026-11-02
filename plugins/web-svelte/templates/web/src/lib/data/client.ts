@@ -1,4 +1,4 @@
-// Starting point (web-svelte, online data layer): the query client every page shares.
+// The query client every page shares.
 //
 // Online-only: nothing is persisted, and a query waits (it does not fail) while the browser has no
 // network. The retry policy is here so that every query in the app behaves the same way.

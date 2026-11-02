@@ -95,14 +95,14 @@ r.HandleFunc("POST /events", handleEvents)
 func handleEvents(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
 	if err != nil { /* 400 */ }
-	if ev, err := albitorsvc.ParseEvent(body); err == nil { // a queue event
+	if ev, err := gateway.ParseEvent(body); err == nil { // a queue event
 		var failed []string
 		for _, m := range ev.Messages {
 			if err := handleMessage(r.Context(), m); err != nil {
 				failed = append(failed, m.ID) // log it with the correlation id
 			}
 		}
-		albitorsvc.WriteResult(w, failed) // 200, listing only the failures
+		gateway.WriteResult(w, failed) // 200, listing only the failures
 		return
 	}
 	var s struct{ Schedule string `json:"schedule"` }
@@ -140,13 +140,14 @@ the 30 second request) or on a queue.
 ### Queues
 
 A `queues` entry is an SQS standard queue with one consumer, this binary at `POST /events`. Declare
-it only when the app's deploy target renders `queues`. Use the queue half of `albitorsvc` (in the
-`deploy-hosted` plugin; it does not go through the gateway):
+it only when the app's deploy target renders `queues`. First copy the
+`deploy-hosted` skill's gateway example to `api/internal/gateway/` (`cp -r`, then edit; nothing
+seeds it). Use its queue half (`queue.go`; it does not go through the gateway):
 
 ```go
-q, err := albitorsvc.OpenQueues(os.Getenv)   // in main; a local run gives the in-process queue
+q, err := gateway.OpenQueues(os.Getenv)   // in main; a local run gives the in-process queue
 q.Register(handler)                          // local only, once the http.Handler exists
-err = q.Send(ctx, "transcribe", jobRef{ID: id}, albitorsvc.SendOptions{})
+err = q.Send(ctx, "transcribe", jobRef{ID: id}, gateway.SendOptions{})
 ```
 
 - **Send** from a route, a schedule or another consumer with `Send` or `SendBatch` (up to 10). The
@@ -160,7 +161,7 @@ err = q.Send(ctx, "transcribe", jobRef{ID: id}, albitorsvc.SendOptions{})
   which is also the default). On either error stop and mark the job failed; do not retry around it.
 - **Failure semantics.** `ParseEvent` returns the messages (`ID`, `Queue`, `Payload`, `Attempt`,
   `Deadline`, `ReceiveCount`); dispatch on `m.Queue`. Collect the ids of messages that failed and
-  answer with `albitorsvc.WriteResult(w, failed)`: a 2xx listing them in `batchItemFailures` retries
+  answer with `gateway.WriteResult(w, failed)`: a 2xx listing them in `batchItemFailures` retries
   only those, a 2xx listing none deletes the batch, and a 5xx or a timeout returns the whole
   batch. After `max_receives` deliveries a message goes to the dead-letter queue, which nobody
   reads, so do not rely on it. A message in `ev.Malformed` can never succeed: log it and leave it
