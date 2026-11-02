@@ -1,7 +1,7 @@
 // @journey sign-in
 // The sign-in journey: a signed-out
 // visitor is sent to the sign-in screen and can reach the sign-up and reset screens from it, and a
-// local test identity (alice, from api-go's local issuer) reaches the app. Signing in with a
+// local test identity (alice, from the local issuer) reaches the app. Signing in with a
 // password needs a user pool, so a deployed run's sign-in is the suite's one auth.setup.ts.
 import { expect, type Page, test as base } from "@playwright/test";
 import { expectNoA11yViolations } from "../helpers/a11y";

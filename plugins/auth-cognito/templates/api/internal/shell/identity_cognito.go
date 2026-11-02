@@ -74,7 +74,7 @@ type signIn struct {
 //     fallback.
 //   - a deployed function (AWS_LAMBDA_FUNCTION_NAME) with no pool: a failure.
 //   - a local run (ALBITOR_LOCAL=1) with ALBITOR_LOCAL_AUTH=1: the local issuer
-//     api-go starts, alone. The sign-in calls say they are not available.
+//     the API starts, alone. The sign-in calls say they are not available.
 //   - a local run with neither: nobody, and every request acts as the
 //     anonymous owner.
 //   - anything else: a failure. An API that is neither local nor configured
@@ -145,7 +145,7 @@ func (c cognitoConfig) endpoint() string {
 }
 
 // cognitoAuth is one pool and client: the token check and the public calls.
-// With local set it is api-go's local issuer instead: tokens are checked the
+// With local set it is the local issuer instead: tokens are checked the
 // same way, and there is no pool to make the sign-in calls to.
 type cognitoAuth struct {
 	clientID string

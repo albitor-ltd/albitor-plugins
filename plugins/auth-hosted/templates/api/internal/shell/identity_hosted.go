@@ -78,7 +78,7 @@ type signIn struct {
 //     AUTH_LOGOUT_URL set: that pool, and all six must be set and well formed. A partial
 //     set is a failure, never a fallback.
 //   - a deployed function (AWS_LAMBDA_FUNCTION_NAME) with none of them: a failure.
-//   - a local run (ALBITOR_LOCAL=1) with ALBITOR_LOCAL_AUTH=1: the local issuer api-go starts,
+//   - a local run (ALBITOR_LOCAL=1) with ALBITOR_LOCAL_AUTH=1: the local issuer the API starts,
 //     alone. The sign-in routes say they are not available.
 //   - a local run with neither: nobody, and every request acts as the anonymous owner.
 //   - anything else: a failure. An API that is neither local nor configured refuses everything
@@ -244,7 +244,7 @@ func signupAllowed(domains []string, email string) bool {
 }
 
 // hostedAuth is one pool and client: the token check and the hosted-sign-in flow. With local set
-// it is api-go's local issuer instead: tokens are checked the same way, and there is no pool to
+// it is the local issuer instead: tokens are checked the same way, and there is no pool to
 // sign in to.
 type hostedAuth struct {
 	clientID    string

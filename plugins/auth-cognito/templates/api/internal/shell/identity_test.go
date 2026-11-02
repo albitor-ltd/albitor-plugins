@@ -449,7 +449,7 @@ func TestTheLocalIssuerIsTrustedOnlyInALocalRun(t *testing.T) {
 	}
 }
 
-// startLocalRun serves the composed identity seam behind api-go's local issuer
+// startLocalRun serves the composed identity seam behind the local issuer
 // on a real port, as `ALBITOR_LOCAL=1 ALBITOR_LOCAL_AUTH=1 go run .` does, so
 // the verifier fetches the issuer's JWKS over HTTP.
 func startLocalRun(t *testing.T) (*httptest.Server, *localauth.Issuer) {
