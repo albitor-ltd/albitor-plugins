@@ -53,7 +53,7 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
 | `src/lib/shell/nav.generated.ts`, `providers.generated.ts` | Rendered from plugin slot fragments (`web.nav`, `web.providers`, `web.route-guard`) |
 | `src/lib/shell/nav.ts`, `guard.ts`, `api.ts`, `types.ts`, `scope.ts` | Nav merge and ordering, guard runner, API client, contract types |
 | `src/service-worker/` | Caches the built app so it opens offline; never caches `/api` |
-| `src/lib/data-layer/`, `src/lib/data/`, `src/lib/sync/` (not `sync/collections.ts`) | Both data layers and the entry point the platform selected before Start: online (TanStack Query, the data-online skill) or offline-first (outbox and sync, the data-offline skill). `data-layer/index.ts` names the one in use |
+| `src/lib/data-layer/`, `src/lib/data/` | The online data layer (TanStack Query, the data-online skill) and the entry point `data-layer/index.ts` that exports it. An app that must work offline copies the layer in from the data-offline skill's example |
 | `vite.config.ts` (SvelteKit 3 config lives here), `tsconfig.json`, `scripts/local-serve.mjs` | Build and the local run |
 
 Each is yours from the first compose. Prefer adding routes, nav entries and plugin fragments to
@@ -63,8 +63,7 @@ editing them, and edit one when the app needs it.
 
 `src/routes/+error.svelte` (error and 404), `src/routes/offline/+page.svelte`,
 `src/routes/+page.svelte` and `nav.ts` (Home), `src/lib/app/app.css`,
-`package.json` and its lockfile, and `src/lib/sync/collections.ts` (the synced collections, read
-only by the offline data layer).
+`package.json` and its lockfile.
 
 `src/routes/+page.svelte` is the home page stub: it carries the comment `<!-- albitor:home-stub -->`,
 which the foundation gate looks for in the source and fails on until the real home page replaces

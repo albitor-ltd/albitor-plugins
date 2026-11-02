@@ -1,4 +1,4 @@
-// Starting point (web-svelte): the navigation entries the plugins composed with the shell declared,
+// The navigation entries the plugins composed with the shell declared,
 // written once. It is yours from here on; routes add their own entries through a nav.ts beside them.
 // Add a page to the nav with a sibling nav.ts, not here (see the svelte-shell skill).
 import { buildNav } from './nav';

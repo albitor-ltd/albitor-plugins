@@ -16,6 +16,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   example carries no platform name beyond the `ALBITOR_SERVICES_URL` and `ALBITOR_QUEUE_*`
   environment names. The `deploy-hosted` and `gateway-services` skills say when to copy it.
 
+- `web-svelte` `0.6.0` (albitor-ltd/albitor#4300, albitor-plugins#142; tag follows the merge).
+  Breaking seed change: the seeded data layer is online-only. `data-layer/index.ts` exports the
+  online layer with no `{{albitor.data_layer}}` token, so the plugin no longer reads that platform
+  token (a composer must still accept it until no lock names an older web-svelte). `lib/sync/**` and
+  `data-layer/offline.ts` move to `skills/data-offline/examples/web/src/lib/`, to copy in and swap
+  `index.ts` to `./offline`; the skill says how. `scope.d/data-layer.ts`, the shell, slot hosts,
+  service worker and toolchain stay seeded, and the seeded tests import only seeded code. The
+  "Starting point" and "Seeded by Albitor" banners and the pointers back to the plugin are gone.
 - `auth-cognito` `0.7.0`, `auth-hosted` `0.4.0`, `auth-none` `0.4.0` and `api-go` `0.5.0`
   (albitor-ltd/albitor#4300, albitor-plugins#141; tags follow the merge). Breaking seed changes: the
   identity core stays seeded (`identity.go`, verify, token, the cookies and refresh, the hardening

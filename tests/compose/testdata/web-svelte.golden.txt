@@ -6,7 +6,7 @@
     {
       "socket": "web-framework",
       "plugin": "web-svelte",
-      "version": "0.5.0"
+      "version": "0.6.0"
     },
     {
       "socket": "component-kit",
@@ -106,11 +106,6 @@
     },
     {
       "path": "web/src/lib/data-layer/index.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/data-layer/offline.ts",
       "mode": "example",
       "plugins": "web-svelte"
     },
@@ -250,121 +245,6 @@
       "plugins": "auth-stub"
     },
     {
-      "path": "web/src/lib/sync/SyncProvider.svelte",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/SyncStatus.svelte",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/auto.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/auto.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/collections.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/context.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/engine.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/engine.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/fallback.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/idb.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/live.svelte.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/memory.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/session.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/shell.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/status.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/status.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/store.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/testing.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/transport.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/transport.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/types.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/watch.test.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
-      "path": "web/src/lib/sync/watch.ts",
-      "mode": "example",
-      "plugins": "web-svelte"
-    },
-    {
       "path": "web/src/routes/+error.svelte",
       "mode": "example",
       "plugins": "web-svelte"
@@ -446,7 +326,6 @@ site:
 
 === web/src/lib/app/app.css ===
 === web/src/lib/data-layer/index.ts ===
-=== web/src/lib/data-layer/offline.ts ===
 === web/src/lib/data-layer/online.ts ===
 === web/src/lib/data/DataState.svelte ===
 === web/src/lib/data/DataState.test.ts ===
@@ -465,7 +344,7 @@ site:
 === web/src/lib/shell/guard.test.ts ===
 === web/src/lib/shell/guard.ts ===
 === web/src/lib/shell/nav.generated.ts ===
-// Starting point (web-svelte): the navigation entries the plugins composed with the shell declared,
+// The navigation entries the plugins composed with the shell declared,
 // written once. It is yours from here on; routes add their own entries through a nav.ts beside them.
 // Add a page to the nav with a sibling nav.ts, not here (see the svelte-shell skill).
 import { buildNav } from './nav';
@@ -485,7 +364,7 @@ export const navGroups = buildNav(pluginNav, routeNavModules);
 === web/src/lib/shell/nav.test.ts ===
 === web/src/lib/shell/nav.ts ===
 === web/src/lib/shell/providers.generated.ts ===
-// Starting point (web-svelte): the providers and route guards the plugins composed with the shell
+// The providers and route guards the plugins composed with the shell
 // declared, written once. It is yours from here on: add or remove entries as the app needs.
 // Identifiers resolve against the scope in ./scope (see the
 // svelte-shell skill).
@@ -507,29 +386,6 @@ export const routeGuards = checkGuards([stubGuard]);
 === web/src/lib/shell/scope.ts ===
 === web/src/lib/shell/types.ts ===
 === web/src/lib/stub/StubProvider.svelte ===
-=== web/src/lib/sync/SyncProvider.svelte ===
-=== web/src/lib/sync/SyncStatus.svelte ===
-=== web/src/lib/sync/auto.test.ts ===
-=== web/src/lib/sync/auto.ts ===
-=== web/src/lib/sync/collections.ts ===
-=== web/src/lib/sync/context.ts ===
-=== web/src/lib/sync/engine.test.ts ===
-=== web/src/lib/sync/engine.ts ===
-=== web/src/lib/sync/fallback.ts ===
-=== web/src/lib/sync/idb.ts ===
-=== web/src/lib/sync/live.svelte.ts ===
-=== web/src/lib/sync/memory.ts ===
-=== web/src/lib/sync/session.ts ===
-=== web/src/lib/sync/shell.test.ts ===
-=== web/src/lib/sync/status.test.ts ===
-=== web/src/lib/sync/status.ts ===
-=== web/src/lib/sync/store.test.ts ===
-=== web/src/lib/sync/testing.ts ===
-=== web/src/lib/sync/transport.test.ts ===
-=== web/src/lib/sync/transport.ts ===
-=== web/src/lib/sync/types.ts ===
-=== web/src/lib/sync/watch.test.ts ===
-=== web/src/lib/sync/watch.ts ===
 === web/src/routes/+error.svelte ===
 === web/src/routes/+layout.svelte ===
 === web/src/routes/+layout.ts ===

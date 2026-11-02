@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): the IndexedDB LocalStore. One database per owner, so
+// The IndexedDB LocalStore. One database per owner, so
 // another person's data is not merely hidden but unreachable through the store being used.
 import type { LocalStore, OutboxEntry, StoreFactory, SyncRecord } from './types';
 

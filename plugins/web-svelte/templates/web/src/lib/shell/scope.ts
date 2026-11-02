@@ -1,4 +1,4 @@
-// Starting point (web-svelte): the names the generated slot files resolve.
+// The names the generated slot files resolve.
 //
 // A plugin that fills web.providers or web.route-guard names an identifier, and ships a module in
 // scope.d/ that exports it. Every module there is merged into one record, so no plugin edits a

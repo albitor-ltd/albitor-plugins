@@ -1,4 +1,4 @@
-// Starting point (web-svelte): the shell's contract types.
+// The shell's contract types.
 import type { Component, Snippet } from 'svelte';
 
 /** What a route's nav.ts exports as `nav`, and what a plugin's web.nav fragment carries. */

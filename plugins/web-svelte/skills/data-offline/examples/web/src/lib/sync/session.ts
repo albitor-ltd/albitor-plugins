@@ -1,6 +1,6 @@
-// Starting point (web-svelte, offline data layer): who is signed in, as far as the sync layer is concerned.
+// Who is signed in, as far as the sync layer is concerned.
 //
-// The auth plugin's provider calls `setSyncUser(id)` when a session starts or its person changes,
+// The auth integration calls `setSyncUser(id)` when a session starts or its person changes,
 // and `setSyncUser(null)` when it ends. The id must be the stable user id (the token's subject),
 // never an email or a display name, because it names the person's local database.
 let user: string | null = null;

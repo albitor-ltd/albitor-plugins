@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): an in-memory LocalStore, for tests and for a browser with no
+// An in-memory LocalStore, for tests and for a browser with no
 // IndexedDB (private windows, some embedded views). Nothing survives a reload.
 import type { LocalStore, OutboxEntry, StoreFactory, SyncRecord } from './types';
 

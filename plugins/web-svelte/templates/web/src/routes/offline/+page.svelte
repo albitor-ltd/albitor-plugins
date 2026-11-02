@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (web-svelte), then yours: where the app sends people it cannot reach. -->
+<!-- Where the app sends people it cannot reach. -->
 <svelte:head>
 	<title>You are offline</title>
 </svelte:head>

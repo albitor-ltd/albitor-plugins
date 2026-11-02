@@ -1,4 +1,4 @@
-// Starting point (web-svelte, offline data layer): use the durable store when it opens, the in-memory one when
+// Use the durable store when it opens, the in-memory one when
 // it cannot (a private window, a blocked or full database). The app keeps working until a reload.
 import type { LocalStore, StoreFactory } from './types';
 
