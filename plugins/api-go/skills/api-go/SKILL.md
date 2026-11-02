@@ -33,26 +33,41 @@ time; one added later does not rewire it, so add its middleware or routes by han
    `r.HandleFunc("GET /api/widgets", listWidgets)` (Go 1.22 method-and-path patterns).
 3. The endpoint in `api/openapi.yaml`, in the same change. The web client is generated from it.
 
-A worked example, `internal/app/widgets.go` (check the signatures in `internal/apikit/` before
-copying):
+A worked example, `internal/app/widgets.go`. The handlers take no dependencies, so they register
+directly in `Routes(r *http.ServeMux)`; an app that needs a store opens it once and keeps it in a
+package variable or a struct that `Routes` builds:
 
 ```go
-func listWidgets(logger *slog.Logger, items store.Store) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		apikit.ServeList(w, r, logger, func(q apikit.PageQuery) (apikit.Page[Widget], error) {
-			// read one page from the store using q.Cursor and q.Limit; return Items and NextCursor
-		})
-	}
+package app
+
+import (
+	"encoding/json"
+	"log/slog"
+	"net/http"
+
+	"webapp/internal/apikit"
+)
+
+type Widget struct {
+	Name string `json:"name"`
+}
+
+func listWidgets(w http.ResponseWriter, r *http.Request) {
+	apikit.ServeList(w, r, slog.Default(), func(q apikit.PageQuery) (apikit.Page[Widget], error) {
+		// Read one page using q.Cursor and q.Limit; mint next_cursor with apikit.EncodeCursor.
+		return apikit.Page[Widget]{Items: make([]Widget, 0)}, nil
+	})
 }
 
 func createWidget(w http.ResponseWriter, r *http.Request) {
-	var in struct{ Name string `json:"name"` }
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&in); err != nil || in.Name == "" {
+	var in Widget
+	body := http.MaxBytesReader(w, r.Body, 1<<20)
+	if err := json.NewDecoder(body).Decode(&in); err != nil || in.Name == "" {
 		apikit.WriteError(w, http.StatusBadRequest, "name is required")
 		return
 	}
-	// owner from the verified identity, never the body; write through the store interface
-	apikit.WriteJSON(w, http.StatusCreated, Widget{Name: in.Name})
+	// Take the owner from the verified identity, never the body; write through the store.
+	apikit.WriteJSON(w, http.StatusCreated, in)
 }
 ```
 

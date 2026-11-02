@@ -17,8 +17,9 @@ handler that works in a local run works deployed.
 
 Everything under `api/internal/store/` is seeded once: `store.go` (the interface, `Key`, errors),
 `open.go` (`Open`, `TableEnv`), `memory.go` (the local adapter), `dynamodb.go` and `sigv4.go` (the
-deployed adapter), their tests, and `storetest/` (the conformance suite). Extend the app around the store rather than editing it where you can, and keep the
-`storetest` conformance suite passing against both adapters. The table itself is declared in
+deployed adapter), their tests, and `storetest/` (the conformance suite). Extend the app around the
+store rather than editing it where you can, and keep the `storetest` conformance suite passing
+against both adapters. The table itself is declared in
 `albitor.yaml` as `services.tables` (`data`, string `pk` and `sk`); the deploy target creates it.
 
 ## The interface
@@ -56,8 +57,8 @@ logical name (lowercase, hyphens allowed, 2 to 32 characters):
 services:
   tables:
     - name: audit
-      partition_key: { name: pk, type: string }
-      sort_key: { name: sk, type: string }
+      partition_key: {name: pk, type: string}
+      sort_key: {name: sk, type: string}
 ```
 
 ```go
