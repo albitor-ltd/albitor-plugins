@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `kit-carbon` `0.7.0`, `kit-shadcn` `0.7.0` and `kit-gds` `0.7.0` (albitor-ltd/albitor#4300; tags
+  follow the merge). The page templates (`pages/*`, `PagesShowcase.svelte`, `pages.test.ts`) leave
+  the seeded files and become worked examples in each kit's skill (`examples/web/src/lib/kit/pages/`,
+  banners and skill pointers dropped); the components, the contract and every test stay seeded.
+  `kit-gds` gains the page examples it lacked, built from its own GOV.UK components (summary list,
+  error summary, notification banner), so it now passes `kit-pages-examples-are-sound`. Each kit's
+  skill gains a page-templates section saying to copy from `examples/`.
 - `deploy-hosted` `0.6.0` (albitor-ltd/albitor#4300, albitor-ltd/albitor-plugins#144; tag follows the
   merge). The gateway client is a skill example, not a seed: `api/internal/albitorsvc/**` no longer
   lands in a new app, and the package, renamed `gateway`, sits in

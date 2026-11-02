@@ -53,6 +53,27 @@ These are distilled from the live GOV.UK Design System and GOV.UK Frontend (Crow
 - **Page furniture:** `govuk-width-container` and a phase banner (Alpha/Beta) apply to any service. The **branded GOV.UK header and footer** (crown, OGL/licence links) are for services **on GOV.UK only** — off GOV.UK, build your own header/footer (see the table above).
 - When the user is starting a service, suggest the official **GOV.UK Prototype Kit** for prototyping but remind them production code should use `govuk-frontend` directly.
 
+## Page templates
+
+The kit ships page templates as worked examples in `examples/web/src/lib/kit/pages/` beside this
+skill, laid out by repository path. Copy the ones the app needs to `web/src/lib/kit/pages/` (with
+`PagesShowcase.svelte` and `pages.test.ts`, which run axe over every template in every state), then
+edit them: they are the app's code once copied. They are built from the kit's own pieces and GOV.UK
+markup (back link, summary list, error summary, notification banner), so do not rebuild one by hand.
+
+| The page is | Start from | It gives you |
+|---|---|---|
+| A collection of records | `ListPage` | Header with actions, a filter group, `Table` with its empty state and a next step, loading and failed states |
+| One record | `DetailPage` | Back link, actions, facts as a summary list, related sections, loading and failed states |
+| Create or edit one record | `FormPage` | Labelled fields, the focused error summary, a named submit, cancel, a busy guard |
+| An overview | `DashboardPage` | Labelled headline figures, sections below, loading and failed states |
+| Preferences, in groups | `SettingsPage` with `SettingsSection` | Named groups, one save, the same error summary |
+| Sign in | `SignInPage` | Already in the repository: the GOV.UK error summary, then the fields |
+
+`PageHeader` (the one `<h1>`, a lead description, a back link, actions) and `StateNotice` (a polite
+loading status; a failure as a notification banner with the alert role and a retry) sit under every
+template; use them directly for a page that fits none of the above.
+
 ## Related
 
 - `govuk-accessibility` skill — WCAG 2.2 AA and the legal regulations these components help you meet.

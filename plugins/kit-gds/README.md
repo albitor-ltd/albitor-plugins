@@ -36,6 +36,12 @@ whose root layout renders the kit's `AppShell`.
 - The `govuk-design-system` and `govuk-accessibility` skills from `gds` (components, patterns,
   styles; WCAG 2.2 AA, the public sector regulations, testing, the accessibility statement, and the
   audit and statement procedures), each tagged `metadata.capability: design-system`.
+- The page templates, worked examples in the `govuk-design-system` skill's
+  `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`,
+  `DetailPage`, `FormPage`, `DashboardPage`, `SettingsPage` (with `SettingsSection`) and
+  `SignInPage`, over `PageHeader` and `StateNotice`, in GOV.UK markup (back link, summary list,
+  error summary, notification banner). `PagesShowcase.svelte` and `pages.test.ts` render every
+  template in every state and run axe over them.
 - `preview-tokens.json`: GOV.UK Frontend 6.4.0's palette for the build preview.
 - The `govuk-frontend` dependency is pinned at 6.5.1; the markup and palette above follow 6.4.0, which 6.5.x leaves unchanged (it only adds trial components).
 
