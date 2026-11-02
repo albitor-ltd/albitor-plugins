@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `data-dynamodb` `0.3.0` and `api-go` `0.4.0` (albitor-ltd/albitor#4300; tags follow the merge).
+  The seeded store, shell, router, routes, apikit and README are plain app code: the "Starting
+  point" banners and every pointer back to the plugin or its skill are gone, and behaviour is
+  unchanged. Both SKILL.md files list the seeded files and gain worked examples (a second table
+  for `data-dynamodb`, a widget route and handlers for `api-go`).
+
 - `deploy-hosted` `0.5.1` (albitor-ltd/albitor#4285, ADR-0104; tag `deploy-hosted/v0.5.1` follows
   the merge). `renders` gains `queues`: the hosted target now renders a declared queue, so a manifest
   declaring one no longer fails with `manifest_unrendered`. The `gateway-services` skill no longer

@@ -1,11 +1,9 @@
 // Package shell is the API shell: the HTTP server skeleton every
 // Go API starts from. It owns the health route, the JSON 404, the request
-// logging and the middleware chain, and it is rendered by the api-go plugin,
-// so it starts every app the same way.
+// logging and the middleware chain.
 //
-// An app usually adds handlers in internal/app (see app.Routes) rather than here; the plugins it
-// composes add middleware and routes through the api.middleware and api.routes slots, which
-// router.go places once at compose time. router.go is the only file here that varies per app.
+// An app usually adds handlers in internal/app (see app.Routes) rather than here. Middleware
+// and route groups beyond the app's own are listed in router.go.
 package shell
 
 import (
@@ -16,17 +14,16 @@ import (
 	"webapp/internal/apikit"
 )
 
-// Middleware wraps the application handler. The first entry of the api.middleware
-// slot is the outermost of the chain, after request logging.
+// Middleware wraps the application handler. The first entry of the chain in
+// router.go is the outermost, after request logging.
 type Middleware = func(http.Handler) http.Handler
 
 // Route registers handlers on the mux.
 type Route = func(*http.ServeMux)
 
-// middlewareOf and routesOf collect the entries the generated router.go lists
-// in its slots. They exist so the slot placeholder can sit inside a call's
-// parentheses, which keeps the generated file gofmt-clean whether the slot is
-// empty or holds entries.
+// middlewareOf and routesOf collect the entries router.go lists. They exist
+// so the list can sit inside a call's parentheses, which keeps router.go gofmt-clean whether
+// it is empty or holds entries.
 func middlewareOf(m ...Middleware) []Middleware { return m }
 
 func routesOf(r ...Route) []Route { return r }

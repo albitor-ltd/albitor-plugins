@@ -1,11 +1,11 @@
-// Package app is where this API's product handlers live. It is yours: the
-// api-go plugin wrote this file once and will not overwrite it.
+// Package app is where this API's product handlers live. It is the
+// app's own.
 package app
 
 import "net/http"
 
 // Routes registers the product handlers. The router in internal/shell
-// calls it once at start, after the health route and the plugins' routes, so
+// calls it once at start, after the health route and any route groups in router.go, so
 // the mux is where a handler goes:
 //
 //	func Routes(r *http.ServeMux) {
@@ -23,7 +23,7 @@ import "net/http"
 // either, dispatch on the body, and run the job before answering. A 5xx fails the
 // invocation and Lambda retries it; any other status counts as success. Answer 400
 // for a name you do not know. Jobs must be idempotent. Never start a ticker of your
-// own: the platform owns the schedule tick, locally too. See the api-go skill.
+// own: the platform owns the schedule tick, locally too.
 //
 // Every list endpoint answers apikit.Page through apikit.ServeList, so it has a
 // limit and a cursor from its first record.

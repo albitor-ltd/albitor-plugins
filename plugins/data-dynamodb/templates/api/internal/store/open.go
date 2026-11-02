@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	// DataTable is the logical name of the table this plugin declares in
+	// DataTable is the logical name of the table the app declares in
 	// albitor.yaml (services.tables). The platform names the AWS table and
 	// hands it to the function as ALBITOR_TABLE_DATA.
 	DataTable = "data"
 
-	// LocalModeEnv is the local run's switch, shared with the other plugins.
+	// LocalModeEnv is the local run's switch, shared with the rest of the app.
 	LocalModeEnv = "ALBITOR_LOCAL"
 	// TableEnvPrefix prefixes the environment variable carrying the AWS name of
 	// each declared table.
