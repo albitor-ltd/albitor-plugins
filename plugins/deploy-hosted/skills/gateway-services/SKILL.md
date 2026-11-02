@@ -98,7 +98,7 @@ a job that took seconds. Use a queue and a consumer that re-enqueues itself with
    tightly; the delay is at most 900 seconds.
 5. Answer a `402`/`403` from the gateway as "unavailable": mark the job failed, do not re-enqueue.
 
-Queues need a deploy target that renders `queues`; until then a user-awaited step runs inline.
+Declare the queue under `queues` in `albitor.yaml`; the hosted target renders it.
 
 ## Errors: say "unavailable", never retry around it
 
