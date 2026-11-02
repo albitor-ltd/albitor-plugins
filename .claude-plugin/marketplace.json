@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.3.3",
-        "sha": "f478179fe47fc979d0b5a32a7a168a8a44934254"
+        "ref": "api-go/v0.4.0",
+        "sha": "9d7220e5dc69e7246f7dcf7e6119498029c5f3f0"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -263,8 +263,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/data-dynamodb",
-        "ref": "data-dynamodb/v0.2.0",
-        "sha": "347891050ee593cc480abdeb8d5f10b4b79d9bf9"
+        "ref": "data-dynamodb/v0.3.0",
+        "sha": "9d7220e5dc69e7246f7dcf7e6119498029c5f3f0"
       },
       "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
       "category": "development",
