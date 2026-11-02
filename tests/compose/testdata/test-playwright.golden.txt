@@ -16,6 +16,7 @@ web/tests/helpers/mailbox-contract.ts
 web/tests/helpers/mailbox.ts
 web/tests/helpers/roles.ts
 web/tests/helpers/screen-rules.ts
+web/tests/helpers/second-identity.ts
 web/tests/helpers/seed.ts
 web/tests/helpers/storage-state.ts
 web/tests/journeys/README.md
