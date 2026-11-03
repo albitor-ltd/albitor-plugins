@@ -24,7 +24,8 @@ repository path, which the skill tells a coder to copy and alter.
 | `api/internal/shell/identity_people.go`, `identity_sigv4.go` | example | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it |
 | `api/openapi.yaml` | example | api-go's contract plus `GET /api/me` and `/api/auth/*` |
 | `web/src/lib/auth/client.ts`, a self-service `guard.ts` | example | The sign-in client and a guard that redirects the self-service screens in an invite-only app |
-| `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset, sign-out, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
+| `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
+| `web/src/routes/+layout.ts`, `web/src/lib/shell/AccountBar.svelte` | example | Hides the nav from a signed-out visitor; the Sign out POST form button (replaces the web-svelte shell's empty AccountBar) |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: redirect, screens, local identity |
 
 It requires `api-runtime@1`, `web-framework@1` and `component-kit@2` (an exact major: a kit that provides only `component-kit@1` does not satisfy it), so an API-less profile uses `auth-none`. It

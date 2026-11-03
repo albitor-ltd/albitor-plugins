@@ -12,7 +12,6 @@ export const PUBLIC_PATHS: readonly string[] = [
 	'/sign-up',
 	'/confirm',
 	'/reset',
-	'/sign-out',
 	'/offline'
 ];
 

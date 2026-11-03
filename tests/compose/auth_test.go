@@ -232,8 +232,6 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/routes/(auth)/sign-up/+page.svelte",
 		"web/src/routes/(auth)/confirm/+page.svelte",
 		"web/src/routes/(auth)/reset/+page.svelte",
-		"web/src/routes/(auth)/sign-out/+page.svelte",
-		"web/src/routes/(auth)/sign-out/nav.ts",
 		"web/src/routes/(auth)/change-password/+page.svelte",
 		"web/src/routes/(auth)/change-password/nav.ts",
 		"web/src/routes/(auth)/people/+page.svelte",

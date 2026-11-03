@@ -49,7 +49,8 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
 
 | File | Role |
 |---|---|
-| `src/routes/+layout.svelte`, `+layout.ts` | The slot host: providers wrap the kit's `AppShell`; every navigation runs the route guard |
+| `src/routes/+layout.svelte`, `+layout.ts` | The slot host: providers wrap the kit's `AppShell`; every navigation runs the route guard. `+layout.ts` returns `showNav`: when false (a signed-out visitor; auth plugins set it) the shell passes an empty nav and omits `AccountBar` |
+| `src/lib/shell/AccountBar.svelte` | Empty. Shown above the page when `showNav` is true; an auth plugin's example fills it with the Sign out control, which must be a POST form button, never a link. `lib/shell/signout.ts` lets the app run work first (`onBeforeSignOut`) |
 | `src/lib/shell/nav.generated.ts`, `providers.generated.ts` | Rendered from plugin slot fragments (`web.nav`, `web.providers`, `web.route-guard`) |
 | `src/lib/shell/nav.ts`, `guard.ts`, `api.ts`, `types.ts`, `scope.ts` | Nav merge and ordering, guard runner, API client, contract types |
 | `src/service-worker/` | Caches the built app so it opens offline; never caches `/api` |
