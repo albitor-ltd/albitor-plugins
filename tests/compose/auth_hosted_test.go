@@ -121,8 +121,6 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"api/internal/shell/identity_flows.go",
 		"web/src/lib/auth/client.ts",
 		"web/src/routes/(auth)/sign-in/+page.svelte",
-		"web/src/routes/(auth)/sign-out/+page.svelte",
-		"web/src/routes/(auth)/sign-out/nav.ts",
 		"web/src/routes/(auth)/not-allowed/+page.svelte",
 		"web/src/routes/(auth)/account/+page.svelte",
 		"web/src/routes/(auth)/account/nav.ts",

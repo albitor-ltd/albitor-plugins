@@ -43,11 +43,12 @@ foundation node writes the sign-in shell from them.
 
 | Example | What it is |
 | --- | --- |
-| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the hosted flow: `GET /api/auth/login` and `/callback` (authorization code with PKCE), `POST /api/auth/sign-out` and `/delete`, and `OnAccountDeleted` |
+| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the hosted flow: `GET /api/auth/login` and `/callback` (authorization code with PKCE), `POST /api/auth/sign-out` (JSON, or a same-site form post answered `303` to the logout URL) and `/delete`, and `OnAccountDeleted` |
 | `examples/api/internal/shell/identity_flows_test.go` | The flow's tests: state and verifier, the callback's order of checks, cookies, sign-out, deletion, CSRF |
 | `examples/api/openapi.yaml` | The contract with `GET /api/me` added to the base. Merge that path into the app's `api/openapi.yaml` |
 | `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `loginUrl`, `signOut`, `deleteAccount`. They return `{ ok: false, code, message }` rather than throw |
-| `examples/web/src/routes/(auth)/**` | The sign-in, sign-out, account, account deletion and refusal screens, on the `component-kit@2` exports |
+| `examples/web/src/routes/(auth)/**` | The sign-in, account, account deletion and refusal screens, on the `component-kit@2` exports |
+| `examples/web/src/routes/+layout.ts`, `examples/web/src/lib/shell/AccountBar.svelte` | `+layout.ts` shows the nav only to a signed-in person and fails closed (`canShowNav`); `AccountBar` is the Sign out POST form button. Sign out is never a link. Register a data-layer wipe with `onBeforeSignOut` (`lib/shell/signout.ts`) |
 | `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey |
 
 To adopt the hosted routes, copy `identity_flows.go` and its test, then add one line at the top of
@@ -57,7 +58,7 @@ To adopt the hosted routes, copy `identity_flows.go` and its test, then add one 
 registerAuthRoutes(mux, setup, logger)
 ```
 
-The routes `/sign-in`, `/sign-out` and `/not-allowed` are fixed: seeded `guard.ts` and `identity_hosted.go` hard-code them, so a screen keeps its path.
+The routes `/sign-in` and `/not-allowed` are fixed: seeded `guard.ts` and `identity_hosted.go` hard-code them, so a screen keeps its path.
 
 The browser never talks to Cognito's API and no token is readable by page script. A script or test
 client may send `Authorization: Bearer <token>` instead.
@@ -118,6 +119,6 @@ for `identity.AnonymousOwner`.
 
 `web/tests/journeys/sign-in.spec.ts` (copied from the examples, yours to extend) proves a signed-out visitor is handed to
 the API's sign-in with where they were headed, a failed sign-in does not loop, the refusal and account
-screens render and pass axe, and sign-out goes through Cognito's logout. It never types into Cognito:
+screens render and pass axe, and the Sign out form goes through Cognito's logout. It never types into Cognito:
 the suite's `auth.setup.ts` signs in once. The universal `api-auth` floor still applies: declared
 non-public endpoints return `401` unauthenticated.
