@@ -14,6 +14,7 @@ web/tests/helpers/journey.ts
 web/tests/helpers/local-auth.ts
 web/tests/helpers/mailbox-contract.ts
 web/tests/helpers/mailbox.ts
+web/tests/helpers/preview-seed.ts
 web/tests/helpers/roles.ts
 web/tests/helpers/screen-rules.ts
 web/tests/helpers/second-identity.ts
@@ -29,6 +30,7 @@ web/tests/unit/a11y-report.test.ts
 web/tests/unit/config.test.ts
 web/tests/unit/fixture-scope.test.ts
 web/tests/unit/hosted-signin.test.ts
+web/tests/unit/preview-seed.test.ts
 web/tests/unit/roles.test.ts
 web/tests/unit/screen-rules.test.ts
 web/tests/unit/secret-artifacts.test.ts

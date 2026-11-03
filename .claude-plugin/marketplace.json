@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.5.0",
-        "sha": "fcdf5f9eadd59ecd83327fcb2bab2efb88031ed4"
+        "ref": "api-go/v0.6.0",
+        "sha": "9050a5702befde93c9d0e8a349d4ba684ee6b5e9"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.5.2",
-        "sha": "9db7a8230e851db7e1af1cefade7c1c5b024d916"
+        "ref": "test-playwright/v0.6.0",
+        "sha": "9050a5702befde93c9d0e8a349d4ba684ee6b5e9"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.6.0",
-        "sha": "fcdf5f9eadd59ecd83327fcb2bab2efb88031ed4"
+        "ref": "deploy-hosted/v0.7.0",
+        "sha": "9050a5702befde93c9d0e8a349d4ba684ee6b5e9"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",

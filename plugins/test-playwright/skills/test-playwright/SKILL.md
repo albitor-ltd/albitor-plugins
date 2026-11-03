@@ -70,7 +70,7 @@ else. Three rules:
   Add a `seed.setup.ts` and a `seed` project in `playwright.config.ts` (`testMatch: /seed\.setup\.ts/`, `dependencies: ["setup"]`, `use: { storageState: DEMO_STORAGE_STATE }`, a long `timeout`), and add `"seed"` to `chromium`'s `dependencies`, and make the
   record with `seedOncePerPreview` from `helpers/preview-seed.ts`. It is keyed by the preview's
   base URL, so a new preview seeds afresh and every later walk of the same preview reads the saved
-  ids (`readPreviewSeed`). Set `ALBITOR_PREVIEW_VERSION` (a deploy id or commit) when a preview URL is
+  ids (`readPreviewSeed`). Set `PREVIEW_SEED_VERSION` (a deploy id or commit) when a preview URL is
   redeployed in place, so the old seed is not reused. Two setup runs at once on one preview both
   seed; run one walk per preview at a time. Pass `stillValid` to re-check a saved record against the live app.
   Seeding through a real pipeline can take minutes: poll the app's own status route in the setup
