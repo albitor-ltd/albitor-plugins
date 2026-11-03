@@ -48,6 +48,8 @@ through the gateway, keyless and credit-metered, with the `gateway` example, cop
   exponential backoff never sooner than `Retry-After`; a `Retry-After` over the 5 second cap is not waited for and the 429 returns at once. An idempotency key must match `^[A-Za-z0-9_-]{8,64}$`.
 - `CreateUploadSlot` and `Upload` for the gateway's presigned POST slots; the slot is never logged
   or put in an error.
+- `transcript.go`, `chunk.go`, `pdfpages.go`: Transcribe full text and sentence grouping, Translate
+  chunking by UTF-8 bytes, and a PDF page count to measure before a Textract submit.
 - No redirect is followed and the gateway URL must be https (loopback http for tests).
 
 The `gateway-services` skill carries the build guidance: declare `services.callable`, put

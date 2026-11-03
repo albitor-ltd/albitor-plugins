@@ -330,3 +330,25 @@ func TestNewRefusesAPlainHTTPGatewayAndAnyRedirect(t *testing.T) {
 		t.Errorf("a redirect was followed or hidden: %v", err)
 	}
 }
+
+func TestDailyLimitReachedParsesLimitAndReset(t *testing.T) {
+	e := parseError(402, "3600", []byte(`{"error":"cap_reached","limit":"daily","resets_at":"2026-11-04T00:00:00Z"}`))
+	at, ok := DailyLimitReached(e)
+	if !ok || at.UTC().Format(time.RFC3339) != "2026-11-04T00:00:00Z" {
+		t.Fatalf("at=%v ok=%v", at, ok)
+	}
+	if !Unavailable(e) || e.RetryAfter != time.Hour {
+		t.Fatalf("still a 402 unavailable with Retry-After: %+v", e)
+	}
+	// An older gateway sends neither: still a cap, no reset time.
+	old := parseError(402, "", []byte(`{"error":"cap_reached"}`))
+	if at, ok := DailyLimitReached(old); !ok || !at.IsZero() {
+		t.Fatalf("old gateway: at=%v ok=%v", at, ok)
+	}
+	if _, ok := DailyLimitReached(parseError(402, "", []byte(`{"error":"credits_exhausted"}`))); ok {
+		t.Fatal("credits exhausted is not a daily limit")
+	}
+	if _, ok := DailyLimitReached(nil); ok {
+		t.Fatal("nil error")
+	}
+}

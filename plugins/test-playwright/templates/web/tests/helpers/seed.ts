@@ -21,6 +21,7 @@ import { test as base } from "./journey";
 //
 // `fixtureScope` deletes exactly what the test created when the test ends, and fails the test if
 // something was left behind. Never seed by writing to a database.
+// For a record a deployed preview needs once (slow pipeline, supplier), see preview-seed.ts.
 
 // A random namespace isolates separate runs; a counter separates calls within the worker.
 let seedCounter = 0;

@@ -43,7 +43,7 @@ text names no field, compare the request with the shape below.
 
 | Field | | Rule |
 | --- | --- | --- |
-| `Text` | req | 1 to 10,000 bytes of UTF-8 |
+| `Text` | req | 1 to 10,000 **bytes** of UTF-8, not characters (3 bytes each for CJK, Hindi, Thai); chunk with `gateway.ChunkByBytes` |
 | `SourceLanguageCode` | req | `en`, `pt`, `zh-TW`. **`auto` is refused**: name the language, or call Comprehend `DetectDominantLanguage` first |
 | `TargetLanguageCode` | req | as above |
 | `Settings` | opt | object: `Formality` (`FORMAL`\|`INFORMAL`), `Profanity` (`MASK`), `Brevity` (`ON`) |
@@ -111,7 +111,8 @@ Answer: `{"TranscriptionJob": {"TranscriptionJobName": "<gateway's name>", "Tran
 ```
 
 Poll until `TranscriptionJobStatus` is `COMPLETED` or `FAILED`. No `ListTranscriptionJobs`, no
-streaming.
+streaming. Read the result with `gateway.ParseTranscript`: `FullText()` for the text,
+`Sentences()` for display (speaker labels come from `results.speaker_labels`, not `items`); `items` is per word (see the `gateway-services` skill).
 
 ## comprehend
 
@@ -176,7 +177,7 @@ Synchronous (one page, bytes in the request, no key, not idempotent so a retry i
 `Bytes` must be a single-page document (JPEG, PNG, one-page PDF or TIFF). Textract allows 10 MiB,
 but the whole request body is capped at 5,500,000 bytes (see Body ceiling), so with base64 the raw
 document must be under about 4 MB; larger is `413 body_too_large`. A bigger or multi-page document
-goes through the asynchronous path below (upload slot, up to 500 MiB).
+goes through the asynchronous path below (count its pages first with `gateway.PDFPageCount`) (upload slot, up to 500 MiB).
 
 Asynchronous (a PDF or TIFF, through an upload slot; **starts need an `Idempotency-Key`**):
 
