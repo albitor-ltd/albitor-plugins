@@ -8,7 +8,7 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 | Lambda synchronous request payload | 6 MB | [Lambda quotas][lambda] |
 | Lambda synchronous response payload | 6 MB | [Lambda quotas][lambda] |
 | Lambda asynchronous payload | 1 MB | [Lambda quotas][lambda] |
-| Lambda function timeout | 900 s (the hosted gateway example keeps steps under 30 s) | [Lambda quotas][lambda] |
+| Lambda function timeout | 30 s on the hosted target (the `gateway-services` skill's step budget); 900 s is the AWS maximum | [Lambda quotas][lambda] |
 | API Gateway HTTP API integration timeout | 30 s, not adjustable | [HTTP API quotas][http] |
 | API Gateway REST API integration timeout | 29 s default | [REST API quotas][rest] |
 | API Gateway payload | 10 MB (so Lambda's 6 MB bites first) | [HTTP][http], [REST][rest] |
@@ -16,7 +16,8 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 | DynamoDB write | 1 write unit per 1 KB, rounded up; transactional writes cost 2x | [Read and write operations][rw] |
 | DynamoDB Query or Scan page | 1 MB per call | [DynamoDB constraints][ddb] |
 | DynamoDB BatchWriteItem | 25 items | [DynamoDB constraints][ddb] |
-| SQS message size | 1,048,576 bytes (1 MiB) | [SQS quotas][sqs] |
+| Hosted queue message | 256 KiB; queue a reference, never the payload | `api-go` skill |
+| SQS message size (AWS maximum) | 1,048,576 bytes (1 MiB) | [SQS quotas][sqs] |
 | SQS delivery delay (message timer) | 0 s to 15 min | [SQS quotas][sqs] |
 | Translate TranslateText input | 10,000 bytes UTF-8 per request | [Translate quotas][tr] |
 | Textract synchronous | 10 MB, PDF and TIFF limited to 1 page | [Textract limits][tx] |
@@ -26,8 +27,8 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 
 ## What the numbers mean for a design
 
-- **Request size.** Nothing over about 5 MB moves through the API; see `file-storage.md`. The
-  Base64 inflates a file by about a third, so a file near 4.5 MB already will not fit in 6 MB.
+- **Request size.** Nothing over about 4 MB moves through the API; see `file-storage.md`. The
+  Base64 inflates a file by about a third, so a file over about 4.5 MB will not fit in 6 MB once encoded; the hosted gateway's 5,500,000-byte body ceiling is the tighter figure for service calls.
 - **Request time.** An API request is dead at 29 to 30 s. Plan for a few seconds at most; anything
   that calls a model or document service goes to `slow-supplier-work.md`. Check which API type the
   deploy target uses.

@@ -19,8 +19,9 @@ Read `patterns/file-storage.md`.
 
 - **Use when** users upload, download or keep files: audio, video, images, documents, exports.
 - **Avoid when** the data is small text or numbers that belong on the record (a note, a name).
-- **How to decide** If any single value could exceed a few KB, or comes from a file, it is a file:
-  bytes go to the object bucket, the record keeps metadata and the key.
+- **How to decide** As a heuristic: a value that comes from a file, or could approach the 400 KB
+  DynamoDB item limit, is a file: bytes go to the object bucket, the record keeps metadata and
+  the key.
 
 ## slow-supplier-work
 
@@ -29,19 +30,20 @@ Read `patterns/slow-supplier-work.md`.
 - **Use when** a step calls a supplier that can take longer than a request (transcription, document
   analysis, a long model call) or that returns a job id to poll.
 - **Avoid when** the call returns well inside one request and one user waiting is fine.
-- **How to decide** Estimate the worst case, not the typical one. If the worst case is over about a
-  third of the request limit (see `limits`), or the supplier is job-based, use a queue.
+- **How to decide** Estimate the worst case, not the typical one. As a heuristic, if it is over
+  about a third of the request limit (see `limits`), or the supplier is job-based, use a queue, if
+  the deploy target renders queues; otherwise the plan must say how the work advances.
 
 ## limits
 
 Read `patterns/limits.md`.
 
-- **Use when** always for the plan; skim the table once. Essential when a design moves payloads,
-  stores lists or blobs on one record, or fans out to suppliers.
-- **Avoid when** never skip it; but do not copy its numbers into code as constants without
+- **Use when** the plan moves payloads, stores lists or blobs on one record, or fans out to
+  suppliers; skim the table once for any plan.
+- **Avoid when** n/a - it is a reference. Do not copy its numbers into code as constants without
   re-checking the deploy target.
 - **How to decide** For every payload and every record, name the largest realistic size and compare
-  it with the table. A design that sits within 2x of a limit changes shape instead.
+  it with the table. As a heuristic, a design within 2x of a limit changes shape instead.
 
 ## seeding-for-deployed-walks
 

@@ -26,14 +26,15 @@ Numbers are in `limits.md`; the ones that force this pattern:
 ```text
 browser -> POST /api/uploads {name, type, size}      API checks owner, type, size cap,
                                                      creates record {id, status: pending, key}
-        <- {id, uploadPath}                          key = owner/<id>/<safe-name>
+        <- {id, uploadPath}                          key = _objects/<name>/ then owner/<id>/<safe-name>
 browser -> PUT  uploadPath  (bytes, same origin)     straight to the bucket
 browser -> POST /api/uploads/<id>/complete           API checks the object exists, sets ready
 browser -> GET  /api/files/<id>  -> {downloadPath}   short-lived presigned path, owner checked
 ```
 
-Delete the object when the record is deleted. Retention is a lifecycle setting on the bucket
-(`expire_after_days`), not a cron job.
+Retention means deleting the files with the record (the `object-s3` skill's `DeleteRecordFiles`),
+so no record outlives or orphans its object. The bucket's optional `expire_after_days` is only an
+age backstop for current objects, not the retention design.
 
 ## Anti-patterns
 

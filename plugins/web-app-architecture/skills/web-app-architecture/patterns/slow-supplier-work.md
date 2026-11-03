@@ -2,7 +2,10 @@
 
 ## Shape
 
-Only work that fits inside one request advances on the request. Anything longer is a job:
+Only work that fits inside one request advances on the request. Anything longer is a job. This
+pattern assumes the deploy target renders queues (`queues` in `albitor.yaml`, as the hosted target
+does); if it does not, the plan must say explicitly how the work advances instead.
+
 
 1. The route starts it (calls the supplier's `Start...` with an idempotency key, or enqueues the
    work), writes a record with `status: processing`, and returns at once with the record id.

@@ -3,12 +3,13 @@
 ## Shape
 
 A journey that runs against a deployed preview needs records to exist. Create them through the
-app's real API, as a signed-in user, the same way the UI would. Seed once per preview and reuse the
+app's real API, as a signed-in user, the same way the UI would. Seed once per preview with `seedOncePerPreview` and reuse the
 records across that preview's walks; do not re-create them per test.
 
 Never add a route, flag or environment switch that exists only so a test can plant data or skip
 auth. A deployed test route is an unauthenticated write path in production code. The test-playwright
-skill (`fixtureScope` and the seed helpers) holds the mechanics; this pattern is about what the plan
+skill (`FixtureScope` for per-test records, `seedOncePerPreview` in `helpers/preview-seed.ts` for
+the shared, once-per-preview ones) holds the mechanics; this pattern is about what the plan
 must provide so seeding is possible.
 
 ## What the plan must provide
