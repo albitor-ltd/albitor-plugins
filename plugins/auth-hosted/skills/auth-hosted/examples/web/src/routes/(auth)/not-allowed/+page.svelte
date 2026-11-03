@@ -11,4 +11,9 @@
 	The address you signed in with is not one of them.
 </p>
 <p>If you think this is wrong, contact the team that runs this service.</p>
-<p><a href="/sign-out" data-testid="not-allowed-sign-out">Sign out and use a different email address</a></p>
+<!-- A POST form, never a link: a link to sign-out could sign a visitor out from another site. It
+     goes through Cognito's sign-out page, which clears Cognito's own cookie; without that, the
+     next "Sign in" would reuse the same address. -->
+<form method="POST" action="/api/auth/sign-out" data-testid="not-allowed-sign-out-form">
+	<button type="submit" data-testid="not-allowed-sign-out">Sign out and use a different email address</button>
+</form>

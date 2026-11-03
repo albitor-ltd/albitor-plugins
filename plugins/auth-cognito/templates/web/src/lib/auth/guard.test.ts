@@ -73,8 +73,7 @@ describe('nextPath', () => {
 		'javascript:alert(1)',
 		'reports',
 		'/sign-in',
-		'/sign-up?x=1',
-		'/sign-out'
+		'/sign-up?x=1'
 	])('falls back to / for %s', (next) => {
 		expect(nextPath(next)).toBe('/');
 	});

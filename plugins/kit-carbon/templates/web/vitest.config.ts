@@ -11,6 +11,7 @@ export default mergeConfig(
 	viteConfig,
 	defineConfig({
 		resolve: { conditions: ['browser'] },
-		test: { setupFiles: ['./src/lib/kit/vitest.setup.ts'], server: { deps: { inline: ['carbon-components-svelte'] } } }
+		// axe tests compile the kit styles and eval ~500KB of axe source; 5s is too tight under host load.
+		test: { testTimeout: 30000, setupFiles: ['./src/lib/kit/vitest.setup.ts'], server: { deps: { inline: ['carbon-components-svelte'] } } }
 	})
 );

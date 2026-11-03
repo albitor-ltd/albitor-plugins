@@ -27,6 +27,8 @@ It comes from the starter's `web/tests` harness and the harness fixes made while
   email.
 - **Fixtures and seed helpers** (`helpers/seed.ts`, `helpers/fixture-scope.ts`): records created
   through the app's own API and deleted again, exactly those and no others.
+- **Preview seeding** (`helpers/preview-seed.ts`): seed a deployed preview once through the app's real
+  API, keyed by the preview URL, and reuse it across walks. Never a test-only route in the app.
 - **An axe audit** (`helpers/a11y.ts`, `a11y.spec.ts`): WCAG 2.2 A and AA, with reasoned waivers.
 - **A smoke test** (`smoke.spec.ts`): the shell loads and the API keeps the edge error contract.
 - **A read-only CI workflow** (`.github/workflows/journeys.yml`): `contents: read`, every action

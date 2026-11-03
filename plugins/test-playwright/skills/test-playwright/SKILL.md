@@ -13,7 +13,7 @@ Journeys are Playwright specs under `web/tests`. The harness is its own npm pack
 | Path | Whose | |
 | --- | --- | --- |
 | `web/tests/journeys/<journey>.spec.ts` | Spec author | One spec per journey; first line `// @journey <id>` |
-| `web/tests/fixtures/**` | Spec author | Records the specs need, created through the app's own API |
+| `web/tests/fixtures/**` | Spec author | Records the specs need, created through the app's own API, and short real-speech media files |
 | `web/tests/helpers/**`, `auth.setup.ts`, `playwright.config.ts`, `package*.json`, `smoke.spec.ts`, `a11y.spec.ts`, `roles.spec.ts`, `unit/**`, `.github/workflows/journeys.yml` | The plugin (seeded once) | Yours to change when the harness needs it; keep the audits and the sign-in checks |
 
 ## Writing a journey
@@ -51,8 +51,67 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   must give. Specs call no supplier; the platform walks each supplier path once against the real
   supplier when the build ends.
 - **Seed through the app's API with `fixtureScope`**, which deletes exactly what the test created
-  and fails the test if something is left behind. Never write to a database, and never put records in
-  the app's code.
+  and fails the test if something is left behind. Never write to a database, never put records in
+  the app's code, and never add a test-only route to the app (see "Seeding a deployed preview").
+
+## Seeding a deployed preview
+
+A walk of a deployed preview seeds through the app's **real API**, as the demo identity, and nothing
+else. Three rules:
+
+- **Never a test-only route.** Do not add a `/test/seed`, `/api/test-fixtures` or any endpoint that
+  exists to make test data, gated by an env flag or not. It ships to the deployed app, where anyone
+  holding the demo account can write records that skip the real pipeline. A seed path that is
+  local-only (`ALBITOR_LOCAL=1`) answers 404 on a preview and every walk fails at its first step. If
+  a screen needs data, the spec makes it the way a person does: through the routes the product
+  serves.
+- **Seed once per preview, not once per walk.** A record that goes through a slow pipeline or a
+  supplier (an upload that is processed, a document that is read) is made in a setup step and reused.
+  Add a `seed.setup.ts` and a `seed` project in `playwright.config.ts` (`testMatch: /seed\.setup\.ts/`, `dependencies: ["setup"]`, `use: { storageState: DEMO_STORAGE_STATE }`, a long `timeout`), and add `"seed"` to `chromium`'s `dependencies`, and make the
+  record with `seedOncePerPreview` from `helpers/preview-seed.ts`. It is keyed by the preview's
+  base URL, so a new preview seeds afresh and every later walk of the same preview reads the saved
+  ids (`readPreviewSeed`). Set `PREVIEW_SEED_VERSION` (a deploy id or commit) when a preview URL is
+  redeployed in place, so the old seed is not reused. Two setup runs at once on one preview both
+  seed; run one walk per preview at a time. Pass `stillValid` to re-check a saved record against the live app.
+  Seeding through a real pipeline can take minutes: poll the app's own status route in the setup
+  step with its own long timeout, and give the seed setup project one.
+- **Specs that only read use the seeded record; specs that write use `fixtureScope`.** The seeded
+  record is shared, so a spec never edits or deletes it.
+
+```ts
+// seed.setup.ts
+import { test as setup } from "@playwright/test";
+import { seedOncePerPreview } from "./helpers/preview-seed";
+
+setup("seed the preview", async ({ request, baseURL }) => {
+	setup.setTimeout(300_000);
+	await seedOncePerPreview(baseURL!, "sample", async () => {
+		// Drive the app's own API, with the demo session `request` already carries.
+		const created = await request.post("/api/items", { data: { name: "sample" } });
+		// ...wait for the app's own "ready" state, then return the ids the specs need.
+		return { id: (await created.json()).id as string };
+	});
+});
+```
+
+### Media fixtures: short, real speech
+
+A journey that uploads audio or video needs a fixture a speech service can read. A generated tone,
+silence or a file of zeros makes the supplier answer with an empty transcript, and the app then
+fails with no error to explain it.
+
+- Keep it short: **a few seconds** (3 to 8) of a person, or a speech synthesiser, saying a plain
+  sentence in the language the journey uses. Short keeps the repository small, the upload fast and
+  the supplier bill low.
+- Produce it, do not download it (no licence to check). Speak or synthesise one sentence, then
+  trim and convert to a small mono file, for example:
+  `espeak-ng -v en-gb -w raw.wav "The quarterly report is ready for review."` (or `say -o raw.aiff
+  "..."` on macOS), then `ffmpeg -i raw.wav -ac 1 -ar 16000 -t 8 web/tests/fixtures/media/sample.wav`
+  (use `-c:a aac sample.m4a` or `-c:v libx264` with a still image for another format). Play it back
+  before committing it.
+- Commit it under `web/tests/fixtures/media/` and assert on words the sentence contains. Do not
+  assert exact transcription of proper nouns or rare words: a speech service may spell them
+  differently.
 
 ## Identity
 

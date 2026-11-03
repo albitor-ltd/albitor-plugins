@@ -38,6 +38,7 @@
 === web/src/lib/kit/signin.test.ts ===
 === web/src/lib/kit/toast.svelte.ts ===
 === web/src/lib/kit/tokens.css ===
+=== web/src/lib/shell/AccountBar.svelte ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===
 === web/src/lib/shell/api.test.ts ===
@@ -51,6 +52,8 @@
 === web/src/lib/shell/scope.d/data-layer.ts ===
 === web/src/lib/shell/scope.test.ts ===
 === web/src/lib/shell/scope.ts ===
+=== web/src/lib/shell/signout.test.ts ===
+=== web/src/lib/shell/signout.ts ===
 === web/src/lib/shell/types.ts ===
 === web/src/routes/+error.svelte ===
 === web/src/routes/+layout.svelte ===

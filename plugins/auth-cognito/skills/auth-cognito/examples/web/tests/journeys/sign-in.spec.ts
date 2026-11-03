@@ -34,6 +34,17 @@ base.describe("signed out", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
   });
 
+  base("a signed-out visitor sees no app navigation and no Sign out", async ({ page, request }) => {
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    await page.goto("/sign-in");
+    await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
+    // The seeded Home entry is the app's navigation; Sign out is the signed-in person's control.
+    await expect(page.getByRole("link", { name: "Home" })).toHaveCount(0);
+    await expect(page.getByTestId("sign-out-button")).toHaveCount(0);
+  });
+
   base("the sign-up, confirm and reset screens are one click from sign-in and from each other", async ({ page, request }) => {
     const me = await request.get("/api/me").catch(() => undefined);
     base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
@@ -194,5 +205,14 @@ journey.describe("signed in through the local issuer", () => {
 
     await page.goto("/people");
     await expect(page.getByTestId("people-open")).toBeVisible();
+  });
+
+  journey("sign out is a POST form button, not a link", async ({ page }) => {
+    await page.goto("/");
+    const form = page.getByTestId("sign-out-form");
+    await expect(form).toHaveAttribute("method", /post/i);
+    await expect(form).toHaveAttribute("action", "/api/auth/sign-out");
+    await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign out" })).toHaveCount(0);
   });
 });

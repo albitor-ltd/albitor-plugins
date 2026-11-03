@@ -84,6 +84,42 @@ A slot expires in 5 minutes: upload at once, and never log it, store it or send 
 result the gateway returns as a URL expires in 5 minutes too; fetch it server-side and return the
 content, not the URL, unless the user needs the file.
 
+## Reading and preparing service data
+
+The example carries three small helpers (`transcript.go`, `chunk.go`, `pdfpages.go`, with tests);
+use them rather than re-deriving the rules.
+
+- **Transcribe: read the whole transcript.** `GetTranscriptionJob` with `Inline: true` returns the
+  output file in `Result`; `ParseTranscript` decodes it. The text to translate, summarise or search
+  is `FullText()` (`results.transcripts`). `results.items` is one entry per **word** or punctuation
+  mark, so never join items with newlines: the result is one word per line, a model reading it sees
+  word salad, and the stored translation is garbage. For display, `Sentences()` groups items: a
+  punctuation item attaches to the word before it, `. ? !` (and the CJK forms) end a sentence, and
+  words are joined with a space except in scripts that do not use one (Japanese, Chinese, Thai and
+  others). With `ShowSpeakerLabels` the labels are **not** on `items`: Transcribe puts them in
+  `results.speaker_labels.segments[].items[]` (a `speaker_label` with `start_time`/`end_time`), and
+  `Sentences()` joins them to the words by `start_time`; a change of speaker ends a sentence, and
+  each carries its speaker and start time. Word `confidence` in `items` is Transcribe's own; a
+  model's self-rating of a summary is not a measure of transcript quality.
+- **Translate: chunk by UTF-8 bytes, not characters.** The limit is 10,000 **bytes** per call.
+  CJK, Hindi and Thai take 3 bytes a character, so a 4,000-character chunk can be 12,000 bytes and
+  the `400` is a build bug that is never retried (the whole job fails). Split with
+  `ChunkByBytes(text, gateway.TranslateChunkBytes)` (9,000, leaving headroom): it splits on sentence
+  boundaries, then whitespace, never inside a rune, and the pieces rejoin to the input. Translate
+  each piece with one call and join the answers. Chunk the transcript's full text, not its items.
+- **Textract: measure pages before you submit.** Textract is billed and its quota reserved by
+  page, and the gateway does not take a page count from the request, so a document whose pages
+  cannot be read is reserved against the app's daily allowance at the worst case and can be refused
+  `402 cap_reached` on its first call. Count first with `PDFPageCount(pdfBytes)` (the root page tree's
+  own `/Count`, found from the trailer's `/Root`; it returns `ErrPagesUnknown` rather than guess). Refuse a file over the app's own page cap before
+  uploading, tell the person the page count, and for `ErrPagesUnknown` (encrypted, object or
+  cross-reference streams, an incremental update, or a root it cannot follow) ask for a re-saved or smaller file rather than send it and
+  see; use a PDF library in the app where exact counts on awkward files matter. An image is one
+  page; count a multi-frame TIFF's frames yourself. Show a `cap_reached` refusal as "daily limit
+  reached, back at <time>" using `gateway.DailyLimitReached(err)` (the gateway sends `limit:
+  "daily"` and `resets_at`; the time is zero from an older gateway, so say "tomorrow"), and a
+  `403` or a `credits_exhausted` as "unavailable".
+
 ## Async jobs: poll by delayed re-enqueue, not on a schedule
 
 Transcribe and Textract's `Start...` operations return at once and the result arrives later; the
@@ -119,12 +155,13 @@ a `400` is a build bug in the request shape, never retry it:
 
 | Answer | Test | The app does |
 | --- | --- | --- |
-| `402 credits_exhausted`, `402 cap_reached` | `errors.Is(err, gateway.ErrCreditsExhausted)` or `ErrCapReached` | Treat the feature as unavailable: tell the user it is unavailable right now and carry on. Do not retry, and do not queue the work to retry later |
+| `402 cap_reached` | `at, ok := gateway.DailyLimitReached(err)` | Say "daily limit reached, back at `at`" ("tomorrow" when `at` is zero). Do not retry, and do not queue the work to retry later |
+| `402 credits_exhausted` | `errors.Is(err, gateway.ErrCreditsExhausted)` | Treat the feature as unavailable: tell the user it is unavailable right now and carry on. Do not retry, and do not queue the work to retry later |
 | `403` (`not_declared`, `service_disabled`, `app_disabled`, residency) | `errors.Is(err, gateway.ErrForbidden)` | The same: unavailable. A `not_declared` is a build bug, so log it once at startup of the feature |
 | `429` | `errors.Is(err, gateway.ErrRateLimited)` | The client has already retried with jittered, capped backoff and given up, or returned at once because the wait asked for is over its 5 second cap: answer "busy, try again shortly" |
 | anything else | `*gateway.Error` | A fault: log the error text (code, and `Field`/`Detail` on a 400) and `RequestID` against the correlation id, answer an opaque 500 through `apikit.WriteFailure` |
 
-`gateway.Unavailable(err)` is true for the first two rows. Never show a user the code, a credit
+`gateway.Unavailable(err)` is true for the 402 rows and the 403 row; check `DailyLimitReached` first. Never show a user the code, a credit
 figure or the word "credits"; the owner sees spend in Albitor, the end user sees the feature
 unavailable. Do not wrap `Call` in a retry loop: the client's retries already spend the app's own
 rate budget.

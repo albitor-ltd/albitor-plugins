@@ -7,7 +7,7 @@ import type { Guard } from '../shell/types';
 import { getSession, takeRefusal } from './session';
 
 /** Paths a signed-out person must reach, or the guard would loop. `/offline` cannot ask the API. */
-export const PUBLIC_PATHS: readonly string[] = ['/sign-in', '/sign-out', '/not-allowed', '/offline'];
+export const PUBLIC_PATHS: readonly string[] = ['/sign-in', '/not-allowed', '/offline'];
 
 export function isPublicPath(pathname: string): boolean {
 	return PUBLIC_PATHS.includes(pathname);
@@ -21,6 +21,20 @@ export function signInPath(url: URL): string {
 /** The place to send a person after they sign in: `next` when it is a same-origin path, else `/`. */
 export function nextPath(next: string | null | undefined): string {
 	return next && isSafeRedirect(next) && !isPublicPath(next.split(/[?#]/)[0]!) ? next : '/';
+}
+
+/**
+ * Whether the shell shows the app's navigation: only to someone signed in. It fails closed and
+ * never throws, so an API that is down or an offline device still renders the public screens
+ * (`/sign-in`, `/offline`...), just without the nav. Public paths are not asked about at all.
+ */
+export async function canShowNav(url: URL): Promise<boolean> {
+	if (isPublicPath(url.pathname)) return false;
+	try {
+		return (await getSession()) !== null;
+	} catch {
+		return false;
+	}
 }
 
 /** Sends a signed-out person to the sign-in screen, and lets everyone else through. */

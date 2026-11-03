@@ -34,6 +34,26 @@ import (
 // pool, a page that says why.
 func registerAuthRoutes(mux *http.ServeMux, setup signIn, logger *slog.Logger) {
 	mux.HandleFunc(authPathRoot, func(w http.ResponseWriter, r *http.Request) {
+		// Sign-out is the one call a plain HTML form makes: the "Sign out" button is a POST form,
+		// never a link, so a link prefetch or another site's link cannot sign anyone out. Like a
+		// SvelteKit form action, a form-encoded POST is refused unless the browser says it came
+		// from this site. It is handled here, before the local-run answers, so the button works
+		// there too.
+		if r.Method == http.MethodPost && r.URL.Path == authPathRoot+"sign-out" && isFormRequest(r) {
+			if !sameOrigin(r) {
+				writeAuthError(w, http.StatusForbidden, "forbidden", "cross-site form post forbidden")
+				return
+			}
+			if setup.auth != nil && !setup.auth.local {
+				setup.auth.revokeAndClear(w, r)
+				http.Redirect(w, r, setup.auth.logoutURL, http.StatusSeeOther)
+				return
+			}
+			// A local run has no pool, so no Cognito session to end.
+			clearSessionCookies(w)
+			http.Redirect(w, r, signInPath, http.StatusSeeOther)
+			return
+		}
 		if setup.auth == nil {
 			if r.Method == http.MethodGet {
 				// A browser that followed the sign-in link lands on a page that says why, not on JSON.
@@ -347,15 +367,53 @@ func writeNavigation(w http.ResponseWriter, next string) {
 `, target, target)
 }
 
-// signOut revokes the refresh token, best effort, clears the session and answers the hosted
-// sign-out URL, which the web app navigates to so Cognito's own cookie is cleared too. Without
-// that, the next sign-in would skip the password.
+// signOut is the JSON form of sign-out: it answers the hosted sign-out URL, which the caller
+// navigates to so Cognito's own cookie is cleared too. Without that, the next sign-in would skip
+// the password. The Sign out button uses the form post instead, which answers 303 to that URL.
 func (a *hostedAuth) signOut(w http.ResponseWriter, r *http.Request) {
+	a.revokeAndClear(w, r)
+	apikit.WriteJSON(w, http.StatusOK, map[string]string{"logout_url": a.logoutURL})
+}
+
+// revokeAndClear revokes the refresh token, best effort, and clears the session: the work of
+// sign-out, for both its JSON and its form-post forms.
+func (a *hostedAuth) revokeAndClear(w http.ResponseWriter, r *http.Request) {
 	if c, err := r.Cookie(refreshCookie); err == nil && c.Value != "" {
 		_ = a.revoke(r.Context(), c.Value)
 	}
 	clearSessionCookies(w)
-	apikit.WriteJSON(w, http.StatusOK, map[string]string{"logout_url": a.logoutURL})
+}
+
+// isFormRequest reports whether the body is one an HTML form can send without a preflight.
+func isFormRequest(r *http.Request) bool {
+	mt, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
+	switch strings.ToLower(strings.TrimSpace(mt)) {
+	case "application/x-www-form-urlencoded", "multipart/form-data", "text/plain":
+		return true
+	}
+	return false
+}
+
+// sameOrigin is SvelteKit's form-action CSRF rule: the browser's Sec-Fetch-Site says same-origin,
+// or its Origin header names this host (X-Forwarded-Host first, as the app sits behind a CDN).
+// A form post with neither is refused.
+func sameOrigin(r *http.Request) bool {
+	if r.Header.Get("Sec-Fetch-Site") == "same-origin" {
+		return true
+	}
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return false
+	}
+	u, err := url.Parse(origin)
+	if err != nil || u.Host == "" {
+		return false
+	}
+	host := r.Header.Get("X-Forwarded-Host")
+	if host == "" {
+		host = r.Host
+	}
+	return strings.EqualFold(u.Host, host)
 }
 
 // revoke asks the token endpoint to revoke a refresh token.

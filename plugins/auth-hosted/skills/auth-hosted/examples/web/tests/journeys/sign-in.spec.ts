@@ -2,7 +2,7 @@
 // The sign-in journey: a
 // signed-out visitor is handed to the API's sign-in (which goes to Cognito's hosted page), a sign-in
 // that cannot finish says so and does not loop, the refusal page for an address the app does not
-// allow, and a signed-in person's account, sign-out and deletion screens. There is no password
+// allow, and a signed-in person's account and deletion screens and its Sign out button. There is no password
 // field anywhere in the app, and this spec never types into Cognito's page: the suite's one
 // auth.setup.ts signs in there, and every other project here starts from its saved session.
 //
@@ -85,7 +85,15 @@ base.describe("signed out", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "You cannot use this service with that email address" }),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Sign out and use a different email address" })).toHaveAttribute("href", "/sign-out");
+    // A POST form, never a link: a link to sign out could be followed from another site.
+    const form = page.getByTestId("not-allowed-sign-out-form");
+    await expect(form).toHaveAttribute("method", /post/i);
+    await expect(form).toHaveAttribute("action", "/api/auth/sign-out");
+    await expect(page.getByRole("button", { name: "Sign out and use a different email address" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /sign out/i })).toHaveCount(0);
+    // A signed-out visitor sees no app navigation and no Sign out control.
+    await expect(page.getByRole("link", { name: "Home" })).toHaveCount(0);
+    await expect(page.getByTestId("sign-out-button")).toHaveCount(0);
     await expect(page.locator("input[type=password]")).toHaveCount(0);
     await expectNoA11yViolations(page);
   });
@@ -124,21 +132,23 @@ journey.describe("signed in", () => {
     await expect(page).toHaveURL(/\/account\/delete$/);
   });
 
-  journey("signing out goes through Cognito's sign-out page", async ({ page }) => {
-    // Neither call may really end the suite's session: answer the API, and the Cognito page it names.
+  journey("sign out is a POST form button, not a link, and goes through Cognito's sign-out page", async ({ page }) => {
+    await page.goto("/");
+    const form = page.getByTestId("sign-out-form");
+    await expect(form).toHaveAttribute("method", /post/i);
+    await expect(form).toHaveAttribute("action", "/api/auth/sign-out");
+    await expect(page.getByRole("link", { name: "Sign out" })).toHaveCount(0);
+
+    // The post must not really end the suite's session: answer it with the 303 the API sends, to
+    // the Cognito page it names, and answer that page too.
     await page.route("**/api/auth/sign-out", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ logout_url: "https://logout.example.test/logout?client_id=c" }),
-      }),
+      route.fulfill({ status: 303, headers: { location: "https://logout.example.test/logout?client_id=c" } }),
     );
     const reached = page.waitForRequest("https://logout.example.test/**");
     await page.route("https://logout.example.test/**", (route) =>
       route.fulfill({ status: 200, contentType: "text/html", body: "<title>Signed out</title>" }),
     );
-
-    await page.goto("/sign-out");
+    await page.getByRole("button", { name: "Sign out" }).click();
     await reached;
   });
 });

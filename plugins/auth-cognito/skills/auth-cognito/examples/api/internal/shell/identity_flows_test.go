@@ -329,3 +329,83 @@ func TestSignInCallsSayTheyAreNotAvailableWithoutAPool(t *testing.T) {
 		t.Fatalf("GET /api/auth/config with no pool = %s", rec.Body.String())
 	}
 }
+
+func TestSignOutFormPostIsSameSiteOnlyAndRedirects(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	h := gateFor(f, srv)
+	f.answer("RevokeToken", func(map[string]any) (int, any) { return http.StatusOK, map[string]any{} })
+	form := func(edit func(*http.Request)) func(*http.Request) {
+		return func(r *http.Request) {
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			r.AddCookie(&http.Cookie{Name: refreshCookie, Value: "refresh-a"})
+			edit(r)
+		}
+	}
+
+	for name, edit := range map[string]func(*http.Request){
+		"no origin at all": func(*http.Request) {},
+		"another origin":   func(r *http.Request) { r.Header.Set("Origin", "https://evil.example") },
+		"cross-site fetch": func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "cross-site") },
+	} {
+		rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "", form(edit))
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("%s: form sign-out = %d, want 403", name, rec.Code)
+		}
+		if f.called("RevokeToken") || responseCookie(rec, sessionCookie) != nil {
+			t.Fatalf("%s: a refused form post must not revoke or clear anything", name)
+		}
+	}
+
+	for name, edit := range map[string]func(*http.Request){
+		"origin names this host": func(r *http.Request) { r.Header.Set("Origin", "http://"+r.Host) },
+		"browser says same-site": func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "same-origin") },
+	} {
+		rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "", form(edit))
+		if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != "/sign-in" {
+			t.Fatalf("%s: form sign-out = %d to %q, want 303 to /sign-in", name, rec.Code, rec.Header().Get("Location"))
+		}
+		for _, c := range []string{sessionCookie, refreshCookie} {
+			if got := responseCookie(rec, c); got == nil || got.MaxAge >= 0 {
+				t.Fatalf("%s: form sign-out did not clear %s", name, c)
+			}
+		}
+	}
+	if !f.called("RevokeToken") {
+		t.Fatal("form sign-out did not revoke the refresh token")
+	}
+
+	// A GET never signs anyone out.
+	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-out", "", nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("GET /api/auth/sign-out = %d, want 404", rec.Code)
+	}
+}
+
+// In a local run there is no pool, but the Sign out button still has to work: a same-site form
+// post clears the cookies and goes to /sign-in, never to the 501 JSON.
+func TestLocalRunFormSignOutRedirects(t *testing.T) {
+	srv, _ := startLocalRun(t)
+	client := srv.Client()
+	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	post := func(origin string) *http.Response {
+		req, err := http.NewRequest(http.MethodPost, srv.URL+"/api/auth/sign-out", strings.NewReader(""))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		if origin != "" {
+			req.Header.Set("Origin", origin)
+		}
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = resp.Body.Close()
+		return resp
+	}
+	if resp := post(srv.URL); resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "/sign-in" {
+		t.Fatalf("local form sign-out = %d to %q, want 303 to /sign-in", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	if resp := post("https://evil.example"); resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("cross-site local form sign-out = %d, want 403", resp.StatusCode)
+	}
+}

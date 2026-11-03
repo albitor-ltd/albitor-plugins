@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.6.0",
-        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
+        "ref": "web-svelte/v0.6.1",
+        "sha": "cb273a1bf8a7a48ab83997153a23a2621d0c7c3f"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.5.0",
-        "sha": "fcdf5f9eadd59ecd83327fcb2bab2efb88031ed4"
+        "ref": "api-go/v0.6.1",
+        "sha": "34d84df68d638972eb58d34e4ebe84681841c411"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.5.2",
-        "sha": "9db7a8230e851db7e1af1cefade7c1c5b024d916"
+        "ref": "test-playwright/v0.6.1",
+        "sha": "e0ff5b4937bd26e63e55070320981a854298767e"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.6.0",
-        "sha": "fcdf5f9eadd59ecd83327fcb2bab2efb88031ed4"
+        "ref": "deploy-hosted/v0.7.0",
+        "sha": "9050a5702befde93c9d0e8a349d4ba684ee6b5e9"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.7.1",
-        "sha": "044328e9c156e0f359137f355b774e8e185d6a46"
+        "ref": "kit-shadcn/v0.7.2",
+        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -306,10 +306,10 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.7.0",
-        "sha": "8b7c59c3f0420a2d336aa7282c6ee22469e6d13f"
+        "ref": "auth-cognito/v0.7.1",
+        "sha": "cb273a1bf8a7a48ab83997153a23a2621d0c7c3f"
       },
-      "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me, and the web side keeps a provider-independent session and a route guard. The sign-in calls, the sign-in, sign-up, confirm, reset and sign-out screens and the People admin are worked examples in the skill to copy and alter. It declares services.auth.",
+      "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me, and the web side keeps a provider-independent session and a route guard. The sign-in calls, the sign-in, sign-up, confirm, reset screens, a Sign out button and the People admin are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
       "keywords": [
         "auth",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.4.0",
-        "sha": "8b7c59c3f0420a2d336aa7282c6ee22469e6d13f"
+        "ref": "auth-hosted/v0.4.1",
+        "sha": "c07226bcf9087813d05d9a6db9cd8941398f1978"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -371,8 +371,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.7.0",
-        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
+        "ref": "kit-carbon/v0.7.1",
+        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -391,8 +391,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.7.0",
-        "sha": "a816cd3590804d82eca8ecb703433c6fcb9d20d2"
+        "ref": "kit-gds/v0.7.1",
+        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
@@ -477,6 +477,27 @@
         "archetype",
         "accessibility",
         "wcag"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "object-s3",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/object-s3",
+        "ref": "object-s3/v0.1.1",
+        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
+      },
+      "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download that bypass the API function and data store, owner-scoped keys authorised before signing, size and content-type limits, deleting files with their record, and platform retention. Go handlers over api-go and a web client for web-svelte.",
+      "category": "development",
+      "keywords": [
+        "object-store",
+        "s3",
+        "file-upload",
+        "presigned-url",
+        "go",
+        "storage"
       ],
       "license": "MIT"
     }

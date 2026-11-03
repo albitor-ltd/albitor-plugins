@@ -523,6 +523,61 @@ func TestSignOutRevokesTheRefreshTokenAndReturnsTheLogoutURL(t *testing.T) {
 	})
 }
 
+func TestSignOutFormPostIsSameSiteOnlyAndRedirectsToTheLogoutURL(t *testing.T) {
+	f := newFakeCognito(t)
+	f.revoke = func(url.Values) int { return http.StatusOK }
+	h := gateFor(f)
+	form := func(edit func(*http.Request)) func(*http.Request) {
+		return func(r *http.Request) {
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			r.AddCookie(&http.Cookie{Name: refreshCookie, Value: "refresh-a"})
+			edit(r)
+		}
+	}
+
+	for name, edit := range map[string]func(*http.Request){
+		"no origin at all":             func(*http.Request) {},
+		"another origin":               func(r *http.Request) { r.Header.Set("Origin", "https://evil.example") },
+		"cross-site fetch":             func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "cross-site") },
+		"same-site is not same-origin": func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "same-site") },
+		"forwarded host differs": func(r *http.Request) {
+			r.Header.Set("Origin", "http://"+r.Host)
+			r.Header.Set("X-Forwarded-Host", "other.example")
+		},
+	} {
+		rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "", form(edit))
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("%s: form sign-out = %d, want 403", name, rec.Code)
+		}
+		if len(f.callsTo("/oauth2/revoke")) != 0 || cookieNamed(rec, refreshCookie) != nil {
+			t.Fatalf("%s: a refused form post must not revoke or clear anything", name)
+		}
+	}
+
+	for name, edit := range map[string]func(*http.Request){
+		"origin names this host":   func(r *http.Request) { r.Header.Set("Origin", "http://"+r.Host) },
+		"browser says same-origin": func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "same-origin") },
+	} {
+		rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "", form(edit))
+		if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != testLogoutURL {
+			t.Fatalf("%s: form sign-out = %d to %q, want 303 to the logout URL", name, rec.Code, rec.Header().Get("Location"))
+		}
+		for _, c := range []string{sessionCookie, refreshCookie} {
+			if got := cookieNamed(rec, c); got == nil || got.MaxAge >= 0 {
+				t.Fatalf("%s: form sign-out did not clear %s", name, c)
+			}
+		}
+	}
+	if len(f.callsTo("/oauth2/revoke")) != 2 {
+		t.Fatalf("revoke calls = %d, want one per accepted sign-out", len(f.callsTo("/oauth2/revoke")))
+	}
+
+	// A GET never signs anyone out.
+	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-out", "", nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("GET /api/auth/sign-out = %d, want 404", rec.Code)
+	}
+}
+
 func TestThePostRoutesAreCSRFSafe(t *testing.T) {
 	f := newFakeCognito(t)
 	h := gateFor(f)
@@ -533,8 +588,13 @@ func TestThePostRoutesAreCSRFSafe(t *testing.T) {
 				session(r)
 				r.Header.Set("Content-Type", ct)
 			})
-			if rec.Code != http.StatusUnsupportedMediaType {
-				t.Errorf("POST %s as %q = %d, want 415: a form from another site must not sign anyone out or delete anything", path, ct, rec.Code)
+			want := http.StatusUnsupportedMediaType
+			if path == "/api/auth/sign-out" && ct != "" {
+				// Sign-out also takes a form post, but only one the browser says is same-site.
+				want = http.StatusForbidden
+			}
+			if rec.Code != want {
+				t.Errorf("POST %s as %q = %d, want %d: a form from another site must not sign anyone out or delete anything", path, ct, rec.Code, want)
 			}
 		}
 		if rec := authDo(t, h, http.MethodGet, path, "", session); rec.Code != http.StatusNotFound {
@@ -747,6 +807,20 @@ func TestALocalRunHasNoHostedSignIn(t *testing.T) {
 	}
 	if rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "{}", nil); rec.Code != http.StatusNotImplemented {
 		t.Errorf("POST sign-out = %d, want 501", rec.Code)
+	}
+	// The Sign out button still works there: a same-site form post clears the cookies and goes to
+	// /sign-in, never to the 501 JSON; a cross-site one is refused.
+	formPost := func(edit func(*http.Request)) *httptest.ResponseRecorder {
+		return authDo(t, h, http.MethodPost, "/api/auth/sign-out", "", func(r *http.Request) {
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			edit(r)
+		})
+	}
+	if rec := formPost(func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "same-origin") }); rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != "/sign-in" {
+		t.Errorf("local form sign-out = %d to %q, want 303 to /sign-in", rec.Code, rec.Header().Get("Location"))
+	}
+	if rec := formPost(func(r *http.Request) { r.Header.Set("Origin", "https://evil.example") }); rec.Code != http.StatusForbidden {
+		t.Errorf("cross-site local form sign-out = %d, want 403", rec.Code)
 	}
 	anon := composeIdentity(signIn{anonymous: true})
 	if rec := authDo(t, anon, http.MethodGet, "/api/auth/login", "", nil); rec.Code != http.StatusFound {
