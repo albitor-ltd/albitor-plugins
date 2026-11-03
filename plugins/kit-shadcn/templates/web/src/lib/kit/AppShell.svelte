@@ -128,6 +128,7 @@
 		flex: 1;
 		padding: 1.5rem;
 		max-width: 72rem;
+		margin-inline: auto;
 		width: 100%;
 		box-sizing: border-box;
 	}

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `kit-shadcn` `0.7.1` (albitor-ltd/albitor#4313 item 17; tag follows the merge). `AppShell` centres its
+  `main` content area (`margin-inline: auto`); above 72rem it sat flush left with the gap on the right.
+
 ### Changed
 
 - `kit-carbon` `0.7.0`, `kit-shadcn` `0.7.0` and `kit-gds` `0.7.0` (albitor-ltd/albitor#4300; tags
