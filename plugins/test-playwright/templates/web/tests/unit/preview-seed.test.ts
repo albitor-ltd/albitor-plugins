@@ -9,11 +9,11 @@ import { previewSeedPath, readPreviewSeed, seedOncePerPreview } from "../helpers
 describe("seedOncePerPreview", () => {
 	beforeEach(() => {
 		process.env.TESTS_SEED_DIR = mkdtempSync(join(tmpdir(), "seed-test-"));
-		delete process.env.ALBITOR_SEED_REFRESH;
+		delete process.env.PREVIEW_SEED_REFRESH;
 	});
 	afterEach(() => {
 		delete process.env.TESTS_SEED_DIR;
-		delete process.env.ALBITOR_SEED_REFRESH;
+		delete process.env.PREVIEW_SEED_REFRESH;
 	});
 
 	it("seeds once and reuses the result across walks", async () => {
@@ -30,11 +30,11 @@ describe("seedOncePerPreview", () => {
 		assert.notEqual(previewSeedPath("https://p1.example", "x"), previewSeedPath("https://p2.example", "x"));
 		assert.equal(previewSeedPath("https://p1.example/", "x"), previewSeedPath("https://p1.example", "x"));
 		const before = previewSeedPath("https://p1.example", "x");
-		process.env.ALBITOR_PREVIEW_VERSION = "v2";
+		process.env.PREVIEW_SEED_VERSION = "v2";
 		try {
 			assert.notEqual(previewSeedPath("https://p1.example", "x"), before);
 		} finally {
-			delete process.env.ALBITOR_PREVIEW_VERSION;
+			delete process.env.PREVIEW_SEED_VERSION;
 		}
 	});
 
@@ -44,7 +44,7 @@ describe("seedOncePerPreview", () => {
 		await seedOncePerPreview("https://p.example", "n", seed);
 		const again = await seedOncePerPreview("https://p.example", "n", seed, async () => false);
 		assert.equal(again.id, "rec2");
-		process.env.ALBITOR_SEED_REFRESH = "1";
+		process.env.PREVIEW_SEED_REFRESH = "1";
 		assert.equal((await seedOncePerPreview("https://p.example", "n", seed)).id, "rec3");
 	});
 
