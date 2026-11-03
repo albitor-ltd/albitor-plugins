@@ -41,6 +41,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `api-go` | The `api-runtime@1` plugin: Go server skeleton, middleware and route slots, paging, local issuer |
 | `test-playwright` | The `test-harness@1` plugin: Playwright journey harness, sign-in setup, fixtures, axe WCAG 2.2 A/AA audit, a read-only CI workflow |
 | `data-dynamodb` | The `data-store@1` plugin: `Store` over one DynamoDB table, in-memory fake, conformance suite, `services.tables` fragment |
+| `object-s3` | The `object-store@1` plugin: private file storage on the app's S3 bucket (`services.objects`), a skill with examples for presigned direct upload and download, owner-scoped keys, size and type limits, deleting with the record, and retention; nothing is seeded |
 | `kit-shadcn` | The `component-kit@1` and `component-kit@2` plugin for Svelte: shadcn-style shell pieces on Bits UI, one token set, contrast and axe audits that ship with the app |
 | `kit-carbon` | The `component-kit@1` and `component-kit@2` plugin for Svelte in the IBM Carbon style: Carbon's UI shell and components, its white and Gray 100 themes, contrast and axe audits that ship with the app; not themeable by a visual-language plugin |
 | `kit-gds` | The `component-kit@1` and `component-kit@2` plugin for Svelte in GOV.UK Design System style: GOV.UK Frontend v6 markup, a text-only header (no Crown or logotype), the GOV.UK design-system and accessibility skills, contrast and axe audits that ship with the app; not themeable |
@@ -179,7 +180,7 @@ templates, manifests or the composer contract, also run `just compose <albitor c
 `just ci` runs: manifest validation (JSON parses, `name` equals the directory, semver
 `version`, catalogue metadata present), preview-token validation (`scripts/validate-preview-tokens.sh`
 and its refusal tests), catalogue reproducibility (`--check`), shellcheck and JSON lint, and the
-plugin verifies (api-go, data-dynamodb, auth, deploy-byoa-aws).
+plugin verifies (api-go, data-dynamodb, auth, deploy-byoa-aws, deploy-hosted, object-s3).
 
 Compose and certification run only via `just compose <albitor checkout>`: the real manifest parser
 and composer from albitor-ltd/albitor over the schema-2 plugins, then `npm install`, check, test and
