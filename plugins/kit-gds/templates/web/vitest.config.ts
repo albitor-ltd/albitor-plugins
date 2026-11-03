@@ -5,4 +5,11 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import viteConfig from './vite.config';
 
-export default mergeConfig(viteConfig, defineConfig({ resolve: { conditions: ['browser'] } }));
+export default mergeConfig(
+	viteConfig,
+	defineConfig({
+		resolve: { conditions: ['browser'] },
+		// axe tests compile the kit styles and eval ~500KB of axe source; 5s is too tight under host load.
+		test: { testTimeout: 30000 }
+	})
+);
