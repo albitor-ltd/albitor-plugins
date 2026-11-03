@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- `api-go` `0.6.1` (albitor-ltd/albitor-plugins#168; tag follows the merge). A supplier-client skill
+  example (`examples/api/internal/supplier/`) reads the supplier's base URL from config with no
+  default (`SUPPLIER_BASE_URL is not set` when empty) and shows honest fixtures: the supplier's
+  documented response only, no invented fields, a missing documented field an error.
 - `kit-shadcn` `0.7.1` (albitor-ltd/albitor#4313 item 17; tag follows the merge). `AppShell` centres its
   `main` content area (`margin-inline: auto`); above 72rem it sat flush left with the gap on the right.
 

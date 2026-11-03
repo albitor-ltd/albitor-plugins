@@ -229,6 +229,21 @@ config:
     secret: true
 ```
 
+## Calling an external supplier from the API
+
+Worked example in `examples/api/internal/supplier/` (copy to the same path; standard library only):
+
+- **The supplier's endpoint comes from config, with no default in code.** Declare the base URL as a
+  non-secret `config` entry with the value the person gave, read it with `os.Getenv`, and when it
+  is empty fail clearly (`SUPPLIER_BASE_URL is not set`). A URL guessed from memory is a wrong host
+  that reads like a network fault. The key, if any, is a secret (see above).
+- **Fixtures are honest.** A local fixture for the supplier's answer is the supplier's documented
+  response, field for field, and nothing else: no field added to make a test or a screen pass. If
+  the app needs a value the documented response lacks, report that gap; do not invent the field.
+  The example decodes its fixture with `DisallowUnknownFields` against the documented struct, and
+  treats a missing documented field as an error rather than a zero value, so a gap shows on the
+  first call and not in the deployed walk.
+
 ## Calling an LLM supplier from the API
 
 When the app calls a model directly (the Anthropic API, say) rather than through the platform

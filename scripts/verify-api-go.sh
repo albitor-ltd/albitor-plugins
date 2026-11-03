@@ -41,6 +41,9 @@ if [[ -n "$(gofmt -l "$populated/router.go")" ]]; then
 fi
 rm -rf "$populated"
 
+# The supplier example, copied into the composed tree as the skill says, builds and passes too.
+cp -R "$plugin/skills/api-go/examples/api/internal/supplier" internal/supplier
+
 go build ./...
 go vet ./...
 go test ./... -count=1
