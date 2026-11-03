@@ -6,7 +6,7 @@
     {
       "socket": "web-framework",
       "plugin": "web-svelte",
-      "version": "0.6.0"
+      "version": "0.6.1"
     },
     {
       "socket": "component-kit",
@@ -165,6 +165,11 @@
       "plugins": "kit-stub"
     },
     {
+      "path": "web/src/lib/shell/AccountBar.svelte",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
       "path": "web/src/lib/shell/OfflineBanner.svelte",
       "mode": "example",
       "plugins": "web-svelte"
@@ -231,6 +236,16 @@
     },
     {
       "path": "web/src/lib/shell/scope.ts",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/signout.test.ts",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/signout.ts",
       "mode": "example",
       "plugins": "web-svelte"
     },
@@ -337,6 +352,7 @@ site:
 === web/src/lib/data/state.test.ts ===
 === web/src/lib/data/state.ts ===
 === web/src/lib/kit/AppShell.svelte ===
+=== web/src/lib/shell/AccountBar.svelte ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===
 === web/src/lib/shell/api.test.ts ===
@@ -384,6 +400,8 @@ export const routeGuards = checkGuards([stubGuard]);
 === web/src/lib/shell/scope.d/data-layer.ts ===
 === web/src/lib/shell/scope.test.ts ===
 === web/src/lib/shell/scope.ts ===
+=== web/src/lib/shell/signout.test.ts ===
+=== web/src/lib/shell/signout.ts ===
 === web/src/lib/shell/types.ts ===
 === web/src/lib/stub/StubProvider.svelte ===
 === web/src/routes/+error.svelte ===

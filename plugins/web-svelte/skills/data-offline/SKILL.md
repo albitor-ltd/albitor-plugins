@@ -84,7 +84,9 @@ change was rejected. For rejected changes, `sync.failures()` lists them (no serv
 - **No auth plugin makes that call.** Wire it in the app's own code where the session is read (for
   `auth-cognito`, beside `getSession()`; for `auth-none`, once at start-up with its fixed owner id).
   Without it the engine never attaches, and nothing syncs.
-- Before ending a session, `await sync.signOut()`. If it returns `{ ok: false, pending }`, tell the
+- Before ending a session, `await sync.signOut()`. Sign out is a plain POST form, so wire it in with
+  `onBeforeSignOut(async () => (await sync.signOut()).ok)` (`lib/shell/signout.ts`; the Sign out button
+  awaits it and stops on `false`). If it returns `{ ok: false, pending }`, tell the
   person that many changes have not been saved and let them wait, or choose `signOut({ discard: true })`
   explicitly. Never discard silently.
 

@@ -12,4 +12,7 @@ export const trailingSlash = 'never';
 export const load: LayoutLoad = async ({ url }) => {
 	const to = await runGuards(routeGuards, url);
 	if (to !== null) redirect(307, to);
+	// Whether the shell shows the app's navigation. Always, until a plugin that knows who is
+	// signed in (auth) replaces this file: signed-out visitors must not see the app's links.
+	return { showNav: true };
 };

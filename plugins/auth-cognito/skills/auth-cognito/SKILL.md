@@ -61,13 +61,14 @@ foundation node writes the sign-in shell from them.
 
 | Example | What it is |
 | --- | --- |
-| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the sign-in calls: `POST /api/auth/sign-in`, `sign-up`, `confirm`, `resend`, `forgot`, `reset`, `new-password`, `sign-out`, and the Cognito error mapping |
+| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the sign-in calls: `POST /api/auth/sign-in`, `sign-up`, `confirm`, `resend`, `forgot`, `reset`, `new-password`, `sign-out`, and the Cognito error mapping. `sign-out` also takes a same-site form post (SvelteKit's form-action CSRF rule: `Sec-Fetch-Site` same-origin, or `Origin` equal to the host) and answers `303` to `/sign-in` |
 | `examples/api/internal/shell/identity_people.go`, `identity_sigv4.go` | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it. Temporary passwords are generated here, returned once with `Cache-Control: no-store`, never logged |
 | `examples/api/internal/shell/identity_flows_test.go`, `identity_people_test.go`, `identity_sigv4_test.go` | Their tests, run against the seeded helpers |
 | `examples/api/openapi.yaml` | The contract with `GET /api/me` and `/api/auth/*` added to the base. Merge those paths into the app's `api/openapi.yaml` |
 | `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `signIn`, `signUp`, `confirm`, `resend`, `forgot`, `reset`, `signOut`, `getSignUpMode`, `changePassword` and the People calls. They return `{ ok: false, code, message }` rather than throw |
 | `examples/web/src/lib/auth/guard.ts`, `guard.test.ts` | A guard that also sends a visitor from `/sign-up`, `/confirm` and `/reset` to `/sign-in` in an invite-only app. Replaces the seeded guard when you adopt the self-service screens |
-| `examples/web/src/routes/(auth)/**` | Sign-in, sign-up, confirm, reset, sign-out, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on every kit that provides it |
+| `examples/web/src/routes/+layout.ts`, `examples/web/src/lib/shell/AccountBar.svelte` | The root layout load that returns `showNav: false` to a signed-out visitor (so the shell hides the app's navigation), and the shell's `AccountBar` filled in with the Sign out POST form button. Copy both over the shell's own |
+| `examples/web/src/routes/(auth)/**` | Sign-in, sign-up, confirm, reset, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on every kit that provides it |
 | `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey: redirect, screens, local identity |
 
 To adopt the sign-in calls, copy the three API files together (`identity_flows.go` hands the
@@ -78,7 +79,7 @@ the top of `registerIdentityRoutes` in `identity_verify.go`:
 registerAuthRoutes(mux, setup, logger)
 ```
 
-The routes `/sign-in`, `/sign-up`, `/confirm`, `/reset` and `/sign-out` are fixed: seeded `guard.ts` hard-code them, so a screen keeps its path.
+The routes `/sign-in`, `/sign-up`, `/confirm`, `/reset` and `/sign-out` are fixed (there is no `/sign-out` page: signing out is a POST, below): seeded `guard.ts` hard-code them, so a screen keeps its path.
 
 The browser never talks to Cognito (the page's CSP allows its own origin only) and no token is
 readable by page script. A script or test client may send `Authorization: Bearer <token>` instead.
@@ -99,8 +100,9 @@ readable by page script. A script or test client may send `Authorization: Bearer
 - **The screens** in `web/src/routes/(auth)/` (copied from the examples) are yours: restyle and reword them,
   add sign-up fields (and the field in `client.ts`'s call), but **keep the `data-testid` values**
   on the sign-up, confirm, reset and new-password forms. The sign-in form is the kit's `SignInPage`
-  (component-kit@2), found by role and label; keep it rather than rebuilding it. `sign-out/nav.ts` puts "Sign out" in the
-  nav; delete it to take it out. `change-password/` has its own `nav.ts`. The People screen has none (the nav is
+  (component-kit@2), found by role and label; keep it rather than rebuilding it. **Sign out is a POST form button, never a link** (`AccountBar.svelte`; it awaits the hooks the app registers with `onBeforeSignOut` from `lib/shell/signout.ts`, which is where the data layer's local wipe goes: see its skill; auth never imports a data layer): a link can be prefetched
+  and would sign people out. Never add a GET route or nav entry that signs out. The app's navigation
+  is shown only when `getSession()` finds someone (`+layout.ts`'s `showNav`). `change-password/` has its own `nav.ts`. The People screen has none (the nav is
   static); the change-password screen links to it for user-admin-group members, which
   `GET /api/auth/config` names as `user_admin_group`. People keeps its `people-*` test ids, shows the
   one-time password with a copy button, and nudges the administrator to add a second one while

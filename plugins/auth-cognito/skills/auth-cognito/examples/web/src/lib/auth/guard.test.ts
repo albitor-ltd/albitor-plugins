@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { isSafeRedirect, runGuards } from '../shell/guard';
-import { PUBLIC_PATHS, SELF_SERVICE_PATHS, isPublicPath, nextPath, requireSession, signInPath } from './guard';
+import { PUBLIC_PATHS, canShowNav, SELF_SERVICE_PATHS, isPublicPath, nextPath, requireSession, signInPath } from './guard';
 
 const session = vi.hoisted(() => ({ getSession: vi.fn() }));
 vi.mock('./session', () => session);
@@ -50,6 +50,25 @@ describe('requireSession', () => {
 	});
 });
 
+describe('canShowNav', () => {
+	it('is true for a signed-in person and false for nobody', async () => {
+		session.getSession.mockResolvedValue({ sub: 'u1' });
+		expect(await canShowNav(at('/reports'))).toBe(true);
+		session.getSession.mockResolvedValue(null);
+		expect(await canShowNav(at('/reports'))).toBe(false);
+	});
+
+	it('fails closed, without throwing, when the session check fails', async () => {
+		session.getSession.mockRejectedValue(new Error('API down'));
+		await expect(canShowNav(at('/reports'))).resolves.toBe(false);
+	});
+
+	it.each(PUBLIC_PATHS)('does not ask the API about %s', async (path) => {
+		expect(await canShowNav(at(path))).toBe(false);
+		expect(session.getSession).not.toHaveBeenCalled();
+	});
+});
+
 describe('requireSession in an invite-only app', () => {
 	beforeEach(() => client.getSignUpMode.mockResolvedValue('invite_only'));
 
@@ -58,8 +77,8 @@ describe('requireSession in an invite-only app', () => {
 		expect(session.getSession).not.toHaveBeenCalled();
 	});
 
-	it('still lets anyone reach sign-in, sign-out and offline', async () => {
-		for (const path of ['/sign-in', '/sign-out', '/offline']) {
+	it('still lets anyone reach sign-in and offline', async () => {
+		for (const path of ['/sign-in', '/offline']) {
 			expect(await requireSession({ url: at(path) })).toBeUndefined();
 		}
 	});
@@ -106,8 +125,7 @@ describe('nextPath', () => {
 		'javascript:alert(1)',
 		'reports',
 		'/sign-in',
-		'/sign-up?x=1',
-		'/sign-out'
+		'/sign-up?x=1'
 	])('falls back to / for %s', (next) => {
 		expect(nextPath(next)).toBe('/');
 	});
