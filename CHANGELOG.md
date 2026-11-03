@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- `object-s3` `0.1.0` (albitor-ltd/albitor#4317; tag follows the merge). The `object-store@1` plugin
+  the composer maps `file-storage` to: a skill with examples over `services.objects` (presigned direct
+  upload and download, owner-scoped keys authorised before signing, size and type limits, deleting
+  with the record, retention), served on the app origin at `/_objects/<name>/` (hosted lane only), Go handlers over api-go and a web client
+  for web-svelte. Nothing is seeded. Not in the catalogue until its first tag.
+
 ### Fixed
 
 - `kit-shadcn` `0.7.1` (albitor-ltd/albitor#4313 item 17; tag follows the merge). `AppShell` centres its
