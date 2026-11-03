@@ -69,7 +69,7 @@ if (!bootsNothing) {
 
 export default defineConfig({
 	testDir: TESTS_DIR,
-	testMatch: /.*\.spec\.ts|auth\.setup\.ts/,
+	testMatch: /.*\.spec\.ts|.*\.setup\.ts/,
 	forbidOnly: isCI,
 	retries: isCI ? 1 : 0,
 	timeout: 30_000,
@@ -99,10 +99,15 @@ export default defineConfig({
 			// step holds it, and CI uploads the report. Nothing is recorded here, on a retry either.
 			use: { trace: "off", screenshot: "off", video: "off" },
 		},
+		// An app that needs a record seeded once per preview adds a `seed.setup.ts` (see the
+		// test-playwright skill, "Seeding a deployed preview"), a project like this one that uses
+		// the demo session and has a long timeout, and lists it in chromium's dependencies:
+		//   { name: "seed", testMatch: /seed\.setup\.ts/, dependencies: ["setup"],
+		//     use: { storageState: DEMO_STORAGE_STATE }, timeout: 300_000 },
 		{
 			name: "chromium",
 			use: { ...devices["Desktop Chrome"], storageState: DEMO_STORAGE_STATE },
-			testIgnore: /auth\.setup\.ts/,
+			testIgnore: /\.setup\.ts/,
 			dependencies: ["setup"],
 		},
 	],

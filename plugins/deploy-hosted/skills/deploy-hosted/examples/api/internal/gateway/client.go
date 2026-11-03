@@ -270,10 +270,16 @@ func parseError(status int, retryAfter string, raw []byte) *Error {
 		RequestID string `json:"request_id"`
 		Field     string `json:"field"`
 		Detail    string `json:"detail"`
+		Limit     string `json:"limit"`
+		ResetsAt  string `json:"resets_at"`
 	}
 	if json.Unmarshal(raw, &b) == nil && b.Error != "" {
 		e.Code, e.AWSCode, e.RequestID = b.Error, b.AWSCode, b.RequestID
 		e.Field, e.Detail = b.Field, b.Detail
+		e.Limit = b.Limit
+		if t, err := time.Parse(time.RFC3339, b.ResetsAt); err == nil {
+			e.ResetsAt = t
+		}
 	}
 	if n, err := strconv.Atoi(retryAfter); err == nil && n > 0 {
 		e.RetryAfter = time.Duration(n) * time.Second

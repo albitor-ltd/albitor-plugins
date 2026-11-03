@@ -33,6 +33,10 @@ type Error struct {
 	// neither, as an older gateway does not.
 	Field  string
 	Detail string
+	// Limit and ResetsAt are set on a cap_reached from a gateway that sends them:
+	// Limit is "daily" and ResetsAt when the allowance resets. Zero/empty otherwise.
+	Limit    string
+	ResetsAt time.Time
 }
 
 func (e *Error) Error() string {
@@ -80,6 +84,21 @@ func (e *Error) Is(target error) bool {
 // feature is unavailable", never the code.
 func Unavailable(err error) bool {
 	return errors.Is(err, ErrCreditsExhausted) || errors.Is(err, ErrCapReached) || errors.Is(err, ErrForbidden)
+}
+
+// DailyLimitReached reports a cap_reached for the daily allowance and when it resets (zero when
+// the gateway did not say). Show the person "daily limit reached, back at <time>", not
+// "unavailable"; it is still a 402, so Unavailable(err) is true too. Credits exhausted is not
+// a daily limit and returns false.
+func DailyLimitReached(err error) (time.Time, bool) {
+	var e *Error
+	if !errors.As(err, &e) || !errors.Is(e, ErrCapReached) {
+		return time.Time{}, false
+	}
+	if e.Limit != "" && e.Limit != "daily" {
+		return time.Time{}, false
+	}
+	return e.ResetsAt, true
 }
 
 // ErrNotConfigured is returned by Open when ALBITOR_SERVICES_URL is unset: the

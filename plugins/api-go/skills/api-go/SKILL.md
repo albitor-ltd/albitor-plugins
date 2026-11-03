@@ -215,7 +215,58 @@ and grants the function's role `ssm:GetParameter` and `ssm:GetParameters` on exa
   missing secret as "not configured", never as an error that takes the endpoint down.
 - Never write a parameter, list a path or add an IAM policy for this: the grant is the deploy
   target's, and a secret is added through Albitor, not the repository.
+- Declare each key in `albitor.yaml` `config` as a `secret: true` entry with **no `value`** (a value
+  on a secret entry is rejected); the person supplies the value through Albitor, never the
+  repository. The parameter name is the key, so the read is the prefix plus that key
+  (`os.Getenv("ALBITOR_SECRETS_PARAMETER_PREFIX") + "ANTHROPIC_API_KEY"`; the prefix ends in `/`, so
+  concatenate). Do not use the deprecated `ALBITOR_SECRETS_PREFIX`. A key not yet supplied reads as
+  not found: that feature is "not configured", not an error for the app.
 - Read at request time or cache briefly; never log a value or put it in a response.
+
+```yaml
+config:
+  - key: ANTHROPIC_API_KEY
+    secret: true
+```
+
+## Calling an LLM supplier from the API
+
+When the app calls a model directly (the Anthropic API, say) rather than through the platform
+gateway:
+
+- **The model id comes from config, with no default in code.** Read it from the `config` entry
+  (`os.Getenv("LLM_MODEL")`; declare `- key: LLM_MODEL` in `config`, not secret, with the value the person gave) and, when it is empty, fail clearly at start or on first use
+  (`LLM_MODEL is not set`). A default in code is a model id from training memory, and a retired id
+  is a `404` on every call that reads like a missing key. Never put a model id in a Go constant or
+  a default. The id itself comes from the person or from the supplier's live model list at the
+  time, never from memory.
+- **No sampling parameters.** Do not send `temperature`, `top_p` or `top_k`. Current models reject
+  or ignore them (a `400` on some), and the request that works without them is the one to ship.
+- **`max_tokens` leaves room for thinking.** Thinking tokens count against `max_tokens`. Set
+  `max_tokens` = thinking budget + the expected output, and never below the thinking budget (the
+  API refuses `max_tokens` not greater than the budget): with a 4,000 token budget and a 1,000
+  token answer, send at least 5,000. With thinking off, size it to the expected output only.
+
+```go
+func llmModel(getenv func(string) string) (string, error) {
+	m := getenv("LLM_MODEL")
+	if m == "" {
+		return "", errors.New("LLM_MODEL is not set") // no default: say what is missing
+	}
+	return m, nil
+}
+
+func maxTokens(thinkingBudget, expectedOutput int) int {
+	return thinkingBudget + expectedOutput // never less than thinkingBudget
+}
+```
+
+A call with thinking can take longer than the 30 second request: run it on the queue path
+(see Queues), not inside a request.
+
+The request body carries `model`, `max_tokens`, `messages` (and `thinking` when used), and no
+`temperature`, `top_p` or `top_k`. Test that the model-unset path fails with a clear error and that
+the marshalled request has none of the three sampling fields.
 
 ## Contributing to the slots (plugin authors)
 

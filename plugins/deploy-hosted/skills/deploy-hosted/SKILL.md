@@ -22,7 +22,7 @@ Worked examples sit in `examples/` beside this skill, laid out by repository pat
 
 | Example | Copy it when |
 | --- | --- |
-| `examples/api/internal/gateway/` | The app calls platform services or uses queues (`services.callable` or `queues` in `albitor.yaml`). `cp -r` the directory to `api/internal/gateway`, then edit; a client for the service gateway (`client.go`, SigV4, uploads) and the queues (`queue.go`, `queue_local.go`), with its tests. Standard library only. See the `gateway-services` skill |
+| `examples/api/internal/gateway/` | The app calls platform services or uses queues (`services.callable` or `queues` in `albitor.yaml`). `cp -r` the directory to `api/internal/gateway`, then edit; a client for the service gateway (`client.go`, SigV4, uploads) and the queues (`queue.go`, `queue_local.go`), and helpers for Transcribe transcripts, Translate byte chunking and PDF page counts (`transcript.go`, `chunk.go`, `pdfpages.go`), with their tests. Standard library only. See the `gateway-services` skill |
 
 An app with neither takes none of it.
 
