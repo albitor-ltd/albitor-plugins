@@ -7,8 +7,8 @@
 # The parser and composer live in albitor-ltd/albitor (app/core), so a checkout is required. A
 # throwaway go.work joins it to tests/compose; nothing in either repository changes.
 # --build also runs npm install (the lockfile is the app's, see install_web), check, test and build
-# in the composed web/ (needs node >= 22.17; CI pins 24.22.1, as npm 10.9 crashes on a
-# lockfile-less install).
+# in the composed web/ (needs node >= 22.17; CI pins 24.22.1; on npm < 11 the install
+# runs under npm@11.21.0 via npx, as npm 10.9 crashes on a lockfile-less install).
 # --journeys (with --build) then runs the test-playwright harness over the composed default shell:
 # the api-go tree is added, the harness's own unit tests run, and the journeys run against the
 # locally booted app in Chromium (needs go; PLAYWRIGHT_INSTALL_FLAGS="--with-deps" in CI).
@@ -71,8 +71,16 @@ fi
 # omits a plugin-declared web/package-lock.json whenever the npm merge changes web/package.json
 # (ADR-0090 amendment, albitor#3178), so the lockfile is the app's, not a plugin's, and the shipped
 # web-svelte build runs `npm install`: `npm ci` has no lockfile to be reproducible against.
+#
+# npm 10.9 (bundled with Node 22) crashes on this lockfile-less install ("Cannot read properties of
+# null (reading 'edgesOut')", arborist's peer-set loader; albitor-plugins#157), so below npm 11 the
+# install runs under a pinned npm 11 fetched with npx. Node 24 ships npm 11 and is used as is.
 install_web() {
-  npm install --no-audit --no-fund
+  if [[ "$(npm --version | cut -d. -f1)" -ge 11 ]]; then
+    npm install --no-audit --no-fund
+  else
+    npx --yes npm@11.21.0 install --no-audit --no-fund
+  fi
 }
 
 if [[ $build -eq 1 ]]; then
