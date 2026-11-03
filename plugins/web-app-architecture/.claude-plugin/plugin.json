@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "name": "web-app-architecture",
+  "displayName": "Web app architecture patterns",
+  "version": "0.1.0",
+  "description": "Architecture patterns for the web_app archetype, delivered to the planner and the app-foundation node only: where file bytes live, how slow supplier work advances, the platform limits a design must fit, and how deployed walks get their data. An index with when to use, when to avoid and how to decide, and one file per pattern.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "architecture",
+    "web_app",
+    "patterns",
+    "planning",
+    "limits"
+  ],
+  "archetype": "web_app",
+  "deliver_to": [
+    "decomposer",
+    "foundation"
+  ]
+}
