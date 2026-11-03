@@ -2,9 +2,9 @@
   "schema": 2,
   "name": "object-s3",
   "displayName": "Object storage (S3)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
-  "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download so the bytes never pass through the API function or the data store, owner-scoped keys with server-side authorisation before signing, size and content-type limits, deleting files with their record, and what retention the platform gives. Go handlers over api-go and a small web client for web-svelte.",
+  "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download that bypass the API function and data store, owner-scoped keys authorised before signing, size and content-type limits, deleting files with their record, and platform retention. Go handlers over api-go and a web client for web-svelte.",
   "author": {
     "name": "Albitor Ltd",
     "email": "jamie@albitor.com"
@@ -20,6 +20,7 @@
   ],
   "provides": ["object-store@1"],
   "requires": ["api-runtime@1", "deploy-target@1"],
+  "conflicts": ["deploy-byoa-aws"],
   "contributes": {
     "manifest": {
       "services": {

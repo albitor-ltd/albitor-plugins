@@ -10,6 +10,7 @@ export default mergeConfig(
 	viteConfig,
 	defineConfig({
 		resolve: { conditions: ['browser'] },
-		test: { server: { deps: { inline: ['bits-ui'] } } }
+		// axe tests compile the kit styles and eval ~500KB of axe source; 5s is too tight under host load.
+		test: { testTimeout: 30000, server: { deps: { inline: ['bits-ui'] } } }
 	})
 );

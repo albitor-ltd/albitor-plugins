@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.6.0",
-        "sha": "9050a5702befde93c9d0e8a349d4ba684ee6b5e9"
+        "ref": "test-playwright/v0.6.1",
+        "sha": "e0ff5b4937bd26e63e55070320981a854298767e"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -477,6 +477,27 @@
         "archetype",
         "accessibility",
         "wcag"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "object-s3",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/object-s3",
+        "ref": "object-s3/v0.1.0",
+        "sha": "02076b90e9a3714c406a92e6a0af57b7e473b58d"
+      },
+      "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download that bypass the API function and data store, owner-scoped keys authorised before signing, size and content-type limits, deleting files with their record, and platform retention. Go handlers over api-go and a web client for web-svelte.",
+      "category": "development",
+      "keywords": [
+        "object-store",
+        "s3",
+        "file-upload",
+        "presigned-url",
+        "go",
+        "storage"
       ],
       "license": "MIT"
     }
