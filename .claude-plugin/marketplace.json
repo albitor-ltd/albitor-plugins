@@ -500,6 +500,26 @@
         "storage"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "web-app-architecture",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/web-app-architecture",
+        "ref": "web-app-architecture/v0.1.0",
+        "sha": "122140d93722dcf5e23f41de71c57acb4c587128"
+      },
+      "description": "Architecture patterns for the web_app archetype, delivered to the planner and the app-foundation node only: where file bytes live, how slow supplier work advances, the platform limits a design must fit, and how deployed walks get their data. An index with when to use, when to avoid and how to decide, and one file per pattern.",
+      "category": "development",
+      "keywords": [
+        "architecture",
+        "web_app",
+        "patterns",
+        "planning",
+        "limits"
+      ],
+      "license": "MIT"
     }
   ]
 }
