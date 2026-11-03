@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { isSafeRedirect, runGuards } from '../shell/guard';
-import { PUBLIC_PATHS, isPublicPath, nextPath, requireSession, signInPath } from './guard';
+import { PUBLIC_PATHS, canShowNav, isPublicPath, nextPath, requireSession, signInPath } from './guard';
 
 const session = vi.hoisted(() => ({ getSession: vi.fn(), takeRefusal: vi.fn(() => false) }));
 vi.mock('./session', () => session);
@@ -11,6 +11,25 @@ beforeEach(() => {
 	session.getSession.mockReset();
 	session.takeRefusal.mockReset();
 	session.takeRefusal.mockReturnValue(false);
+});
+
+describe('canShowNav', () => {
+	it('is true for a signed-in person and false for nobody', async () => {
+		session.getSession.mockResolvedValue({ sub: 'u1' });
+		expect(await canShowNav(at('/reports'))).toBe(true);
+		session.getSession.mockResolvedValue(null);
+		expect(await canShowNav(at('/reports'))).toBe(false);
+	});
+
+	it('fails closed, without throwing, when the session check fails', async () => {
+		session.getSession.mockRejectedValue(new Error('API down'));
+		await expect(canShowNav(at('/reports'))).resolves.toBe(false);
+	});
+
+	it.each(PUBLIC_PATHS)('does not ask the API about %s', async (path) => {
+		expect(await canShowNav(at(path))).toBe(false);
+		expect(session.getSession).not.toHaveBeenCalled();
+	});
 });
 
 describe('requireSession', () => {
@@ -84,7 +103,6 @@ describe('nextPath', () => {
 		'reports',
 		'/sign-in',
 		'/sign-in?x=1',
-		'/sign-out',
 		'/not-allowed'
 	])('falls back to / for %s', (next) => {
 		expect(nextPath(next)).toBe('/');

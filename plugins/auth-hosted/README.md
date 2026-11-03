@@ -33,11 +33,12 @@ repository path, which the skill tells a coder to copy and alter.
 | `web/src/lib/auth/session.ts`, `guard.ts` and tests | yes | `getSession()` and the `requireSession` route guard |
 | `web/src/lib/shell/scope.d/auth-hosted.ts` | yes | Exports the name `web.route-guard` resolves to |
 | `web/tests/auth/provider.ts` | yes | The `auth@2` provider |
-| `api/internal/shell/identity_flows.go` | example | `/api/auth/*`: login, callback, sign-out and account deletion, and `OnAccountDeleted` |
+| `api/internal/shell/identity_flows.go` | example | `/api/auth/*`: login, callback, sign-out (a same-site form post answered 303 to Cognito's sign-out page, or the JSON call) and account deletion, and `OnAccountDeleted` |
 | `api/openapi.yaml` | example | api-go's contract plus the `GET /api/me` entry (200 identity, 401 signed out) |
 | `web/src/lib/auth/client.ts` | example | `loginUrl`, `signOut`, `deleteAccount` |
-| `web/src/routes/(auth)/` | example | Sign-in (redirect), sign-out, account, delete-account confirmation and refusal screens, written against the `component-kit@2` exports (`Button`) |
-| `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: the hand-over, a failed sign-in that does not loop, the refusal page, account and sign-out |
+| `web/src/routes/(auth)/` | example | Sign-in (redirect), account, delete-account confirmation and refusal screens, written against the `component-kit@2` exports (`Button`) |
+| `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: the hand-over, a failed sign-in that does not loop, the refusal page, account and the Sign out button |
+| `web/src/routes/+layout.ts`, `web/src/lib/shell/AccountBar.svelte` | example | Hides the nav from a signed-out visitor (it fails closed when the session read errors); the Sign out POST form button (replaces the web-svelte shell's empty AccountBar) |
 
 It requires `api-runtime@1`, `web-framework@1`, `component-kit@2` and `deploy-target@1` (the deploy
 target realises the pool from `services.auth`). It contributes `services.auth` (`provider: cognito`,
@@ -85,8 +86,12 @@ beside the variables above or on a deployed function. There the hosted routes sa
 4. An expired session is refreshed from the refresh cookie at the token endpoint (`refresh_token` grant).
    A refused refresh token ends the session; an unreachable endpoint is a 503 and keeps it.
 5. `POST /api/auth/sign-out` revokes the refresh token (`/oauth2/revoke`, best effort), clears the cookies
-   and answers `{"logout_url": ...}`. The sign-out page navigates there, so Cognito's own cookie is
-   cleared too; without it the next "Sign in" would skip the password. Sign-out revokes the refresh
+   and answers `{"logout_url": ...}`. The Sign out button is a POST form, never a link (a link can be
+   followed from another site), so the API accepts a form post only when the browser says it is
+   same-origin (`Sec-Fetch-Site`, or `Origin` equal to the host) and answers `303` to that
+   `logout_url`, so Cognito's own cookie is cleared too; without it the next "Sign in" would skip the
+   password. The button first runs the hooks registered with `onBeforeSignOut` (web-svelte's
+   `lib/shell/signout.ts`), which is where a data layer wipes its local copy. Sign-out revokes the refresh
    token, but an ID token already issued stays valid until it expires (at most an hour).
 6. `POST /api/auth/delete` is the person deleting their own account (below).
 
