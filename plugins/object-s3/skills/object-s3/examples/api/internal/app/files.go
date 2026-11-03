@@ -190,7 +190,7 @@ func (f *Files) download(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	info, err := f.Store.Head(r.Context(), key)
+	_, err := f.Store.Head(r.Context(), key)
 	if errors.Is(err, objects.ErrNotFound) {
 		apikit.WriteError(w, http.StatusNotFound, "not found")
 		return
@@ -199,7 +199,7 @@ func (f *Files) download(w http.ResponseWriter, r *http.Request) {
 		f.fail(w, r, "head", err)
 		return
 	}
-	signed, err := f.Store.PresignGet(r.Context(), key, info.Filename, info.ContentType, f.expires())
+	signed, err := f.Store.PresignGet(r.Context(), key, f.expires())
 	if err != nil {
 		f.fail(w, r, "presign get", err)
 		return

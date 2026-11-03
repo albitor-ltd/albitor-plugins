@@ -55,10 +55,16 @@ func TestPresignPutSignsLengthTypeAndExpiry(t *testing.T) {
 	if !strings.HasPrefix(out.URL, "/_objects/uploads/u1/r1/f1?") {
 		t.Fatalf("the browser must get a path on the app origin, mapped 1:1 to the key: %s", out.URL)
 	}
-	for _, want := range []string{"content-length%3Bcontent-type%3Bhost%3Bx-amz-meta-filename", "X-Amz-Expires=900", "X-Amz-Security-Token=TOK"} {
+	for _, want := range []string{"content-disposition%3Bcontent-length%3Bcontent-type%3Bhost%3Bx-amz-meta-filename", "X-Amz-Expires=900", "X-Amz-Security-Token=TOK"} {
 		if !strings.Contains(out.URL, want) {
 			t.Errorf("URL lacks %q: %s", want, out.URL)
 		}
+	}
+	if !strings.Contains(out.URL, "content-disposition") {
+		t.Error("Content-Disposition must be a signed header")
+	}
+	if out.Headers["Content-Disposition"] != "attachment; filename*=UTF-8''my%20pic.png" {
+		t.Errorf("Content-Disposition = %q", out.Headers["Content-Disposition"])
 	}
 	if out.Headers["x-amz-meta-filename"] != "my%20pic.png" || out.Headers["Content-Type"] != "image/png" {
 		t.Errorf("headers = %v", out.Headers)
@@ -139,15 +145,30 @@ func TestPresignedPutRoundTrips(t *testing.T) {
 			t.Errorf("%s: the browser's request does not verify", bucket)
 		}
 		for name, m := range map[string]func(*http.Request){
-			"type":   func(r *http.Request) { r.Header.Set("Content-Type", "text/html") },
-			"length": func(r *http.Request) { r.ContentLength = 12 },
-			"name":   func(r *http.Request) { r.Header.Set("x-amz-meta-filename", "evil") },
-			"key":    func(r *http.Request) { r.URL.Path = "/_objects/uploads/other/r1/f1" },
+			"type":        func(r *http.Request) { r.Header.Set("Content-Type", "text/html") },
+			"length":      func(r *http.Request) { r.ContentLength = 12 },
+			"name":        func(r *http.Request) { r.Header.Set("x-amz-meta-filename", "evil") },
+			"disposition": func(r *http.Request) { r.Header.Set("Content-Disposition", "inline") },
+			"key":         func(r *http.Request) { r.URL.Path = "/_objects/uploads/other/r1/f1" },
 		} {
 			if verify(t, send(m), host, "eu-west-2", "secret/KEY+1") {
 				t.Errorf("%s: a changed %s still verifies", bucket, name)
 			}
 		}
+	}
+}
+
+// A presigned GET has no response-content-* parameters: CloudFront may not
+// forward them, and the object already carries its type and disposition.
+func TestPresignGetCarriesNoResponseOverrides(t *testing.T) {
+	s, _ := NewS3(S3Config{Bucket: "b", Region: "eu-west-2", Prefix: "_objects/uploads/",
+		Credentials: Credentials{AccessKeyID: "AK", SecretAccessKey: "SK"}})
+	out, _ := s.PresignGet(context.Background(), "o/r/f", time.Minute)
+	if strings.Contains(out.URL, "response-content") {
+		t.Fatalf("GET URL has a response override: %s", out.URL)
+	}
+	if !strings.Contains(out.URL, "X-Amz-SignedHeaders=host&") {
+		t.Fatalf("a GET signs host only: %s", out.URL)
 	}
 }
 
@@ -217,6 +238,7 @@ func TestMemoryPutMustMatchWhatWasSigned(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPut, signed.URL, strings.NewReader(body))
 		req.Header.Set("Content-Type", ct)
 		req.Header.Set("x-amz-meta-filename", signed.Headers["x-amz-meta-filename"])
+		req.Header.Set("Content-Disposition", signed.Headers["Content-Disposition"])
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		return rec.Code
@@ -246,6 +268,7 @@ func TestDeleteUnderRemovesOnlyThePrefix(t *testing.T) {
 		s, _ := m.PresignPut(ctx, k, PutSpec{ContentType: "image/png", Size: 1})
 		req := httptest.NewRequest(http.MethodPut, s.URL, strings.NewReader("x"))
 		req.Header.Set("Content-Type", "image/png")
+		req.Header.Set("Content-Disposition", s.Headers["Content-Disposition"])
 		m.Handler().ServeHTTP(httptest.NewRecorder(), req)
 	}
 	prefix, _ := Prefix("o", "r1")

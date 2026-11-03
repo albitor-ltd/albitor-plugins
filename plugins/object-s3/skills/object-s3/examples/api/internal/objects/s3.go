@@ -98,8 +98,8 @@ func clampExpiry(d time.Duration) time.Duration {
 	return d
 }
 
-// PresignPut signs a PUT with Content-Type, Content-Length and the file name
-// as signed headers: S3 answers 403 to a body of another length or type.
+// PresignPut signs a PUT with Content-Type, Content-Length, Content-Disposition
+// (an attachment named for the file) and the file name as signed headers: S3 answers 403 to a body of another length or type.
 func (s *S3) PresignPut(_ context.Context, key string, spec PutSpec) (Signed, error) {
 	if spec.Size <= 0 || spec.ContentType == "" {
 		return Signed{}, fmt.Errorf("%w: size and content type are required", ErrRefused)
@@ -109,29 +109,34 @@ func (s *S3) PresignPut(_ context.Context, key string, spec PutSpec) (Signed, er
 		"content-length": strconv.FormatInt(spec.Size, 10),
 		"content-type":   spec.ContentType,
 		metaFilename:     url.PathEscape(spec.Filename),
+		// Stored with the object, so a GET needs no response-content-* override
+		// (the app's CloudFront does not forward them): the download is an
+		// attachment because the object says so.
+		"content-disposition": contentDisposition(spec.Filename),
 	}
 	return Signed{
 		Method: http.MethodPut,
 		// A path on the app's own origin, never an S3 host: no CORS, no CSP change.
 		URL: s.presign(http.MethodPut, s.cfg.Prefix+key, nil, headers, exp),
 		// The browser sets Content-Length from the body.
-		Headers:   map[string]string{"Content-Type": spec.ContentType, "x-amz-meta-filename": headers[metaFilename]},
+		Headers: map[string]string{
+			"Content-Type":        spec.ContentType,
+			"Content-Disposition": headers["content-disposition"],
+			"x-amz-meta-filename": headers[metaFilename],
+		},
 		ExpiresAt: s.cfg.Now().Add(exp).UTC(),
 	}, nil
 }
 
-// PresignGet signs a GET that the browser saves as an attachment. An
-// attachment is never rendered in the app's origin, whatever the bytes are.
-func (s *S3) PresignGet(_ context.Context, key, filename, contentType string, expires time.Duration) (Signed, error) {
+// PresignGet signs a plain GET. It carries no response-content-* parameters:
+// the app's CloudFront may not forward them, which would fail the signature.
+// Content-Type and Content-Disposition (attachment) were stored at upload, so an
+// object is never rendered in the app's origin, whatever the bytes are.
+func (s *S3) PresignGet(_ context.Context, key string, expires time.Duration) (Signed, error) {
 	exp := clampExpiry(expires)
-	q := url.Values{}
-	q.Set("response-content-disposition", contentDisposition(filename))
-	if contentType != "" {
-		q.Set("response-content-type", contentType)
-	}
 	return Signed{
 		Method:    http.MethodGet,
-		URL:       s.presign(http.MethodGet, s.cfg.Prefix+key, q, nil, exp),
+		URL:       s.presign(http.MethodGet, s.cfg.Prefix+key, nil, nil, exp),
 		ExpiresAt: s.cfg.Now().Add(exp).UTC(),
 	}, nil
 }

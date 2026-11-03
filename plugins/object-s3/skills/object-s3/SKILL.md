@@ -113,8 +113,11 @@ made before it is minted, on the server.
   answer 404, so a stranger learns nothing. If records are shared, this is where the rule for who
   else may attach or read is written; the key's owner segment stays the uploader's.
 - **The person's file name is metadata, never part of the key.** It is cleaned (`cleanName`: base
-  name only, no control characters, 200 bytes) and signed as `x-amz-meta-filename`; a download sets it
-  back as `Content-Disposition: attachment`.
+  name only, no control characters, 200 bytes) and signed into the PUT as `x-amz-meta-filename` and
+  as `Content-Disposition: attachment; filename*=...`, which S3 stores with the object. A download is
+  then a plain GET: the app's CloudFront may not forward `response-content-*` query parameters, so
+  never presign a GET with them (the signature would fail with a 403). The browser must send the
+  `Content-Type`, `Content-Disposition` and `x-amz-meta-filename` headers the API returned, exactly.
 - **Short-lived.** URLs live 5 minutes by default and never more than 15 (`MaxExpiry`); the function's
   credentials are temporary and a URL stops working when they rotate, whatever its expiry says.
   Sign a download on demand, per click; never put a signed URL in a record or a cache.

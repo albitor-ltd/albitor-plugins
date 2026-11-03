@@ -47,14 +47,18 @@ func (m *Memory) PresignPut(_ context.Context, key string, spec PutSpec) (Signed
 	m.pending[key] = spec
 	m.mu.Unlock()
 	return Signed{
-		Method:    http.MethodPut,
-		URL:       localURL(key),
-		Headers:   map[string]string{"Content-Type": spec.ContentType, "x-amz-meta-filename": url.PathEscape(spec.Filename)},
+		Method: http.MethodPut,
+		URL:    localURL(key),
+		Headers: map[string]string{
+			"Content-Type":        spec.ContentType,
+			"Content-Disposition": contentDisposition(spec.Filename),
+			"x-amz-meta-filename": url.PathEscape(spec.Filename),
+		},
 		ExpiresAt: m.now().Add(exp).UTC(),
 	}, nil
 }
 
-func (m *Memory) PresignGet(_ context.Context, key, filename, _ string, expires time.Duration) (Signed, error) {
+func (m *Memory) PresignGet(_ context.Context, key string, expires time.Duration) (Signed, error) {
 	return Signed{Method: http.MethodGet, URL: localURL(key), ExpiresAt: m.now().Add(clampExpiry(expires)).UTC()}, nil
 }
 
@@ -107,7 +111,8 @@ func (m *Memory) Handler() http.Handler {
 			spec, ok := m.pending[key]
 			m.mu.Unlock()
 			// S3 answers 403 to a PUT that does not match what was signed.
-			if !ok || r.Header.Get("Content-Type") != spec.ContentType || r.ContentLength != spec.Size {
+			if !ok || r.Header.Get("Content-Type") != spec.ContentType || r.ContentLength != spec.Size ||
+				r.Header.Get("Content-Disposition") != contentDisposition(spec.Filename) {
 				http.Error(w, "SignatureDoesNotMatch", http.StatusForbidden)
 				return
 			}

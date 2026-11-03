@@ -73,8 +73,9 @@ type Info struct {
 type Store interface {
 	// PresignPut signs a PUT of exactly spec.Size bytes of spec.ContentType.
 	PresignPut(ctx context.Context, key string, spec PutSpec) (Signed, error)
-	// PresignGet signs a GET that downloads as an attachment named filename.
-	PresignGet(ctx context.Context, key, filename, contentType string, expires time.Duration) (Signed, error)
+	// PresignGet signs a GET. The object's own Content-Type and attachment
+	// Content-Disposition, set at upload, shape the response.
+	PresignGet(ctx context.Context, key string, expires time.Duration) (Signed, error)
 	// Head reports an object, or ErrNotFound.
 	Head(ctx context.Context, key string) (Info, error)
 	// List returns every key under prefix.
@@ -182,7 +183,7 @@ func (u unavailable) err() error { return fmt.Errorf("%w: %v", ErrUnavailable, u
 func (u unavailable) PresignPut(context.Context, string, PutSpec) (Signed, error) {
 	return Signed{}, u.err()
 }
-func (u unavailable) PresignGet(context.Context, string, string, string, time.Duration) (Signed, error) {
+func (u unavailable) PresignGet(context.Context, string, time.Duration) (Signed, error) {
 	return Signed{}, u.err()
 }
 func (u unavailable) Head(context.Context, string) (Info, error)     { return Info{}, u.err() }
