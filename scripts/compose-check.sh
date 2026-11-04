@@ -39,11 +39,11 @@ printf 'go 1.27.0\n\nuse (\n\t%s\n\t%s\n)\n' "$root/tests/compose" "$core" >"$tm
 # app/core requires sibling albitor modules (albitor/pimetrics) at v0.0.0 with no replace of its
 # own: albitor's go.work supplies them. A `use` of the sibling does not satisfy that requirement
 # here (go tries to fetch "albitor/pimetrics" and fails "malformed module path"), so each is
-# replaced in the throwaway go.work instead.
+# replaced in the throwaway go.work instead. Only core's direct albitor requirements are replaced.
 while read -r dep; do
   [[ -d "$albitor/app/$dep" ]] || { echo "app/core requires albitor/$dep but $albitor/app/$dep is missing" >&2; exit 2; }
   printf '\nreplace albitor/%s => %s\n' "$dep" "$(cd "$albitor/app/$dep" && pwd)" >>"$tmp/go.work"
-done < <(sed -nE 's|^(require[[:space:]]+)?albitor/([a-z0-9/]+)[[:space:]]+v0\.0\.0.*|\2|p' "$core/go.mod")
+done < <(sed -nE 's|^[[:space:]]*(require[[:space:]]+)?albitor/([A-Za-z0-9_./-]+)[[:space:]]+v0\.0\.0.*|\2|p' "$core/go.mod")
 mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/auth-carbon" "$tmp/auth-gds" "$tmp/auth-hosted" "$tmp/auth-hosted-carbon" "$tmp/auth-hosted-gds" "$tmp/offline" "$tmp/byoa"
 
 (cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_AUTH_CARBON="$tmp/auth-carbon" COMPOSE_OUT_AUTH_GDS="$tmp/auth-gds" COMPOSE_OUT_AUTH_HOSTED="$tmp/auth-hosted" COMPOSE_OUT_AUTH_HOSTED_CARBON="$tmp/auth-hosted-carbon" COMPOSE_OUT_AUTH_HOSTED_GDS="$tmp/auth-hosted-gds" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
