@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.8.0",
-        "sha": "5e162b6717a576acd7f76bc8ba9c5b7488254d7c"
+        "ref": "deploy-byoa-aws/v0.8.1",
+        "sha": "fe2743ceb475b97779b7c794240d5f2e9e8578d8"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
       "category": "development",
