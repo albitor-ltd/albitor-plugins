@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.7.2",
-        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
+        "ref": "kit-shadcn/v0.8.0",
+        "sha": "56ed1130f34deab2c059553fc4a4acdbd33a24f0"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",

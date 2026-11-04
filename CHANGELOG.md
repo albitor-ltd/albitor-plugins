@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   with the record, retention), served on the app origin at `/_objects/<name>/` (hosted lane only), Go handlers over api-go and a web client
   for web-svelte. Nothing is seeded. Not in the catalogue until its first tag.
 
+- `kit-shadcn` `0.8.0` (albitor-ltd/albitor-plugins#165, albitor-ltd/albitor#4316; tag follows the
+  merge). `Table` and the `ListPage` example take `narrow` (`scroll` default, `stacked`, `priority`)
+  and `Column.priority`, so a list stays usable on a phone; the skill gives guidance for choosing
+  between stacked rows and priority columns, both shown and tested in `PagesShowcase`.
+
 ### Fixed
 
 - `api-go` `0.6.1` (albitor-ltd/albitor-plugins#168; tag follows the merge). A supplier-client skill

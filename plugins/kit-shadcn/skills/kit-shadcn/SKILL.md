@@ -72,6 +72,23 @@ never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and
 | Preferences, in groups | `SettingsPage` with `SettingsSection` | Named groups, one save, the same error summary |
 | Sign in | `SignInPage` | Email and password with the right `autocomplete`, one alert for the failure; presentation only |
 
+### Tables on a phone
+
+`Table` and `ListPage` take `narrow` (measured on the table's own width, under 40rem, not the
+viewport). Choose by how much vertical space the list can spend:
+
+- `narrow="stacked"`: each row becomes a card and every field stays visible, labelled by its column.
+  Use when each record needs all its fields on screen and a longer scroll is fine (few records, or
+  records people read one at a time). Cost: tall rows.
+- `narrow="priority"`: the row keeps the primary columns on one or two lines; give the columns that
+  can drop `priority: 'secondary'` and they move into a Details disclosure under the first cell. Use
+  when the list must stay compact and scannable (many records, one or two columns identify a row).
+  The first column is never dropped. Cost: secondary data is one tap away.
+- `narrow="scroll"` (default): sideways scroll, nothing changes. Use for wide, comparison-style data
+  where column alignment matters more than reading one row.
+
+Both modes are in `PagesShowcase.svelte` and audited in `pages.test.ts`. Values stay text.
+
 `PageHeader` (the one `<h1>`, a description, a back link, actions) and `StateNotice` (loading
 `status`, failure `alert` with a retry) are the skeleton under every template; use them directly for
 a page that fits none of the above, such as a wizard step or an import report.
@@ -112,7 +129,7 @@ in `references/accessibility-statement.md`. The wider WCAG 2.2 AA audit content 
 |---|---|
 | `AppShell` | Skip link first, one `main` landmark, a labelled `nav`, `aria-current="page"` on the current link, visible focus |
 | `Field` | `label for`, `aria-describedby` to the hint and error, `aria-invalid`, an "Error:" prefix a screen reader reads |
-| `Table` | A caption, `scope` on every header, a keyboard-focusable scroll region |
+| `Table` | A caption, `scope` on every header, a keyboard-focusable scroll region; `narrow` modes keep the header row available to assistive technology |
 | `Dialog` | Named by its title, described by its description, focus trapped and returned (Bits UI) |
 | `Toaster` | Always-present `status` (polite) and `alert` (assertive, for errors) regions |
 
