@@ -138,8 +138,8 @@ jobs:
           trap 'rm -f "$payload" "$err"' EXIT
           email="$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_EMAIL" --with-decryption \
             --query Parameter.Value --output text 2>"$err")" || { cat "$err" >&2; echo "::error::could not read the owner's address from the secret store. Ask the platform for owner recovery first" >&2; exit 1; }
-          password="$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_TEMP_PASSWORD" --with-decryption \
-            --query Parameter.Value --output text 2>"$err")" || { cat "$err" >&2; echo "::error::could not read the owner's temporary password from the secret store. Ask the platform for owner recovery first" >&2; exit 1; }
+          password=$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_TEMP_PASSWORD" --with-decryption \
+            --query Parameter.Value --output text 2>"$err") || { cat "$err" >&2; echo "::error::could not read the owner's temporary password from the secret store. Ask the platform for owner recovery first" >&2; exit 1; }
           modified="$(aws ssm get-parameter --name "${prefix}/ALBITOR_OWNER_TEMP_PASSWORD" \
             --query Parameter.LastModifiedDate --output text 2>"$err")" || { cat "$err" >&2; echo "::error::could not read when the temporary password was written" >&2; exit 1; }
           # AWS CLI v2 prints an ISO timestamp, v1 epoch seconds.
@@ -167,10 +167,11 @@ jobs:
           chmod 600 "$payload"
           if ! RECOVER_POOL_ID="$pool" RECOVER_USERNAME="$email" RECOVER_PASSWORD="$password" \
             python3 -c 'import json, os, sys
+          pw = os.environ["RECOVER_PASSWORD"]
           json.dump({
               "UserPoolId": os.environ["RECOVER_POOL_ID"],
               "Username": os.environ["RECOVER_USERNAME"],
-              "Password": os.environ["RECOVER_PASSWORD"],
+              "Password": pw,
               "Permanent": False,
           }, open(sys.argv[1], "w"))' "$payload"; then
             echo "::error::could not write the set-password request" >&2
