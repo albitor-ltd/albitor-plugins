@@ -6,11 +6,16 @@
        <ListPage title="Reports" caption="Reports" columns={[{ key: 'name', label: 'Name' }]}
                  {rows} {status} onretry={reload}>
          {#snippet actions()}<Button onclick={create}>New report</Button>{/snippet}
-       </ListPage> -->
+       </ListPage>
+
+     On a narrow container the table either scrolls sideways (`narrow="scroll"`, the default),
+     stacks each row into a labelled card (`narrow="stacked"`) or keeps only the primary columns in
+     the row (`narrow="priority"`, with `priority: 'secondary'` on the columns that can drop). See
+     the SKILL.md for choosing. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import EmptyState from '../EmptyState.svelte';
-	import Table, { type Column } from '../Table.svelte';
+	import Table, { type Column, type Narrow } from '../Table.svelte';
 	import PageHeader from './PageHeader.svelte';
 	import StateNotice from './StateNotice.svelte';
 
@@ -20,6 +25,7 @@
 		caption,
 		columns,
 		rows,
+		narrow = 'scroll',
 		status = 'ready',
 		errorMessage,
 		onretry,
@@ -35,6 +41,8 @@
 		caption: string;
 		columns: Column[];
 		rows: Array<Record<string, string | number>>;
+		/** How the table lays out on a narrow container; see Table.svelte. */
+		narrow?: Narrow;
 		status?: 'loading' | 'error' | 'ready';
 		errorMessage?: string;
 		onretry?: () => void;
@@ -58,7 +66,7 @@
 {:else if rows.length === 0}
 	<EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />
 {:else}
-	<Table {caption} {columns} {rows} />
+	<Table {caption} {columns} {rows} {narrow} />
 {/if}
 
 <style>

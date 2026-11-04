@@ -4,7 +4,7 @@
 	import AppShell from '../AppShell.svelte';
 	import Button from '../Button.svelte';
 	import Field from '../Field.svelte';
-	import Table from '../Table.svelte';
+	import Table, { type Narrow } from '../Table.svelte';
 	import type { NavGroup } from '../../shell/types';
 	import DashboardPage from './DashboardPage.svelte';
 	import DetailPage from './DetailPage.svelte';
@@ -20,7 +20,8 @@
 		rows = [{ name: 'Quarterly summary', owner: 'Finance' }],
 		errors = [],
 		busy = false,
-		signInError
+		signInError,
+		narrow = 'scroll'
 	}: {
 		page: 'list' | 'detail' | 'form' | 'dashboard' | 'settings' | 'sign-in';
 		status?: 'loading' | 'error' | 'ready';
@@ -28,6 +29,7 @@
 		errors?: Array<{ field?: string; message: string }>;
 		busy?: boolean;
 		signInError?: string;
+		narrow?: Narrow;
 	} = $props();
 
 	const nav: NavGroup[] = [
@@ -47,9 +49,10 @@
 			caption="Reports"
 			columns={[
 				{ key: 'name', label: 'Name' },
-				{ key: 'owner', label: 'Owner' }
+				{ key: 'owner', label: 'Owner', priority: 'secondary' }
 			]}
 			{rows}
+			{narrow}
 			{status}
 			onretry={noop}
 			emptyDescription="Create the first report to see it here."
