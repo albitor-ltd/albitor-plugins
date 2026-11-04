@@ -54,6 +54,8 @@ const cases: Case[] = [
 	['list, loading', { page: 'list', status: 'loading' }],
 	['list, failed', { page: 'list', status: 'error' }],
 	['list, empty', { page: 'list', rows: [] }],
+	['list, stacked rows', { page: 'list', narrow: 'stacked' }],
+	['list, priority columns', { page: 'list', narrow: 'priority' }],
 	['detail', { page: 'detail' }],
 	['detail, loading', { page: 'detail', status: 'loading' }],
 	['detail, failed', { page: 'detail', status: 'error' }],
@@ -117,6 +119,36 @@ describe('ListPage', () => {
 		const root = mount({ page: 'list' });
 		expect(root.querySelector('table caption')?.textContent).toBe('Reports');
 		expect(root.querySelector('[role="group"][aria-label="Filters"] label')?.textContent).toBe('Search reports');
+	});
+});
+
+describe('ListPage narrow mode', () => {
+	it('scrolls by default, with no stacked labels or disclosure', () => {
+		const root = mount({ page: 'list' });
+		expect(root.querySelector('[data-narrow]')?.getAttribute('data-narrow')).toBe('scroll');
+		expect(root.querySelector('details')).toBeNull();
+	});
+
+	it('stacked rows label every non-row-header cell with its column', () => {
+		const root = mount({ page: 'list', narrow: 'stacked' });
+		expect(root.querySelector('[data-narrow]')?.getAttribute('data-narrow')).toBe('stacked');
+		expect(root.querySelector('tbody td')?.getAttribute('data-label')).toBe('Owner');
+		expect(root.querySelector('details')).toBeNull();
+	});
+
+	it('priority columns move secondary columns into a Details disclosure under the row header', () => {
+		const root = mount({ page: 'list', narrow: 'priority' });
+		expect(root.querySelector('thead th.secondary')?.textContent).toBe('Owner');
+		expect(root.querySelector('tbody td')?.classList.contains('secondary')).toBe(true);
+		const more = root.querySelector('tbody th[scope="row"] details');
+		expect(more?.querySelector('summary')?.textContent).toBe('Details');
+		expect(more?.querySelector('dt')?.textContent).toBe('Owner');
+		expect(more?.querySelector('dd')?.textContent).toBe('Finance');
+	});
+
+	it('never hides the first column, whatever its priority', () => {
+		const root = mount({ page: 'list', narrow: 'priority' });
+		expect(root.querySelector('thead th:first-child')?.classList.contains('secondary')).toBe(false);
 	});
 });
 
