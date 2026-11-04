@@ -33,8 +33,14 @@
 		narrow?: Narrow;
 	} = $props();
 
-	const secondary = $derived(narrow === 'priority' ? columns.filter((c, i) => i > 0 && c.priority === 'secondary') : []);
-	const isSecondary = (col: Column, c: number) => narrow === 'priority' && c > 0 && col.priority === 'secondary';
+	const secondary = $derived(
+		narrow === 'priority' ? columns.filter((col, i) => i > 0 && col.priority === 'secondary') : []
+	);
+	const isSecondary = (col: Column, c: number) =>
+		narrow === 'priority' && c > 0 && col.priority === 'secondary';
+	// Stacked rows are display:block, which drops table semantics in some browsers (Safari with
+	// VoiceOver), so restore them with explicit roles. Undefined otherwise: native elements need none.
+	const st = $derived(narrow === 'stacked');
 </script>
 
 {#if rows.length === 0}
@@ -43,38 +49,45 @@
 	<!-- A scrollable region must be reachable by keyboard, so it takes focus (axe: scrollable-region-focusable). -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div class="scroll" data-narrow={narrow} role="region" aria-label={caption} tabindex="0">
-		<table>
+		<table role={st ? 'table' : undefined}>
 			<caption>{caption}</caption>
-			<thead>
-				<tr>
+			<thead role={st ? 'rowgroup' : undefined}>
+				<tr role={st ? 'row' : undefined}>
 					{#each columns as col, c (col.key)}
-						<th scope="col" class:secondary={isSecondary(col, c)}>{col.label}</th>
+						<th scope="col" role={st ? 'columnheader' : undefined} class:secondary={isSecondary(col, c)}>{col.label}</th>
 					{/each}
+					{#if secondary.length > 0}
+						<th scope="col" class="more"><span class="sr-only">Details</span></th>
+					{/if}
 				</tr>
 			</thead>
-			<tbody>
+			<tbody role={st ? 'rowgroup' : undefined}>
 				{#each rows as row, i (i)}
-					<tr>
+					<tr role={st ? 'row' : undefined}>
 						{#each columns as col, c (col.key)}
 							{#if c === 0}
-								<th scope="row">
-									{row[col.key] ?? ''}
-									{#if secondary.length > 0}
-										<details class="more">
-											<summary>Details</summary>
-											<dl>
-												{#each secondary as s (s.key)}
-													<dt>{s.label}</dt>
-													<dd>{row[s.key] ?? ''}</dd>
-												{/each}
-											</dl>
-										</details>
-									{/if}
-								</th>
+								<th scope="row" role={st ? 'rowheader' : undefined}>{row[col.key] ?? ''}</th>
 							{:else}
-								<td data-label={col.label} class:secondary={isSecondary(col, c)}>{row[col.key] ?? ''}</td>
+								<td
+									data-label={col.label}
+									role={st ? 'cell' : undefined}
+									class:secondary={isSecondary(col, c)}>{row[col.key] ?? ''}</td
+								>
 							{/if}
 						{/each}
+						{#if secondary.length > 0}
+							<td class="more">
+								<details>
+									<summary>Details<span class="sr-only"> for {row[columns[0].key] ?? ''}</span></summary>
+									<dl>
+										{#each secondary as s (s.key)}
+											<dt>{s.label}</dt>
+											<dd>{row[s.key] ?? ''}</dd>
+										{/each}
+									</dl>
+								</details>
+							</td>
+						{/if}
 					</tr>
 				{/each}
 			</tbody>
@@ -116,6 +129,14 @@
 	}
 	.more {
 		display: none;
+	}
+	.sr-only {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 	@container (max-width: 40rem) {
 		/* Stacked rows: each row is a card, each cell shows its column label. The header row stays
@@ -160,13 +181,16 @@
 			display: none;
 		}
 		[data-narrow='priority'] .more {
-			display: block;
-			margin-block-start: 0.25rem;
+			display: table-cell;
 			font-weight: 400;
 		}
 		[data-narrow='priority'] .more summary {
 			cursor: pointer;
 			font-size: var(--text-small, 0.875rem);
+			display: inline-flex;
+			align-items: center;
+			min-block-size: 24px;
+			min-inline-size: 24px;
 		}
 		[data-narrow='priority'] .more dl {
 			display: grid;
