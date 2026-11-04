@@ -218,10 +218,11 @@ seed_account() {
   # escape; the values go through its environment, which /proc shows only to the owner.
   if ! SEED_POOL_ID="$pool_id" SEED_USERNAME="$username" SEED_PASSWORD="$password" \
     python3 -c 'import json, os, sys
+pw = os.environ["SEED_PASSWORD"]
 json.dump({
     "UserPoolId": os.environ["SEED_POOL_ID"],
     "Username": os.environ["SEED_USERNAME"],
-    "Password": os.environ["SEED_PASSWORD"],
+    "Password": pw,
     "Permanent": True,
 }, open(sys.argv[1], "w"))' "$payload"; then
     echo "::error::could not write the set-password request" >&2
@@ -290,7 +291,7 @@ seed_owner() {
     return 0
   fi
   email="$(read_secret ALBITOR_OWNER_EMAIL)" || return 1
-  password="$(read_secret ALBITOR_OWNER_TEMP_PASSWORD)" || return 1
+  password=$(read_secret ALBITOR_OWNER_TEMP_PASSWORD) || return 1
   if [ -z "$email" ] || [ -z "$password" ]; then
     echo "::warning title=seed-skipped::the app has user pool ${pool_id} but the owner's address or temporary password is not in the secret store, so the owner is not seeded"
     owner_status="absent"
@@ -307,10 +308,11 @@ seed_owner() {
   chmod 600 "$payload"
   if ! SEED_POOL_ID="$pool_id" SEED_USERNAME="$email" SEED_PASSWORD="$password" \
     python3 -c 'import json, os, sys
+pw = os.environ["SEED_PASSWORD"]
 json.dump({
     "UserPoolId": os.environ["SEED_POOL_ID"],
     "Username": os.environ["SEED_USERNAME"],
-    "TemporaryPassword": os.environ["SEED_PASSWORD"],
+    "TemporaryPassword": pw,
     "UserAttributes": [
         {"Name": "email", "Value": os.environ["SEED_USERNAME"]},
         {"Name": "email_verified", "Value": "true"},
