@@ -73,6 +73,10 @@ Each plugin is released independently with a tag `<name>/vX.Y.Z`, where `X.Y.Z` 
    catalogued ref, with the new tag not yet cut, as a **pending release**. It keeps the committed
    entry (whose own tag and sha must still resolve), prints a note naming the pending tag and passes.
 2. Merge to `main` once `just ci` passes, plus `just compose <albitor checkout>` for template, manifest or composer-contract changes.
+   `just compose` also runs the platform floor's secrets scan (the albitor runner's `tree-gate`
+   mode) over every composed skeleton, so a plugin whose seeded files fail the floor cannot be
+   released. The scan takes no filename exemptions: fix the seeded file (for example, seed
+   placeholders the scan accepts, or ship the file as an example the build writes).
 3. Tag the merge commit: `git tag auth/v0.7.0 && git push origin auth/v0.7.0`.
 4. In a follow-up PR, regenerate the catalogue (`scripts/build-catalogue.sh`, after `git fetch --tags`) so it
    pins the new tag and its commit. Generation never pins a tag that does not exist, so it fails

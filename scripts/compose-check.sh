@@ -44,9 +44,23 @@ while read -r dep; do
   [[ -d "$albitor/app/$dep" ]] || { echo "app/core requires albitor/$dep but $albitor/app/$dep is missing" >&2; exit 2; }
   printf '\nreplace albitor/%s => %s\n' "$dep" "$(cd "$albitor/app/$dep" && pwd)" >>"$tmp/go.work"
 done < <(sed -nE 's|^[[:space:]]*(require[[:space:]]+)?albitor/([A-Za-z0-9_./-]+)[[:space:]]+v0\.0\.0.*|\2|p' "$core/go.mod")
-mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/auth-carbon" "$tmp/auth-gds" "$tmp/auth-hosted" "$tmp/auth-hosted-carbon" "$tmp/auth-hosted-gds" "$tmp/offline" "$tmp/byoa"
+mkdir "$tmp/app" "$tmp/online" "$tmp/kit" "$tmp/kit-carbon" "$tmp/kit-gds" "$tmp/auth" "$tmp/auth-carbon" "$tmp/auth-gds" "$tmp/auth-hosted" "$tmp/auth-hosted-carbon" "$tmp/auth-hosted-gds" "$tmp/offline" "$tmp/byoa" "$tmp/hosted"
 
-(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_AUTH_CARBON="$tmp/auth-carbon" COMPOSE_OUT_AUTH_GDS="$tmp/auth-gds" COMPOSE_OUT_AUTH_HOSTED="$tmp/auth-hosted" COMPOSE_OUT_AUTH_HOSTED_CARBON="$tmp/auth-hosted-carbon" COMPOSE_OUT_AUTH_HOSTED_GDS="$tmp/auth-hosted-gds" COMPOSE_OUT_BYOA="$tmp/byoa" go test -count=1 ./...)
+(cd "$root/tests/compose" && GOWORK="$tmp/go.work" COMPOSE_OUT="$tmp/app" COMPOSE_OUT_ONLINE="$tmp/online" COMPOSE_OUT_OFFLINE="$tmp/offline" COMPOSE_KIT_OUT="$tmp/kit" COMPOSE_KIT_CARBON_OUT="$tmp/kit-carbon" COMPOSE_KIT_GDS_OUT="$tmp/kit-gds" COMPOSE_OUT_AUTH="$tmp/auth" COMPOSE_OUT_AUTH_CARBON="$tmp/auth-carbon" COMPOSE_OUT_AUTH_GDS="$tmp/auth-gds" COMPOSE_OUT_AUTH_HOSTED="$tmp/auth-hosted" COMPOSE_OUT_AUTH_HOSTED_CARBON="$tmp/auth-hosted-carbon" COMPOSE_OUT_AUTH_HOSTED_GDS="$tmp/auth-hosted-gds" COMPOSE_OUT_BYOA="$tmp/byoa" COMPOSE_OUT_HOSTED="$tmp/hosted" go test -count=1 ./...)
+
+# The floor over every composed skeleton (albitor#4237): the engine's own secrets scan, run by the
+# runner's `tree-gate` mode (the code a build's verify step runs), so a plugin whose seeded files
+# fail the floor cannot be tagged. The scan has no filename exemptions: fix the seeded file.
+floor_run() {
+  local runner="$tmp/runner" dir status=0
+  (cd "$albitor/app/runner" && go build -o "$runner" .)
+  for dir in app online offline kit kit-carbon kit-gds auth auth-carbon auth-gds auth-hosted auth-hosted-carbon auth-hosted-gds byoa hosted; do
+    echo "floor: $dir"
+    "$runner" tree-gate "$tmp/$dir" || status=1
+  done
+  return $status
+}
+floor_run || { echo "a composed skeleton fails the platform floor (see above): fix the plugin's seeded files" >&2; exit 1; }
 
 # Lint the shipped workflows: a step that runs `npm ci` needs a lockfile in its working-directory,
 # and the composer drops a plugin's lockfile when the npm merge changes package.json (web/ has none;
