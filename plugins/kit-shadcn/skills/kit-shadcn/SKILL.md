@@ -34,8 +34,10 @@ import { Button, Field, Table, Dialog, EmptyState, toast } from '../../lib/kit';
 
 ## Pages
 
-A page is `web/src/routes/<name>/+page.svelte` (see the `svelte-shell` skill for nav entries). Start
-from `Showcase.svelte`, which is every piece on one page and what `kit.test.ts` audits.
+A page is `web/src/routes/<name>/+page.svelte` (see the `svelte-shell` skill for nav entries). Build
+it from the table below and the page templates; `Showcase.svelte`, `PagesShowcase.svelte` and
+`ContractProbe.svelte` are test fixtures that `kit.test.ts` audits, never a starting point and never
+imported by a route.
 
 | Need | Use |
 |---|---|
@@ -50,16 +52,16 @@ from `Showcase.svelte`, which is every piece on one page and what `kit.test.ts` 
 a timer and each can be dismissed.
 
 Patterns (`references/patterns.md`) cover forms with validation, destructive confirmation, empty
-and error states, and navigation on a phone (bottom tab bar versus a menu-button drawer, overflow,
-focus and ARIA).
+and error states, and navigation on a phone (the shell's Menu button, and when a bottom tab bar or drawer
+replaces it; overflow, focus and ARIA).
 
 ## Page templates
 
 Start every new page from the template that matches it. The templates are worked examples, not
 seeded files: they sit in `examples/web/src/lib/kit/pages/` beside this skill, laid out by
-repository path. Copy the ones the app needs to `web/src/lib/kit/pages/` (with `PagesShowcase.svelte`
-and `pages.test.ts`, which run axe over every template in every state, in addition to the contrast
-test), import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
+repository path. Copy the ones the app needs to `web/src/lib/kit/pages/`, and `pages.test.ts` beside them with its
+test fixture `PagesShowcase.svelte` (it runs axe over every template in every state; no route or
+component imports the fixture, and the fixture check fails if one does), import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
 never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and the rest) and
 `SignInPage` are already in the repository. Do not rebuild a template by hand.
 

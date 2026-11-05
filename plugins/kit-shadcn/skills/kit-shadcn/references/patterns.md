@@ -55,8 +55,18 @@ there too, not only a toast: a toast is gone once dismissed.
 
 ## Navigation on a phone
 
-Every desktop nav destination stays reachable at phone width; never hide a control. Pick one
-pattern per app:
+Every desktop nav destination stays reachable at phone width; never hide a control.
+
+**What `AppShell` does.** Below 48rem the header is one compact row: the app name, the `account`
+snippet (Sign out, settings) and a "Menu" button. The button is a disclosure
+(`aria-expanded`, `aria-controls="main-nav"`): it opens the one `<nav aria-label="Main">` under the
+row as a single full-width list of 44px-tall links, and the nav closes again on every navigation
+and on Escape. From 48rem up the button is hidden and the nav sits in the header row. The nav never
+wraps into rows of tabs and no word is split across lines. Hand-building a second nav duplicates
+destinations: keep this one unless the app needs more.
+
+Only when the app needs more than a disclosure, pick one pattern and replace the shell's menu
+(edit `AppShell.svelte`; do not add a second nav beside it):
 
 - 2 to 5 top-level destinations people switch between often: a bottom tab bar.
 - More than 5, or infrequent or hierarchical navigation: a menu button that opens a drawer, or,
@@ -64,9 +74,7 @@ pattern per app:
   as a list.
 - Never a tab bar and a menu button carrying the same destinations.
 
-The kit has no tab bar or drawer component; build them from the existing pieces and tokens, beside
-`AppShell`. `AppShell`'s header nav is hidden below 48rem (`display: none`) and the phone nav
-replaces it, so only one nav is exposed at a time.
+The kit has no tab bar or drawer component; build them from the existing pieces and tokens.
 
 **Tab bar.** A `<nav aria-label="Primary">` fixed to the bottom, `display: flex`, each tab a link
 with an icon and a visible text label (never icon-only). Put `aria-current="page"` on the current

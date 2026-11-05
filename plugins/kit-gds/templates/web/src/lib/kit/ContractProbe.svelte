@@ -7,17 +7,23 @@
 
 	let {
 		withFooter = true,
+		withAccount = true,
 		error,
 		email,
 		busy = false,
 		extraLink,
 		repeatLink = false
-	}: { withFooter?: boolean; error?: string; email?: string; busy?: boolean; extraLink?: string; repeatLink?: boolean } = $props();
+	}: { withFooter?: boolean; withAccount?: boolean; error?: string; email?: string; busy?: boolean; extraLink?: string; repeatLink?: boolean } = $props();
 
 	const nav: NavGroup[] = [
-		{ id: null, items: [{ label: 'Home', order: 0, href: '/' }] }
+		{ id: null, items: [{ label: 'Home', order: 0, href: '/' }] },
+		{ id: 'admin', items: [{ label: 'People', order: 10, href: '/people', group: 'admin' }] }
 	];
 </script>
+
+{#snippet account()}
+	<button type="button">Sign out</button>
+{/snippet}
 
 {#snippet footer()}
 	<Footer
@@ -32,6 +38,7 @@
 </Footer>
 {/snippet}
 
-<AppShell {nav} path="/" title="Example app" footer={withFooter ? footer : undefined}>
+<AppShell {nav} path="/" title="Example app" footer={withFooter ? footer : undefined}
+	account={withAccount ? account : undefined}>
 	<SignInPage {error} {email} {busy} resetHref="/reset" signUpHref="/sign-up" onsubmit={() => {}} />
 </AppShell>

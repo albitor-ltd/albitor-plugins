@@ -1,12 +1,16 @@
 <!-- Seeded by Albitor (kit-carbon), then yours: the page frame, Carbon's UI shell (header, side nav,
      content). web-svelte's root layout renders it with the merged nav and the current path. Keep
      the skip link first, one labelled nav and one main landmark. `footer` is an optional snippet
-     rendered after <main>, outside it, normally `<Footer>`. -->
+     rendered after <main>, outside it, normally `<Footer>`. `account` is an optional snippet for the
+     signed-in visitor's controls, shown at the right of the header on every width. Below the lg
+     breakpoint (66rem) the side nav is closed behind the header's menu button and opens as an
+     overlay; it closes again on navigation. -->
 <script lang="ts">
 	import 'carbon-components-svelte/css/all.css';
 	import {
 		Content,
 		Header,
+		HeaderUtilities,
 		SideNav,
 		SideNavDivider,
 		SideNavItems,
@@ -25,17 +29,26 @@
 		path,
 		title = 'App',
 		footer,
+		account,
 		children
 	}: {
 		nav: NavGroup[];
 		path: string;
 		title?: string;
 		footer?: Snippet;
+		account?: Snippet;
 		children: Snippet;
 	} = $props();
 
 	let theme: CarbonTheme = $state('white');
-	let sideNavOpen = $state(true);
+	// Closed to start: Carbon's SideNav opens itself at and above its expansion breakpoint, and
+	// an open one below it is an overlay covering the page.
+	let sideNavOpen = $state(false);
+	// Close the overlay after a navigation, below the breakpoint only (above it the nav is fixed).
+	$effect(() => {
+		void path;
+		if (typeof window !== 'undefined' && window.innerWidth < 1056) sideNavOpen = false;
+	});
 
 	// Follow the visitor's preference, and a data-theme the page sets (or sets later).
 	onMount(() => {
@@ -69,6 +82,9 @@
 <Theme bind:theme />
 <Header platformName={title} aria-label={title} bind:isSideNavOpen={sideNavOpen}>
 	<svelte:fragment slot="skipToContent"><SkipToContent /></svelte:fragment>
+	{#if account}
+		<HeaderUtilities>{@render account()}</HeaderUtilities>
+	{/if}
 </Header>
 <SideNav bind:isOpen={sideNavOpen} ariaLabel="Main">
 	<SideNavItems>

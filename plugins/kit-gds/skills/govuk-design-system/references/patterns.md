@@ -75,6 +75,7 @@ Where a username is needed, prefer email address as the identifier. If a separat
 
 ### Navigate a service
 Use consistent navigation: GOV.UK header, Service navigation for service-wide links, Back link within linear journeys, Breadcrumbs only for hierarchical/browse structures. Don't mix Back link and Breadcrumbs.
+- **The kit's `AppShell` is one Service navigation:** a single `<ul>` of every destination (groups are ordering only, never one list per group), the `govuk-service-navigation__toggle` button with `aria-controls` pointing at the list, and `data-module="govuk-service-navigation"` initialised by Frontend's own script. Below the tablet breakpoint the toggle shows and the list is hidden until pressed; there is no tab bar. Account links (Sign out, settings) go in the `account` snippet, which renders in the end slot, outside the list and stays visible with the menu closed. Do not hand-build a second navigation.
 - **Human labels over raw identifiers:** in page content, service navigation, and check-answers rows, show friendly, human-readable names ("Speaker 1", not `spk_0`); keep the raw reference for the URL or back-end call, never as the label the user reads.
 - **Keep the page title accurate on every route:** each page needs a unique, descriptive `<title>` (2.4.2), prefixed with "Error: " on a validation error. Where the service enhances navigation client-side, keep `document.title` in sync as the route changes so the browser tab and history reflect the current page, not the one first loaded.
 
