@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	changePassword,
 	confirm,
+	deleteAccount,
 	disablePerson,
 	enablePerson,
 	forgot,
@@ -188,6 +189,24 @@ describe('change password', () => {
 		expect(fetch.mock.calls[0][1].body).toBe('{"current_password":"old-pw","new_password":"new-pw"}');
 		stubFetch(() => json(401, { error: 'your current password is not right', code: 'invalid_credentials' }));
 		expect(await changePassword('bad', 'new-pw')).toMatchObject({ ok: false, code: 'invalid_credentials' });
+	});
+});
+
+describe('deleteAccount', () => {
+	it('posts the password, forgets the session and answers ok', async () => {
+		const fetch = stubFetch(() => json(204, undefined));
+		expect(await deleteAccount('pw')).toEqual({ ok: true });
+		expect(fetch.mock.calls[0][0]).toBe('/api/auth/delete');
+		expect(fetch.mock.calls[0][1].body).toBe('{"password":"pw"}');
+		expect(session.clearSession).toHaveBeenCalledOnce();
+	});
+
+	it('keeps the session and answers a wrong password or an administrator as a result', async () => {
+		stubFetch(() => json(401, { error: 'your password is not right', code: 'invalid_credentials' }));
+		expect(await deleteAccount('bad')).toMatchObject({ ok: false, code: 'invalid_credentials' });
+		stubFetch(() => json(409, { error: 'you are the only administrator', code: 'admin_account' }));
+		expect(await deleteAccount('pw')).toMatchObject({ ok: false, code: 'admin_account' });
+		expect(session.clearSession).not.toHaveBeenCalled();
 	});
 });
 

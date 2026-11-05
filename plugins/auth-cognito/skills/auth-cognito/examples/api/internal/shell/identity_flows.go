@@ -278,6 +278,10 @@ func (a *cognitoAuth) writeCognitoError(w http.ResponseWriter, r *http.Request, 
 			writeAuthError(w, http.StatusUnauthorized, "invalid_credentials", "your current password is not right")
 			return
 		}
+		if action == "delete" {
+			writeAuthError(w, http.StatusUnauthorized, "invalid_credentials", "your password is not right")
+			return
+		}
 		if action == "new-password" {
 			// The challenge session lapsed (a few minutes) or was never this person's.
 			writeAuthError(w, http.StatusUnauthorized, "session_expired", "that sign-in has expired: sign in again")

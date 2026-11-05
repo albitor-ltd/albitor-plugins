@@ -82,6 +82,22 @@ export async function signOut(): Promise<AuthResult<{ logout_url?: string }>> {
 }
 
 /**
+ * Signs out and leaves: `signOut`, then navigate to Cognito's sign-out page (a fetch, then
+ * `location`, never a form post: the hosted site's CSP has `form-action 'self'`, which blocks a form
+ * whose answer is a redirect to Cognito). With no Cognito page (a local run) it goes to `fallback`.
+ * Answers the failure when the sign-out itself failed, and then navigates nowhere.
+ */
+export async function signOutAndLeave(
+	fallback = '/sign-in',
+	assign: (url: string) => void = (url) => window.location.assign(url)
+): Promise<AuthResult> {
+	const result = await signOut();
+	if (!result.ok) return result;
+	assign(isHostedUrl(result.logout_url) ? result.logout_url : fallback);
+	return { ok: true };
+}
+
+/**
  * Deletes the signed-in person's account. On success the API has cleared the cookies and answers
  * `logout_url`, as `signOut` does. `scope_missing` means the app's sign-in is not set up to allow it.
  */

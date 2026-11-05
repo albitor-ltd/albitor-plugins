@@ -84,6 +84,31 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+  /api/auth/delete:
+    post:
+      operationId: deleteAccount
+      summary: The signed-in person deletes their own account, after confirming their password. Both sign-up modes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+      responses:
+        "204": { description: The account is deleted; the same credentials no longer sign in. The cookies are cleared. }
+        "401":
+          description: No verified session, or the password is not right (invalid_credentials).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: The last enabled user administrator of an invite-only app must make someone else one first (admin_account).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
   /api/auth/users:
     get:
       operationId: listPeople

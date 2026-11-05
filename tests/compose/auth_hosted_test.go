@@ -276,3 +276,47 @@ func TestAuthHostedWritesTreeForBuild(t *testing.T) {
 		})
 	}
 }
+
+// TestAuthHostedSignOutNeverPostsAFormToCognito: the hosted module's CSP has `form-action 'self'`,
+// and the browser applies it to the redirect's target, so a Sign out form answered by a 303 to
+// Cognito is blocked (albitor-plugins#181). Every sign-out control must therefore sign out by
+// fetch and then set `location`, and the journey must say so.
+func TestAuthHostedSignOutNeverPostsAFormToCognito(t *testing.T) {
+	ex := exampleDir(t, "auth-hosted")
+	read := func(rel string) string {
+		b, err := os.ReadFile(filepath.Join(ex, filepath.FromSlash(rel)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	for _, rel := range []string{
+		"web/src/lib/shell/AccountBar.svelte",
+		"web/src/routes/(auth)/not-allowed/+page.svelte",
+	} {
+		src := read(rel)
+		if !strings.Contains(src, "signOutAndLeave") {
+			t.Errorf("%s must sign out with signOutAndLeave (fetch, then location)", rel)
+		}
+		if regexp.MustCompile(`\.submit\(\)`).MatchString(src) {
+			t.Errorf("%s submits the form natively: the CSP's form-action 'self' blocks the redirect to Cognito", rel)
+		}
+	}
+	client := read("web/src/lib/auth/client.ts")
+	if !strings.Contains(client, "window.location.assign") || !strings.Contains(client, "export async function signOutAndLeave") {
+		t.Error("client.ts must export signOutAndLeave, which navigates with location after the fetch")
+	}
+	spec := read("web/tests/journeys/sign-in.spec.ts")
+	for _, want := range []string{`"POST fetch"`, "form-action", "logout.example.test"} {
+		if !strings.Contains(spec, want) {
+			t.Errorf("the sign-in journey must prove sign-out is a fetch then a navigation (missing %q)", want)
+		}
+	}
+	if strings.Contains(spec, "status: 303") {
+		t.Error("the sign-in journey answers sign-out with a 303: that is the form post the CSP blocks")
+	}
+	flows := read("api/internal/shell/identity_flows.go")
+	if !strings.Contains(flows, "setup.auth == nil || setup.auth.local") {
+		t.Error("a local run must answer a JSON sign-out itself, not 501")
+	}
+}

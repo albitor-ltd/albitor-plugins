@@ -21,10 +21,10 @@ repository path, which the skill tells a coder to copy and alter.
 | `web/src/lib/shell/scope.d/auth-cognito.ts` | yes | Exports the name `web.route-guard` resolves to |
 | `web/tests/auth/provider.ts` | yes | The `auth@2` provider |
 | `api/internal/shell/identity_flows.go` | example | `POST /api/auth/*`: sign-in, sign-up, confirm, reset, new-password, sign-out |
-| `api/internal/shell/identity_people.go`, `identity_sigv4.go` | example | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it |
+| `api/internal/shell/identity_people.go`, `identity_sigv4.go` | example | `GET /api/auth/config`, `POST /api/auth/change-password`, `POST /api/auth/delete` (self-service account deletion, `OnAccountDeleted`), the invite-only People admin, and a standard-library SigV4 signer for it |
 | `api/openapi.yaml` | example | api-go's contract plus `GET /api/me` and `/api/auth/*` |
 | `web/src/lib/auth/client.ts`, a self-service `guard.ts` | example | The sign-in client and a guard that redirects the self-service screens in an invite-only app |
-| `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
+| `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset, change-password, delete-account and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
 | `web/src/routes/+layout.ts`, `web/src/lib/shell/AccountBar.svelte` | example | Hides the nav from a signed-out visitor; the Sign out POST form button (replaces the web-svelte shell's empty AccountBar) |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: redirect, screens, local identity |
 
@@ -82,6 +82,13 @@ the screens read.
 - **`open`**: self sign-up as before; the People endpoints answer 404.
 - **Both**: `POST /api/auth/change-password` (signed in; `{current_password, new_password}`) and the
   `/change-password` screen.
+- **Both**: `POST /api/auth/delete` (signed in; `{password}`) deletes the person's own account with Cognito's
+  `DeleteUser`, after re-checking the password, and the `/delete-account` screen (linked from change-password).
+  Every app has it, because a single-role app has no administrator to close an account for someone
+  (ADR-0098). The same credentials stop signing in; `OnAccountDeleted` removes the app's own data. In an
+  invite-only app the last enabled user administrator gets 409 `admin_account` until someone else is one
+  (checked after the password). The session's ID token stays valid until it expires (at most an hour):
+  deletion ends sign-in, not tokens already issued.
 
 ## Invited people: the first sign-in
 

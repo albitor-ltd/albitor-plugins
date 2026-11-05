@@ -1,26 +1,25 @@
 <!-- Replaces the shell's empty AccountBar. Shown only to someone signed in.
      Sign out is a POST form button, never a link: a link can be prefetched, or followed from a
-     page the visitor does not control, and either would sign them out. The browser posts the form
-     and the API answers 303 to Cognito's sign-out page (which clears Cognito's own cookie, so the
-     next "Sign in" asks for the password again) with the session cookies cleared. The API refuses a form
-     post that did not come from this site. Work to finish first (wiping the data layer's local
-     copy) is registered with onBeforeSignOut in lib/shell/signout.ts; without script the form
-     still posts. -->
+     page the visitor does not control, and either would sign them out. With script (always, in a
+     browser) the submit is intercepted: the work registered with onBeforeSignOut in
+     lib/shell/signout.ts runs first (wiping the data layer's local copy), then the API is called by
+     fetch and the page navigates to Cognito's sign-out page, which clears Cognito's own cookie (so
+     the next "Sign in" asks for the password again). It is not a plain form post answered by 303:
+     the hosted site's CSP has form-action 'self', which blocks a form whose redirect leaves the
+     site. Without script the form still posts and the API clears the session, but the browser may
+     refuse the redirect. -->
 <script lang="ts">
+	import { signOutAndLeave } from '../auth/client';
 	import { runBeforeSignOut } from './signout';
 
 	let busy = $state(false);
 	let failed = $state(false);
 
 	async function onsubmit(event: SubmitEvent) {
-		const form = event.currentTarget as HTMLFormElement;
 		event.preventDefault();
 		busy = true;
 		failed = false;
-		if (await runBeforeSignOut()) {
-			form.submit();
-			return;
-		}
+		if ((await runBeforeSignOut()) && (await signOutAndLeave()).ok) return;
 		busy = false;
 		failed = true;
 	}

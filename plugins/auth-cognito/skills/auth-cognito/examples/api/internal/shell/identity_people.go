@@ -24,6 +24,7 @@ import (
 //
 //   - GET  /api/auth/config           public: the sign-up mode, so the screens know what to offer.
 //   - POST /api/auth/change-password  any signed-in person, in either mode.
+//   - POST /api/auth/delete           any signed-in person deletes their own account, in either mode.
 //   - the People admin (GET/POST /api/auth/users, POST /api/auth/users/{disable,enable,
 //     reset-password}): invite_only only, and only for the admin group. In an open app they answer
 //     404, exactly as an unknown route does.
@@ -55,6 +56,8 @@ func (a *cognitoAuth) serveSignedInRoute(w http.ResponseWriter, r *http.Request,
 		apikit.WriteJSON(w, http.StatusOK, out)
 	case "change-password":
 		a.serveChangePassword(w, r, logger)
+	case "delete":
+		a.serveDeleteAccount(w, r, logger)
 	case "users":
 		switch r.Method {
 		case http.MethodGet:
@@ -123,6 +126,90 @@ func (a *cognitoAuth) serveChangePassword(w http.ResponseWriter, r *http.Request
 	}, nil); cerr != nil {
 		a.writeCognitoError(w, r, logger, action, cerr)
 		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ---- delete account ----
+
+// OnAccountDeleted, when an app sets it, is called after a person's account has been deleted, so
+// the app can remove what it holds for them (rows, files). It runs once, with the identity the
+// session had. The account is already gone, so a failure is logged and not retried by the
+// person: make the hook idempotent, and make an erasure job the backstop. Set it from the app's
+// own code (an init in a file of its own), never by editing this one.
+var OnAccountDeleted func(ctx context.Context, id identity.Identity) error
+
+// serveDeleteAccount is POST /api/auth/delete {password}: the signed-in person deletes their own
+// account. Every app has this, whatever its roles: a single-role app has no administrator to do it
+// for them (ADR-0098), so a Delete button that only hides the account is a defect.
+//
+// Cognito's DeleteUser takes the person's ACCESS token. The session cookie holds only the ID token,
+// so the password is checked by signing in with it, as change-password does, which also yields the
+// access token. That makes a stolen session cookie unable to delete the account. The account really
+// goes: the same credentials no longer sign in. In an invite-only app the LAST enabled user
+// administrator is refused (409 admin_account), after the password check, so the app is never left
+// with nobody to add people: make someone else an administrator first. Any other administrator can
+// delete their own account. The ID token already issued stays valid until it expires (at most an
+// hour): deletion ends sign-in, not tokens in flight.
+func (a *cognitoAuth) serveDeleteAccount(w http.ResponseWriter, r *http.Request, logger *slog.Logger) {
+	if r.Method != http.MethodPost {
+		writeAuthError(w, http.StatusNotFound, "not_found", "not found")
+		return
+	}
+	if a.local {
+		apikit.WriteJSON(w, http.StatusNotImplemented, map[string]string{
+			"error": "sign-in is not available in a local run: use the local issuer", "code": "local",
+		})
+		return
+	}
+	if !isJSONRequest(r) {
+		writeAuthError(w, http.StatusUnsupportedMediaType, "invalid_input", "send application/json")
+		return
+	}
+	id, ok := a.authenticate(w, r, logger)
+	if !ok {
+		return
+	}
+	var body struct {
+		Password string `json:"password"`
+	}
+	if !decodeBody(w, r, &body) {
+		return
+	}
+	if id.Email == "" || body.Password == "" {
+		writeAuthError(w, http.StatusBadRequest, "invalid_input", "your password is required")
+		return
+	}
+	const action = "delete"
+	tokens, cerr := a.initiateAuth(r.Context(), "USER_PASSWORD_AUTH", map[string]string{"USERNAME": id.Email, "PASSWORD": body.Password})
+	if cerr != nil {
+		a.writeCognitoError(w, r, logger, action, cerr)
+		return
+	}
+	if a.inviteOnly() && a.userAdminGroup != "" && id.InGroup(a.userAdminGroup) {
+		other, cerr := a.hasOtherEnabledAdmin(r, id.Email)
+		if cerr != nil {
+			// Cannot tell, so do not risk deleting the last administrator.
+			a.writePeopleError(w, r, logger, action, cerr)
+			return
+		}
+		if !other {
+			writeAuthError(w, http.StatusConflict, "admin_account", "you are the only administrator: make someone else an administrator before deleting your account")
+			return
+		}
+	}
+	if cerr := a.call(r.Context(), "DeleteUser", map[string]any{"AccessToken": tokens.AccessToken}, nil); cerr != nil {
+		a.writeCognitoError(w, r, logger, action, cerr)
+		return
+	}
+	clearSessionCookies(w)
+	if hook := OnAccountDeleted; hook != nil {
+		if err := hook(r.Context(), id); err != nil {
+			logger.ErrorContext(r.Context(), "the account was deleted but the app's data for it was not removed",
+				slog.String("correlation_id", apikit.CorrelationIDFromContext(r.Context())),
+				slog.String("sub", id.Sub),
+				slog.String("error", err.Error()))
+		}
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -208,6 +295,50 @@ func (a *cognitoAuth) servePeopleList(w http.ResponseWriter, r *http.Request, lo
 	a.markAdmins(r, out.Users, people)
 	w.Header().Set("Cache-Control", "no-store")
 	apikit.WriteJSON(w, http.StatusOK, map[string]any{"people": people, "next": out.PaginationToken})
+}
+
+// maxAdminScanPages bounds hasOtherEnabledAdmin: 5 pages of maxPeople is 300 people. Past that with
+// no other administrator found, the answer is "no", which fails closed.
+const maxAdminScanPages = 5
+
+// hasOtherEnabledAdmin reports whether an enabled member of the user-admin group other than email
+// exists, listing people as the People screen does (so its soleAdmin and this agree). It stops at
+// the first page that has one.
+func (a *cognitoAuth) hasOtherEnabledAdmin(r *http.Request, email string) (bool, *cognitoError) {
+	token := ""
+	for range maxAdminScanPages {
+		in := map[string]any{"UserPoolId": a.poolID, "Limit": maxPeople}
+		if token != "" {
+			in["PaginationToken"] = token
+		}
+		var out struct {
+			PaginationToken string        `json:"PaginationToken"`
+			Users           []cognitoUser `json:"Users"`
+		}
+		if cerr := a.adminCall(r.Context(), "ListUsers", in, &out); cerr != nil {
+			return false, cerr
+		}
+		people := make([]person, len(out.Users))
+		for i, u := range out.Users {
+			people[i] = person{Email: u.Username, Enabled: u.Enabled}
+			for _, at := range u.Attributes {
+				if at.Name == "email" && at.Value != "" {
+					people[i].Email = at.Value
+				}
+			}
+		}
+		a.markAdmins(r, out.Users, people)
+		for _, p := range people {
+			if p.Admin && p.Enabled && !strings.EqualFold(p.Email, email) {
+				return true, nil
+			}
+		}
+		if out.PaginationToken == "" {
+			return false, nil
+		}
+		token = out.PaginationToken
+	}
+	return false, nil
 }
 
 // markAdmins sets Admin on each person in the user-admin group, looking at a few people at a time. A

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { deleteAccount, isHostedUrl, loginUrl, signInErrorMessage, signOut } from './client';
+import { deleteAccount, isHostedUrl, loginUrl, signInErrorMessage, signOut, signOutAndLeave } from './client';
 
 const session = vi.hoisted(() => ({ clearSession: vi.fn() }));
 vi.mock('./session', () => session);
@@ -40,6 +40,32 @@ describe('isHostedUrl', () => {
 		['/logout', false],
 		[undefined, false]
 	])('%s is %s', (url, want) => expect(isHostedUrl(url)).toBe(want));
+});
+
+describe('signOutAndLeave', () => {
+	it('signs out by fetch, then navigates to the Cognito logout page', async () => {
+		const fetch = stubFetch(() => json(200, { logout_url: 'https://pool.auth.test/logout?client_id=c' }));
+		const assign = vi.fn();
+		expect(await signOutAndLeave('/sign-in', assign)).toEqual({ ok: true });
+		expect(fetch.mock.calls[0]![0]).toBe('/api/auth/sign-out');
+		expect(assign).toHaveBeenCalledExactlyOnceWith('https://pool.auth.test/logout?client_id=c');
+	});
+
+	it('goes to the fallback when there is no hosted page (a local run) or the URL is not https', async () => {
+		for (const body of [{}, { logout_url: 'javascript:alert(1)' }]) {
+			stubFetch(() => json(200, body));
+			const assign = vi.fn();
+			await signOutAndLeave('/sign-in', assign);
+			expect(assign).toHaveBeenCalledExactlyOnceWith('/sign-in');
+		}
+	});
+
+	it('does not navigate when the sign-out failed', async () => {
+		stubFetch(() => json(503, { error: 'x' }));
+		const assign = vi.fn();
+		expect(await signOutAndLeave('/sign-in', assign)).toMatchObject({ ok: false });
+		expect(assign).not.toHaveBeenCalled();
+	});
 });
 
 describe('signOut', () => {

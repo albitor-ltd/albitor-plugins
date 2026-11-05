@@ -62,13 +62,13 @@ foundation node writes the sign-in shell from them.
 | Example | What it is |
 | --- | --- |
 | `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the sign-in calls: `POST /api/auth/sign-in`, `sign-up`, `confirm`, `resend`, `forgot`, `reset`, `new-password`, `sign-out`, and the Cognito error mapping. `sign-out` also takes a same-site form post (SvelteKit's form-action CSRF rule: `Sec-Fetch-Site` same-origin, or `Origin` equal to the host) and answers `303` to `/sign-in` |
-| `examples/api/internal/shell/identity_people.go`, `identity_sigv4.go` | `GET /api/auth/config`, `POST /api/auth/change-password`, the invite-only People admin, and a standard-library SigV4 signer for it. Temporary passwords are generated here, returned once with `Cache-Control: no-store`, never logged |
+| `examples/api/internal/shell/identity_people.go`, `identity_sigv4.go` | `GET /api/auth/config`, `POST /api/auth/change-password`, `POST /api/auth/delete` (self-service account deletion with Cognito's `DeleteUser`, and the `OnAccountDeleted` hook), the invite-only People admin, and a standard-library SigV4 signer for it. Temporary passwords are generated here, returned once with `Cache-Control: no-store`, never logged |
 | `examples/api/internal/shell/identity_flows_test.go`, `identity_people_test.go`, `identity_sigv4_test.go` | Their tests, run against the seeded helpers |
 | `examples/api/openapi.yaml` | The contract with `GET /api/me` and `/api/auth/*` added to the base. Merge those paths into the app's `api/openapi.yaml` |
-| `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `signIn`, `signUp`, `confirm`, `resend`, `forgot`, `reset`, `signOut`, `getSignUpMode`, `changePassword` and the People calls. They return `{ ok: false, code, message }` rather than throw |
+| `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `signIn`, `signUp`, `confirm`, `resend`, `forgot`, `reset`, `signOut`, `getSignUpMode`, `changePassword`, `deleteAccount` and the People calls. They return `{ ok: false, code, message }` rather than throw |
 | `examples/web/src/lib/auth/guard.ts`, `guard.test.ts` | A guard that also sends a visitor from `/sign-up`, `/confirm` and `/reset` to `/sign-in` in an invite-only app. Replaces the seeded guard when you adopt the self-service screens |
 | `examples/web/src/routes/+layout.ts`, `examples/web/src/lib/shell/AccountBar.svelte` | The root layout load that returns `showNav: false` to a signed-out visitor (so the shell hides the app's navigation), and the shell's `AccountBar` filled in with the Sign out POST form button. Copy both over the shell's own |
-| `examples/web/src/routes/(auth)/**` | Sign-in, sign-up, confirm, reset, change-password and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on every kit that provides it |
+| `examples/web/src/routes/(auth)/**` | Sign-in, sign-up, confirm, reset, change-password, delete-account and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on every kit that provides it |
 | `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey: redirect, screens, local identity |
 
 To adopt the sign-in calls, copy the three API files together (`identity_flows.go` hands the
@@ -93,6 +93,17 @@ readable by page script. A script or test client may send `Authorization: Bearer
   must be listed in `services.auth.groups`. The platform seeds the demo and verifier accounts into
   `admin_group` on every dev deploy; never ask a person to add accounts to groups or change roles,
   that is the platform's job.
+- **Account deletion is the person's own, in every app.** Keep `POST /api/auth/delete` and the
+  `/delete-account` screen (linked from change-password): it deletes the account in the pool with
+  `DeleteUser`, so the same email and password no longer sign in. A single-role app has no
+  administrator and no People screen (ADR-0098), so never write a deletion dialog that says an
+  administrator "closes the sign-in", and never ship a Delete button that only hides the account or
+  returns 204 while the credentials still work. The data the app holds for the person is removed by
+  `shell.OnAccountDeleted`, which the app sets from its own code (an `init` in a file of its own); make
+  it idempotent. In an invite-only app the last enabled user administrator is refused (409
+  `admin_account`). The ID token already issued stays valid until it expires (at most an hour). The API's test `TestDeleteAccountRemovesTheAccountSoItCannotSignInAgain` proves the
+  credentials stop working: keep it. A journey spec must not delete a real account (the seeded one is
+  the suite's only way in), so the example journey answers the deletion call itself.
 - **Roles in specs (`auth@2`).** `web/tests/auth/provider.ts` exports `auth` with `roles()`
   (the declared `services.auth.groups`), `seed(role, { request })` and `signInAs(role, { context,
   request, baseURL })`. A spec that needs to be a role calls these and nothing else: never a
