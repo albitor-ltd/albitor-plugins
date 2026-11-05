@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.8.0",
-        "sha": "56ed1130f34deab2c059553fc4a4acdbd33a24f0"
+        "ref": "kit-shadcn/v0.9.0",
+        "sha": "3facf91e1e15aaebf4e623358f9a85c9dde2730c"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.4.2",
-        "sha": "83643625c551abc97e03254eb09def1d5f205d8a"
+        "ref": "auth-hosted/v0.4.3",
+        "sha": "3facf91e1e15aaebf4e623358f9a85c9dde2730c"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -371,8 +371,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.7.1",
-        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
+        "ref": "kit-carbon/v0.8.0",
+        "sha": "3facf91e1e15aaebf4e623358f9a85c9dde2730c"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -391,8 +391,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.7.1",
-        "sha": "b9b470a2d82266cda5bc84f57d4d81555e8888d8"
+        "ref": "kit-gds/v0.8.0",
+        "sha": "3facf91e1e15aaebf4e623358f9a85c9dde2730c"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
