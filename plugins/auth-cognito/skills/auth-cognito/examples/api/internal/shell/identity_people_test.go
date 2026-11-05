@@ -2,14 +2,18 @@ package shell
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 	"unicode"
+
+	"webapp/internal/identity"
 )
 
 // These tests hold the invite-only half of the seam to its contract: the mode is public and
@@ -191,6 +195,143 @@ func TestChangePasswordWorksInBothModes(t *testing.T) {
 				t.Fatalf("policy miss = %d %s", rec.Code, rec.Body.String())
 			}
 		})
+	}
+}
+
+// A deleted account must really be gone: the credentials that worked before the deletion are
+// refused by the sign-in route afterwards. The fake pool deletes on DeleteUser and stops accepting
+// the password, as Cognito does.
+func TestDeleteAccountRemovesTheAccountSoItCannotSignInAgain(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	h := gateFor(f, srv)
+	var mu sync.Mutex
+	deleted := false
+	f.answer("InitiateAuth", func(in map[string]any) (int, any) {
+		mu.Lock()
+		defer mu.Unlock()
+		params, _ := in["AuthParameters"].(map[string]any)
+		if deleted || params["USERNAME"] != "user-a@example.invalid" || params["PASSWORD"] != "Current-pass-1" {
+			return http.StatusBadRequest, map[string]string{"__type": "NotAuthorizedException"}
+		}
+		return http.StatusOK, map[string]any{"AuthenticationResult": map[string]string{"IdToken": f.token("user-a", nil), "AccessToken": "access-token"}}
+	})
+	f.answer("DeleteUser", func(in map[string]any) (int, any) {
+		if in["AccessToken"] != "access-token" {
+			return http.StatusBadRequest, map[string]string{"__type": "NotAuthorizedException"}
+		}
+		mu.Lock()
+		deleted = true
+		mu.Unlock()
+		return http.StatusOK, map[string]any{}
+	})
+	url := "/api/auth/delete"
+	doSignIn := func() *httptest.ResponseRecorder {
+		return authDo(t, h, http.MethodPost, "/api/auth/sign-in", `{"email":"user-a@example.invalid","password":"Current-pass-1"}`, nil)
+	}
+	if rec := doSignIn(); rec.Code != http.StatusOK {
+		t.Fatalf("sign-in before deletion = %d %s, want 200", rec.Code, rec.Body.String())
+	}
+
+	if rec := authDo(t, h, http.MethodPost, url, `{"password":"Current-pass-1"}`, nil); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("signed out = %d, want 401", rec.Code)
+	}
+	if rec := authDo(t, h, http.MethodGet, url, "", withBearer(f.token("user-a", nil))); rec.Code != http.StatusNotFound {
+		t.Fatalf("GET = %d, want 404", rec.Code)
+	}
+	if rec := authDo(t, h, http.MethodPost, url, `{}`, withBearer(f.token("user-a", nil))); rec.Code != http.StatusBadRequest {
+		t.Fatalf("no password = %d, want 400", rec.Code)
+	}
+	if rec := authDo(t, h, http.MethodPost, url, `{"password":"Wrong-pass-1"}`, withBearer(f.token("user-a", nil))); rec.Code != http.StatusUnauthorized || authDecode(t, rec)["code"] != "invalid_credentials" {
+		t.Fatalf("wrong password = %d %s", rec.Code, rec.Body.String())
+	}
+	if f.called("DeleteUser") {
+		t.Fatal("DeleteUser was called with a wrong password")
+	}
+
+	var hooked identity.Identity
+	OnAccountDeleted = func(_ context.Context, id identity.Identity) error { hooked = id; return nil }
+	t.Cleanup(func() { OnAccountDeleted = nil })
+	rec := authDo(t, h, http.MethodPost, url, `{"password":"Current-pass-1"}`, withBearer(f.token("user-a", nil)))
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("delete = %d %s, want 204", rec.Code, rec.Body.String())
+	}
+	if hooked.Sub != "user-a" {
+		t.Errorf("OnAccountDeleted identity = %+v, want user-a", hooked)
+	}
+	cleared := 0
+	for _, c := range rec.Result().Cookies() {
+		if c.MaxAge < 0 {
+			cleared++
+		}
+	}
+	if cleared == 0 {
+		t.Error("delete cleared no session cookie")
+	}
+
+	// The point of the whole feature: the same credentials no longer sign in.
+	if rec := doSignIn(); rec.Code != http.StatusUnauthorized || authDecode(t, rec)["code"] != "invalid_credentials" {
+		t.Fatalf("sign-in after deletion = %d %s, want 401 invalid_credentials", rec.Code, rec.Body.String())
+	}
+}
+
+func TestDeleteAccountKeepsAnInviteOnlyAppsLastEnabledAdministrator(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	h := inviteOnlyGate(f, srv, identityTestLogger())
+	f.answer("InitiateAuth", func(in map[string]any) (int, any) {
+		params, _ := in["AuthParameters"].(map[string]any)
+		if params["PASSWORD"] != "Current-pass-1" {
+			return http.StatusBadRequest, map[string]string{"__type": "NotAuthorizedException"}
+		}
+		return http.StatusOK, map[string]any{"AuthenticationResult": map[string]string{"IdToken": "x", "AccessToken": "access-token"}}
+	})
+	deletes := 0
+	f.answer("DeleteUser", func(map[string]any) (int, any) { deletes++; return http.StatusOK, map[string]any{} })
+	// The pool: two user administrators (one enabled, one not) and an ordinary member.
+	enabled := map[string]bool{"owner@example.invalid": true, "second@example.invalid": true, "member@example.invalid": true}
+	var mu sync.Mutex
+	f.answer("ListUsers", func(map[string]any) (int, any) {
+		mu.Lock()
+		defer mu.Unlock()
+		var users []map[string]any
+		for _, e := range []string{"owner@example.invalid", "second@example.invalid", "member@example.invalid"} {
+			users = append(users, map[string]any{"Username": e, "Enabled": enabled[e], "UserStatus": "CONFIRMED",
+				"Attributes": []map[string]string{{"Name": "email", "Value": e}}})
+		}
+		return http.StatusOK, map[string]any{"Users": users}
+	})
+	f.answer("AdminListGroupsForUser", func(in map[string]any) (int, any) {
+		if u, _ := in["Username"].(string); u == "member@example.invalid" {
+			return http.StatusOK, map[string]any{"Groups": []map[string]string{}}
+		}
+		return http.StatusOK, map[string]any{"Groups": []map[string]string{{"GroupName": testUserAdminGroup}}}
+	})
+	body := `{"password":"Current-pass-1"}`
+	owner := f.token("owner", map[string]any{"cognito:groups": []string{testUserAdminGroup}})
+
+	// Another enabled administrator exists: the owner may delete their own account.
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", body, withBearer(owner)); rec.Code != http.StatusNoContent {
+		t.Fatalf("a non-last administrator's delete = %d %s, want 204", rec.Code, rec.Body.String())
+	}
+
+	// The other administrator is disabled: the owner is the last enabled one and is refused, after
+	// the password check (a wrong password is 401, not 409), and nothing is deleted.
+	mu.Lock()
+	enabled["second@example.invalid"] = false
+	mu.Unlock()
+	deletes = 0
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", `{"password":"Wrong-pass-1"}`, withBearer(owner)); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("wrong password for the last administrator = %d, want 401 (the password is checked first)", rec.Code)
+	}
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", body, withBearer(owner)); rec.Code != http.StatusConflict || authDecode(t, rec)["code"] != "admin_account" {
+		t.Fatalf("last administrator delete = %d %s, want 409 admin_account", rec.Code, rec.Body.String())
+	}
+	if deletes != 0 {
+		t.Fatal("DeleteUser was called for the last enabled administrator")
+	}
+
+	// An ordinary member is unaffected.
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", body, withBearer(f.token("user-a", nil))); rec.Code != http.StatusNoContent {
+		t.Fatalf("an ordinary person's delete in an invite-only app = %d %s, want 204", rec.Code, rec.Body.String())
 	}
 }
 

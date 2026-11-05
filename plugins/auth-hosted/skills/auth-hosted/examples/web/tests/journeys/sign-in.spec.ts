@@ -132,23 +132,37 @@ journey.describe("signed in", () => {
     await expect(page).toHaveURL(/\/account\/delete$/);
   });
 
-  journey("sign out is a POST form button, not a link, and goes through Cognito's sign-out page", async ({ page }) => {
+  journey("sign out is a POST form button, not a link, that signs out by fetch and then navigates to Cognito's sign-out page", async ({ page }) => {
     await page.goto("/");
     const form = page.getByTestId("sign-out-form");
     await expect(form).toHaveAttribute("method", /post/i);
     await expect(form).toHaveAttribute("action", "/api/auth/sign-out");
     await expect(page.getByRole("link", { name: "Sign out" })).toHaveCount(0);
 
-    // The post must not really end the suite's session: answer it with the 303 the API sends, to
-    // the Cognito page it names, and answer that page too.
-    await page.route("**/api/auth/sign-out", (route) =>
-      route.fulfill({ status: 303, headers: { location: "https://logout.example.test/logout?client_id=c" } }),
-    );
-    const reached = page.waitForRequest("https://logout.example.test/**");
+    // The call must not really end the suite's session: answer it as the API does, with the
+    // Cognito page's URL, and answer that page too. It is a fetch, then a navigation: the hosted
+    // site's CSP has form-action 'self', so a form post answered by a 303 to Cognito is blocked
+    // (the browser reports it as a CSP violation and the person stays signed in on the page).
+    const methods: string[] = [];
+    await page.route("**/api/auth/sign-out", (route) => {
+      methods.push(`${route.request().method()} ${route.request().resourceType()}`);
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ logout_url: "https://logout.example.test/logout?client_id=c" }),
+      });
+    });
     await page.route("https://logout.example.test/**", (route) =>
       route.fulfill({ status: 200, contentType: "text/html", body: "<title>Signed out</title>" }),
     );
+    const violations: string[] = [];
+    page.on("console", (m) => {
+      if (/Content Security Policy|form-action/i.test(m.text())) violations.push(m.text());
+    });
+    const reached = page.waitForRequest("https://logout.example.test/**");
     await page.getByRole("button", { name: "Sign out" }).click();
     await reached;
+    expect(methods).toEqual(["POST fetch"]);
+    expect(violations).toEqual([]);
   });
 });

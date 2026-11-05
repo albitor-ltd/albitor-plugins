@@ -805,8 +805,19 @@ func TestALocalRunHasNoHostedSignIn(t *testing.T) {
 			t.Errorf("GET %s = %d %q, want a redirect to the page that says why", path, rec.Code, rec.Header().Get("Location"))
 		}
 	}
-	if rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", "{}", nil); rec.Code != http.StatusNotImplemented {
-		t.Errorf("POST sign-out = %d, want 501", rec.Code)
+	// A JSON sign-out (the button's fetch, the authz probe) is answered, not refused: 200, the
+	// cookies cleared, no logout_url. Account deletion needs a pool and stays 501.
+	for name, body := range map[string]string{"json": "{}", "empty": ""} {
+		rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", body, nil)
+		if rec.Code != http.StatusOK || authDecode(t, rec)["logout_url"] != nil {
+			t.Errorf("local %s POST sign-out = %d %s, want 200 with no logout_url", name, rec.Code, rec.Body.String())
+		}
+		if len(rec.Result().Cookies()) == 0 {
+			t.Errorf("local %s POST sign-out cleared no cookies", name)
+		}
+	}
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", "{}", nil); rec.Code != http.StatusNotImplemented {
+		t.Errorf("POST delete = %d, want 501", rec.Code)
 	}
 	// The Sign out button still works there: a same-site form post clears the cookies and goes to
 	// /sign-in, never to the 501 JSON; a cross-site one is refused.
@@ -823,6 +834,9 @@ func TestALocalRunHasNoHostedSignIn(t *testing.T) {
 		t.Errorf("cross-site local form sign-out = %d, want 403", rec.Code)
 	}
 	anon := composeIdentity(signIn{anonymous: true})
+	if rec := authDo(t, anon, http.MethodPost, "/api/auth/sign-out", "{}", nil); rec.Code != http.StatusOK {
+		t.Errorf("anonymous run POST sign-out = %d, want 200", rec.Code)
+	}
 	if rec := authDo(t, anon, http.MethodGet, "/api/auth/login", "", nil); rec.Code != http.StatusFound {
 		t.Errorf("anonymous run GET login = %d, want the local-run redirect", rec.Code)
 	}

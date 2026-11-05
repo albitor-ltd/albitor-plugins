@@ -128,6 +128,17 @@ export function resetSignUpMode(): void {
 export const changePassword = (currentPassword: string, newPassword: string) =>
 	call('change-password', { current_password: currentPassword, new_password: newPassword });
 
+/**
+ * Deletes the signed-in person's own account, after checking their password. On success the account
+ * is gone from the pool (the same credentials no longer sign in) and the cookies are cleared. The
+ * last enabled administrator of an invite-only app is refused with `admin_account` until someone else is one.
+ */
+export async function deleteAccount(password: string): Promise<AuthResult> {
+	const result = await call('delete', { password });
+	if (result.ok) clearSession();
+	return result;
+}
+
 /** One row of the People list. */
 export interface Person {
 	email: string;

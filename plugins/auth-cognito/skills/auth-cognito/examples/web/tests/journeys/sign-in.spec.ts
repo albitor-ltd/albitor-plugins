@@ -207,6 +207,33 @@ journey.describe("signed in through the local issuer", () => {
     await expect(page.getByTestId("people-open")).toBeVisible();
   });
 
+  journey("deleting an account asks for the password, shows a refusal, and ends on the sign-in screen", async ({ page }) => {
+    // The spec answers the deletion call itself, so the suite's account survives. What proves the
+    // account really goes (the same credentials stop signing in) is the API's own test,
+    // TestDeleteAccountRemovesTheAccountSoItCannotSignInAgain. Do not point a journey at a real
+    // deletion: a seeded account is the suite's only way in.
+    let deletes = 0;
+    await page.route("**/api/auth/delete", (route) => {
+      deletes += 1;
+      return deletes === 1
+        ? route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ code: "invalid_credentials", error: "your password is not right" }) })
+        : route.fulfill({ status: 204 });
+    });
+    await page.goto("/change-password");
+    await page.getByTestId("delete-account-link").click();
+    await expect(page.getByRole("heading", { level: 1, name: "Are you sure you want to delete your account?" })).toBeVisible();
+    await expectNoA11yViolations(page);
+
+    await page.getByTestId("delete-account-password").fill("not-the-password");
+    await page.getByRole("button", { name: "Yes, delete my account" }).click();
+    await expect(page.getByTestId("delete-account-error")).toHaveText("your password is not right");
+    await expect(page).toHaveURL(/\/delete-account$/);
+
+    await page.getByRole("button", { name: "Yes, delete my account" }).click();
+    await expect(page).toHaveURL(/\/sign-in/);
+    expect(deletes).toBe(2);
+  });
+
   journey("sign out is a POST form button, not a link", async ({ page }) => {
     await page.goto("/");
     const form = page.getByTestId("sign-out-form");

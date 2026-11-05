@@ -234,6 +234,7 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		"web/src/routes/(auth)/reset/+page.svelte",
 		"web/src/routes/(auth)/change-password/+page.svelte",
 		"web/src/routes/(auth)/change-password/nav.ts",
+		"web/src/routes/(auth)/delete-account/+page.svelte",
 		"web/src/routes/(auth)/people/+page.svelte",
 		"web/tests/journeys/sign-in.spec.ts",
 	})
@@ -479,5 +480,37 @@ func TestAuthPluginsShipTheAuthV2Provider(t *testing.T) {
 		if !strings.Contains(string(src), want) || !strings.Contains(string(src), "export const auth") {
 			t.Errorf("%s: provider.ts must export auth = %s", name, want)
 		}
+	}
+}
+
+// TestAuthCognitoShipsSelfServiceAccountDeletion: a single-role app has no administrator to close
+// an account (ADR-0098), so the plugin ships the person's own deletion with Cognito's DeleteUser
+// and the test that the same credentials stop signing in (albitor-plugins#181).
+func TestAuthCognitoShipsSelfServiceAccountDeletion(t *testing.T) {
+	ex := exampleDir(t, "auth-cognito")
+	read := func(rel string) string {
+		b, err := os.ReadFile(filepath.Join(ex, filepath.FromSlash(rel)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(b)
+	}
+	people := read("api/internal/shell/identity_people.go")
+	for _, want := range []string{`"DeleteUser"`, `case "delete":`, "OnAccountDeleted"} {
+		if !strings.Contains(people, want) {
+			t.Errorf("identity_people.go lacks %q", want)
+		}
+	}
+	if !strings.Contains(read("api/internal/shell/identity_people_test.go"), "TestDeleteAccountRemovesTheAccountSoItCannotSignInAgain") {
+		t.Error("the example tests must prove sign-in fails after deletion")
+	}
+	if !strings.Contains(read("web/src/lib/auth/client.ts"), "export async function deleteAccount") {
+		t.Error("client.ts lacks deleteAccount")
+	}
+	if !strings.Contains(read("api/openapi.yaml"), "\n  /api/auth/delete:\n") {
+		t.Error("the example contract lacks /api/auth/delete")
+	}
+	if !strings.Contains(read("web/tests/journeys/sign-in.spec.ts"), "delete-account") {
+		t.Error("the sign-in journey must cover the delete-account screen")
 	}
 }

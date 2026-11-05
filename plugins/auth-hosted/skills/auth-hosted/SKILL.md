@@ -43,10 +43,10 @@ foundation node writes the sign-in shell from them.
 
 | Example | What it is |
 | --- | --- |
-| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the hosted flow: `GET /api/auth/login` and `/callback` (authorization code with PKCE), `POST /api/auth/sign-out` (JSON, or a same-site form post answered `303` to the logout URL) and `/delete`, and `OnAccountDeleted` |
+| `examples/api/internal/shell/identity_flows.go` | `registerAuthRoutes` and the hosted flow: `GET /api/auth/login` and `/callback` (authorization code with PKCE), `POST /api/auth/sign-out` (JSON, which the Sign out button fetches; a same-site form post answered `303` to the logout URL for a client with no script; any client answered locally in a local run) and `/delete`, and `OnAccountDeleted` |
 | `examples/api/internal/shell/identity_flows_test.go` | The flow's tests: state and verifier, the callback's order of checks, cookies, sign-out, deletion, CSRF |
 | `examples/api/openapi.yaml` | The contract with `GET /api/me` added to the base. Merge that path into the app's `api/openapi.yaml` |
-| `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `loginUrl`, `signOut`, `deleteAccount`. They return `{ ok: false, code, message }` rather than throw |
+| `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `loginUrl`, `signOut`, `signOutAndLeave` (fetch, then `location`), `deleteAccount`. They return `{ ok: false, code, message }` rather than throw |
 | `examples/web/src/routes/(auth)/**` | The sign-in, account, account deletion and refusal screens, on the `component-kit@2` exports |
 | `examples/web/src/routes/+layout.ts`, `examples/web/src/lib/shell/AccountBar.svelte` | `+layout.ts` shows the nav only to a signed-in person and fails closed (`canShowNav`); `AccountBar` is the Sign out POST form button. Sign out is never a link. Register a data-layer wipe with `onBeforeSignOut` (`lib/shell/signout.ts`) |
 | `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey |
@@ -119,6 +119,6 @@ for `identity.AnonymousOwner`.
 
 `web/tests/journeys/sign-in.spec.ts` (copied from the examples, yours to extend) proves a signed-out visitor is handed to
 the API's sign-in with where they were headed, a failed sign-in does not loop, the refusal and account
-screens render and pass axe, and the Sign out form goes through Cognito's logout. It never types into Cognito:
+screens render and pass axe, and the Sign out button signs out by fetch and then navigates to Cognito's logout (never a form post answered by a redirect to Cognito: the hosted CSP's `form-action 'self'` blocks it). It never types into Cognito:
 the suite's `auth.setup.ts` signs in once. The universal `api-auth` floor still applies: declared
 non-public endpoints return `401` unauthenticated.

@@ -38,7 +38,8 @@ func registerAuthRoutes(mux *http.ServeMux, setup signIn, logger *slog.Logger) {
 		// never a link, so a link prefetch or another site's link cannot sign anyone out. Like a
 		// SvelteKit form action, a form-encoded POST is refused unless the browser says it came
 		// from this site. It is handled here, before the local-run answers, so the button works
-		// there too.
+		// there too. The button itself signs out by fetch (see AccountBar.svelte): the hosted
+		// site's CSP form-action 'self' blocks a form post answered by a redirect to Cognito.
 		if r.Method == http.MethodPost && r.URL.Path == authPathRoot+"sign-out" && isFormRequest(r) {
 			if !sameOrigin(r) {
 				writeAuthError(w, http.StatusForbidden, "forbidden", "cross-site form post forbidden")
@@ -52,6 +53,15 @@ func registerAuthRoutes(mux *http.ServeMux, setup signIn, logger *slog.Logger) {
 			// A local run has no pool, so no Cognito session to end.
 			clearSessionCookies(w)
 			http.Redirect(w, r, signInPath, http.StatusSeeOther)
+			return
+		}
+		// Any other client signing out of a local run (the Sign out button's fetch, a spec's
+		// authorization probe) is answered the same way: the cookies cleared and no logout_url,
+		// since there is no Cognito page to visit. Never the 501 below, which is for the calls
+		// that need a pool.
+		if r.Method == http.MethodPost && r.URL.Path == authPathRoot+"sign-out" && (setup.auth == nil || setup.auth.local) {
+			clearSessionCookies(w)
+			apikit.WriteJSON(w, http.StatusOK, map[string]string{})
 			return
 		}
 		if setup.auth == nil {

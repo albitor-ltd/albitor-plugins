@@ -94,3 +94,5 @@
 	{/if}
 	<Button type="submit" disabled={busy} data-testid="change-password-button">Change password</Button>
 </form>
+
+<p><a href="/delete-account" data-testid="delete-account-link">Delete your account</a></p>
