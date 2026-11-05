@@ -13,8 +13,8 @@ People sign in on the app's own Cognito hosted page (the classic hosted UI). **T
 field, no sign-up screen and no reset screen**: Cognito's pages do sign-up, email confirmation,
 password reset, an invited person's new password and any MFA.
 
-**Sign-up mode.** The hosted lane keeps self sign-up (`sign_up: open`) with its platform-side invite
-flow; the invite-only, no-email People screen belongs to `auth-cognito` on the BYOA lane and is not
+**Sign-up mode.** The plugin does not set `sign_up`: the plan's access pick owns it (`open` by default,
+`invite_only` optional), and the hosted pool follows the manifest. The invite-only, no-email People screen belongs to `auth-cognito` on the BYOA lane and is not
 part of this plugin. Nothing here changes with that screen.
 
 ## What it ships
@@ -42,7 +42,7 @@ repository path, which the skill tells a coder to copy and alter.
 
 It requires `api-runtime@1`, `web-framework@1`, `component-kit@2` and `deploy-target@1` (the deploy
 target realises the pool from `services.auth`). It contributes `services.auth` (`provider: cognito`,
-`posture: private`, `sign_up: open`) and no Terraform. The module stays stdlib-only, because
+`posture: private`; `sign_up` comes from the plan) and no Terraform. The module stays stdlib-only, because
 `api/go.mod` is `api-go`'s.
 
 Switching auth after the first compose keeps the files you were seeded with (they are app-owned):

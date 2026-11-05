@@ -84,10 +84,14 @@ func TestAuthHostedFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 		t.Error("scope.d/auth-hosted.ts must export requireSession")
 	}
 	yaml := string(res.Files["albitor.yaml"])
-	for _, want := range []string{"auth:", `provider: "cognito"`, `posture: "private"`, `sign_up: "open"`} {
+	for _, want := range []string{"auth:", `provider: "cognito"`, `posture: "private"`} {
 		if !strings.Contains(yaml, want) {
 			t.Errorf("albitor.yaml lacks %q:\n%s", want, yaml)
 		}
+	}
+	// The plan's access pick owns sign_up; a value here would conflict with it.
+	if strings.Contains(yaml, "sign_up") {
+		t.Errorf("auth-hosted must not set services.auth.sign_up itself:\n%s", yaml)
 	}
 	for path := range res.Files {
 		if strings.HasSuffix(path, ".tf") || strings.HasPrefix(path, "infrastructure/") {

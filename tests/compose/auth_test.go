@@ -197,7 +197,7 @@ func TestAuthCognitoFillsTheGuardAndDeclaresServicesAuth(t *testing.T) {
 			t.Errorf("albitor.yaml lacks %q:\n%s", want, yaml)
 		}
 	}
-	// The plan supplies sign_up (default invite_only); a value here would conflict with it.
+	// The plan supplies sign_up (default open); a value here would conflict with it.
 	if strings.Contains(yaml, "sign_up") {
 		t.Errorf("auth-cognito must not set services.auth.sign_up itself:\n%s", yaml)
 	}

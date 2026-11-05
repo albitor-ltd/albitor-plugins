@@ -9,7 +9,7 @@ metadata:
 
 A first-time visitor is sent to the app's Cognito hosted page, signs up or in there, and comes back
 signed in. All of the app's side is in the repository: read it, then extend it. The plugin declares
-`services.auth` (provider `cognito`, posture `private`, `sign_up: open`) in `albitor.yaml`; the hosted
+`services.auth` (provider `cognito`, posture `private`) in `albitor.yaml`; the plan's access pick supplies `sign_up`; the hosted
 deploy realises the pool and hands the function `AUTH_ISSUER`, `AUTH_CLIENT_ID`, `AUTH_JWKS_URL`,
 `AUTH_POSTURE`, `AUTH_LOGIN_URL` and `AUTH_LOGOUT_URL`. There is no Terraform and no pool id in the
 repository.
@@ -79,7 +79,7 @@ client may send `Authorization: Bearer <token>` instead.
 - **The screens** in `web/src/routes/(auth)/` (copied from the examples) are yours: restyle and reword them. Keep
   the `data-testid` values and the headings the journey spec reads. There is **no password field**: do
   not add a sign-in form, a sign-up screen or a reset screen, because Cognito's pages do those.
-  The hosted lane keeps self sign-up with its platform-side invite flow: do not add the `auth-cognito`
+  Sign-up mode (`open` by default, `invite_only` optional) is the plan's access pick, not this plugin's: do not add the `auth-cognito`
   invite-only People screen, change-password route or `AUTH_SIGN_UP` handling here.
 - **Who may sign in.** `SIGNUP_DOMAINS` (comma-separated `example.org` or `*.example.org`) limits sign-in
   by email domain. A refused person lands on `/not-allowed`; reword that page and say who to contact. The rule and `email_verified` are applied to every ID token the API takes (callback, refresh, every request), so a token from a hand-run flow gets nowhere; the gate accepts ID tokens only.
