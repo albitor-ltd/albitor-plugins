@@ -67,7 +67,9 @@ $govuk-brand-colour: #1d70b8;
 // The service navigation, as GOV.UK Frontend 6.4.0 styles it (the markup and class names are
 // Frontend's), restated here rather than imported: Frontend's own stylesheet for it carries the
 // Internet Explorer hack `@media (min-width: 0\0)`, which the app's CSS minifier (Lightning CSS)
-// refuses and the build fails. Without the menu toggle (no JavaScript), the list is always shown.
+// refuses and the build fails. Without the menu toggle (no JavaScript), the list is always shown;
+// with it, Frontend's script shows the toggle below the tablet breakpoint and sets `hidden` on the
+// list while the menu is closed.
 $-link: var(--govuk-link-colour, #1a65a6);
 $-focus: var(--govuk-focus-colour, #fd0);
 $-focus-text: var(--govuk-focus-text-colour, #0b0c0c);
@@ -92,14 +94,74 @@ $-tablet: 40.0625em;
 }
 .govuk-service-navigation__wrapper {
 	flex-grow: 1;
+	// Phone: the toggle and the account links share one row, the list opens under them. Tablet and
+	// up: the list, then the account links at the end of the same row.
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	@media (min-width: $-tablet) {
+		flex-wrap: nowrap;
+		width: auto;
+	}
+}
+.govuk-service-navigation__toggle,
+.govuk-service-navigation__list,
+.kit-account {
+	&[hidden] {
+		display: none;
+	}
+}
+.govuk-service-navigation__toggle {
+	margin: 0;
+	padding: 10px 0;
+	border: 0;
+	font: inherit;
+	font-weight: 700;
+	color: $-link;
+	background: none;
+	cursor: pointer;
+	text-decoration: underline;
+	text-underline-offset: 0.1578em;
+	&:hover {
+		color: var(--govuk-link-hover-colour, #0f385c);
+	}
+	&:focus {
+		outline: 3px solid transparent;
+		color: $-focus-text;
+		background-color: $-focus;
+		box-shadow:
+			0 -2px $-focus,
+			0 4px $-focus-text;
+		text-decoration: none;
+	}
+	@media (min-width: $-tablet) {
+		display: none;
+	}
+}
+.kit-account {
+	padding: 10px 0;
+	@media (min-width: $-tablet) {
+		padding: 15px 0;
+		margin-left: 30px;
+	}
+}
+.kit-account a,
+.kit-account button {
+	font: inherit;
 }
 .govuk-service-navigation__list {
+	flex: 1 0 100%;
+	order: 3;
 	margin: 0 0 15px;
 	padding: 0;
 	list-style: none;
 	@media (min-width: $-tablet) {
 		display: flex;
+		flex: 1 1 auto;
 		flex-wrap: wrap;
+		order: 0;
 		margin-bottom: 0;
 	}
 }

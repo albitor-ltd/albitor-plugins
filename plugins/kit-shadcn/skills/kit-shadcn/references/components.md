@@ -8,7 +8,7 @@ https://www.shadcn-svelte.com/docs/components for the shadcn-svelte designs to c
 
 | Component | Props | Notes |
 |---|---|---|
-| `AppShell` | `nav: NavGroup[]`, `path: string`, `title?`, `children` | Rendered by web-svelte's root layout. Skip link, header, labelled nav, one `main`, the `Toaster` |
+| `AppShell` | `nav: NavGroup[]`, `path: string`, `title?`, `footer?`, `account?`, `children` | Rendered by web-svelte's root layout. Skip link, header, labelled nav, one `main`, the `Toaster` |
 | `Button` | `variant?` (`primary`, `secondary`, `destructive`, `ghost`), any `<button>` attribute | `type` defaults to `button`, so it never submits a form by accident |
 | `Field` | `label`, `value` (bindable), `hint?`, `error?`, `multiline?`, `rows?`, any `<input>` attribute | Generates its own id; `error` sets `aria-invalid` |
 | `Table` | `caption`, `columns: {key, label, priority?}[]`, `rows`, `narrow?` (`scroll`, `stacked`, `priority`), `emptyTitle?`, `emptyDescription?` | The first column is the row header. Empty rows render an `EmptyState`. `narrow` applies under 40rem of table width; see SKILL.md "Tables on a phone" |

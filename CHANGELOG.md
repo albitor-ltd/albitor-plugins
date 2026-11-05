@@ -19,6 +19,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   and `Column.priority`, so a list stays usable on a phone; the skill gives guidance for choosing
   between stacked rows and priority columns, both shown and tested in `PagesShowcase`.
 
+- `kit-shadcn` `0.9.0`, `kit-carbon` `0.8.0`, `kit-gds` `0.8.0` (albitor-ltd/albitor-plugins#181 items
+  4 to 6; tag follows the merge). `AppShell` takes an optional `account` snippet in every kit and has
+  a compact phone navigation (kit-shadcn and kit-gds: one Menu button below 48rem; kit-carbon: the
+  side nav starts closed below its breakpoint and closes on navigation). kit-gds renders GOV.UK
+  Service navigation properly: one `ul`, the `govuk-service-navigation__toggle` with `aria-controls`,
+  `data-module="govuk-service-navigation"` initialised by Frontend's script, account links in the
+  end slot, outside the list. `patterns.md` now matches the template. The skills no longer say to start
+  a page from `Showcase.svelte`, and `scripts/check-kit-fixtures.sh` (in `just ci`, and over every
+  composed tree in `just compose`) fails when anything but a test references a fixture.
+
 ### Fixed
 
 - `api-go` `0.6.1` (albitor-ltd/albitor-plugins#168; tag follows the merge). A supplier-client skill

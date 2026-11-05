@@ -53,3 +53,10 @@ page out; its `Row` and `Column` take the breakpoints.
 
 Show a loading state in the place the content will appear (Carbon's `InlineLoading` or a skeleton),
 and an error with a retry `Button` there too, not only a toast: a toast is gone once dismissed.
+
+## Navigation on a phone
+`AppShell` already handles it: Carbon's UI shell closes the side nav below its 66rem breakpoint and
+the header's menu button opens it as an overlay (it closes again after a navigation). The `account`
+snippet (Sign out, settings) sits at the right of the header at every width. Do not add a second nav
+or a hand-built tab bar carrying the same destinations. Test at 390px wide: every destination is
+reachable from the menu button, nothing overflows horizontally.

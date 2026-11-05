@@ -1,11 +1,12 @@
 <!-- Seeded by Albitor (kit-gds), then yours: the page frame in GOV.UK Frontend v6 markup. web-svelte's
      root layout renders it with the merged nav and the current path. Keep the skip link first, one
      labelled nav and one main landmark. `footer` is an optional snippet rendered after <main>,
-     outside it, normally `<Footer>`.
+     outside it, normally `<Footer>`. `account` is an optional snippet for the signed-in visitor's
+     links (Sign out, settings); it renders in the service navigation's end slot, outside the list, and stays visible when the menu is collapsed.
      The header is TEXT ONLY: no Crown, no GOV.UK logotype (they are for services on GOV.UK only). -->
 <script lang="ts">
 	import './govuk.scss';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { NavGroup } from '../shell/types';
 
@@ -14,12 +15,14 @@
 		path,
 		title = 'App',
 		footer,
+		account,
 		children
 	}: {
 		nav: NavGroup[];
 		path: string;
 		title?: string;
 		footer?: Snippet;
+		account?: Snippet;
 		children: Snippet;
 	} = $props();
 
@@ -45,6 +48,39 @@
 		if (typeof document !== 'undefined') document.body.classList.remove(...added);
 	});
 
+	// Service navigation's own script owns the mobile menu: it shows the toggle below the tablet
+	// breakpoint, hides the list until the toggle is pressed and keeps aria-expanded true to that.
+	// Imported in onMount, so server rendering never loads it.
+	let serviceNav: HTMLElement | undefined = $state();
+	let menuToggle: HTMLButtonElement | undefined = $state();
+	onMount(() => {
+		let cancelled = false;
+		if (serviceNav) {
+			const el = serviceNav;
+			// govuk-frontend ships no type declarations: ignore the missing ones, type what we use.
+			// @ts-ignore
+			import('govuk-frontend/dist/govuk/components/service-navigation/service-navigation.mjs').then(({ ServiceNavigation }: { ServiceNavigation: new (el: HTMLElement) => unknown }) => {
+				if (!cancelled) new ServiceNavigation(el);
+			}).catch(() => {
+				// An unsupported browser throws: it keeps the plain list, always shown (the
+				// progressive-enhancement baseline), so there is nothing to do.
+			});
+		}
+		return () => {
+			cancelled = true;
+		};
+	});
+	// This is a client-routed app: close an open menu when the path changes.
+	$effect(() => {
+		void path;
+		if (menuToggle && !menuToggle.hidden && menuToggle.getAttribute('aria-expanded') === 'true') {
+			menuToggle.click();
+		}
+	});
+
+	// One list for every group: GOV.UK's service navigation is a single list, not a list per group.
+	const items = $derived(nav.flatMap((g) => g.items));
+
 	function normal(p: string): string {
 		return p.length > 1 ? p.replace(/\/+$/, '') : p;
 	}
@@ -65,27 +101,41 @@
 		<span class="kit-header__name">{title}</span>
 	</div>
 </header>
-<div class="govuk-service-navigation">
+<div
+	class="govuk-service-navigation"
+	data-module="govuk-service-navigation"
+	bind:this={serviceNav}
+>
 	<div class="govuk-width-container">
 		<div class="govuk-service-navigation__container">
 			<nav aria-label="Main" class="govuk-service-navigation__wrapper">
-				{#each nav as group (group.id ?? '')}
-					<ul class="govuk-service-navigation__list">
-						{#each group.items as item (item.href)}
-							{@const here = current(item.href)}
-							<li
-								class="govuk-service-navigation__item"
-								class:govuk-service-navigation__item--active={here}
-							>
-								<a class="govuk-service-navigation__link" href={item.href} aria-current={here}>
-									{#if here}<strong class="govuk-service-navigation__active-fallback"
-											>{item.label}</strong
-										>{:else}{item.label}{/if}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				{/each}
+				{#if items.length > 1}
+					<button
+						type="button"
+						class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle"
+						aria-controls="service-navigation-list"
+						bind:this={menuToggle}
+						hidden
+					>
+						Menu
+					</button>
+				{/if}
+				<ul class="govuk-service-navigation__list" id="service-navigation-list">
+					{#each items as item (item.href)}
+						{@const here = current(item.href)}
+						<li
+							class="govuk-service-navigation__item"
+							class:govuk-service-navigation__item--active={here}
+						>
+							<a class="govuk-service-navigation__link" href={item.href} aria-current={here}>
+								{#if here}<strong class="govuk-service-navigation__active-fallback"
+										>{item.label}</strong
+									>{:else}{item.label}{/if}
+							</a>
+						</li>
+					{/each}
+				</ul>
+				{#if account}<div class="kit-account">{@render account()}</div>{/if}
 			</nav>
 		</div>
 	</div>

@@ -60,6 +60,11 @@ floor_run() {
   done
   return $status
 }
+# No composed kit tree may reference Showcase / PagesShowcase / ContractProbe outside tests.
+for dir in kit kit-carbon kit-gds auth auth-carbon auth-gds auth-hosted auth-hosted-carbon auth-hosted-gds; do
+  if [[ -d "$tmp/$dir/web/src" ]]; then "$root/scripts/check-kit-fixtures.sh" "$tmp/$dir/web/src" || exit 1; fi
+done
+
 floor_run || { echo "a composed skeleton fails the platform floor (see above): fix the plugin's seeded files" >&2; exit 1; }
 
 # Lint the shipped workflows: a step that runs `npm ci` needs a lockfile in its working-directory,

@@ -56,9 +56,9 @@ These are distilled from the live GOV.UK Design System and GOV.UK Frontend (Crow
 ## Page templates
 
 The kit ships page templates as worked examples in `examples/web/src/lib/kit/pages/` beside this
-skill, laid out by repository path. Copy the ones the app needs to `web/src/lib/kit/pages/` (with
-`PagesShowcase.svelte` and `pages.test.ts`, which run axe over every template in every state), then
-edit them: they are the app's code once copied. They are built from the kit's own pieces and GOV.UK
+skill, laid out by repository path. Copy the ones the app needs to `web/src/lib/kit/pages/`, and `pages.test.ts` beside them with its
+test fixture `PagesShowcase.svelte` (it runs axe over every template in every state; no route or
+component imports the fixture), then edit them: they are the app's code once copied. They are built from the kit's own pieces and GOV.UK
 markup (back link, summary list, error summary, notification banner), so do not rebuild one by hand.
 
 | The page is | Start from | It gives you |

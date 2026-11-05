@@ -95,6 +95,34 @@ describe('AppShell with a footer', () => {
 	});
 });
 
+describe('AppShell navigation and account slot', () => {
+	it('renders the account snippet once, outside main', () => {
+		const root = mount();
+		const buttons = [...root.querySelectorAll('button')].filter((b) => b.textContent?.trim() === 'Sign out');
+		expect(buttons).toHaveLength(1);
+		expect(buttons[0].closest('main')).toBeNull();
+	});
+
+	it('renders no account controls when the app passes none', () => {
+		const root = mount({ withAccount: false });
+		expect(root.textContent).not.toContain('Sign out');
+	});
+
+	it('lists every destination in the one Main navigation, whatever the groups', () => {
+		const root = mount();
+		const navs = root.querySelectorAll('nav[aria-label="Main"]');
+		expect(navs).toHaveLength(1);
+		expect([...navs[0].querySelectorAll('a')].map((a) => a.textContent?.trim())).toEqual(['Home', 'People']);
+	});
+
+	it('points every aria-controls (a phone menu button) at an element that exists', () => {
+		const root = mount();
+		for (const el of root.querySelectorAll('[aria-controls]')) {
+			expect(root.querySelector(`#${el.getAttribute('aria-controls')}`)).not.toBeNull();
+		}
+	});
+});
+
 /** The alerts with something in them: a kit may keep an empty live region in the page. */
 function filled(root: HTMLElement): Element[] {
 	return [...root.querySelectorAll('[role=alert]')].filter((a) => a.textContent?.trim());
