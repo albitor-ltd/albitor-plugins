@@ -90,7 +90,9 @@ client may send `Authorization: Bearer <token>` instead.
   **Do not set it** unless the brief or a person explicitly asks for a sign-in domain restriction; never
   invent one. The way to set it is `services.auth.signup_domains` in `albitor.yaml` (a list of
   `example.org` / `*.example.org`), which the compiler renders as `SIGNUP_DOMAINS`; do not also declare
-  the key under `config:` (that is a `duplicate_name` error).
+  the key under `config:` (that is a `duplicate_name` error). The list holds every token on both lanes,
+  so it also refuses existing users and invitees on unlisted domains: set it before launch or include
+  every current user's domain. Use punycode (`xn--`) for IDN domains.
 - **App data on deletion.** Set `shell.OnAccountDeleted` from an app-owned file to remove a person's
   records after their account is deleted. It must be idempotent: the person cannot retry.
 - **Public pages.** `PUBLIC_PATHS` in `guard.ts` lists the public paths. A page that must be public (a landing page,

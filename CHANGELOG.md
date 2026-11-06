@@ -12,7 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   the merge). An optional sign-up email-domain allow-list, `services.auth.signup_domains`, off by
   default: `deploy-byoa-aws` hands it to the function as `AUTH_SIGNUP_DOMAINS`, and `auth-cognito`
   refuses `sign-up` for other domains with 403 `email_not_allowed` and a clear message, and reports
-  `signup_domains` from `GET /api/auth/config`. Existing accounts and invitations are unaffected.
+  `signup_domains` from `GET /api/auth/config`. On both lanes the list holds every token the API takes
+  (`auth-cognito` now does what `auth-hosted` does), so it also refuses existing users and invitees on
+  unlisted domains and a user who registered directly with the pool: choose it before launch or include
+  every current user's domain. The platform-seeded `.invalid` accounts always pass.
   `auth-hosted` already enforces `SIGNUP_DOMAINS` on every ID token; its docs now point at the manifest
   setting, which the manifest compiler renders as that config key. Land this PR first: it is inert
   until albitor-ltd/albitor's matching PR lands and a manifest compiler release carries the field.

@@ -1,0 +1,14 @@
+?   	webapp	[no test files]
+ok  	webapp/internal/apikit	0.035s
+?   	webapp/internal/app	[no test files]
+ok  	webapp/internal/identity	0.017s
+ok  	webapp/internal/localauth	1.443s
+ok  	webapp/internal/shell	3.010s
+auth-cognito: seeded API tree builds, vets and passes
+?   	webapp	[no test files]
+ok  	webapp/internal/apikit	0.026s
+?   	webapp/internal/app	[no test files]
+ok  	webapp/internal/identity	0.023s
+ok  	webapp/internal/localauth	1.321s
+ok  	webapp/internal/shell	4.152s
+auth-cognito: seeded plus examples API tree builds, vets and passes

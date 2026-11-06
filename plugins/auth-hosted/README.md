@@ -19,7 +19,9 @@ part of this plugin. Nothing here changes with that screen.
 
 **Sign-up domains.** `services.auth.signup_domains` in `albitor.yaml` is the supported way to limit
 sign-up to named email domains (off by default). The compiler renders it as the `SIGNUP_DOMAINS`
-config entry below, so the app never declares that key itself. See "Who may hold a session".
+config entry below, so the app never declares that key itself. See "Who may hold a session". The list
+holds every token on both lanes (`auth-cognito` does the same), so it also refuses existing users and
+invitees on unlisted domains: choose it before launch, or include every current user's domain.
 
 ## What it ships
 

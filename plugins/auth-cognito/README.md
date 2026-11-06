@@ -73,10 +73,15 @@ the screens read.
 means anyone may register, as before; it is off unless the brief or the owner asks for it. When set,
 `POST /api/auth/sign-up` for another domain answers 403 `email_not_allowed` with a message the screen
 shows as it is, and never reaches the pool; `GET /api/auth/config` adds `signup_domains` in `open`
-mode so a screen can name the domains. It judges registering only: existing accounts, invitations and
-the People screen are untouched. A malformed entry closes the API rather than open it. The pool has no
-Lambda trigger, so a caller who holds the public client id and talks to Cognito directly is not stopped
-by it: this is a courtesy limit on the app's own sign-up, not an access control.
+mode so a screen can name the domains. The list also holds **every token** the API takes (the seeded
+identity core, as `auth-hosted` does): a person who registered straight with the pool's public client
+id, an existing user and an invitee on an unlisted domain are all refused (403 `email_not_allowed`,
+session cookie cleared), and an access token, which carries no address, is refused too. The platform-seeded
+`albitor-demo.invalid`, `albitor-verify.invalid` and `albitor-role.invalid` accounts always pass.
+**Choose the list before launch, or include every current user's domain.** The pool gets no Lambda
+trigger, so the API is the gate. A malformed entry closes the API rather than open it. Use
+punycode (`xn--`) for an IDN domain. Entries are lower-case; a trailing-dot or look-alike address
+(`example.org.evil.com`) does not match.
 
 - **`invite_only`**: sign-up, confirm, resend, forgot and reset answer 404 `not_found`; the sign-in
   screen hides those links and `/sign-up`, `/confirm`, `/reset` redirect to `/sign-in`. User administrators

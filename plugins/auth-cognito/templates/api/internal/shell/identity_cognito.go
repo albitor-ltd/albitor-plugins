@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -187,7 +188,7 @@ func (a *cognitoAuth) signUpMode() string {
 }
 
 // domainEntry is one SIGNUP_DOMAINS-style entry: `example.org` or `*.example.org`.
-var domainEntry = regexp.MustCompile(`^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$`)
+var domainEntry = regexp.MustCompile(`^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+([a-z]{2,63}|xn--[a-z0-9-]{1,59})$`)
 
 // parseSignupDomains reads AUTH_SIGNUP_DOMAINS: domains separated by commas or spaces. Empty
 // means anyone may register. An entry that is not a domain is an error, so a typo closes the API
@@ -204,10 +205,9 @@ func parseSignupDomains(raw string) ([]string, error) {
 	return out, nil
 }
 
-// signupAllowed reports whether email may register. With no rule, anyone may. `example.org` is
+// signupAllowed reports whether email's domain is on the list. With no rule, anyone may. `example.org` is
 // exactly that domain; `*.example.org` is any subdomain of it, not the bare domain. It judges
-// registering only: an existing account, or one an administrator created, signs in whatever its
-// domain.
+// the list only; holdsSession applies it to every token and the sign-up call applies it early.
 func (a *cognitoAuth) signupAllowed(email string) bool {
 	if len(a.signupDomains) == 0 {
 		return true
@@ -229,6 +229,30 @@ func (a *cognitoAuth) signupAllowed(email string) bool {
 		}
 	}
 	return false
+}
+
+// errEmailNotAllowed is what a refusal by the sign-up domain list tells the person.
+const errEmailNotAllowed = "This app is limited to certain email domains, and this account's address is not one of them. Ask the person who runs this app."
+
+// platformSeededDomains are the domains of the accounts the platform seeds into the pool (the
+// verifier, the demo account and each role's account). They are .invalid (RFC 2606), so no real
+// person can hold one, and the list never locks them out: journeys and the demo sign-in need them.
+var platformSeededDomains = []string{"albitor-verify.invalid", "albitor-demo.invalid", "albitor-role.invalid"}
+
+// holdsSession reports whether the verified identity may use the API under the domain list. With
+// no list everyone may. With one, the token must carry an address (an access token carries none,
+// so it is refused: the API takes the ID token) on a listed domain, or a platform-seeded one. It
+// reads the token's own address every time, so a person who changes their address, an invitee and
+// a person who registered with the pool directly are all held to it.
+func (a *cognitoAuth) holdsSession(id identity.Identity) bool {
+	if len(a.signupDomains) == 0 {
+		return true
+	}
+	email := strings.ToLower(strings.TrimSpace(id.Email))
+	if at := strings.LastIndex(email, "@"); at >= 1 && slices.Contains(platformSeededDomains, email[at+1:]) {
+		return true
+	}
+	return a.signupAllowed(email)
 }
 
 // newLocalIssuerAuth trusts the local issuer at issuer, and nothing else.
@@ -273,6 +297,14 @@ func (a *cognitoAuth) authenticate(w http.ResponseWriter, r *http.Request, logge
 		id, err = a.refreshSession(w, r)
 	}
 	switch {
+	case err == nil && !a.holdsSession(id):
+		// The list applies to every token, whoever made the account: a person who registered
+		// straight with the pool's public client id gets no further than one who used the screen.
+		if fromCookie {
+			clearSessionCookies(w)
+		}
+		apikit.WriteJSON(w, http.StatusForbidden, map[string]string{"error": errEmailNotAllowed, "code": "email_not_allowed"})
+		return identity.Identity{}, false
 	case err == nil:
 		return id, true
 	case errors.Is(err, errVerifierUnavailable):

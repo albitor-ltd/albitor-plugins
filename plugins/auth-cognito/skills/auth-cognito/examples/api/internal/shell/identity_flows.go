@@ -223,6 +223,12 @@ func (a *cognitoAuth) finishSignIn(w http.ResponseWriter, r *http.Request, token
 		writeAuthError(w, http.StatusBadGateway, "unavailable", "sign-in is unavailable")
 		return
 	}
+	if !a.holdsSession(id) {
+		// The domain list (services.auth.signup_domains) also holds an existing account; say so
+		// here rather than set a session the API would refuse on the next call.
+		writeAuthError(w, http.StatusForbidden, "email_not_allowed", errEmailNotAllowed)
+		return
+	}
 	setSessionCookie(w, sessionCookie, tokens.IDToken, "/", sessionMaxAge)
 	if tokens.RefreshToken != "" {
 		setSessionCookie(w, refreshCookie, tokens.RefreshToken, refreshCookiePath, sessionMaxAge)
