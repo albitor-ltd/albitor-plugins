@@ -27,6 +27,10 @@ A person can sign in and reach a protected route. How they get an account is
 Both modes have **Change password** (`POST /api/auth/change-password`, any signed-in person) and
 the public `GET /api/auth/config` (`{"sign_up": "open" | "invite_only"}`, from the `AUTH_SIGN_UP`
 environment variable; unset means `open`), which the screens read to know which mode they are in.
+`services.auth.signup_domains` (optional, off by default: never set it unless the brief or the owner
+names the domains) reaches the function as `AUTH_SIGNUP_DOMAINS`; `sign-up` for another domain answers
+403 `email_not_allowed` and `GET /api/auth/config` adds `signup_domains` in `open` mode. It never
+affects existing accounts or invitations. Keep the sign-up screen showing the API's message.
 All of that is in the repository: read it, then extend it. The plugin declares `services.auth`
 (provider `cognito`, posture `private`) in `albitor.yaml`; the deploy target realises the user pool
 and hands the function `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AWS_REGION`, `AUTH_SIGN_UP`,

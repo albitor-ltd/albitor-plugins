@@ -3,6 +3,7 @@ package shell
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -116,6 +117,44 @@ func TestSignUpConfirmAndResetReachThePool(t *testing.T) {
 	}
 	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-in", "", nil); rec.Code != http.StatusNotFound {
 		t.Fatalf("GET /api/auth/sign-in = %d, want 404", rec.Code)
+	}
+}
+
+// An allow-list refuses a sign-up from another domain with a clear message and never reaches the
+// pool; sign-in and the people already in the pool are untouched, and an unset list is open.
+func TestSignUpDomainAllowList(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	reached := 0
+	f.answer("SignUp", func(map[string]any) (int, any) {
+		reached++
+		return http.StatusOK, map[string]any{"UserConfirmed": false}
+	})
+	auth := func(domains []string) http.Handler {
+		return composeIdentity(signIn{auth: &cognitoAuth{
+			clientID: testClientID, endpoint: srv.URL + "/", client: srv.Client(), signupDomains: domains,
+			verifier: newCognitoVerifier(f.issuer, testClientID, f.issuer+"/.well-known/jwks.json", srv.Client()),
+		}})
+	}
+	signUp := func(h http.Handler, email string) *httptest.ResponseRecorder {
+		return authDo(t, h, http.MethodPost, "/api/auth/sign-up", `{"email":"`+email+`","password":"Long-enough-1"}`, nil)
+	}
+
+	limited := auth([]string{"example.org"})
+	rec := signUp(limited, "Outsider@other.test")
+	body := authDecode(t, rec)
+	if rec.Code != http.StatusForbidden || body["code"] != "email_not_allowed" || !strings.Contains(body["error"].(string), "email domains") || reached != 0 {
+		t.Fatalf("outside the list = %d %v (pool reached %d times), want 403 email_not_allowed and no pool call", rec.Code, body, reached)
+	}
+	if rec := signUp(limited, "Person@Example.org"); rec.Code != http.StatusCreated || reached != 1 {
+		t.Fatalf("inside the list = %d (pool reached %d times), want 201", rec.Code, reached)
+	}
+	if rec := signUp(auth(nil), "anyone@other.test"); rec.Code != http.StatusCreated || reached != 2 {
+		t.Fatalf("no list = %d, want open sign-up", rec.Code)
+	}
+	// The list judges registering only: confirm and sign-in are not gated on it.
+	f.answer("ConfirmSignUp", func(map[string]any) (int, any) { return http.StatusOK, map[string]any{} })
+	if rec := authDo(t, limited, http.MethodPost, "/api/auth/confirm", `{"email":"old@other.test","code":"123456"}`, nil); rec.Code != http.StatusNoContent {
+		t.Fatalf("confirm for an existing sign-up = %d, want 204", rec.Code)
 	}
 }
 

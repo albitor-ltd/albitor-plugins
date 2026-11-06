@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -40,8 +41,11 @@ const (
 	// not AUTH_ADMIN_GROUP, which the platform's demo and verifier accounts also belong to. Empty
 	// means nobody may: the People endpoints fail closed.
 	envUserAdminGroup = "AUTH_USER_ADMIN_GROUP"
-	envLambdaName     = "AWS_LAMBDA_FUNCTION_NAME"
-	envLocalRun       = "ALBITOR_LOCAL"
+	// envSignupDomains is services.auth.signup_domains: email domains, comma-separated, each
+	// `example.org` or `*.example.org`. Unset or empty means no limit.
+	envSignupDomains = "AUTH_SIGNUP_DOMAINS"
+	envLambdaName    = "AWS_LAMBDA_FUNCTION_NAME"
+	envLocalRun      = "ALBITOR_LOCAL"
 )
 
 // The session cookies. Both HttpOnly, Secure and SameSite=Strict: no script
@@ -91,6 +95,11 @@ func signInFromEnv(getenv func(string) string) signIn {
 			SignUp: strings.TrimSpace(getenv(envSignUp)), AdminGroup: strings.TrimSpace(getenv(envAdminGroup)),
 			UserAdminGroup: strings.TrimSpace(getenv(envUserAdminGroup)),
 		}
+		domains, err := parseSignupDomains(getenv(envSignupDomains))
+		if err != nil {
+			return signIn{err: err}
+		}
+		cfg.SignupDomains = domains
 		if !cfg.valid() {
 			return signIn{err: fmt.Errorf("%s, %s and %s must all be set, and well formed", envUserPoolID, envClientID, envRegion)}
 		}
@@ -122,6 +131,8 @@ type cognitoConfig struct {
 	AdminGroup string
 	// UserAdminGroup is the group that manages people in an invite_only app.
 	UserAdminGroup string
+	// SignupDomains limits who may register to these email domains; empty means anyone.
+	SignupDomains []string
 }
 
 // The two sign-up modes (services.auth.sign_up).
@@ -158,6 +169,7 @@ type cognitoAuth struct {
 	signUp         string
 	adminGroup     string
 	userAdminGroup string
+	signupDomains  []string
 	poolID         string
 	region         string
 }
@@ -172,6 +184,51 @@ func (a *cognitoAuth) signUpMode() string {
 		return signUpInviteOnly
 	}
 	return signUpOpen
+}
+
+// domainEntry is one SIGNUP_DOMAINS-style entry: `example.org` or `*.example.org`.
+var domainEntry = regexp.MustCompile(`^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$`)
+
+// parseSignupDomains reads AUTH_SIGNUP_DOMAINS: domains separated by commas or spaces. Empty
+// means anyone may register. An entry that is not a domain is an error, so a typo closes the API
+// rather than quietly opening or emptying the rule.
+func parseSignupDomains(raw string) ([]string, error) {
+	var out []string
+	for _, entry := range strings.FieldsFunc(raw, func(r rune) bool { return r == ',' || r == ' ' || r == '\t' || r == '\n' }) {
+		entry = strings.TrimPrefix(strings.ToLower(entry), "@")
+		if !domainEntry.MatchString(entry) {
+			return nil, fmt.Errorf("%s holds %q, which is not a domain such as example.org or *.example.org", envSignupDomains, entry)
+		}
+		out = append(out, entry)
+	}
+	return out, nil
+}
+
+// signupAllowed reports whether email may register. With no rule, anyone may. `example.org` is
+// exactly that domain; `*.example.org` is any subdomain of it, not the bare domain. It judges
+// registering only: an existing account, or one an administrator created, signs in whatever its
+// domain.
+func (a *cognitoAuth) signupAllowed(email string) bool {
+	if len(a.signupDomains) == 0 {
+		return true
+	}
+	at := strings.LastIndex(email, "@")
+	if at < 1 || at == len(email)-1 {
+		return false
+	}
+	domain := strings.ToLower(email[at+1:])
+	for _, d := range a.signupDomains {
+		if suffix, ok := strings.CutPrefix(d, "*"); ok {
+			if strings.HasSuffix(domain, suffix) && len(domain) > len(suffix) {
+				return true
+			}
+			continue
+		}
+		if domain == d {
+			return true
+		}
+	}
+	return false
 }
 
 // newLocalIssuerAuth trusts the local issuer at issuer, and nothing else.
@@ -196,6 +253,7 @@ func newCognitoAuth(cfg cognitoConfig) *cognitoAuth {
 		signUp:         cfg.SignUp,
 		adminGroup:     cfg.AdminGroup,
 		userAdminGroup: cfg.UserAdminGroup,
+		signupDomains:  cfg.SignupDomains,
 		poolID:         cfg.UserPoolID,
 		region:         cfg.Region,
 	}

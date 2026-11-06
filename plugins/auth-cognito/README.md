@@ -68,6 +68,16 @@ remove the `/api/me` entry from `api/openapi.yaml` yourself if the app no longer
 existed behaves as it always did. `GET /api/auth/config` (public) answers `{"sign_up": ...}`, which
 the screens read.
 
+**Optional sign-up domain allow-list.** `AUTH_SIGNUP_DOMAINS` is `services.auth.signup_domains`:
+`example.org` (exactly that domain) or `*.example.org` (any subdomain), comma-separated. Unset or empty
+means anyone may register, as before; it is off unless the brief or the owner asks for it. When set,
+`POST /api/auth/sign-up` for another domain answers 403 `email_not_allowed` with a message the screen
+shows as it is, and never reaches the pool; `GET /api/auth/config` adds `signup_domains` in `open`
+mode so a screen can name the domains. It judges registering only: existing accounts, invitations and
+the People screen are untouched. A malformed entry closes the API rather than open it. The pool has no
+Lambda trigger, so a caller who holds the public client id and talks to Cognito directly is not stopped
+by it: this is a courtesy limit on the app's own sign-up, not an access control.
+
 - **`invite_only`**: sign-up, confirm, resend, forgot and reset answer 404 `not_found`; the sign-in
   screen hides those links and `/sign-up`, `/confirm`, `/reset` redirect to `/sign-in`. User administrators
   (members of `AUTH_USER_ADMIN_GROUP`, not merely of `AUTH_ADMIN_GROUP`) manage people on `/people`: `GET`/`POST /api/auth/users`,

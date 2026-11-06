@@ -129,6 +129,13 @@ func (a *cognitoAuth) serveAuth(w http.ResponseWriter, r *http.Request, logger *
 			return
 		}
 	case "sign-up":
+		// services.auth.signup_domains: refuse an address outside the allow-list before the pool
+		// is asked, with a message the sign-up screen shows as it is.
+		if !a.signupAllowed(email) {
+			writeAuthError(w, http.StatusForbidden, "email_not_allowed",
+				"Sign-up is limited to certain email domains, and this address is not one of them. Ask the person who runs this app to invite you.")
+			return
+		}
 		var out struct {
 			UserConfirmed bool `json:"UserConfirmed"`
 		}
