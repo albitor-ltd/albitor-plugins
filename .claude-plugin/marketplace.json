@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.8.1",
-        "sha": "fe2743ceb475b97779b7c794240d5f2e9e8578d8"
+        "ref": "deploy-byoa-aws/v0.9.0",
+        "sha": "6b3dbfc1060c65323db3527fa0eee5fddda3bc1c"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.8.0",
-        "sha": "83643625c551abc97e03254eb09def1d5f205d8a"
+        "ref": "auth-cognito/v0.9.0",
+        "sha": "6b3dbfc1060c65323db3527fa0eee5fddda3bc1c"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me, and the web side keeps a provider-independent session and a route guard. The sign-in calls, the sign-in, sign-up, confirm, reset screens, a Sign out button and the People admin are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
