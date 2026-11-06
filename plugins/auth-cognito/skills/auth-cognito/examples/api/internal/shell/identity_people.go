@@ -48,7 +48,11 @@ func (a *cognitoAuth) serveSignedInRoute(w http.ResponseWriter, r *http.Request,
 			return true
 		}
 		w.Header().Set("Cache-Control", "no-store")
-		out := map[string]string{"sign_up": a.signUpMode()}
+		out := map[string]any{"sign_up": a.signUpMode()}
+		if !a.inviteOnly() && len(a.signupDomains) > 0 {
+			// Public on purpose: the sign-up screen names the domains it accepts.
+			out["signup_domains"] = a.signupDomains
+		}
 		if a.inviteOnly() && a.userAdminGroup != "" {
 			// A group name is not a secret: the screens use it to offer People only to its members.
 			out["user_admin_group"] = a.userAdminGroup

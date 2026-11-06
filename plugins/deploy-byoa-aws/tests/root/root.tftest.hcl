@@ -240,6 +240,30 @@ run "open_sign_up_wires_no_user_administration" {
   }
 }
 
+run "signup_domains_reach_the_function_and_default_to_no_limit" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-signup-domains.yaml"
+  }
+
+  assert {
+    condition     = module.auth[0].env.AUTH_SIGNUP_DOMAINS == "example.org,*.example.co.uk"
+    error_message = "services.auth.signup_domains is handed to the function, comma-joined"
+  }
+}
+
+run "no_signup_domains_means_no_limit" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth.yaml"
+  }
+
+  assert {
+    condition     = module.auth[0].env.AUTH_SIGNUP_DOMAINS == ""
+    error_message = "unset means open sign-up, as before"
+  }
+}
+
 run "no_auth_means_no_user_administration" {
   command = plan
   variables {

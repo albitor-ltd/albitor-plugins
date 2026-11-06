@@ -68,6 +68,21 @@ remove the `/api/me` entry from `api/openapi.yaml` yourself if the app no longer
 existed behaves as it always did. `GET /api/auth/config` (public) answers `{"sign_up": ...}`, which
 the screens read.
 
+**Optional sign-up domain allow-list.** `AUTH_SIGNUP_DOMAINS` is `services.auth.signup_domains`:
+`example.org` (exactly that domain) or `*.example.org` (any subdomain), comma-separated. Unset or empty
+means anyone may register, as before; it is off unless the brief or the owner asks for it. When set,
+`POST /api/auth/sign-up` for another domain answers 403 `email_not_allowed` with a message the screen
+shows as it is, and never reaches the pool; `GET /api/auth/config` adds `signup_domains` in `open`
+mode so a screen can name the domains. The list also holds **every token** the API takes (the seeded
+identity core, as `auth-hosted` does): a person who registered straight with the pool's public client
+id, an existing user and an invitee on an unlisted domain are all refused (403 `email_not_allowed`,
+session cookie cleared), and an access token, which carries no address, is refused too. The platform-seeded
+`albitor-demo.invalid`, `albitor-verify.invalid` and `albitor-role.invalid` accounts always pass.
+**Choose the list before launch, or include every current user's domain.** The pool gets no Lambda
+trigger, so the API is the gate. A malformed entry closes the API rather than open it. Use
+punycode (`xn--`) for an IDN domain. Entries are lower-case; a trailing-dot or look-alike address
+(`example.org.evil.com`) does not match.
+
 - **`invite_only`**: sign-up, confirm, resend, forgot and reset answer 404 `not_found`; the sign-in
   screen hides those links and `/sign-up`, `/confirm`, `/reset` redirect to `/sign-in`. User administrators
   (members of `AUTH_USER_ADMIN_GROUP`, not merely of `AUTH_ADMIN_GROUP`) manage people on `/people`: `GET`/`POST /api/auth/users`,

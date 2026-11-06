@@ -88,7 +88,7 @@ a composed root cannot `init` before it exists).
   else from the app's People screen (below), so the pool is never one nobody can sign in to. `open`
   lets anyone register and confirm by email, exactly as before. `posture` is enforced by the app
   and changes nothing in the infrastructure. The function
-  is handed `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AUTH_SIGN_UP` (the mode) and `AUTH_ADMIN_GROUP`
+  is handed `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AUTH_SIGN_UP` (the mode), `AUTH_SIGNUP_DOMAINS` (`services.auth.signup_domains`, comma-joined, empty means no limit) and `AUTH_ADMIN_GROUP`
   (Lambda supplies `AWS_REGION`) and the root
   outputs both ids as `auth_user_pool_id` and `auth_client_id`. Mail goes through Cognito's default
   sender, which has a daily cap. Only `provider: cognito` is accepted; the module refuses the rest.

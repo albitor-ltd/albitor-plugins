@@ -38,12 +38,13 @@ output "invite_only" {
 }
 
 output "env" {
-  description = "The environment the function is handed: AUTH_USER_POOL_ID, AUTH_CLIENT_ID, AUTH_SIGN_UP (invite_only or open: which API actions answer) and AUTH_ADMIN_GROUP (the app's admin role) and AUTH_USER_ADMIN_GROUP (who may administer people; empty in open), which the auth-cognito plugin reads (Lambda sets AWS_REGION itself)."
+  description = "The environment the function is handed: AUTH_USER_POOL_ID, AUTH_CLIENT_ID, AUTH_SIGN_UP (invite_only or open: which API actions answer) and AUTH_ADMIN_GROUP (the app's admin role) and AUTH_USER_ADMIN_GROUP (who may administer people; empty in open), AUTH_SIGNUP_DOMAINS (services.auth.signup_domains, comma-joined; empty means no limit), which the auth-cognito plugin reads (Lambda sets AWS_REGION itself)."
   value = {
     AUTH_USER_POOL_ID     = aws_cognito_user_pool.this.id
     AUTH_CLIENT_ID        = aws_cognito_user_pool_client.this.id
     AUTH_SIGN_UP          = var.sign_up
     AUTH_ADMIN_GROUP      = local.admin_group
     AUTH_USER_ADMIN_GROUP = var.sign_up == "invite_only" ? var.user_admin_group : ""
+    AUTH_SIGNUP_DOMAINS   = join(",", var.signup_domains)
   }
 }

@@ -50,6 +50,18 @@ variable "sign_up" {
   }
 }
 
+variable "signup_domains" {
+  description = "services.auth.signup_domains: email domains allowed to register, `example.org` or `*.example.org`. Empty means anyone. The API enforces it (the pool has no Lambda trigger); it applies to every token the API takes, so it also refuses existing users and invitees on unlisted domains: choose it before launch or include every current user's domain. Use punycode (xn--) for IDN domains."
+  type        = list(string)
+  default     = []
+  nullable    = false
+
+  validation {
+    condition     = alltrue([for d in var.signup_domains : can(regex("^(\\*\\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+([a-z]{2,63}|xn--[a-z0-9-]{1,59})$", d))])
+    error_message = "Each services.auth.signup_domains entry must be a lower-case domain such as example.org or *.example.org."
+  }
+}
+
 variable "groups" {
   description = "services.auth.groups: group names to create in the pool."
   type        = list(string)

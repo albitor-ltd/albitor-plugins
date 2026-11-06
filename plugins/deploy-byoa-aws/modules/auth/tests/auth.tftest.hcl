@@ -284,3 +284,31 @@ run "a_hostile_sign_in_url_is_refused" {
 
   expect_failures = [var.sign_in_url]
 }
+
+run "signup_domains_are_handed_to_the_function_and_default_to_none" {
+  command = plan
+  variables {
+    sign_up        = "open"
+    signup_domains = ["example.org", "*.example.co.uk"]
+  }
+  assert {
+    condition     = output.env.AUTH_SIGNUP_DOMAINS == "example.org,*.example.co.uk"
+    error_message = "the allow-list is comma-joined into AUTH_SIGNUP_DOMAINS"
+  }
+}
+
+run "no_signup_domains_means_no_limit" {
+  command = plan
+  assert {
+    condition     = output.env.AUTH_SIGNUP_DOMAINS == ""
+    error_message = "unset is no limit"
+  }
+}
+
+run "a_malformed_signup_domain_is_refused" {
+  command = plan
+  variables {
+    signup_domains = ["not a domain"]
+  }
+  expect_failures = [var.signup_domains]
+}
