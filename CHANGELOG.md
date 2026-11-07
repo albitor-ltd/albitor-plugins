@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- `api-go` `0.6.2` and `object-s3` `0.1.2` (albitor-ltd/albitor#4520, albitor-ltd/albitor#4505; tags
+  follow the merge). Text only: `api-go`'s secrets guidance no longer mentions the retired
+  `ALBITOR_SECRETS_PREFIX` alias (read `ALBITOR_SECRETS_PARAMETER_PREFIX`), and the `object-s3`
+  example test's fixture bucket is `uploads-bucket`.
+
 ### Added
 
 - `auth-cognito` `0.9.0` and `deploy-byoa-aws` `0.9.0` (albitor-ltd/albitor#4452 item 15; tags follow

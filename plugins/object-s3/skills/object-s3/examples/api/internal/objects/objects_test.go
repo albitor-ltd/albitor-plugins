@@ -119,7 +119,7 @@ func verify(t *testing.T, r *http.Request, host, region, secret string) bool {
 // request as the browser sends it verifies, and tampering with any signed
 // part does not.
 func TestPresignedPutRoundTrips(t *testing.T) {
-	for _, bucket := range []string{"albitor-hosted-app--uploads", "my.dotted.bucket"} {
+	for _, bucket := range []string{"uploads-bucket", "my.dotted.bucket"} {
 		s, _ := NewS3(S3Config{
 			Bucket: bucket, Region: "eu-west-2", Prefix: "_objects/uploads/",
 			Credentials: Credentials{AccessKeyID: "AKIDEXAMPLE", SecretAccessKey: "secret/KEY+1", SessionToken: "tok/en+="},

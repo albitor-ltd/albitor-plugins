@@ -219,8 +219,8 @@ and grants the function's role `ssm:GetParameter` and `ssm:GetParameters` on exa
   on a secret entry is rejected); the person supplies the value through Albitor, never the
   repository. The parameter name is the key, so the read is the prefix plus that key
   (`os.Getenv("ALBITOR_SECRETS_PARAMETER_PREFIX") + "ANTHROPIC_API_KEY"`; the prefix ends in `/`, so
-  concatenate). Do not use the deprecated `ALBITOR_SECRETS_PREFIX`. A key not yet supplied reads as
-  not found: that feature is "not configured", not an error for the app.
+  concatenate). A key not yet supplied reads as not found: that feature is "not configured", not
+  an error for the app.
 - Read at request time or cache briefly; never log a value or put it in a response.
 
 ```yaml
