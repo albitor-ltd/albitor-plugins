@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours. A button is a <button>; to navigate, use a link.
+<!-- A starting point, then yours. A button is a <button>; to navigate, use a link.
      Wraps Carbon's Button, so the variants map onto Carbon's kinds. -->
 <script lang="ts">
 	import { Button } from 'carbon-components-svelte';

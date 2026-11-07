@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: a labelled text control on Carbon's TextInput and
+<!-- A starting point, then yours: a labelled text control on Carbon's TextInput and
      TextArea. The label, the hint and the error are tied to the control, so a screen reader
      announces all three (Carbon alone drops the hint once there is an error). Never use a
      placeholder as the label. -->

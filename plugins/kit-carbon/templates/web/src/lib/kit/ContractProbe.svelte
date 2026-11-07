@@ -1,5 +1,5 @@
-<!-- Starting point (kit-carbon): the component-kit@2 shell contract on one page. AppShell, Footer
-     and SignInPage are imported from the kit's index, the way an auth plugin imports them, so
+<!-- A starting point: the shell contract on one page. AppShell, Footer
+     and SignInPage are imported from the kit's index, the way the sign-in code imports them, so
      contract.test.ts fails if the kit stops exporting one. Keep it so the audit still runs; it is not routed and nothing links here. -->
 <script lang="ts">
 	import { AppShell, Footer, SignInPage } from './index';

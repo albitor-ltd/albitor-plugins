@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: a modal dialog. GOV.UK has no modal component, so this is
+<!-- A starting point, then yours: a modal dialog. GOV.UK has no modal component, so this is
      a GOV.UK-styled native <dialog>, which the browser gives the focus trap, Escape, the inert page
      behind it and returning focus to the control that opened it. Always give it a title and a
      description: the title is the dialog's accessible name and the description is read with it.

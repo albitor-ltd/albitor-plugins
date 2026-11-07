@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: the page footer (component-kit@2 `Footer`) in GOV.UK
+<!-- A starting point, then yours: the page footer in GOV.UK
      footer colours and link style. One <footer> (the contentinfo landmark) that is a sibling of
      <main>, never inside it. Pass it to AppShell's `footer` prop so it sits at the foot of the
      page. Links are plain destinations (privacy, accessibility statement, cookies, contact);
@@ -7,7 +7,7 @@
      It is NOT GOV.UK's footer component: no Crown copyright, no Open Government Licence line, no
      crest. Those are for services on GOV.UK only. -->
 <script lang="ts" module>
-	/** One destination in the footer. Standard across component-kit@2. */
+	/** One destination in the footer. Standard across every kit. */
 	export type FooterLink = { href: string; label: string };
 </script>
 
