@@ -9,7 +9,7 @@
 # the platform's handover gate (albitor-ltd/albitor, app/runner/gates/handover_reference.sh, the
 # `handover-clean/no-internal-references` floor check); that script is the source of truth. Keep
 # the patterns, the token list and the shapes below in step with it. The platform's per-app
-# exemptions (the repository's own owner/repo slug, the README attribution line) are not mirrored:
+# exemptions (the repository's own owner/repo slug) are not mirrored:
 # they do not apply to a plugin. The two composer placeholders, {{albitor.slot.<name>}} and
 # {{albitor.app_name}}, are stripped for a different reason: the platform scans the composed tree,
 # where the composer has already replaced them, but this check reads the plugin's pre-composition
