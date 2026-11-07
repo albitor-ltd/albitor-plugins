@@ -18,10 +18,10 @@
   "colours": {
     "text": "#2b160f",
     "text_secondary": "#6e4533",
-    "border": "#f2c9a0",
+    "border": "#e8dccd",
     "control_border": "#a97a50",
-    "surface": "#ffe8d1",
-    "background": "#fff7ee",
+    "surface": "#ffffff",
+    "background": "#faf8f5",
     "accent": "#b0128f",
     "on_accent": "#ffffff",
     "danger": "#b3261e",

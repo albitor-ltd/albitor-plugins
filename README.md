@@ -52,7 +52,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `auth-none` | The `auth@1` plugin for an app with no sign-in: a stub identity seam with one fixed owner, no screens |
 | `look-business` | The `visual-language@1` look for enterprise and line-of-business apps: dense, navy neutrals, 2px corners, no elevation, tabular figures; ships `preview-tokens.json` |
 | `look-startup` | The `visual-language@1` look for SaaS and developer tools: near-neutral surfaces, one teal accent, 10px corners, hairline plus soft layered shadow; ships `preview-tokens.json` |
-| `look-consumer` | The `visual-language@1` look for mobile-first personal and lifestyle apps: warm cream and berry, rounded type, 24px corners, 48px targets; ships `preview-tokens.json` |
+| `look-consumer` | The `visual-language@1` look for mobile-first personal and lifestyle apps: warm white and berry, rounded type, 24px corners, 48px targets; ships `preview-tokens.json` |
 | `web-app-architecture` | Architecture patterns for the `web_app` archetype, delivered to the planner and the app-foundation node only (`archetype: web_app`, `deliver_to`): an index with use when, avoid when and how to decide, and one file per pattern (file storage, slow supplier work, platform limits, seeding for deployed walks) |
 
 `auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`). `auth-hosted` is a separate `auth@1` provider for the hosted lane (the pool comes from the hosted-app auth module and signs in on Cognito's hosted page); `auth-cognito` stays the plugin for an app's own account (BYOA), which signs in with a password through its own screens.
