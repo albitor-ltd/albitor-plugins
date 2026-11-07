@@ -1,6 +1,6 @@
 # Look: Consumer (`look-consumer`)
 
-Friendly and warm. Rounded type, 24px corners, 48px targets, cream neutrals with a berry accent, spacious layouts.
+Friendly and warm. Rounded type, 24px corners, 48px targets, warm white neutrals with a berry accent, spacious layouts.
 
 A `visual-language@1` plugin: a look pack. It ships `preview-tokens.json` (the token set the
 platform paints the preview and derives the light and dark scheme from) and one skill,

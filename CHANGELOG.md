@@ -56,6 +56,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `look-consumer` `0.1.3` (albitor-ltd/albitor-plugins#189, albitor-ltd/albitor#4496; tag follows the
+  merge). Warm white page `#faf8f5` (was cream `#fff7ee`) and white cards `#ffffff` (was peach
+  `#ffe8d1`); decorative border `#f2c9a0` to `#e8dccd`. The control border `#a97a50` is unchanged and
+  still clears 3:1 on both. Every look-engine check passes in light and derived dark.
+
 - `kit-carbon` `0.7.0`, `kit-shadcn` `0.7.0` and `kit-gds` `0.7.0` (albitor-ltd/albitor#4300; tags
   follow the merge). The page templates (`pages/*`, `PagesShowcase.svelte`, `pages.test.ts`) leave
   the seeded files and become worked examples in each kit's skill (`examples/web/src/lib/kit/pages/`,
