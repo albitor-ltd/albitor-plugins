@@ -1,6 +1,6 @@
 ---
 name: look-consumer
-description: "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page, white cards and a berry accent, a few things at a time."
+description: "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page with white cards and a berry accent, a few things at a time."
 capability: visual-language
 ---
 
