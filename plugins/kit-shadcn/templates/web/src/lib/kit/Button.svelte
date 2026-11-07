@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours. A button is a <button>; to navigate, use a link. -->
+<!-- A starting point, then yours. A button is a <button>; to navigate, use a link. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLButtonAttributes } from 'svelte/elements';

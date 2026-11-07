@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: the page frame in GOV.UK Frontend v6 markup. web-svelte's
+<!-- A starting point, then yours: the page frame in GOV.UK Frontend v6 markup. web-svelte's
      root layout renders it with the merged nav and the current path. Keep the skip link first, one
      labelled nav and one main landmark. `footer` is an optional snippet rendered after <main>,
      outside it, normally `<Footer>`. `account` is an optional snippet for the signed-in visitor's

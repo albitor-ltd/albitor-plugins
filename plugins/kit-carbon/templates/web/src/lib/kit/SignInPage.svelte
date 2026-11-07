@@ -1,9 +1,9 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: a sign-in screen. It is presentation only: the
-     identity plugin (auth@1) decides what signing in means, so call its client from `onsubmit` and
+<!-- A starting point, then yours: a sign-in screen. It is presentation only: the
+     app's identity code decides what signing in means, so call its client from `onsubmit` and
      pass back a plain `error` sentence. Say "Email or password is incorrect" and never which one,
      keep the password field `autocomplete="current-password"` so a password manager works, and do
-     not block paste (WCAG 3.3.8 Accessible Authentication). The page has its own <h1>. If the auth
-     plugin already ships sign-in routes, restyle those with these pieces rather than adding a
+     not block paste (WCAG 3.3.8 Accessible Authentication). The page has its own <h1>. If the app
+     already ships sign-in routes, restyle those with these pieces rather than adding a
      second route.
 
        <SignInPage {error} {busy} onsubmit={(email, password) => signIn(email, password)}

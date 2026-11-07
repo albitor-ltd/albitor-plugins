@@ -1,4 +1,4 @@
-// Seeded by Albitor (kit-shadcn), then yours: the toast queue the Toaster renders.
+// A starting point, then yours: the toast queue the Toaster renders.
 //
 // Module state is fine here because the app is a client-rendered SPA: one browser, one queue.
 // If you ever prerender, move the queue into context.

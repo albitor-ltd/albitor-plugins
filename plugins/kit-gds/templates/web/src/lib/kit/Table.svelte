@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: a read-only GOV.UK table (govuk-table). Cell values are
+<!-- A starting point, then yours: a read-only GOV.UK table (govuk-table). Cell values are
      text. For a cell that needs markup, copy this component and give the column a snippet. -->
 <script module lang="ts">
 	export interface Column {

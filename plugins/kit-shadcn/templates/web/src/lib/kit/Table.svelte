@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: a read-only data table. Cell values are text. For a
+<!-- A starting point, then yours: a read-only data table. Cell values are text. For a
      cell that needs markup, copy this component and give the column a snippet. -->
 <script module lang="ts">
 	export interface Column {

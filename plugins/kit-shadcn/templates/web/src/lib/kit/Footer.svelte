@@ -1,10 +1,10 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: the page footer (component-kit@2 `Footer`). One
+<!-- A starting point, then yours: the page footer. One
      <footer> (the contentinfo landmark) that is a sibling of <main>, never inside it. Pass it to
      AppShell's `footer` prop so it sits at the foot of the frame. Links are plain destinations
      (privacy, terms, accessibility statement, contact); `children` is free text such as a copyright
      line. Both are optional, and with neither the footer renders nothing. -->
 <script lang="ts" module>
-	/** One destination in the footer. Standard across component-kit@2. */
+	/** One destination in the footer. Standard across every kit. */
 	export type FooterLink = { href: string; label: string };
 </script>
 

@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: a labelled text control in GOV.UK form-group markup. The
+<!-- A starting point, then yours: a labelled text control in GOV.UK form-group markup. The
      label, the hint and the error are tied to the control, so a screen reader announces all
      three. Never use a placeholder as the label. -->
 <script lang="ts">

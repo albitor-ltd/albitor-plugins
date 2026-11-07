@@ -1,4 +1,4 @@
-<!-- Starting point (kit-gds): every shell piece on one page, and what kit.test.ts and
+<!-- A starting point: every shell piece on one page, and what kit.test.ts and
      dialog.test.ts audit with axe. Copy from it when building a page. Keep it: it is what the audits
      run against; it is not routed and nothing links here. -->
 <script lang="ts">

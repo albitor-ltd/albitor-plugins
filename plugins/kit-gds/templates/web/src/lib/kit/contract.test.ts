@@ -1,5 +1,5 @@
-// The component-kit@2 standard shell contract: AppShell, Footer and SignInPage, exported from the
-// kit's index with the same props in every kit, so an auth plugin composes against the contract and
+// The standard shell contract: AppShell, Footer and SignInPage, exported from the
+// kit's index with the same props in every kit, so sign-in code composes against the contract and
 // not against one kit. Rendered on the server the way a build prerenders, loaded into a DOM and
 // audited with axe (colour contrast is audited from the tokens in contrast.test.ts, and jsdom has
 // no layout, so it is off here). Fix the kit, not this test, to make it pass.

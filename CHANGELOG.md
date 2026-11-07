@@ -43,6 +43,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- `kit-shadcn` `0.9.1`, `kit-carbon` `0.8.1`, `kit-gds` `0.8.1` (albitor-ltd/albitor#4495; tags follow
+  the merge). The seeded kit files open with "A starting point, then yours: ..." instead of "Seeded by
+  Albitor (kit-...), then yours: ...", and their comments no longer name a plugin, a contract version
+  or `auth@1`: a delivered app never names the platform or a plugin.
 - `api-go` `0.6.1` (albitor-ltd/albitor-plugins#168; tag follows the merge). A supplier-client skill
   example (`examples/api/internal/supplier/`) reads the supplier's base URL from config with no
   default (`SUPPLIER_BASE_URL is not set` when empty) and shows honest fixtures: the supplier's

@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: the GOV.UK error summary (Frontend 6.4.0 markup). Show
+<!-- A starting point, then yours: the GOV.UK error summary (Frontend 6.4.0 markup). Show
      it at the top of the main content, above the h1, when a form fails validation, and give each
      failing Field the id its entry names. It takes focus when it appears, so a screen reader
      announces it; render it only while there are errors ({#if errors.length}), so it mounts anew

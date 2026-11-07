@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: a modal dialog on Carbon's Modal, which owns the
+<!-- A starting point, then yours: a modal dialog on Carbon's Modal, which owns the
      focus trap, Escape, the overlay and returning focus to the trigger. Always give it a title and a
      description: the title is the dialog's accessible name and the description is read with it.
      Carbon keeps a closed Modal in the page (inert), so the dialog role is always present; the
