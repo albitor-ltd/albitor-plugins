@@ -57,6 +57,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `object-s3` `0.1.2` example also swaps its `REC#2026/17` key fixture for `REC#a/17`, so no `#` is
   followed by three digits.
 
+- Catalogue repinned to `api-go/v0.6.2`, `object-s3/v0.1.2` and `auth-cognito/v0.9.1`, all at
+  7ef1e9d (albitor-ltd/albitor#4505). No other pin changes.
+
 ### Fixed
 
 - `kit-shadcn` `0.9.1`, `kit-carbon` `0.8.1`, `kit-gds` `0.8.1` (albitor-ltd/albitor#4495; tags follow
