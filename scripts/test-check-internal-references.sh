@@ -99,6 +99,17 @@ for token in "${tokens[@]}"; do
   expect "token $token does not hide a reference beside it" fail
 done
 
+# Tokens the platform retired (albitor-ltd/albitor#4519, #4520) are findings wherever they appear,
+# and the loop above no longer lists them.
+for retired in '.albitor-reports/' '/albitor/platform/apps/' 'ALBITOR_SECRETS_PREFIX'; do
+  mini '[]'
+  printf 'x = "%s"\n' "$retired" >>"$work/mini/skills/s/examples/api/internal/b.go"
+  expect "retired token $retired is a finding" fail
+done
+mini '[]'
+printf 'x = os.Getenv("ALBITOR_SECRETS_PARAMETER_PREFIX")\n' >>"$work/mini/skills/s/examples/api/internal/b.go"
+expect "the parameter-prefix variable passes" pass
+
 # Regressions: case, spaces, empty globs and a broken manifest must not pass quietly.
 mini '[]'
 printf '// {{ALBITOR.SLOT.x}} and {{Albitor.app_name}}\n' >>"$work/mini/skills/s/examples/api/internal/b.go"
