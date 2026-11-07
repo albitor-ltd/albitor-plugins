@@ -15,6 +15,8 @@ manifests:
     scripts/test-catalogue-guards.sh
     scripts/validate-preview-tokens.sh
     scripts/test-preview-tokens.sh
+    scripts/check-all-internal-references.sh
+    scripts/test-check-internal-references.sh
 
 catalogue: catalogue-check catalogue-legacy
 

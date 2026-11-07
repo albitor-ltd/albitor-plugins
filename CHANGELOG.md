@@ -6,13 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Changed
-
-- `api-go` `0.6.2` and `object-s3` `0.1.2` (albitor-ltd/albitor#4520, albitor-ltd/albitor#4505; tags
-  follow the merge). Text only: `api-go`'s secrets guidance no longer mentions the retired
-  `ALBITOR_SECRETS_PREFIX` alias (read `ALBITOR_SECRETS_PARAMETER_PREFIX`), and the `object-s3`
-  example test's fixture bucket is `uploads-bucket`.
-
 ### Added
 
 - `auth-cognito` `0.9.0` and `deploy-byoa-aws` `0.9.0` (albitor-ltd/albitor#4452 item 15; tags follow
@@ -47,6 +40,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   end slot, outside the list. `patterns.md` now matches the template. The skills no longer say to start
   a page from `Showcase.svelte`, and `scripts/check-kit-fixtures.sh` (in `just ci`, and over every
   composed tree in `just compose`) fails when anything but a test references a fixture.
+
+- `scripts/check-internal-references.sh` (albitor-ltd/albitor#4518, albitor-ltd/albitor#4505): the
+  delivered-tree mirror now scans every skill's `examples/`, expands declared globs and directories,
+  strips the composer's `{{albitor.slot.*}}` and `{{albitor.app_name}}` placeholders, and runs over
+  every plugin (`just manifests`). No plugin files change for it.
+
+### Changed
+
+- `api-go` `0.6.2` and `object-s3` `0.1.2` (albitor-ltd/albitor#4520, albitor-ltd/albitor#4505; tags
+  follow the merge). Text only: `api-go`'s secrets guidance no longer mentions the retired
+  `ALBITOR_SECRETS_PREFIX` alias (read `ALBITOR_SECRETS_PARAMETER_PREFIX`), and the `object-s3`
+  example test's fixture bucket is `uploads-bucket`.
+- `auth-cognito` `0.9.1` (albitor-ltd/albitor#4518, albitor-ltd/albitor#4505; tag follows the merge).
+  Text only: the delete-account example comment no longer cites an internal decision record. The
+  `object-s3` `0.1.2` example also swaps its `REC#2026/17` key fixture for `REC#a/17`, so no `#` is
+  followed by three digits.
 
 ### Fixed
 
