@@ -1,12 +1,12 @@
 ---
 name: look-consumer
-description: "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm cream palette with a berry accent, a few things at a time."
+description: "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page, white cards and a berry accent, a few things at a time."
 capability: visual-language
 ---
 
 # Consumer look
 
-Friendly and warm. Rounded type, 24px corners, 48px targets, cream neutrals with a berry accent, spacious layouts.
+Friendly and warm. Rounded type, 24px corners, 48px targets, warm white neutrals with a berry accent, spacious layouts.
 
 A look is a pure style layer over the app's chosen component kit and markup. It changes tokens
 (type, colour, radius, density, elevation), never the structure or the accessibility behaviour of a
@@ -48,13 +48,13 @@ them; otherwise use the dark accent below. The kit offers dark and the runner sc
 
 ### Colour
 
-- Warm neutrals: text `#2b160f`, cream page `#fff7ee`, peach surfaces `#ffe8d1`. The berry accent `#b0128f` marks the main action and links.
+- Warm neutrals: text `#2b160f`, warm white page `#faf8f5`, white cards `#ffffff`. The berry accent `#b0128f` marks the main action and links.
 - Decorative borders stay soft; controls use the 3:1 `control_border`.
 - Status colours with a glyph and a word. Keep illustrations warm and slightly desaturated.
 
 The authored light palette: text `#2b160f`, secondary text `#6e4533`, border
-`#f2c9a0`, control border `#a97a50`, surface `#ffe8d1`, page
-`#fff7ee`, accent `#b0128f` with `#ffffff` on it. The accent is a default:
+`#e8dccd`, control border `#a97a50`, surface `#ffffff`, page
+`#faf8f5`, accent `#b0128f` with `#ffffff` on it. The accent is a default:
 the app's own brand colour replaces it and the platform recalculates the dependent shades.
 
 ## Phone navigation

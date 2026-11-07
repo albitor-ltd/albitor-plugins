@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `look-consumer` `0.1.3` (albitor-ltd/albitor-plugins#189, albitor-ltd/albitor#4496; tag follows the
+  merge). Warm white page `#faf8f5` (was cream `#fff7ee`) and white cards `#ffffff` (was peach
+  `#ffe8d1`); decorative border `#f2c9a0` to `#e8dccd`. The control border `#a97a50` is unchanged and
+  still clears 3:1 on both. Every look-engine check passes in light and derived dark.
+
 - `auth-cognito` `0.9.0` and `deploy-byoa-aws` `0.9.0` (albitor-ltd/albitor#4452 item 15; tags follow
   the merge). An optional sign-up email-domain allow-list, `services.auth.signup_domains`, off by
   default: `deploy-byoa-aws` hands it to the function as `AUTH_SIGNUP_DOMAINS`, and `auth-cognito`
