@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: the page frame, Carbon's UI shell (header, side nav,
+<!-- A starting point, then yours: the page frame, Carbon's UI shell (header, side nav,
      content). web-svelte's root layout renders it with the merged nav and the current path. Keep
      the skip link first, one labelled nav and one main landmark. `footer` is an optional snippet
      rendered after <main>, outside it, normally `<Footer>`. `account` is an optional snippet for the

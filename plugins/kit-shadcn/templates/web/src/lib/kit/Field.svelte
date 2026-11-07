@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: a labelled text control. The label, the hint and the
+<!-- A starting point, then yours: a labelled text control. The label, the hint and the
      error are tied to the control, so a screen reader announces all three. Never use a
      placeholder as the label. -->
 <script lang="ts">

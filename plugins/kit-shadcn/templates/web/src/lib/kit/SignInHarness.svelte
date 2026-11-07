@@ -1,5 +1,5 @@
-<!-- Starting point (kit-shadcn): drives the kit's SignInPage through its states the way an auth
-     plugin does (error and busy changing over time), for signin.test.ts. Not routed. -->
+<!-- A starting point: drives the kit's SignInPage through its states the way the sign-in code
+     does (error and busy changing over time), for signin.test.ts. Not routed. -->
 <script lang="ts">
 	import { SignInPage } from './index';
 

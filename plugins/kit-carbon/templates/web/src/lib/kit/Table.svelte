@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: a read-only data table on Carbon's table pieces.
+<!-- A starting point, then yours: a read-only data table on Carbon's table pieces.
      Cell values are text. For a cell that needs markup, copy this component and give the column a
      snippet. For sorting, selection or search, use Carbon's DataTable instead. -->
 <script module lang="ts">

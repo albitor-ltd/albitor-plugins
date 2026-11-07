@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-gds), then yours: a GOV.UK button (govuk-button). A button is a <button>;
+<!-- A starting point, then yours: a GOV.UK button (govuk-button). A button is a <button>;
      to navigate, use a link. GOV.UK has one primary action per page: the green button. The variant
      names match the other kits so a page ports across: destructive is GOV.UK's red warning
      button, and ghost has no GOV.UK form, so it is the secondary (grey) button. -->

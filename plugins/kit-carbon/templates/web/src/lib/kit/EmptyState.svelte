@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: what to show instead of a blank list. Say why it is
+<!-- A starting point, then yours: what to show instead of a blank list. Say why it is
      empty and what to do next. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';

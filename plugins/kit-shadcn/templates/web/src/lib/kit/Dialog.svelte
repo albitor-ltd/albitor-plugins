@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: a modal dialog on Bits UI, which owns the focus trap,
+<!-- A starting point, then yours: a modal dialog on Bits UI, which owns the focus trap,
      Escape, scroll lock and returning focus to the trigger. Always give it a title: the title is
      the dialog's accessible name. -->
 <script lang="ts">

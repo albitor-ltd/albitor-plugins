@@ -1,4 +1,4 @@
-// Seeded by Albitor (kit-carbon), then yours: which Carbon theme the page wears.
+// A starting point, then yours: which Carbon theme the page wears.
 //
 // Carbon ships four themes. The kit uses two: `white` (light) and `g100` (dark), the pair Carbon
 // itself pairs for light and dark. The page follows the visitor's colour-scheme preference unless

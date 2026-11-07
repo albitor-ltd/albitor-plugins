@@ -2,7 +2,7 @@
 // carbon-components-svelte stylesheet (the very file the app loads), not from a copy. axe cannot
 // judge contrast without a layout engine, so this is the check that stands in for it: every
 // foreground and background pair the kit's components use must meet WCAG 2.2 AA in the light theme
-// (`white`) and the dark theme (`g100`). Carbon is not themeable by a visual-language plugin, so
+// (`white`) and the dark theme (`g100`). Carbon is not themeable by a theme, so
 // the shipped values are the effective values. Which theme the page wears is tested through the
 // app shell (shell.test.ts), not by importing the app-owned theme.ts.
 import { readFileSync } from 'node:fs';

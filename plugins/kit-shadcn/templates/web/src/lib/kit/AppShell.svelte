@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-shadcn), then yours: the page frame (component-kit@2 `AppShell`).
+<!-- A starting point, then yours: the page frame.
      web-svelte's root layout renders it with the merged nav and the current path. Keep the skip
      link first and one main landmark. `footer` is an optional snippet rendered after <main>,
      outside it, normally `<Footer>`. `account` is an optional snippet for the signed-in visitor's

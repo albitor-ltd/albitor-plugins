@@ -1,4 +1,4 @@
-<!-- Seeded by Albitor (kit-carbon), then yours: render once, near the root. Messages come from
+<!-- A starting point, then yours: render once, near the root. Messages come from
      toast.push(). Nothing disappears on a timer, so nobody is cut off mid-read (WCAG 2.2.1); each
      toast has a dismiss button. Both live regions are always in the page, because a region
      inserted together with its message is often not announced. The toasts use Carbon's toast

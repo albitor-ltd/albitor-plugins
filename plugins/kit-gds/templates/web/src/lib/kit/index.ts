@@ -1,6 +1,6 @@
-// Seeded by Albitor (kit-gds), then yours: one import for the kit.
+// A starting point, then yours: one import for the kit.
 //   import { Button, Field } from '../lib/kit';
-// component-kit@2 standard shell exports, the same names and props in every kit: AppShell, Footer
+// standard shell exports, the same names and props in every kit: AppShell, Footer
 // and SignInPage. Compose against these, not against a kit's own pieces.
 export { default as AppShell } from './AppShell.svelte';
 export { default as Button } from './Button.svelte';
