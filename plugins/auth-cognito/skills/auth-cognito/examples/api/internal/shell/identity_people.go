@@ -145,7 +145,7 @@ var OnAccountDeleted func(ctx context.Context, id identity.Identity) error
 
 // serveDeleteAccount is POST /api/auth/delete {password}: the signed-in person deletes their own
 // account. Every app has this, whatever its roles: a single-role app has no administrator to do it
-// for them (ADR-0098), so a Delete button that only hides the account is a defect.
+// for them, so a Delete button that only hides the account is a defect.
 //
 // Cognito's DeleteUser takes the person's ACCESS token. The session cookie holds only the ID token,
 // so the password is checked by signing in with it, as change-password does, which also yields the

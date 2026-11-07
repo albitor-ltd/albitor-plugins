@@ -176,7 +176,7 @@ func TestSegmentMakesAnyIdSafe(t *testing.T) {
 	if got := Segment("rec-17"); got != "rec-17" {
 		t.Errorf("a safe id changed: %q", got)
 	}
-	for _, id := range []string{"REC#2026/17", "..", "a b", "../x", "ünï", strings.Repeat("a", 300), ""} {
+	for _, id := range []string{"REC#a/17", "..", "a b", "../x", "ünï", strings.Repeat("a", 300), ""} {
 		got := Segment(id)
 		if _, err := Key("owner", got, "f"); err != nil {
 			t.Errorf("Segment(%q) = %q is not a key segment: %v", id, got, err)

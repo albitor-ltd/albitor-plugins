@@ -161,7 +161,7 @@ func NewID() string {
 
 // Segment makes any record id a safe key segment. An id that already is one
 // is returned as it is; anything else (a composite sort key such as
-// "REC#2026/17", an email, a long or unicode id) becomes "h" and 32 hex
+// "REC#a/17", an email, a long or unicode id) becomes "h" and 32 hex
 // characters of its SHA-256, so it is stable and cannot carry a slash or dot segment. Use the same function wherever the
 // app turns a record id into a key, and keep the record's own id in the record.
 func Segment(id string) string {
