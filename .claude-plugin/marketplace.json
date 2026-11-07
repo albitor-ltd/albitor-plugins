@@ -463,8 +463,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-consumer",
-        "ref": "look-consumer/v0.1.2",
-        "sha": "344a190546adc4ed234de598023791382845e610"
+        "ref": "look-consumer/v0.1.3",
+        "sha": "4b784a2d18eaff55fedf3732111dcd64c0a2c42a"
       },
       "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page with white cards and a berry accent, a few things at a time.",
       "category": "development",
