@@ -179,7 +179,7 @@ err = q.Send(ctx, "transcribe", jobRef{ID: id}, gateway.SendOptions{})
 
 ## Shape endpoints for the screen
 
-The hosted function runs at most 10 requests at once and the API takes 50 a second, so a page that
+On the hosted lane, the function runs at most 10 requests at once and the API takes 50 a second, so a page that
 makes one request per row overflows on a normal list. Do the work in the handler, in one
 invocation: see the web-app-architecture `screen-data` pattern.
 
@@ -190,9 +190,11 @@ invocation: see the web-app-architecture `screen-data` pattern.
 - **A screen that spans entities gets its own endpoint** (`GET /api/dashboard`) that reads them
   all and answers one document, declared in `openapi.yaml` with the rest.
 - **When a batch read is unavoidable, take `ids`.** `GET /api/widgets?ids=a,b,c` answers every
-  id in one invocation. Cap the count (50), answer 400 above it, skip ids the caller does not own
-  and omit them from the answer, and keep the order of `ids`. It is a read: it takes the owner
-  from the verified identity like any other.
+  id in one invocation. It is a separate handler, not `apikit.ServeList`: it caps the ids at the
+  list maximum (100), answers 400 over it (never truncating), and returns the items with no
+  cursor, so do not bolt `ids` onto `ServeList`. Skip ids the caller does not own and omit them
+  from the answer, and keep the order of `ids`. It is a read: it takes the owner from the
+  verified identity like any other.
 - Parallel reads inside the handler (`errgroup`, bounded to a few) are cheap; parallel requests
   from the client are not.
 

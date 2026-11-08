@@ -1,6 +1,6 @@
 # limits: numbers a design must fit
 
-Defaults at 2026-11-03, each cited. Quotas change and some are adjustable; the platform may set
+Defaults at 2026-11-08, each cited. Quotas change and some are adjustable; the platform may set
 tighter ones. Check the deploy target's own skill before relying on a number in code.
 
 | Limit | Value | Source | Mitigation |
@@ -27,7 +27,7 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 | Hosted HTTP function concurrency | 10 reserved; over it the HTTP API answers 503 `Service Unavailable` | hosted deploy module | `screen-data.md`: one call per screen; retry GET on 429 or 503 |
 | Hosted HTTP function size | 1024 MB memory, 30 s timeout | hosted deploy module | `slow-supplier-work.md` |
 | Hosted API request rate | 50 requests per second steady, burst 100; over it 429, and the request never reaches the function | hosted deploy module | `screen-data.md`: fewer, larger reads |
-| Hosted schedules | at most 3, each `rate()` no faster than every 15 minutes | hosted deploy module | work that needs seconds is a queue, not a schedule |
+| Hosted schedules | at most 3, each `rate()` no faster than every 15 minutes; a failed run is retried up to 3 times within 1 h (maximum event age 1 h) | hosted deploy module | work that needs seconds is a queue, not a schedule; handlers are idempotent |
 | Hosted queues | at most 2; `batch_size` 1 to 10; `max_receives` 1 to 5 | hosted deploy module | `slow-supplier-work.md`; idempotent handlers |
 | Hosted queue timing | visibility timeout 180 s; retention 1 day; dead-letter queue retention 14 days | hosted deploy module | a batch finishes well inside 30 s per message |
 | Hosted queue consumer concurrency | 5 invocations at once per queue | hosted deploy module | `slow-supplier-work.md`; do not assume a burst drains in parallel |
@@ -36,8 +36,9 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 
 ## What the numbers mean for a design
 
-- **Request size.** Nothing over about 4 MB moves through the API; see `file-storage.md`. The
-  Base64 inflates a file by about a third, so a file over about 4.5 MB will not fit in 6 MB once encoded; the hosted gateway's 5,500,000-byte body ceiling is the tighter figure for service calls.
+- **Request size.** Nothing over about 4 MB moves through the API; see `file-storage.md`. Base64
+  inflates a file by about a third, so a file over about 4.5 MB will not fit in 6 MB once encoded;
+  the hosted gateway's 5,500,000-byte body ceiling is the tighter figure for service calls.
 - **Request time.** An API request is dead at 29 to 30 s. Plan for a few seconds at most; anything
   that calls a model or document service goes to `slow-supplier-work.md`. Check which API type the
   deploy target uses.
@@ -58,9 +59,10 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
   (`screen-data.md`), with a client that retries a GET on 429 or 503 and caps requests in flight
   as the second line.
 - **Schedules and queues.** A schedule cannot fire faster than every 15 minutes and at most 3
-  exist; a queue consumer takes at most 5 batches at once and a message is dead-lettered after
-  `max_receives` tries, so a handler must be idempotent and finish inside the 180 s visibility
-  window.
+  exist, and a failed run is retried up to 3 times within 1 h (maximum event age 1 h); a queue
+  consumer takes at most 5 batches at once and a message is dead-lettered after
+  `max_receives` tries, so every scheduled and queue handler must be idempotent, and a queue
+  handler must finish inside the 180 s visibility window.
 - **Gateway caps.** The per-app daily credit cap switches a feature off for everyone when burnt;
   the app treats a cap refusal as "unavailable", not as an error to retry. Bound what one user
   action can spend. Input must be chunked to the supplier's byte limit (Translate: 10,000 bytes
@@ -80,9 +82,9 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 ## How a walk verifies it
 
 Add one journey step at a realistic upper size (not a toy): the largest file the plan accepts, a
-list at the largest page the UI shows, a long text through the translate path, a list page of the largest size with every row's detail
-rendered (count the requests it makes: one, not one per row). Assert the feature
-works or refuses with a clear message, not a 413, a 504 or a blank screen.
+list at the largest page the UI shows, a long text through the translate path, a list page of the
+largest size with every row's detail rendered (count the requests it makes: one, not one per row).
+Assert the feature works or refuses with a clear message, not a 413, a 504 or a blank screen.
 
 [lambda]: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
 [http]: https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-quotas.html

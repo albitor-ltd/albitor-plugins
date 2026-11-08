@@ -35,7 +35,8 @@ const rows = await get('/api/opportunities');
 const details = await Promise.all(rows.items.map((r) => get(`/api/opportunities/${r.id}`)));
 ```
 
-With 14 rows that is 15 requests at once against a limit of 10.
+With 14 rows the list call has finished before the detail calls start, so 14 requests run
+concurrently against a limit of 10.
 
 After: the list already carries what the row renders, and the page makes one request.
 
