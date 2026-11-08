@@ -48,6 +48,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-app-architecture` `0.2.0` and `api-go` `0.7.0` (albitor-ltd/albitor#4592; tags follow the
+  merge). Text only. `web-app-architecture`: `limits` gains every hosted limit (HTTP concurrency
+  10 and its 503, API 50 rps and burst 100, schedules, queues, DynamoDB, logs) and a mitigation
+  column naming the pattern that answers each; the new `screen-data` pattern says a screen gets
+  what it renders from one call (lists embed summaries, screen-shaped endpoints, `ids=` batch
+  reads, never a detail fetch per row). `api-go`: a "Shape endpoints for the screen" section.
+
 - `api-go` `0.6.2` and `object-s3` `0.1.2` (albitor-ltd/albitor#4520, albitor-ltd/albitor#4505; tags
   follow the merge). Text only: `api-go`'s secrets guidance no longer mentions the retired
   `ALBITOR_SECRETS_PREFIX` alias (read `ALBITOR_SECRETS_PARAMETER_PREFIX`), and the `object-s3`
