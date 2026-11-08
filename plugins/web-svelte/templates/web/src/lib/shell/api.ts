@@ -44,7 +44,7 @@ export function setTokenSource(source: TokenSource | null): void {
 }
 
 export interface RequestOptions {
-	method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+	method?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 	/** Serialised as JSON. */
 	body?: unknown;
 	query?: Record<string, string | number | boolean | undefined>;
@@ -77,6 +77,10 @@ export const MAX_ATTEMPTS = 3;
 export const BASE_DELAY_MS = 250;
 /** Longest backoff, and the longest `Retry-After` that is waited for: a longer one fails at once. */
 export const MAX_DELAY_MS = 5000;
+/** Longest one attempt may take, headers and body, before it is abandoned as a network failure.
+ * The API gives up on a call after 30 seconds and never answers, so a longer wait is a hang that
+ * would hold one of the in-flight slots for ever. */
+export const REQUEST_TIMEOUT_MS = 30_000;
 
 const abortError = () => new DOMException('The request was aborted', 'AbortError');
 const isAbort = (err: unknown) => err instanceof DOMException && err.name === 'AbortError';
@@ -111,6 +115,18 @@ function release(): void {
 	const next = waiting.shift();
 	if (next) next();
 	else inFlight--;
+}
+
+/** One signal that aborts when either does (`AbortSignal.any` where the browser has it). */
+function anySignal(a: AbortSignal | undefined, b: AbortSignal): AbortSignal {
+	if (!a) return b;
+	if (typeof AbortSignal.any === 'function') return AbortSignal.any([a, b]);
+	const ctl = new AbortController();
+	const abort = () => ctl.abort();
+	if (a.aborted || b.aborted) abort();
+	a.addEventListener('abort', abort, { once: true });
+	b.addEventListener('abort', abort, { once: true });
+	return ctl.signal;
 }
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
@@ -155,7 +171,10 @@ export async function api<T = unknown>(path: string, options: RequestOptions = {
 	if (options.body !== undefined) body = JSON.stringify(options.body);
 	const method = options.method ?? (body === undefined ? 'GET' : 'POST');
 	// Only a read is safe to repeat. Never retry a write: it may have taken effect.
-	const idempotent = method === 'GET' || (method as string) === 'HEAD';
+	const idempotent = method === 'GET' || method === 'HEAD';
+	if (idempotent && body !== undefined) {
+		throw new TypeError(`A ${method} request cannot carry a body`);
+	}
 	const maxAttempts = idempotent ? MAX_ATTEMPTS : 1;
 
 	for (let attempt = 0; ; attempt++) {
@@ -169,26 +188,34 @@ export async function api<T = unknown>(path: string, options: RequestOptions = {
 			if (token) headers.Authorization = `Bearer ${token}`;
 			if (body !== undefined) headers['Content-Type'] = 'application/json';
 
+			// Each attempt has its own deadline, so a hung request frees its slot.
+			const deadline = new AbortController();
+			const timer = setTimeout(() => deadline.abort(), REQUEST_TIMEOUT_MS);
 			let res: Response;
+			let payload: unknown;
 			try {
 				res = await fetch(`${API_BASE}${path}${search}`, {
 					method,
 					headers,
 					body,
-					signal: options.signal
+					signal: anySignal(options.signal, deadline.signal)
 				});
+				payload = await readBody(res);
 			} catch (err) {
-				if (isAbort(err)) throw err;
+				// The caller's own abort stays an abort; our timeout (or a caller timeout signal, whose
+				// reason is a TimeoutError) is a network failure.
+				if (isAbort(err) && options.signal?.aborted) throw err;
 				const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
 				if (!idempotent || offline) throw new NetworkError(offline);
 				if (last) throw new NetworkError(false, true);
 				wait = backoff(attempt, null);
 				continue;
+			} finally {
+				clearTimeout(timer);
 			}
 
 			if (idempotent && (res.status === 429 || res.status === 503)) {
 				const after = retryAfterMs(res);
-				const payload = await readBody(res);
 				// A wait over the cap means "not soon": give up now rather than retry early.
 				if (last || (after !== null && after > MAX_DELAY_MS)) {
 					throw new ApiError(res.status, payload, true);
@@ -197,7 +224,6 @@ export async function api<T = unknown>(path: string, options: RequestOptions = {
 				continue;
 			}
 
-			const payload = await readBody(res);
 			if (!res.ok) throw new ApiError(res.status, payload);
 			return payload as T;
 		} finally {

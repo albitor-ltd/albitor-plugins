@@ -3,6 +3,7 @@ import {
 	ApiError,
 	MAX_ATTEMPTS,
 	MAX_IN_FLIGHT,
+	REQUEST_TIMEOUT_MS,
 	NetworkError,
 	api,
 	get,
@@ -22,6 +23,7 @@ function stubFetch(impl: (url: string, init: RequestInit) => Response | Promise<
 afterEach(() => {
 	setTokenSource(null);
 	vi.useRealTimers();
+	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
 });
 
@@ -34,7 +36,7 @@ const throttled = (status = 503, headers: Record<string, string> = {}) =>
 /** Fake timers and a Math.random of 1, so a backoff waits its full ceiling (250ms, then 500ms). */
 function fakeTime() {
 	vi.useFakeTimers();
-	vi.stubGlobal('Math', Object.assign(Object.create(Math), { random: () => 1 }));
+	vi.spyOn(Math, 'random').mockReturnValue(1);
 }
 
 describe('api', () => {
@@ -154,7 +156,7 @@ describe('api', () => {
 			fakeTime();
 			let n = 0;
 			const fetch = stubFetch(() => (++n < 2 ? throttled() : new Response(null, { status: 200 })));
-			const p = api('/items', { method: 'HEAD' as never });
+			const p = api('/items', { method: 'HEAD' });
 			await vi.advanceTimersByTimeAsync(250);
 			await p;
 			expect(fetch).toHaveBeenCalledTimes(2);
@@ -162,7 +164,7 @@ describe('api', () => {
 
 		it('never waits less than Retry-After seconds', async () => {
 			fakeTime();
-			vi.stubGlobal('Math', Object.assign(Object.create(Math), { random: () => 0 }));
+			vi.spyOn(Math, 'random').mockReturnValue(0);
 			let n = 0;
 			const fetch = stubFetch(() => (++n < 2 ? throttled(503, { 'Retry-After': '3' }) : json(200, {})));
 			const p = get('/items');
@@ -176,7 +178,7 @@ describe('api', () => {
 		it('reads Retry-After as an HTTP date', async () => {
 			fakeTime();
 			vi.setSystemTime(new Date('2030-01-01T00:00:00Z'));
-			vi.stubGlobal('Math', Object.assign(Object.create(Math), { random: () => 0 }));
+			vi.spyOn(Math, 'random').mockReturnValue(0);
 			let n = 0;
 			const when = new Date('2030-01-01T00:00:02Z').toUTCString();
 			const fetch = stubFetch(() => (++n < 2 ? throttled(429, { 'Retry-After': when }) : json(200, {})));
@@ -238,6 +240,33 @@ describe('api', () => {
 			await p;
 			expect(fetch.mock.calls[0]![1].headers).toMatchObject({ Authorization: 'Bearer tok-1' });
 			expect(fetch.mock.calls[1]![1].headers).toMatchObject({ Authorization: 'Bearer tok-2' });
+		});
+
+		it('refuses a GET or HEAD with a body before any request', async () => {
+			const fetch = stubFetch(() => json(200, {}));
+			for (const method of ['GET', 'HEAD'] as const) {
+				await expect(api('/items', { method, body: { a: 1 } })).rejects.toBeInstanceOf(TypeError);
+			}
+			expect(fetch).not.toHaveBeenCalled();
+		});
+
+		it('rejects with AbortError when the caller aborts a request in flight', async () => {
+			const fetch = vi.fn(
+				(_url: string, init: RequestInit) =>
+					new Promise<Response>((_resolve, reject) =>
+						init.signal!.addEventListener('abort', () =>
+							reject(new DOMException('aborted', 'AbortError'))
+						)
+					)
+			);
+			vi.stubGlobal('fetch', fetch);
+			const ctl = new AbortController();
+			const p = api('/items', { signal: ctl.signal });
+			const assertion = expect(p).rejects.toMatchObject({ name: 'AbortError' });
+			await Promise.resolve();
+			ctl.abort();
+			await assertion;
+			expect(fetch).toHaveBeenCalledTimes(1);
 		});
 
 		it('aborts immediately during the backoff wait', async () => {
@@ -328,6 +357,35 @@ describe('api', () => {
 			expect(fetch.mock.calls.some((c) => c[0] === '/api/queued')).toBe(false);
 			for (const o of open) o();
 			await Promise.all([...first, after]);
+		});
+
+		it('frees the slot of a hung request after the timeout, then retries the read', async () => {
+			fakeTime();
+			let hung = 0;
+			const fetch = vi.fn(
+				(url: string, init: RequestInit) =>
+					new Promise<Response>((resolve, reject) => {
+						if (url === '/api/ok') return resolve(json(200, { ok: true }));
+						hung++;
+						init.signal!.addEventListener('abort', () =>
+							reject(new DOMException('aborted', 'AbortError'))
+						);
+					})
+			);
+			vi.stubGlobal('fetch', fetch);
+			const hungReads = Array.from({ length: MAX_IN_FLIGHT }, () =>
+				get('/hang').catch((e: unknown) => e)
+			);
+			const queued = get('/ok');
+			await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS - 1);
+			expect(hung).toBe(MAX_IN_FLIGHT);
+			expect(fetch).toHaveBeenCalledTimes(MAX_IN_FLIGHT);
+			await vi.advanceTimersByTimeAsync(1);
+			// The timeouts freed the slots, so the queued request ran.
+			await expect(queued).resolves.toEqual({ ok: true });
+			await vi.advanceTimersByTimeAsync(10 * REQUEST_TIMEOUT_MS);
+			const errs = await Promise.all(hungReads);
+			for (const e of errs) expect(e).toMatchObject({ name: 'NetworkError', offline: false, retried: true });
 		});
 
 		it('rejects at once for a signal that is already aborted', async () => {

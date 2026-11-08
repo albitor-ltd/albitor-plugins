@@ -69,8 +69,8 @@ Mutations are never retried automatically. After a write, invalidate the lists i
 - One screen, one API call. A screen gets what it renders from a single call: a list endpoint
   returns the fields the list renders, a detail page makes one call. Never run a query per row or
   `Promise.all` over a list's ids. When a screen needs several entities, add a screen-shaped
-  endpoint that aggregates server-side. A hosted app's API runs at most 10 executions at once and
-  its stage takes 50 requests a second (100 in a burst), so a 14-row fan-out is throttled and the
+  endpoint that aggregates server-side. On the hosted lane an app's API runs at most 10 executions at
+  once and its stage takes 50 requests a second (100 in a burst), per app, so a 14-row fan-out is throttled and the
   page errors.
 
   ```ts
