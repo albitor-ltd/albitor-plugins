@@ -45,6 +45,17 @@ Read `patterns/limits.md`.
 - **How to decide** For every payload and every record, name the largest realistic size and compare
   it with the table. As a heuristic, a design within 2x of a limit changes shape instead.
 
+## screen-data
+
+Read `patterns/screen-data.md`.
+
+- **Use when** any screen lists records, shows rows with related data, or combines several
+  entities (a dashboard, an overview, a prep page).
+- **Avoid when** the screen shows one record with nothing related.
+- **How to decide** Count the requests the screen makes at the largest list it shows. More than
+  one means the list embeds what rows render, or a screen-shaped endpoint aggregates in the
+  handler. The hosted API runs 10 requests at once (see `limits`).
+
 ## seeding-for-deployed-walks
 
 Read `patterns/seeding-for-deployed-walks.md`.

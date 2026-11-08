@@ -177,6 +177,25 @@ err = q.Send(ctx, "transcribe", jobRef{ID: id}, gateway.SendOptions{})
   retries up to three times and logs a message it drops. It keeps nothing across restarts and is
   not SQS: do not test visibility timeouts or dead-lettering against it.
 
+## Shape endpoints for the screen
+
+The hosted function runs at most 10 requests at once and the API takes 50 a second, so a page that
+makes one request per row overflows on a normal list. Do the work in the handler, in one
+invocation: see the web-app-architecture `screen-data` pattern.
+
+- **A list returns what the list renders.** Embed the summaries and counts a row shows (owner name,
+  open-task count) in each `items` entry, built with one `BatchGetItem` over the distinct related
+  ids or a counter kept on the record. Never make the client fetch `GET /api/widgets/{id}` for
+  every row.
+- **A screen that spans entities gets its own endpoint** (`GET /api/dashboard`) that reads them
+  all and answers one document, declared in `openapi.yaml` with the rest.
+- **When a batch read is unavoidable, take `ids`.** `GET /api/widgets?ids=a,b,c` answers every
+  id in one invocation. Cap the count (50), answer 400 above it, skip ids the caller does not own
+  and omit them from the answer, and keep the order of `ids`. It is a read: it takes the owner
+  from the verified identity like any other.
+- Parallel reads inside the handler (`errgroup`, bounded to a few) are cheap; parallel requests
+  from the client are not.
+
 ## Rules every handler follows
 
 - **Lists go through `apikit.ServeList`.** It enforces `limit` (default 20, max 100, out of range
