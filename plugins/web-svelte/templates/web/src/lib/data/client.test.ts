@@ -17,6 +17,14 @@ describe('shouldRetry', () => {
 		}
 	});
 
+	it('does not retry a failure the API client already retried', () => {
+		expect(shouldRetry(0, new ApiError(503, null, true))).toBe(false);
+		expect(shouldRetry(0, new ApiError(429, null, true))).toBe(false);
+		expect(shouldRetry(0, new NetworkError(false, true))).toBe(false);
+		// Not retried by the client (a 500, or a write), so the query layer still may.
+		expect(shouldRetry(0, new ApiError(500, null))).toBe(true);
+	});
+
 	it('retries an unreachable API but not a browser that is offline', () => {
 		expect(shouldRetry(0, new NetworkError(false))).toBe(true);
 		expect(shouldRetry(0, new NetworkError(true))).toBe(false);

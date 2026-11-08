@@ -12,9 +12,13 @@ export const MAX_RETRIES = 2;
  * Retry only what could plausibly succeed next time: a server error, a timeout, throttling or an
  * unreachable API. A client error (400 to 499 apart from 408 and 429) would fail identically, an
  * offline browser is handled by pausing, and anything else is a bug that retrying hides.
+ *
+ * A failure the API client already retried (a throttled read, or an unreachable API on a read)
+ * is final: retrying it here would multiply the attempts and the load on a throttled API.
  */
 export function shouldRetry(failureCount: number, error: unknown): boolean {
 	if (failureCount >= MAX_RETRIES) return false;
+	if ((error instanceof ApiError || error instanceof NetworkError) && error.retried) return false;
 	if (error instanceof ApiError) {
 		return error.status >= 500 || error.status === 408 || error.status === 429;
 	}

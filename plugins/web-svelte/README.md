@@ -33,8 +33,10 @@ import the example, so an online app carries none of it.
 
 - **Online** (`src/lib/data/`, seeded): TanStack Query for Svelte
   (`@tanstack/svelte-query` 6.3.2) with one query client per page load; a shared retry policy
-  (server errors, timeouts, throttling and an unreachable API retry twice with backoff; client
-  errors never; an offline browser pauses rather than fails; mutations never retry); `apiQuery`
+  (server errors, timeouts and an unreachable API retry twice with backoff; client
+  errors never; the API client itself retries throttled reads (429, 503) with jitter and
+  `Retry-After` and holds at most six requests in flight per tab, and a failure it retried is not
+  retried again; an offline browser pauses rather than fails; mutations never retry); `apiQuery`
   through the shell's API client; `DataState.svelte` and `viewState` for loading, offline, error,
   empty and ready, with `errorMessage` never repeating a response body.
 - **Offline-first** (the example, `lib/sync/`): a local store per signed-in person (IndexedDB, in
