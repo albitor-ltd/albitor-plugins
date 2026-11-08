@@ -41,21 +41,29 @@ describe('getSession', () => {
 
 	it('throws on any other failure rather than reading it as signed out', async () => {
 		stubFetch(() => json(503, { error: 'sign-in is unavailable' }));
-		await expect(getSession()).rejects.toBeInstanceOf(ApiError);
+		// The API client retries a throttled read with backoff before it gives up.
+		const unavailable = expect(getSession()).rejects.toBeInstanceOf(ApiError);
+		await vi.runAllTimersAsync();
+		await unavailable;
 
 		stubFetch(() => {
 			throw new TypeError('network down');
 		});
-		await expect(getSession()).rejects.toBeInstanceOf(NetworkError);
+		const down = expect(getSession()).rejects.toBeInstanceOf(NetworkError);
+		await vi.runAllTimersAsync();
+		await down;
 	});
 
 	it('does not remember a failure', async () => {
 		let up = false;
 		const fetch = stubFetch(() => (up ? json(200, { sub: 'u1' }) : json(503, {})));
-		await expect(getSession()).rejects.toBeInstanceOf(ApiError);
+		const failed = expect(getSession()).rejects.toBeInstanceOf(ApiError);
+		await vi.runAllTimersAsync();
+		await failed;
 		up = true;
 		expect(await getSession()).toEqual({ sub: 'u1' });
-		expect(fetch).toHaveBeenCalledTimes(2);
+		// Three throttled attempts by the API client, then the one that succeeded.
+		expect(fetch).toHaveBeenCalledTimes(4);
 	});
 
 	it('asks once for a burst of navigations, and again after the TTL', async () => {

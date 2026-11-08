@@ -6,7 +6,7 @@
     {
       "socket": "web-framework",
       "plugin": "web-svelte",
-      "version": "0.6.1"
+      "version": "0.7.0"
     },
     {
       "socket": "component-kit",

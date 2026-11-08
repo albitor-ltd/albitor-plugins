@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `auth-hosted` `0.4.4` and `auth-cognito` `0.9.2` (albitor-ltd/albitor#4592; tags follow the merge).
+  Their seeded `lib/auth/session.test.ts` now advances the timers across the API client's backoff
+  when it asserts a 503 or network failure. Pairs with `web-svelte` 0.7.0 or later, whose client
+  retries throttled reads.
+
+- `web-svelte` `0.7.0` (albitor-ltd/albitor#4592; tag follows the merge). The seeded API client
+  retries a GET or HEAD answered 429 or 503 (or an unreachable API) up to three attempts with
+  full-jitter backoff never sooner than `Retry-After` (a `Retry-After` over 5 seconds fails at once),
+  never retries a write, and holds at most six requests in flight per tab, abandoning an attempt after 30 seconds (a network failure,
+  retried for reads) so a hung call cannot hold a slot; the query layer no longer
+  retries what the client already retried. The `data-online` skill now says a screen gets what it
+  renders from one API call and never fans out per row, because a hosted app's API is capped at 10
+  concurrent executions.
+
 - `auth-cognito` `0.9.0` and `deploy-byoa-aws` `0.9.0` (albitor-ltd/albitor#4452 item 15; tags follow
   the merge). An optional sign-up email-domain allow-list, `services.auth.signup_domains`, off by
   default: `deploy-byoa-aws` hands it to the function as `AUTH_SIGNUP_DOMAINS`, and `auth-cognito`

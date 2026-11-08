@@ -66,8 +66,26 @@ Mutations are never retried automatically. After a write, invalidate the lists i
 
 ## Rules that stay
 
-- Retries: server errors, timeouts, throttling and an unreachable API retry twice with backoff;
-  client errors (400 to 499) never do. Change the policy in `lib/data/client.ts`.
+- One screen, one API call. A screen gets what it renders from a single call: a list endpoint
+  returns the fields the list renders, a detail page makes one call. Never run a query per row or
+  `Promise.all` over a list's ids. When a screen needs several entities, add a screen-shaped
+  endpoint that aggregates server-side. On the hosted lane an app's API runs at most 10 executions at
+  once and its stage takes 50 requests a second (100 in a burst), per app, so a 14-row fan-out is throttled and the
+  page errors.
+
+  ```ts
+  // Wrong: one request per row.
+  const rows = await Promise.all(ids.map((id) => get(`/opportunities/${id}`)));
+  // Right: the list endpoint already carries what the list shows.
+  const { items } = await get<{ items: OpportunitySummary[] }>('/opportunities');
+  ```
+- Retries: `api()` retries a GET or HEAD that gets 429 or 503, or an unreachable API, up to three
+  attempts in all, with jittered backoff never sooner than `Retry-After`; a `Retry-After` over 5
+  seconds is not waited for. It never retries a write. It also holds at most `MAX_IN_FLIGHT` (6)
+  requests in flight per tab and queues the rest, which is a safety net, not a licence to fan out.
+  A failure `api()` already retried is final; the query layer does not retry it again. Other
+  server errors, timeouts and an unreachable API retry twice with backoff; client errors (400 to
+  499) never do. Change the policy in `lib/data/client.ts` and `lib/shell/api.ts`.
 - On sign-out call `useQueryClient().clear()`, registered with `onBeforeSignOut` (`lib/shell/signout.ts`, awaited by the Sign out button before it posts), or the next person on the browser sees cached data.
 - The cache lives in memory and is gone on reload. Do not copy API data into `localStorage`.
 - A route guard hides pages, it does not protect data: the API must check the caller on every call.
