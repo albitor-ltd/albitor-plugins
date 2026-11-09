@@ -1,7 +1,7 @@
 // Starting point (test-playwright). Pure decisions behind auth.setup.ts's hosted sign-in path.
 
 // HOSTED SIGN-IN LEAVES THE APP. An app signed in through an identity provider's hosted page (the
-// Cognito classic hosted UI, reached from the app's /sign-in through /api/auth/login) sends the
+// Cognito managed login, reached from the app's /sign-in through /api/auth/login) sends the
 // browser to a host that is not the app's, and brings it back through /api/auth/callback. The setup
 // recognises it by the host alone: it is not told which provider it is, and a page on the app's own
 // host is the in-app form.

@@ -139,7 +139,7 @@ fails with no error to explain it.
   (`test.use({ storageState: EMPTY_STORAGE_STATE })`), signs up with `walkAccount()`'s address and
   password exactly, and never deletes the account.
 - `auth.setup.ts` signs in by role and label (the kit's `SignInPage`): a field labelled "Email...", a field
-  labelled "Password" and a button named "Sign in". A hosted sign-in (redirect to another host, the Cognito classic hosted UI) is signed in there instead. An app
+  labelled "Password" and a button named "Sign in". A hosted sign-in (redirect to another host, Cognito managed login, branded from the app's look; the classic UI works too) is signed in there instead. An app
   with no sign-in (no password, no `services.auth`) runs signed out; one with a way in but no recognisable
   screen fails the setup. Specs that need a
   session skip themselves with `test.skip(!hasDemoSession(), ...)` in a `beforeEach`.

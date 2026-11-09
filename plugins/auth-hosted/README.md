@@ -9,7 +9,8 @@ and the module hands the function `AUTH_ISSUER`, `AUTH_CLIENT_ID`, `AUTH_JWKS_UR
 pool id and a region. So `auth-cognito` answers 503 there. `auth-hosted` is the provider for that
 client; `auth-cognito` stays the plugin for an app's own account (BYOA), unchanged.
 
-People sign in on the app's own Cognito hosted page (the classic hosted UI). **The app has no password
+People sign in on Cognito managed login, branded from the app's look, on the app's own Cognito prefix
+domain. A branding change can take 1-3 minutes to show. **The app has no password
 field, no sign-up screen and no reset screen**: Cognito's pages do sign-up, email confirmation,
 password reset, an invited person's new password and any MFA.
 

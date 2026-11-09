@@ -58,13 +58,17 @@ export const SIGN_IN_LANDING_MS = 8_000;
 export const HOSTED_FORM_MS = 15_000;
 export const HOSTED_RETURN_MS = 30_000;
 
-// The Cognito classic hosted UI (managed_login_version 1) renders two copies of its form, desktop
-// and mobile, one of them hidden: hence :visible.
+// Cognito's sign-in page, in either version: managed login v2 (the branded page hosted apps use) or
+// the classic hosted UI (managed_login_version 1). The classic one renders two copies of its form,
+// desktop and mobile, one of them hidden: hence :visible. The classic submit is an
+// input[name=signInSubmitButton]; v2's is a plain button[type=submit].
 const HOSTED_USERNAME = "input[name=username]:visible";
 const HOSTED_PASSWORD = "input[name=password]:visible";
-const HOSTED_SUBMIT = "input[name=signInSubmitButton]:visible";
-// What the classic UI shows when it refuses the credentials.
-const HOSTED_ERROR = "#loginErrorMessage:visible, .errorMessage-customizable:visible";
+const HOSTED_SUBMIT = 'button[type="submit"]:visible, input[name="signInSubmitButton"]:visible';
+// What the page shows when it refuses the credentials. The classic UI uses the first two. The v2
+// captures hold no failed sign-in, so the v2 side is the generic alert role its error banner is
+// expected to carry.
+const HOSTED_ERROR = '#loginErrorMessage:visible, .errorMessage-customizable:visible, [role="alert"]:visible';
 
 // whereSignInLands waits for /sign-in to settle: "in-app" once the email field is visible, whatever
 // the host (an apex to www, localhost to 127.0.0.1 or CloudFront to custom-domain redirect of the
@@ -156,7 +160,7 @@ async function signInInApp(
   }
 }
 
-// signInHosted signs in on the identity provider's hosted page (the Cognito classic hosted UI) and
+// signInHosted signs in on the identity provider's hosted page (Cognito managed login) and
 // waits for the callback to bring the browser back to the app, off the sign-in route. The password
 // goes in the way the in-app one does, and is emptied if anything fails.
 async function signInHosted(page: Page, base: string, username: string, password: string, appSignInURL: URL): Promise<void> {
