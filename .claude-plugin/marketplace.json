@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.6.1",
-        "sha": "e0ff5b4937bd26e63e55070320981a854298767e"
+        "ref": "test-playwright/v0.6.2",
+        "sha": "61d59e7f69f22146311de01324102b8f94579bd6"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.4.4",
-        "sha": "b3e7a851063f86587ea085f14eb950fdcae351dc"
+        "ref": "auth-hosted/v0.4.5",
+        "sha": "61d59e7f69f22146311de01324102b8f94579bd6"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",

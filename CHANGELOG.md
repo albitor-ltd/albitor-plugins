@@ -92,6 +92,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `web-app-architecture/v0.2.0` and `api-go/v0.7.0` (albitor-ltd/albitor#4592). No other pin
   changes.
 
+- Catalogue repinned to `test-playwright/v0.6.2` and `auth-hosted/v0.4.5` (albitor-ltd/albitor#3820).
+  No other pin changes.
+
 ### Fixed
 
 - `kit-shadcn` `0.9.1`, `kit-carbon` `0.8.1`, `kit-gds` `0.8.1` (albitor-ltd/albitor#4495; tags follow
