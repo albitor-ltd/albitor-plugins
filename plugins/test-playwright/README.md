@@ -72,10 +72,11 @@ lint over `journeys.yml` and proves each unsafe edit of it fails.
   test ids: a field labelled "Email...", a field labelled "Password" and a button named "Sign in". It
   may set `SIGN_IN_SCREEN=1` for the run so the setup is strict about it (a front end that
   renders `SignInPage` outside the kit's own files, or names `sign-in-email`, makes it strict already).
-  A hosted sign-in (the auth-hosted plugin: `/sign-in` redirects to the Cognito classic hosted UI on
-  another host) is recognised by the page landing on a host other than the app's with a visible
+  A hosted sign-in (the auth-hosted plugin: `/sign-in` redirects to Cognito managed login, branded from the
+  app's look, on the app's Cognito prefix domain, another host) is recognised by the page landing on a host other than the app's with a visible
   `input[name=username]` (an in-app email field always wins, whatever the host). The setup fills the
-  visible `input[name=username]` and `input[name=password]`, clicks `input[name=signInSubmitButton]`, and
+  visible `input[name=username]` and `input[name=password]`, clicks `button[type=submit]` (managed login v2) or `input[name=signInSubmitButton]` (the classic UI, still
+  supported), and
   waits for a page on the app's host that is not `/api/auth/*` and not the sign-in route (so a callback that
   answers 200 and redirects client-side is waited out). It then requires a NEW cookie for the app's host in the
   saved state (one not present just before the submit: the login route's transient state cookies and

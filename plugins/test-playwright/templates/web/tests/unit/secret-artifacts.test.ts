@@ -267,7 +267,7 @@ test("fill() prints the password", async ({ page }) => {
 
 // THE HOSTED SIGN-IN, end to end against two fake hosts. The app (127.0.0.1) sends /sign-in/<mode>
 // to a "hosted UI" on localhost, a different host, whose page carries a hidden duplicate of the
-// form first (as the Cognito classic UI does). A good sign-in goes back to the app's callback,
+// form first (as the Cognito classic UI does; the v2 modes serve a single managed-login form). A good sign-in goes back to the app's callback,
 // which answers 200 with a meta refresh, as a callback that sets cookies and then redirects
 // client-side may.
 //   good      the callback sets the app's session cookie
@@ -275,15 +275,25 @@ test("fill() prints the password", async ({ page }) => {
 //   refused   the hosted page answers with its error message and stays put
 //   late      the callback answers 200 with no cookie; the page its meta refresh lands on sets it
 //   locale    the callback sets nothing; the page its meta refresh lands on sets only locale=en
+//   v2good    as good, but the hosted page is managed login v2 (a button[type=submit])
+//   v2refused as refused, with v2's role=alert banner
 //   inapp     not hosted at all: the app's own form, served on a sibling host (localhost) of the app
 // The app's /api/auth/login sets a transient state cookie in every mode, as auth-hosted does, so
 // "the app has some cookie" is true even when the callback sets none.
-const HOSTED_FORM = (mode: string, error = "") => `<!doctype html><title>Sign in</title>
+const HOSTED_FORM = (mode: string, error = "") =>
+	mode.startsWith("v2")
+		? // Managed login v2, from the captured page: one form, an email-typed username, a show-password
+			// checkbox and a plain submit button; no signInSubmitButton input.
+			`<!doctype html><title>Sign in</title>
+<form method="post" action="/login?mode=${mode}" id="primary-form" novalidate><input type="hidden" name="csrf" value="x">
+<input name="username" type="email" placeholder="name@host.com"><input name="password" type="password" placeholder="Enter password">
+<input type="checkbox" aria-label="Show password">${error}<button type="submit"><span>Sign in</span></button></form>`
+		: `<!doctype html><title>Sign in</title>
 <form style="display:none" method="post" action="/login?mode=${mode}"><input name="username"><input name="password" type="password"><input name="signInSubmitButton" type="submit"></form>
 ${error}<form method="post" action="/login?mode=${mode}"><input name="username"><input name="password" type="password"><input name="signInSubmitButton" type="submit" value="Sign in"></form>`;
 
 // A request-derived mode is only ever one of these, never echoed as received.
-const MODES = ["good", "nocookie", "refused", "late", "locale", "inapp"] as const;
+const MODES = ["good", "nocookie", "refused", "late", "locale", "inapp", "v2good", "v2refused"] as const;
 const modeOf = (raw: string | null): (typeof MODES)[number] => MODES.find((m) => m === raw) ?? "good";
 
 async function serveHosted(): Promise<{ base: string; close: () => void }> {
@@ -292,9 +302,16 @@ async function serveHosted(): Promise<{ base: string; close: () => void }> {
 		const mode = modeOf(url.searchParams.get("mode"));
 		if (req.method === "POST") {
 			req.resume();
-			if (mode === "refused") {
+			if (mode === "refused" || mode === "v2refused") {
 				res.writeHead(200, { "Content-Type": "text/html" });
-				res.end(HOSTED_FORM(mode, '<p id="loginErrorMessage">Incorrect username or password.</p>'));
+				res.end(
+					HOSTED_FORM(
+						mode,
+						mode === "v2refused"
+							? '<div role="alert">Incorrect username or password.</div>'
+							: '<p id="loginErrorMessage">Incorrect username or password.</p>',
+					),
+				);
 				return;
 			}
 			res.writeHead(302, { Location: `${appBase}/api/auth/callback?mode=${mode}&code=abc`, "Set-Cookie": "XSRF-TOKEN=1; Path=/" });
@@ -320,7 +337,7 @@ async function serveHosted(): Promise<{ base: string; close: () => void }> {
 		} else if (url.pathname === "/api/auth/callback") {
 			const callbackMode = modeOf(url.searchParams.get("mode"));
 			const headers: Record<string, string> = { "Content-Type": "text/html" };
-			if (callbackMode === "good") {
+			if (callbackMode === "good" || callbackMode === "v2good") {
 				headers["Set-Cookie"] = "session=ok; Path=/";
 			}
 			res.writeHead(200, headers);
@@ -426,6 +443,21 @@ describe("the hosted sign-in", () => {
 		const { code, log, state } = await attempt("inapp");
 		assert.equal(code, 0, `an in-app form on another host of the app was meant to sign in:\n${log}`);
 		assert.equal(state, true);
+	});
+
+	it("signs in on managed login v2 (a plain submit button)", async () => {
+		const { code, log, state } = await attempt("v2good");
+		assert.equal(code, 0, `the v2 hosted sign-in was meant to succeed:\n${log}`);
+		assert.equal(state, true, "no session was saved");
+	});
+
+	it("fails fast when managed login v2 refuses the credentials", async () => {
+		const started = Date.now();
+		const { code, log, leaked } = await attempt("v2refused");
+		assert.notEqual(code, 0, `a refused v2 sign-in was meant to fail:\n${log}`);
+		assert.match(log, /Cognito refused the credentials/);
+		assert.ok(Date.now() - started < 25_000, "the refusal was not noticed before the return wait ran out");
+		assert.deepEqual(leaked, [], "the password is in these files");
 	});
 
 	it("fails fast when Cognito refuses the credentials, and the password is in nothing left behind", async () => {

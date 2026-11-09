@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `test-playwright` `0.6.2` and `auth-hosted` `0.4.5` (albitor-ltd/albitor#3820; tags follow the merge).
+  The hosted sign-in helpers sign in on Cognito managed login v2 as well as the classic UI (submit
+  `button[type="submit"]` or `input[name="signInSubmitButton"]`; a refusal is also recognised by
+  `[role="alert"]`, the v2 error element being unconfirmed by the captures). `auth-hosted` docs now
+  describe sign-in as managed login, branded from the app's look, on the app's Cognito prefix domain;
+  a branding change can take 1-3 minutes to show.
+
 - `auth-hosted` `0.4.4` and `auth-cognito` `0.9.2` (albitor-ltd/albitor#4592; tags follow the merge).
   Their seeded `lib/auth/session.test.ts` now advances the timers across the API client's backoff
   when it asserts a 503 or network failure. Pairs with `web-svelte` 0.7.0 or later, whose client

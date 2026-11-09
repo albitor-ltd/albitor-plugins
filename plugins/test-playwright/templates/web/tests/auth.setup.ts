@@ -57,7 +57,7 @@ import {
 //
 // TWO SIGN-IN SHAPES. The in-app form (auth-cognito's SignInPage) is signed in as described below.
 // A hosted sign-in (auth-hosted) has /sign-in redirect to the identity provider's own host, here the
-// Cognito classic hosted UI, which is signed in there and returns to the app through its callback.
+// Cognito managed login (the classic UI too), which is signed in there and returns to the app through its callback.
 // The setup tells them apart by whether the page is on the app's host.
 //
 // A SPEC THAT NEEDS A SESSION SAYS SO, and then skips rather than fails when
