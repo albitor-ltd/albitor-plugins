@@ -81,6 +81,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Catalogue repinned to `api-go/v0.6.2`, `object-s3/v0.1.2` and `auth-cognito/v0.9.1`, all at
   7ef1e9d (albitor-ltd/albitor#4505). No other pin changes.
 
+- Catalogue repinned to `web-svelte/v0.7.0`, `auth-hosted/v0.4.4`, `auth-cognito/v0.9.2`,
+  `web-app-architecture/v0.2.0` and `api-go/v0.7.0` (albitor-ltd/albitor#4592). No other pin
+  changes.
+
 ### Fixed
 
 - `kit-shadcn` `0.9.1`, `kit-carbon` `0.8.1`, `kit-gds` `0.8.1` (albitor-ltd/albitor#4495; tags follow
