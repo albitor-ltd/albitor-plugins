@@ -57,7 +57,7 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   bounded batches, never an unbounded `Promise.all` over `create`.** A hosted app's function runs at
   most 10 calls at once and the app's own traffic shares that budget; over it the API answers 503
   and the walk fails mid-seed. `createMany` keeps 4 in flight by default, and `create` retries a 429
-  or 503 a few times with jittered backoff (honouring `Retry-After`) before it throws. Seed the
+  or 503 a few times with jittered backoff (honouring `Retry-After` up to the 5 s cap) before it throws. Seed the
   smallest set that proves the behaviour; that the app copes with a large list is the app's job
   (`limits.md`), not a reason to write thousands of fixtures. Fix a 503 here, in the spec, never by
   batching or throttling writes inside the app. The worker count is the walk's (`--workers=1`); if

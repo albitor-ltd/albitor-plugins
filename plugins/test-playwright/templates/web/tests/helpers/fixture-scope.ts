@@ -4,6 +4,7 @@ import type { APIRequestContext } from "@playwright/test";
 
 // The hosted function runs at most 10 calls at once; over it the API answers 503 (a throttled call
 // never ran the function, so the POST is safe to repeat). 429 is the API's rate limit, same rule.
+// Caveat, accepted: a 503 from the app's own handler after it created the record could duplicate it.
 const RETRY_STATUSES = new Set([429, 503]);
 const DEFAULT_RETRY = { retries: 3, baseDelayMs: 250, maxDelayMs: 5_000 };
 const DEFAULT_CONCURRENCY = 4;

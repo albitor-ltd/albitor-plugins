@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `test-playwright` `0.6.3` and `web-app-architecture` `0.2.1` (albitor-ltd/albitor#4643; tags follow
+  the merge). The seeded `FixtureScope.create` retries a 429 or 503 (a throttled call never ran the
+  function) with bounded, jittered backoff honouring `Retry-After` up to a 5 second cap, and the new
+  `createMany` seeds with 4 in flight instead of an unbounded `Promise.all`, so a walk no longer
+  fails mid-seed against a hosted app's 10-call concurrency cap. `web-app-architecture` `limits.md`
+  and the `test-playwright` skill say so.
+
 - `test-playwright` `0.6.2` and `auth-hosted` `0.4.5` (albitor-ltd/albitor#3820; tags follow the merge).
   The hosted sign-in helpers sign in on Cognito managed login v2 as well as the classic UI (submit
   `button[type="submit"]` or `input[name="signInSubmitButton"]`; a refusal is also recognised by
