@@ -520,6 +520,28 @@
         "limits"
       ],
       "license": "MIT"
+    },
+    {
+      "name": "font-clear",
+      "source": {
+        "source": "git-subdir",
+        "url": "albitor-ltd/albitor-plugins",
+        "path": "plugins/font-clear",
+        "ref": "font-clear/v0.1.0",
+        "sha": "d0cf7c98d4583ef1a56cace8745db43f4836d0e3"
+      },
+      "description": "The Clear font look: Source Sans 3 for headings, body, data and labels. A clean, everyday humanist sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
+      "category": "development",
+      "keywords": [
+        "typeface",
+        "font",
+        "font-look",
+        "self-hosted",
+        "ofl",
+        "source-sans",
+        "preview-tokens"
+      ],
+      "license": "MIT"
     }
   ]
 }
