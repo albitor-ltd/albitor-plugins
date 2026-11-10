@@ -55,7 +55,7 @@ tests/compose/                    the Go test that script runs, with stub plugin
 | `look-business` | The `visual-language@1` look for enterprise and line-of-business apps: dense, navy neutrals, 2px corners, no elevation, tabular figures; ships `preview-tokens.json` |
 | `look-startup` | The `visual-language@1` look for SaaS and developer tools: near-neutral surfaces, one teal accent, 10px corners, hairline plus soft layered shadow; ships `preview-tokens.json` |
 | `look-consumer` | The `visual-language@1` look for mobile-first personal and lifestyle apps: warm white and berry, rounded type, 24px corners, 48px targets; ships `preview-tokens.json` |
-| `font-clear` | The `typeface@1` plugin for the Clear font look (ADR-0107): Source Sans 3 for every role, the full unmodified upstream variable woff2 and its `OFL.txt` seeded into `web/static/fonts/` with a same-origin `fonts.css`; ships `preview-tokens.json` (the four `font_*` stacks) and is the worked example for the other looks |
+| `font-clear` | The `typeface@1` plugin for the Clear font look (ADR-0107): Source Sans 3 for every role, the full unmodified upstream variable woff2 and its `OFL.txt` seeded into `web/static/fonts/` with a same-origin `fonts.css`; ships `preview-tokens.json` (label, character, size, order and the four `font_*` stacks) and is the worked example for the other looks |
 | `web-app-architecture` | Architecture patterns for the `web_app` archetype, delivered to the planner and the app-foundation node only (`archetype: web_app`, `deliver_to`): an index with use when, avoid when and how to decide, and one file per pattern (file storage, slow supplier work, platform limits, seeding for deployed walks) |
 
 `auth-cognito` and `auth-none` are the split of `auth`; `auth` stays as released (`auth/v0.7.0`). `auth-hosted` is a separate `auth@1` provider for the hosted lane (the pool comes from the hosted-app auth module and signs in on Cognito's hosted page); `auth-cognito` stays the plugin for an app's own account (BYOA), which signs in with a password through its own screens.
@@ -174,7 +174,7 @@ together), `header_withdrawn` (the same, used only where the platform withdraws 
 colour; a brand colour the buyer set paints the header instead, else `header`), `link`, `focus` and
 `focus_ink` (text on a focus fill: with it the focus indicator is a `focus` fill with `focus_ink`
 text and underline, without it a `focus` ring). Lengths are `0` or up to four decimals of `px`/`rem`;
-the file is at most 4 KiB. A `typeface@1` plugin's file holds instead `version` and the four role stacks `font_heading`, `font_body`, `font_data` and `font_label` (same family-list rules as `font_family`), and no look field; no other plugin may state them. Run `scripts/validate-preview-tokens.sh` before opening a pull request.
+the file is at most 4 KiB. A `typeface@1` plugin's file holds instead exactly `version`, `label` and `character` (plain words, up to 64 characters), integer `size_kb` (1-5000, the total woff2 size shipped) and `order` (0-99, the ADR-0107 list position), and the four role stacks `font_heading`, `font_body`, `font_data` and `font_label` (same family-list rules as `font_family`), and no look field; no other plugin may state them. Run `scripts/validate-preview-tokens.sh` before opening a pull request.
 
 ## Gate
 
@@ -187,7 +187,7 @@ templates, manifests or the composer contract, also run `just compose <albitor c
 
 `just ci` runs: manifest validation (JSON parses, `name` equals the directory, semver
 `version`, catalogue metadata present), preview-token validation (`scripts/validate-preview-tokens.sh`
-and its refusal tests), the font self-hosting gate (`scripts/validate-fonts.sh` and its refusal tests: OFL-1.1 licence and canonical `OFL.txt`, a real woff2 with the recorded sha256, same-origin `@font-face` only, a recorded `rfn`), catalogue reproducibility (`--check`), shellcheck and JSON lint, and the
+and its refusal tests), the font self-hosting gate (`scripts/validate-fonts.sh` and its refusal tests: OFL-1.1 licence and canonical `OFL.txt`, a real woff2 with the recorded sha256, same-origin `@font-face` only, a recorded `rfn` that matches the quoted Reserved Font Name(s) in the copyright line, comma-separated when there are several), catalogue reproducibility (`--check`), shellcheck and JSON lint, and the
 plugin verifies (api-go, data-dynamodb, auth, deploy-byoa-aws, deploy-hosted, object-s3).
 
 Compose and certification run only via `just compose <albitor checkout>`: the real manifest parser

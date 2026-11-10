@@ -6,8 +6,9 @@
 #
 #   validate-preview-tokens.sh [file...]   (default: plugins/*/preview-tokens.json)
 #
-# A file in a plugin that provides typeface@1 holds `version` and the four stacks font_heading,
-# font_body, font_data and font_label instead (ADR-0107); no other plugin may state them.
+# A file in a plugin that provides typeface@1 holds exactly `version`, label, character, size_kb,
+# order and the four stacks font_heading, font_body, font_data and font_label instead (ADR-0107);
+# no other plugin may state them.
 # Keep in step with the Go contract; tests/preview-tokens/ holds the accepted and refused fixtures.
 set -euo pipefail
 
@@ -46,11 +47,14 @@ def enum(vals): if type != "string" then "must be a string" elif IN(vals[]) then
 
 if (isobj | not) then "top level is not an object"
 elif $tf then
-  # A typeface plugin's file (ADR-0107): the four role stacks and nothing else; the look fields
-  # belong to a visual-language pack.
+  # A typeface plugin's file (ADR-0107; governance.TypefaceTokens): label, character, size_kb,
+  # order and the four role stacks, closed; the look fields belong to a visual-language pack.
   . as $d
-  | ( unknown(["version","font_heading","font_body","font_data","font_label"]; ""),
+  | ( unknown(["version","label","character","size_kb","order","font_heading","font_body","font_data","font_label"]; ""),
       req(["version"]; if . == 1 then empty else "is not 1" end),
+      (["label","character"][] as $k | req([$k]; if type != "string" then "must be a string" elif test("\\A[A-Za-z0-9][A-Za-z0-9 ,.'\\-]{0,63}\\z") then empty else "is not plain words of up to 64 characters" end)),
+      req(["size_kb"]; if (type != "number") or (. != floor) then "is not an integer" elif . < 1 or . > 5000 then "is not 1-5000" else empty end),
+      req(["order"]; if (type != "number") or (. != floor) then "is not an integer" elif . < 0 or . > 99 then "is not 0-99" else empty end),
       (["font_heading","font_body","font_data","font_label"][] as $k | req([$k]; fam(true)))
     )
 else
@@ -117,8 +121,8 @@ for f in "${files[@]}"; do
   if [[ "$count" != 1 ]]; then
     echo "error: $rel: must hold exactly one JSON value" >&2; fail=1; continue
   fi
-  if grep -Eq '"(version|heading_weight)"[[:space:]]*:[[:space:]]*-?[0-9]+[.eE]' "$f"; then
-    echo "error: $rel: version and heading_weight must be integer literals" >&2; fail=1; continue
+  if grep -Eq '"(version|heading_weight|size_kb|order)"[[:space:]]*:[[:space:]]*-?[0-9]+[.eE]' "$f"; then
+    echo "error: $rel: version, heading_weight, size_kb and order must be integer literals" >&2; fail=1; continue
   fi
   # A typeface plugin's file holds the four font_* stacks (ADR-0107) instead of the look fields.
   # The plugin's own manifest decides; a bare file (a fixture) is a typeface file if it names a stack.

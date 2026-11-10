@@ -85,7 +85,7 @@ case_ refuse "rfn empty" rfn_empty "rfn is required"
 rfn_none_but_declared() { jqm '.fonts[0].rfn = "none"'; }
 case_ refuse "rfn none but the OFL.txt declares one" rfn_none_but_declared "declares a Reserved Font Name"
 rfn_wrong() { jqm '.fonts[0].rfn = "Other"'; }
-case_ refuse "rfn not in the copyright line" rfn_wrong "not declared in the OFL.txt copyright line"
+case_ refuse "rfn not in the copyright line" rfn_wrong "does not match"
 
 # Manifest shape
 key_missing() { jqm 'del(.fonts[0].source)'; }
@@ -120,6 +120,64 @@ css_block() { sed -i 's/swap/block/' "$css"; }
 case_ refuse "font-display block" css_block "without font-display: swap"
 css_elsewhere() { mkdir -p styles; printf '@font-face{font-family:"X";font-display:swap;src:url(https://x.test/f.woff2)}\n' >styles/extra.css; }
 case_ refuse "bad CSS outside fonts.css" css_elsewhere "absolute URL"
+
+# Review fixes: case, other CSS functions, other files, header terms, RFN matching, value shapes.
+css_upper() { sed -i 's#url("fixture-sans/FixtureSans.woff2")#URL("https://evil.example/x.woff2")#' "$css"; }
+case_ refuse "uppercase URL() to a remote origin" css_upper "http: or https:"
+css_upper_rel() { sed -i 's#url("fixture-sans/FixtureSans.woff2")#URL("fixture-sans/Nope.woff2")#' "$css"; }
+case_ refuse "uppercase URL() is still resolved" css_upper_rel "does not resolve"
+css_upper_swap() { sed -i 's#font-display: swap#font-display: block#; s#url(#URL(#' "$css"; }
+case_ refuse "uppercase URL() still needs swap" css_upper_swap "without font-display: swap"
+css_imageset() { printf '@font-face{font-family:"X";font-display:swap;src:image-set("https://evil.example/x.woff2" 1x)}\n' >>"$css"; }
+case_ refuse "image-set with a remote string" css_imageset "http: or https:"
+css_bare() { printf '.a{background:image-set("//evil.example/x.png" 1x)}\n' >>"$css"; }
+case_ refuse "bare protocol-relative string" css_bare "protocol-relative"
+css_import_str() { sed -i '1i @import "other.css";' "$css"; }
+case_ refuse "@import of a bare string" css_import_str "@import"
+other_html() { mkdir -p templates; printf '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito">\n' >templates/app.html; }
+case_ refuse "remote font link in a seeded html file" other_html "http: or https:"
+other_ts() { mkdir -p templates; printf 'import "//cdn.example.com/f.js";\n' >templates/x.ts; }
+case_ refuse "protocol-relative import in a seeded ts file" other_ts "protocol-relative"
+other_ok() { mkdir -p templates; printf '// a comment\nexport const a = "b";\n' >templates/x.ts; }
+case_ accept "a // line comment in a seeded file" other_ok
+hdr_term() { sed -i '1i Additional term: not for commercial use.\r\n' "$ofl"; }
+case_ refuse "added term above the licence" hdr_term "not a copyright line"
+hdr_copy_term() { sed -i "1s/^Copyright/Copyright (restricted to non-commercial use)/" "$ofl"; }
+case_ refuse "copyright line adding a condition" hdr_copy_term "adds a condition"
+hdr_faq() { sed -i 's#http://scripts.sil.org/OFL#http://evil.example/terms#' "$ofl"; }
+case_ refuse "FAQ line pointing elsewhere" hdr_faq "unexpected line"
+rfn_sub() { jqm '.fonts[0].rfn = "Fix"'; }
+case_ refuse "rfn that is a substring of the declared name" rfn_sub "does not match"
+rfn_short() { jqm '.fonts[0].rfn = "a"'; }
+case_ refuse "rfn of one letter" rfn_short "does not match"
+rfn_word() { jqm '.fonts[0].rfn = "Font"'; }
+case_ refuse "rfn that is a word of the licence" rfn_word "does not match"
+rfn_case() { jqm '.fonts[0].rfn = "fixture"'; }
+case_ accept "rfn matches case-insensitively" rfn_case
+rfn_curly() { sed -i "s/'Fixture'/‘Fixture’/" "$ofl"; }
+case_ accept "curly-quoted RFN" rfn_curly
+rfn_multi() { sed -i "s/Reserved Font Name 'Fixture'/Reserved Font Names 'Fixture' and 'Other'/" "$ofl"; jqm '.fonts[0].rfn = "Fixture, Other"'; }
+case_ accept "several RFNs, comma-separated" rfn_multi
+rfn_multi_short() { sed -i "s/Reserved Font Name 'Fixture'/Reserved Font Names 'Fixture' and 'Other'/" "$ofl"; }
+case_ refuse "several RFNs declared, one recorded" rfn_multi_short "does not match"
+rfn_unquoted() { sed -i "s/'Fixture'/Fixture/" "$ofl"; }
+case_ refuse "RFN declared without quotes" rfn_unquoted "does not match"
+role_bad() { jqm '.fonts[0].role = "display"'; }
+case_ refuse "role outside the four" role_bad "must be heading, body, data or label"
+style_bad() { jqm '.fonts[0].style = "oblique"'; }
+case_ refuse "style outside normal and italic" style_bad "must be normal or italic"
+weight_bad() { jqm '.fonts[0].weight = "bold"'; }
+case_ refuse "weight not a number" weight_bad "must be 1 to 1000"
+weight_zero() { jqm '.fonts[0].weight = "0"'; }
+case_ refuse "weight zero" weight_zero "must be 1 to 1000"
+weight_big() { jqm '.fonts[0].weight = "1001"'; }
+case_ refuse "weight over 1000" weight_big "must be 1 to 1000"
+weight_range3() { jqm '.fonts[0].weight = "100 400 700"'; }
+case_ refuse "weight with three numbers" weight_range3 "must be 1 to 1000"
+weight_num() { jqm '.fonts[0].weight = 400'; }
+case_ accept "weight as a JSON number" weight_num
+italic_ok() { jqm '.fonts[0].style = "italic"'; }
+case_ accept "italic style" italic_ok
 
 [[ $fail -eq 0 ]] && echo "font gate tests passed"
 exit "$fail"

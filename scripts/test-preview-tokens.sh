@@ -86,6 +86,20 @@ tf() { # tf accept|refuse <name> <jq mutation> [error substring]
 }
 tf accept "no-op" '.'
 tf accept "mono stack" '.font_data="\"JetBrains Mono\", \"Courier New\", monospace"'
+tf refuse "label missing" 'del(.label)' "label is required"
+tf refuse "label with markup" '.label="<b>x</b>"' "label is not plain words"
+tf refuse "label too long" '.label=("a" * 65)' "label is not plain words"
+tf refuse "character empty" '.character=""' "character is not plain words"
+tf refuse "character not a string" '.character=1' "character must be a string"
+tf refuse "size_kb missing" 'del(.size_kb)' "size_kb is required"
+tf refuse "size_kb zero" '.size_kb=0' "size_kb is not 1-5000"
+tf refuse "size_kb too big" '.size_kb=5001' "size_kb is not 1-5000"
+tf refuse "size_kb fractional" '.size_kb=45.5' "integer literals"
+tf refuse "size_kb string" '.size_kb="45"' "size_kb is not an integer"
+tf refuse "order missing" 'del(.order)' "order is required"
+tf refuse "order negative" '.order=-1' "order is not 0-99"
+tf refuse "order 100" '.order=100' "order is not 0-99"
+tf accept "order 0" '.order=0'
 tf refuse "missing role" 'del(.font_label)' "font_label is required"
 tf refuse "empty role" '.font_body=""' "font_body is required"
 tf refuse "unknown key" '. + {font_family:"Arial"}' "font_family: unknown field"
