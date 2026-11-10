@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.6.2",
-        "sha": "61d59e7f69f22146311de01324102b8f94579bd6"
+        "ref": "test-playwright/v0.6.3",
+        "sha": "dd147e2c8a1c90983eed51d850fd7bedf6223a93"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -507,8 +507,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-app-architecture",
-        "ref": "web-app-architecture/v0.2.0",
-        "sha": "9665e33972603f7e3df1e0fa41343f0debee6da8"
+        "ref": "web-app-architecture/v0.2.1",
+        "sha": "dd147e2c8a1c90983eed51d850fd7bedf6223a93"
       },
       "description": "Architecture patterns for the web_app archetype, delivered to the planner and the app-foundation node only: where file bytes live, how slow supplier work advances, the platform limits a design must fit, and how deployed walks get their data. An index with when to use, when to avoid and how to decide, and one file per pattern.",
       "category": "development",
