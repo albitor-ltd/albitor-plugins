@@ -24,7 +24,7 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 | Textract asynchronous | 500 MB and 3,000 pages for PDF and TIFF; 10 MB for images | [Textract limits][tx] | `slow-supplier-work.md` |
 | Hosted gateway service-call body | 5,500,000 bytes inline, larger by upload handle | `gateway-services` skill | `file-storage.md` |
 | Hosted gateway daily credits | a per-app daily cap, owned by the platform; the number is not a design input | `gateway-services` skill | treat a refusal as "unavailable" (below) |
-| Hosted HTTP function concurrency | 10 reserved; over it the HTTP API answers 503 `Service Unavailable` | hosted deploy module | `screen-data.md`: one call per screen; retry GET on 429 or 503 |
+| Hosted HTTP function concurrency | 10 reserved; over it the HTTP API answers 503 `Service Unavailable` | hosted deploy module | `screen-data.md`: one call per screen; retry GET on 429 or 503; test seeding: `fixtureScope.createMany` (4 in flight) and a retrying `create`, never an unbounded `Promise.all` |
 | Hosted HTTP function size | 1024 MB memory, 30 s timeout | hosted deploy module | `slow-supplier-work.md` |
 | Hosted API request rate | 50 requests per second steady, burst 100; over it 429, and the request never reaches the function | hosted deploy module | `screen-data.md`: fewer, larger reads |
 | Hosted schedules | at most 3, each `rate()` no faster than every 15 minutes; a failed run is retried up to 3 times within 1 h (maximum event age 1 h) | hosted deploy module | work that needs seconds is a queue, not a schedule; handlers are idempotent |
@@ -58,6 +58,11 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
   the largest list the UI shows, not at fixture size: the answer is one call per screen
   (`screen-data.md`), with a client that retries a GET on 429 or 503 and caps requests in flight
   as the second line.
+- **Seeding fixtures.** A journey that seeds bulk data is a client of the same 10-call budget.
+  Seed through `fixtureScope.createMany` (4 in flight by default) or small bounded batches, and
+  rely on `create` retrying a 429 or 503 with backoff; an unbounded `Promise.all` of creates
+  throttles the function and fails the walk with `Fixture creation failed: 503`. The fix is in the
+  spec, never batching or backing off writes inside the app.
 - **Schedules and queues.** A schedule cannot fire faster than every 15 minutes and at most 3
   exist, and a failed run is retried up to 3 times within 1 h (maximum event age 1 h); a queue
   consumer takes at most 5 batches at once and a message is dead-lettered after
