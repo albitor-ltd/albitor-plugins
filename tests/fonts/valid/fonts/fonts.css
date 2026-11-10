@@ -1,0 +1,8 @@
+/* A same-origin @font-face: relative src, swap. */
+@font-face {
+  font-family: "Fixture Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fixture-sans/FixtureSans.woff2") format("woff2");
+}

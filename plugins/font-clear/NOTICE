@@ -1,0 +1,13 @@
+albitor-plugin font-clear
+=========================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled font
+------------
+
+`templates/web/static/fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2` is Source Sans 3
+version 3.052R, redistributed unmodified from https://github.com/adobe-fonts/source-sans under the
+SIL Open Font Licence 1.1. Its licence text, with the authors' copyright notice, is
+`templates/web/static/fonts/source-sans-3/OFL.txt`.

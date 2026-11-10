@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `font-clear` `0.1.0` (albitor-ltd/albitor#4684; tag follows the merge). The first `typeface@1`
+  plugin and the worked example of ADR-0107: Source Sans 3 `3.052R` (Adobe, OFL-1.1, Reserved Font
+  Name "Source") as the full unmodified upstream variable woff2 with its `OFL.txt`, a same-origin
+  `fonts.css` (`font-display: swap`, size-adjusted fallback), `preview-tokens.json` and a skill. New
+  gate `scripts/validate-fonts.sh` (run by `just ci`, fixtures in `tests/fonts/`), and
+  `validate-preview-tokens.sh` accepts the `font_heading`, `font_body`, `font_data` and `font_label`
+  stacks for a typeface plugin.
+
 - `test-playwright` `0.6.3` and `web-app-architecture` `0.2.1` (albitor-ltd/albitor#4643; tags follow
   the merge). The seeded `FixtureScope.create` retries a 429 or 503 (a throttled call never ran the
   function) with bounded, jittered backoff honouring `Retry-After` up to a 5 second cap, and the new

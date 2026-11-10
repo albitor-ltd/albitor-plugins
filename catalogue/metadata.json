@@ -328,5 +328,19 @@
       "limits"
     ],
     "license": "MIT"
+  },
+  "font-clear": {
+    "description": "The Clear font look: Source Sans 3 for headings, body, data and labels. A clean, everyday humanist sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "source-sans",
+      "preview-tokens"
+    ],
+    "license": "MIT"
   }
 }

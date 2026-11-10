@@ -1,0 +1,22 @@
+/* Clear font look: Source Sans 3, self-hosted. Yours to change once seeded.
+   Every src is a relative path to a file in this directory tree; nothing is fetched from another
+   origin (the page's CSP is font-src 'self'). The family is the full upstream variable woff2,
+   unmodified (weights 200 to 900), so one file serves every weight. */
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("source-sans-3/SourceSans3VF-Upright.otf.woff2") format("woff2");
+}
+
+/* Size-adjusted stand-in shown until the face loads, so the swap does not move the page.
+   Measured against Arial (Liberation Sans is metric-compatible) at the regular weight. */
+@font-face {
+  font-family: "Source Sans 3 Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 97.1%;
+  ascent-override: 103%;
+  descent-override: 33.6%;
+  line-gap-override: 0%;
+}
