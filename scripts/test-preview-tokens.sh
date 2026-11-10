@@ -76,6 +76,50 @@ expect refuse "dark_target empty string" '.dark_target=""' "dark_target must be 
 expect refuse "family 241 bytes" '.font_family=("a" * 241)' "font_family is longer than 240"
 expect accept "family 240 bytes" '.font_family=(([range(7)|"a" * 28] + ["a" * 30]) | join(", "))'
 
+# Typeface plugins (ADR-0107): four role stacks, validated as a bare fixture and inside a plugin
+# directory whose manifest decides what the file may hold.
+tfbase="$root/tests/preview-tokens/typeface-valid.json"
+tf() { # tf accept|refuse <name> <jq mutation> [error substring]
+  local want="$1" name="$2" mut="$3" msg="${4:-}"
+  jq "$mut" "$tfbase" >"$tmp/tf.json"
+  check "$want" "typeface: $name" "$tmp/tf.json" "$msg"
+}
+tf accept "no-op" '.'
+tf accept "mono stack" '.font_data="\"JetBrains Mono\", \"Courier New\", monospace"'
+tf refuse "label missing" 'del(.label)' "label is required"
+tf refuse "label with markup" '.label="<b>x</b>"' "label is not plain words"
+tf refuse "label too long" '.label=("a" * 65)' "label is not plain words"
+tf refuse "character empty" '.character=""' "character is not plain words"
+tf refuse "character not a string" '.character=1' "character must be a string"
+tf refuse "size_kb missing" 'del(.size_kb)' "size_kb is required"
+tf refuse "size_kb zero" '.size_kb=0' "size_kb is not 1-5000"
+tf refuse "size_kb too big" '.size_kb=5001' "size_kb is not 1-5000"
+tf refuse "size_kb fractional" '.size_kb=45.5' "integer literals"
+tf refuse "size_kb string" '.size_kb="45"' "size_kb is not an integer"
+tf refuse "order missing" 'del(.order)' "order is required"
+tf refuse "order negative" '.order=-1' "order is not 0-99"
+tf refuse "order 100" '.order=100' "order is not 0-99"
+tf accept "order 0" '.order=0'
+tf refuse "missing role" 'del(.font_label)' "font_label is required"
+tf refuse "empty role" '.font_body=""' "font_body is required"
+tf refuse "unknown key" '. + {font_family:"Arial"}' "font_family: unknown field"
+tf refuse "look field mixed in" '. + {radius:"2px"}' "radius: unknown field"
+tf refuse "css injection" '.font_heading="arial; color: red"' "font_heading has a family name outside"
+tf refuse "too many families" '.font_body="a,b,c,d,e,f,g,h,i"' "font_body names more than 8"
+tf refuse "wrong version" '.version=2' "version is not 1"
+tf refuse "non-string role" '.font_data=1' "font_data must be a string"
+
+plug="$tmp/plug"
+mkdir -p "$plug/.claude-plugin"
+cp "$tfbase" "$plug/preview-tokens.json"
+echo '{"name":"p","provides":["typeface@1"]}' >"$plug/.claude-plugin/plugin.json"
+check accept "typeface plugin file" "$plug/preview-tokens.json"
+echo '{"name":"p","provides":["visual-language@1"]}' >"$plug/.claude-plugin/plugin.json"
+check refuse "font stacks in a non-typeface plugin" "$plug/preview-tokens.json" "font_heading: unknown field"
+cp "$base" "$plug/preview-tokens.json"
+echo '{"name":"p","provides":["typeface@1"]}' >"$plug/.claude-plugin/plugin.json"
+check refuse "look tokens in a typeface plugin" "$plug/preview-tokens.json" "font_heading is required"
+
 # Structural cases the mutations above cannot express.
 raw() { printf '%b' "$2" >"$tmp/raw.json"; check refuse "$1" "$tmp/raw.json" "$3"; }
 raw "array" '[]' "top level is not an object"

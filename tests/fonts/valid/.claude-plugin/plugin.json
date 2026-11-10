@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "name": "valid",
+  "version": "0.1.0",
+  "kind": "socket",
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Fixture Sans",
+      "role": "body",
+      "weight": "400",
+      "style": "normal",
+      "file": "fonts/fixture-sans/FixtureSans.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "21b93c422fb05ab7beacc1911586cb2be16abcf9ce893cc5cebf1b9b400e0379",
+      "source": "https://example.invalid/fixture-sans 1.0.0",
+      "rfn": "Fixture"
+    }
+  ]
+}
