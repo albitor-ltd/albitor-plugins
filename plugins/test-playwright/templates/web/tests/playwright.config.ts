@@ -72,6 +72,10 @@ export default defineConfig({
 	testMatch: /.*\.spec\.ts|.*\.setup\.ts/,
 	forbidOnly: isCI,
 	retries: isCI ? 1 : 0,
+	// `workers` is deliberately NOT set here. The automated walk of a deployed preview passes
+	// `--workers=1` itself and that flag wins, so the count is decided once, by the walk. A hosted
+	// app's function runs at most 10 calls at once (limits.md): if you run this suite yourself
+	// against a deployed app, pass a small `--workers` (1 or 2) and seed with `fixtureScope.createMany`.
 	timeout: 30_000,
 	expect: { timeout: 5_000 },
 	reporter: isCI ? [["list"], ["html", { open: "never", outputFolder: resolve(outRoot, "playwright-report") }]] : "list",
