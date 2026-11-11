@@ -1,0 +1,13 @@
+/* web/src/lib/app/app.css: the four font roles for the Console look.
+   Keep these identical to preview-tokens.json. Declared unlayered so they win over the kit. */
+:root {
+  --font-heading: "JetBrains Mono", "JetBrains Mono Fallback", "Courier New", monospace;
+  --font-body: "Inter", "Inter Fallback", Arial, sans-serif;
+  --font-data: "JetBrains Mono", "JetBrains Mono Fallback", "Courier New", monospace;
+  --font-label: "JetBrains Mono", "JetBrains Mono Fallback", "Courier New", monospace;
+}
+
+body { font-family: var(--font-body); font-weight: 400; }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 700; }
+table, .figure { font-family: var(--font-data); font-weight: 400; font-variant-numeric: tabular-nums; }
+button, label, th, .badge { font-family: var(--font-label); font-weight: 600; }
