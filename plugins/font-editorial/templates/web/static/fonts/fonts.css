@@ -1,0 +1,54 @@
+/* Editorial font look: Source Serif 4 for headings, Source Sans 3 for body, data and labels,
+   self-hosted. Yours to change once seeded.
+   Every src is a relative path to a file in this directory tree; nothing is fetched from another
+   origin (the page's CSP is font-src 'self'). Every file is the full upstream woff2, unmodified:
+   Source Serif 4 as the static Semibold (600) and Bold (700) files, Source Sans 3 as the variable
+   upright (weights 200 to 900). */
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("source-serif-4/SourceSerif4-Semibold.ttf.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("source-serif-4/SourceSerif4-Bold.ttf.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("source-sans-3/SourceSans3VF-Upright.otf.woff2") format("woff2");
+}
+
+/* Size-adjusted stand-ins shown until a face loads, so the swap does not move the page.
+   Source Sans 3: the same values as the Clear look, measured against Arial (Liberation Sans is
+   metric-compatible) at the regular weight. Source Serif 4: measured at Semibold against Times New
+   Roman Bold (Liberation Serif Bold is metric-compatible), because the serif is used only for
+   headings; the frequency-weighted mean advance of the lower-case letters and space, with the
+   ascent and descent taken from the hhea table and divided by the size adjustment. */
+@font-face {
+  font-family: "Source Sans 3 Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 97.1%;
+  ascent-override: 103%;
+  descent-override: 33.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Source Serif 4 Fallback";
+  src: local("Times New Roman Bold"), local("Liberation Serif Bold"), local("Times Bold");
+  font-weight: 600 700;
+  size-adjust: 106.7%;
+  ascent-override: 97.1%;
+  descent-override: 31.4%;
+  line-gap-override: 0%;
+}

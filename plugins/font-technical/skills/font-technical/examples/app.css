@@ -1,0 +1,13 @@
+/* web/src/lib/app/app.css: the four font roles for the Technical look.
+   Keep these identical to preview-tokens.json. Declared unlayered so they win over the kit. */
+:root {
+  --font-heading: "IBM Plex Sans", "IBM Plex Sans Fallback", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "IBM Plex Sans Fallback", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", "IBM Plex Mono Fallback", "Courier New", monospace;
+  --font-label: "IBM Plex Mono", "IBM Plex Mono Fallback", "Courier New", monospace;
+}
+
+body { font-family: var(--font-body); font-weight: 400; }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 600; }
+table, .figure { font-family: var(--font-data); font-weight: 400; font-variant-numeric: tabular-nums; }
+button, label, th, .badge { font-family: var(--font-label); font-weight: 500; }

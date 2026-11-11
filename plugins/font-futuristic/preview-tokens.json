@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "label": "Futuristic",
+  "character": "Bold forward looking headings over neutral text",
+  "size_kb": 275,
+  "order": 7,
+  "font_heading": "\"Space Grotesk\", \"Space Grotesk Fallback\", Arial, sans-serif",
+  "font_body": "\"Inter\", \"Inter Fallback\", Arial, sans-serif",
+  "font_data": "\"Inter\", \"Inter Fallback\", Arial, sans-serif",
+  "font_label": "\"Inter\", \"Inter Fallback\", Arial, sans-serif"
+}

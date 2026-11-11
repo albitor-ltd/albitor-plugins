@@ -1,0 +1,159 @@
+{
+  "schema": 2,
+  "name": "font-console",
+  "displayName": "Font: Console",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Console font look: JetBrains Mono for headings, data and labels, Inter for body text. A terminal character with readable long text, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "jetbrains-mono",
+    "inter",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "JetBrains Mono",
+      "role": "heading",
+      "weight": "500",
+      "style": "normal",
+      "file": "templates/web/static/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "086c48dfbea9ddaff1320f7e09399b8e2924e88ce67453721255db3bdbb5a353",
+      "source": "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 (JetBrains Mono 2.304, JetBrainsMono-2.304.zip, fonts/webfonts/JetBrainsMono-Medium.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "JetBrains Mono",
+      "role": "heading",
+      "weight": "700",
+      "style": "normal",
+      "file": "templates/web/static/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "c503cc5ec5f8b2c7666b7ecda1adf44bd45f2e6579b2eba0fc292150416588a2",
+      "source": "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 (JetBrains Mono 2.304, JetBrainsMono-2.304.zip, fonts/webfonts/JetBrainsMono-Bold.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "body",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-Regular.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "body",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-SemiBold.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "JetBrains Mono",
+      "role": "data",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "a9cb1cd82332b23a47e3a1239d25d13c86d16c4220695e34b243effa999f45f2",
+      "source": "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 (JetBrains Mono 2.304, JetBrainsMono-2.304.zip, fonts/webfonts/JetBrainsMono-Regular.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "JetBrains Mono",
+      "role": "data",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "918edad542a1da608fd2ba8daebaff9ac802309103fe760eed465b8b4e47faf1",
+      "source": "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 (JetBrains Mono 2.304, JetBrainsMono-2.304.zip, fonts/webfonts/JetBrainsMono-SemiBold.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "JetBrains Mono",
+      "role": "label",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "a9cb1cd82332b23a47e3a1239d25d13c86d16c4220695e34b243effa999f45f2",
+      "source": "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 (JetBrains Mono 2.304, JetBrainsMono-2.304.zip, fonts/webfonts/JetBrainsMono-Regular.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "JetBrains Mono",
+      "role": "label",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "918edad542a1da608fd2ba8daebaff9ac802309103fe760eed465b8b4e47faf1",
+      "source": "https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 (JetBrains Mono 2.304, JetBrainsMono-2.304.zip, fonts/webfonts/JetBrainsMono-SemiBold.woff2)",
+      "rfn": "none"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-console"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/jetbrains-mono/JetBrainsMono-Regular.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/jetbrains-mono/JetBrainsMono-Medium.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/jetbrains-mono/JetBrainsMono-SemiBold.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/jetbrains-mono/JetBrainsMono-Bold.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/inter/Inter-Regular.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/inter/Inter-SemiBold.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/jetbrains-mono/OFL.txt",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/inter/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}

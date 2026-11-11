@@ -1,0 +1,13 @@
+albitor-plugin font-console
+============================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled fonts
+-------------
+
+All fonts are redistributed unmodified under the SIL Open Font Licence 1.1.
+
+- `templates/web/static/fonts/jetbrains-mono/` holds JetBrains Mono 2.304, redistributed unmodified from the JetBrainsMono-2.304.zip release at https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304; its licence text is `OFL.txt` beside the font files.
+- `templates/web/static/fonts/inter/` holds Inter 4.1, redistributed unmodified from the Inter-4.1.zip release at https://github.com/rsms/inter/releases/tag/v4.1; its licence text is `OFL.txt` beside the font files (the Google Fonts distribution of the same Inter OFL text, google/fonts commit b0928647ba26c8d55548aa19feb2f7aeba622d4a, ofl/inter/OFL.txt: the Inter release LICENSE.txt differs from the canonical OFL-1.1 only in its heading PERMISSION AND CONDITIONS (canonical: PERMISSION & CONDITIONS), which the gate hash rejects).

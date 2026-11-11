@@ -1,0 +1,90 @@
+{
+  "schema": 2,
+  "name": "font-geometric",
+  "displayName": "Font: Geometric",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Geometric font look: Plus Jakarta Sans for headings, body, data and labels. A modern geometric sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "plus-jakarta-sans",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Plus Jakarta Sans",
+      "role": "heading",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/plus-jakarta-sans/PlusJakartaSans-Variable.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "49c62cf1fb70f225ea113361f0134a48858c3a7d0175173aa3e38a0c6c8539d2",
+      "source": "https://github.com/tokotype/PlusJakartaSans/blob/6d4ffaf7a0c04a1bc2f31be2f1069e84d2433797/fonts/webfonts/PlusJakartaSans%5Bwght%5D.woff2 (Plus Jakarta Sans 2.071, release 2.7.1; upstream webfonts/PlusJakartaSans[wght].woff2, the release 2.7.1 zip carries no woff2; saved as PlusJakartaSans-Variable.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "role": "body",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/plus-jakarta-sans/PlusJakartaSans-Variable.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "49c62cf1fb70f225ea113361f0134a48858c3a7d0175173aa3e38a0c6c8539d2",
+      "source": "https://github.com/tokotype/PlusJakartaSans/blob/6d4ffaf7a0c04a1bc2f31be2f1069e84d2433797/fonts/webfonts/PlusJakartaSans%5Bwght%5D.woff2 (Plus Jakarta Sans 2.071, release 2.7.1; upstream webfonts/PlusJakartaSans[wght].woff2, the release 2.7.1 zip carries no woff2; saved as PlusJakartaSans-Variable.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "role": "data",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/plus-jakarta-sans/PlusJakartaSans-Variable.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "49c62cf1fb70f225ea113361f0134a48858c3a7d0175173aa3e38a0c6c8539d2",
+      "source": "https://github.com/tokotype/PlusJakartaSans/blob/6d4ffaf7a0c04a1bc2f31be2f1069e84d2433797/fonts/webfonts/PlusJakartaSans%5Bwght%5D.woff2 (Plus Jakarta Sans 2.071, release 2.7.1; upstream webfonts/PlusJakartaSans[wght].woff2, the release 2.7.1 zip carries no woff2; saved as PlusJakartaSans-Variable.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "role": "label",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/plus-jakarta-sans/PlusJakartaSans-Variable.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "49c62cf1fb70f225ea113361f0134a48858c3a7d0175173aa3e38a0c6c8539d2",
+      "source": "https://github.com/tokotype/PlusJakartaSans/blob/6d4ffaf7a0c04a1bc2f31be2f1069e84d2433797/fonts/webfonts/PlusJakartaSans%5Bwght%5D.woff2 (Plus Jakarta Sans 2.071, release 2.7.1; upstream webfonts/PlusJakartaSans[wght].woff2, the release 2.7.1 zip carries no woff2; saved as PlusJakartaSans-Variable.woff2)",
+      "rfn": "none"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-geometric"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/plus-jakarta-sans/PlusJakartaSans-Variable.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/plus-jakarta-sans/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}

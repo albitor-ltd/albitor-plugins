@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `font-high-legibility`, `font-technical`, `font-friendly`, `font-futuristic`, `font-geometric`,
+  `font-editorial` and `font-console`, each `0.1.0` (albitor-ltd/albitor#4685; tags follow the
+  merge). The seven remaining ADR-0107 `typeface@1` plugins, each self-hosting its OFL-1.1 woff2
+  files with their licence text, a same-origin `fonts.css`, `preview-tokens.json` and a skill.
+  Landed as one fan-in because each failed `just ci` alone unregistered.
+
 - `font-clear` `0.1.0` (albitor-ltd/albitor#4684; tag follows the merge). The first `typeface@1`
   plugin and the worked example of ADR-0107: Source Sans 3 `3.052R` (Adobe, OFL-1.1, Reserved Font
   Name "Source") as the full unmodified upstream variable woff2 with its `OFL.txt`, a same-origin

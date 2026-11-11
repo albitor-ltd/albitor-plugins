@@ -1,0 +1,12 @@
+albitor-plugin font-high-legibility
+===================================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled fonts
+-------------
+
+`templates/web/static/fonts/atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2` is Atkinson Hyperlegible Next (2.001), redistributed unmodified
+from https://github.com/googlefonts/atkinson-hyperlegible-next/tree/7925f50f649b3813257faf2f4c0b381011f434f1 under the SIL Open Font Licence 1.1. Its licence text, with the authors'
+copyright notice, is `templates/web/static/fonts/atkinson-hyperlegible-next/OFL.txt`.

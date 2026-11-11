@@ -1,0 +1,13 @@
+/* web/src/lib/app/app.css: the four font roles for the Geometric look.
+   Keep these identical to preview-tokens.json. Declared unlayered so they win over the kit. */
+:root {
+  --font-heading: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", Arial, sans-serif;
+  --font-body: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", Arial, sans-serif;
+  --font-data: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", Arial, sans-serif;
+  --font-label: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", Arial, sans-serif;
+}
+
+body { font-family: var(--font-body); }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 700; }
+table, .figure { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+button, label, th, .badge { font-family: var(--font-label); font-weight: 600; }

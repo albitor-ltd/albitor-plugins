@@ -1,0 +1,16 @@
+albitor-plugin font-friendly
+============================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled fonts
+-------------
+
+`templates/web/static/fonts/nunito/Nunito-wght.woff2` is Nunito 3.602, the full upstream variable TTF converted losslessly to woff2, redistributed
+from https://github.com/googlefonts/nunito/tree/8c6a9bb9732545b9ed53f29ec5e1ab0ff53c4e6f under the SIL Open Font Licence 1.1. Its licence text, with the authors'
+copyright notice, is `templates/web/static/fonts/nunito/OFL.txt`.
+
+`templates/web/static/fonts/nunito-sans/NunitoSans-VF.woff2` is Nunito Sans Nunito Sans 3.101, the full upstream variable TTF converted losslessly to woff2, redistributed
+from https://github.com/googlefonts/NunitoSans/tree/058bd7a2f33d6ad5ef1df985b3db403622016a8c under the SIL Open Font Licence 1.1. Its licence text, with the authors'
+copyright notice, is `templates/web/static/fonts/nunito-sans/OFL.txt`.

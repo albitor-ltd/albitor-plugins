@@ -1,0 +1,13 @@
+albitor-plugin font-geometric
+=============================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled font
+------------
+
+`templates/web/static/fonts/plus-jakarta-sans/PlusJakartaSans-Variable.woff2` is Plus Jakarta Sans
+version 2.071 (release 2.7.1), redistributed unmodified from https://github.com/tokotype/PlusJakartaSans
+under the SIL Open Font Licence 1.1. Its licence text, with the authors' copyright notice, is
+`templates/web/static/fonts/plus-jakarta-sans/OFL.txt`.

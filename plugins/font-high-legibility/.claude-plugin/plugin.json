@@ -1,0 +1,92 @@
+{
+  "schema": 2,
+  "name": "font-high-legibility",
+  "displayName": "Font: High legibility",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The High legibility font look: Atkinson Hyperlegible Next for headings, body, data and labels. Designed by the Braille Institute for low vision, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "atkinson",
+    "hyperlegible",
+    "accessibility",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Atkinson Hyperlegible Next",
+      "role": "heading",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "abde1ad5cf78b9ac575ef90d991f2e9101eb0b3b6668bde9a00e2e1e27d99afd",
+      "source": "https://github.com/googlefonts/atkinson-hyperlegible-next @ 7925f50f649b3813257faf2f4c0b381011f434f1 (Atkinson Hyperlegible Next 2.001, fonts/webfonts/AtkinsonHyperlegibleNext[wght].woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Atkinson Hyperlegible Next",
+      "role": "body",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "abde1ad5cf78b9ac575ef90d991f2e9101eb0b3b6668bde9a00e2e1e27d99afd",
+      "source": "https://github.com/googlefonts/atkinson-hyperlegible-next @ 7925f50f649b3813257faf2f4c0b381011f434f1 (Atkinson Hyperlegible Next 2.001, fonts/webfonts/AtkinsonHyperlegibleNext[wght].woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Atkinson Hyperlegible Next",
+      "role": "data",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "abde1ad5cf78b9ac575ef90d991f2e9101eb0b3b6668bde9a00e2e1e27d99afd",
+      "source": "https://github.com/googlefonts/atkinson-hyperlegible-next @ 7925f50f649b3813257faf2f4c0b381011f434f1 (Atkinson Hyperlegible Next 2.001, fonts/webfonts/AtkinsonHyperlegibleNext[wght].woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Atkinson Hyperlegible Next",
+      "role": "label",
+      "weight": "200 800",
+      "style": "normal",
+      "file": "templates/web/static/fonts/atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "abde1ad5cf78b9ac575ef90d991f2e9101eb0b3b6668bde9a00e2e1e27d99afd",
+      "source": "https://github.com/googlefonts/atkinson-hyperlegible-next @ 7925f50f649b3813257faf2f4c0b381011f434f1 (Atkinson Hyperlegible Next 2.001, fonts/webfonts/AtkinsonHyperlegibleNext[wght].woff2)",
+      "rfn": "none"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-high-legibility"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/atkinson-hyperlegible-next/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}

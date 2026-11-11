@@ -1,0 +1,114 @@
+{
+  "schema": 2,
+  "name": "font-editorial",
+  "displayName": "Font: Editorial",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Editorial font look: Source Serif 4 for headings with Source Sans 3 for body, data and labels. A reading-led serif and sans pairing, self-hosted as the full unmodified upstream woff2 files under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "source-serif",
+    "source-sans",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Source Serif 4",
+      "role": "heading",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/source-serif-4/SourceSerif4-Semibold.ttf.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "457a13ac92e977d82e376038a2daac7fdb5433610910bf5787bdf6c1c3781865",
+      "source": "https://github.com/adobe-fonts/source-serif/releases/tag/4.005R (Source Serif 4 4.005R, source-serif-4.005_WOFF2.zip, source-serif-4.005_WOFF2/TTF/SourceSerif4-Semibold.ttf.woff2)",
+      "rfn": "Source"
+    },
+    {
+      "family": "Source Serif 4",
+      "role": "heading",
+      "weight": "700",
+      "style": "normal",
+      "file": "templates/web/static/fonts/source-serif-4/SourceSerif4-Bold.ttf.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "6d4fd4c0f08798a478fe34aafea9bf5cfa1cbc6ae4b834193febaee74254d10c",
+      "source": "https://github.com/adobe-fonts/source-serif/releases/tag/4.005R (Source Serif 4 4.005R, source-serif-4.005_WOFF2.zip, source-serif-4.005_WOFF2/TTF/SourceSerif4-Bold.ttf.woff2)",
+      "rfn": "Source"
+    },
+    {
+      "family": "Source Sans 3",
+      "role": "body",
+      "weight": "200 900",
+      "style": "normal",
+      "file": "templates/web/static/fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "f9e4eac0e8f8ffdae91cf6eff3962b96e81417cba5c728bc1c89efe9510e7653",
+      "source": "https://github.com/adobe-fonts/source-sans/releases/tag/3.052R (Source Sans 3 3.052R, WOFF2-source-sans-3.052R.zip, WOFF2/VF/SourceSans3VF-Upright.otf.woff2)",
+      "rfn": "Source"
+    },
+    {
+      "family": "Source Sans 3",
+      "role": "data",
+      "weight": "200 900",
+      "style": "normal",
+      "file": "templates/web/static/fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "f9e4eac0e8f8ffdae91cf6eff3962b96e81417cba5c728bc1c89efe9510e7653",
+      "source": "https://github.com/adobe-fonts/source-sans/releases/tag/3.052R (Source Sans 3 3.052R, WOFF2-source-sans-3.052R.zip, WOFF2/VF/SourceSans3VF-Upright.otf.woff2)",
+      "rfn": "Source"
+    },
+    {
+      "family": "Source Sans 3",
+      "role": "label",
+      "weight": "200 900",
+      "style": "normal",
+      "file": "templates/web/static/fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "f9e4eac0e8f8ffdae91cf6eff3962b96e81417cba5c728bc1c89efe9510e7653",
+      "source": "https://github.com/adobe-fonts/source-sans/releases/tag/3.052R (Source Sans 3 3.052R, WOFF2-source-sans-3.052R.zip, WOFF2/VF/SourceSans3VF-Upright.otf.woff2)",
+      "rfn": "Source"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-editorial"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/source-serif-4/SourceSerif4-Semibold.ttf.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/source-serif-4/SourceSerif4-Bold.ttf.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/source-serif-4/OFL.txt",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/source-sans-3/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}
