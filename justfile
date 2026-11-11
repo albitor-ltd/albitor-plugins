@@ -68,3 +68,18 @@ compose albitor:
 # Usage: just compose-journeys ~/albitor/albitor
 compose-journeys albitor:
     scripts/compose-check.sh --build --journeys {{albitor}}
+
+# Not part of `ci` (needs an albitor checkout, and fontTools from the network once): cut the
+# Look-step font previews (ADR-0107 section 3) into the checkout's web/static/fonts/looks/.
+# Usage: just font-previews ~/albitor/albitor
+font-previews albitor:
+    scripts/subset-previews.sh {{albitor}}
+
+# The drift test: the previews checked into that checkout reproduce from these plugins.
+# Usage: just font-previews-check ~/albitor/albitor
+font-previews-check albitor:
+    scripts/check-font-previews.sh {{albitor}}
+
+# Prove the drift test fails on a tampered plugin file, a missing or stale preview and a kept RFN.
+font-previews-test:
+    scripts/test-font-previews.sh

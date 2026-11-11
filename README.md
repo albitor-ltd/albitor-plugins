@@ -27,6 +27,9 @@ scripts/validate-preview-tokens.sh  every plugins/*/preview-tokens.json against 
 scripts/test-preview-tokens.sh    accept/refuse cases for that validator (tests/preview-tokens/)
 scripts/validate-fonts.sh         the font self-hosting gate over every typeface plugin (ADR-0107 section 4; run by `just ci`)
 scripts/test-fonts.sh             accept/refuse cases for that gate (tests/fonts/)
+scripts/subset-previews.sh        cuts the Look-step Latin preview subsets of the typeface plugins' fonts into an albitor checkout's `web/static/fonts/looks/` (ADR-0107 section 3; pinned fontTools in `font-previews.pin`; `just font-previews <albitor checkout>`)
+scripts/check-font-previews.sh    the drift test: those checked-in previews reproduce byte for byte from the plugins, hashes and versions match, no preview keeps a Reserved Font Name (`just font-previews-check <albitor checkout>`; not in `just ci`, like compose-check)
+scripts/test-font-previews.sh     proves that test fails on a tampered plugin file, a missing or stale preview and a kept RFN (`just font-previews-test`)
 scripts/compose-check.sh          real parser and composer over schema-2 plugins, then the web build and, with --journeys, the Playwright journeys
 tests/compose/                    the Go test that script runs, with stub plugins
 ```
