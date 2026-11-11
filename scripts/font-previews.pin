@@ -1,0 +1,5 @@
+# Pinned toolchain for the Look-step font previews (ADR-0107 section 3). These are the same
+# versions the plugins' full woff2 files were converted with (see each plugin's `fonts[].source`).
+# Changing a pin changes the preview bytes: regenerate and check in the previews in the same change.
+fonttools==4.68.0
+brotli==1.2.1
