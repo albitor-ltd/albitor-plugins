@@ -353,6 +353,8 @@
       "self-hosted",
       "ofl",
       "atkinson",
+      "hyperlegible",
+      "accessibility",
       "preview-tokens"
     ],
     "license": "MIT"
@@ -381,6 +383,8 @@
       "self-hosted",
       "ofl",
       "nunito",
+      "nunito-sans",
+      "rounded",
       "preview-tokens"
     ],
     "license": "MIT"
@@ -395,6 +399,7 @@
       "self-hosted",
       "ofl",
       "space-grotesk",
+      "inter",
       "preview-tokens"
     ],
     "license": "MIT"
@@ -408,7 +413,7 @@
       "font-look",
       "self-hosted",
       "ofl",
-      "plus-jakarta",
+      "plus-jakarta-sans",
       "preview-tokens"
     ],
     "license": "MIT"
@@ -423,6 +428,7 @@
       "self-hosted",
       "ofl",
       "source-serif",
+      "source-sans",
       "preview-tokens"
     ],
     "license": "MIT"
@@ -437,6 +443,7 @@
       "self-hosted",
       "ofl",
       "jetbrains-mono",
+      "inter",
       "preview-tokens"
     ],
     "license": "MIT"
