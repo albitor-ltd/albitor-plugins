@@ -1,0 +1,19 @@
+albitor-plugin font-editorial
+=============================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled fonts
+-------------
+
+`templates/web/static/fonts/source-serif-4/SourceSerif4-Semibold.ttf.woff2` and
+`templates/web/static/fonts/source-serif-4/SourceSerif4-Bold.ttf.woff2` are Source Serif 4 version
+4.005R, redistributed unmodified from https://github.com/adobe-fonts/source-serif under the SIL
+Open Font Licence 1.1. Their licence text, with the authors' copyright notice, is
+`templates/web/static/fonts/source-serif-4/OFL.txt`.
+
+`templates/web/static/fonts/source-sans-3/SourceSans3VF-Upright.otf.woff2` is Source Sans 3
+version 3.052R, redistributed unmodified from https://github.com/adobe-fonts/source-sans under the
+SIL Open Font Licence 1.1. Its licence text, with the authors' copyright notice, is
+`templates/web/static/fonts/source-sans-3/OFL.txt`.
