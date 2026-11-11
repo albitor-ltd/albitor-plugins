@@ -1,0 +1,24 @@
+/* Geometric font look: Plus Jakarta Sans, self-hosted. Yours to change once seeded.
+   Every src is a relative path to a file in this directory tree; nothing is fetched from another
+   origin (the page's CSP is font-src 'self'). The family is the full upstream variable woff2,
+   unmodified (weights 200 to 800), so one file serves every weight. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("plus-jakarta-sans/PlusJakartaSans-Variable.woff2") format("woff2");
+}
+
+/* Size-adjusted stand-in shown until the face loads, so the swap does not move the page.
+   Measured against Arial (Liberation Sans is metric-compatible) at the regular weight: the
+   frequency-weighted mean advance of the lower-case letters and space, with the ascent and
+   descent taken from the font's hhea table and divided by the size adjustment. */
+@font-face {
+  font-family: "Plus Jakarta Sans Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 106%;
+  ascent-override: 97.9%;
+  descent-override: 20.9%;
+  line-gap-override: 0%;
+}
