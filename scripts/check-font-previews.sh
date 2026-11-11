@@ -7,6 +7,7 @@
 #
 # Fails on, per plugin font:
 #   - a missing manifest or preview file, or a preview file no manifest lists;
+#   - a missing OFL.txt beside a manifest, or one that differs from the plugin's;
 #   - a manifest whose plugin version, source, rfn or full-file sha256 differs from the plugin's, or
 #     whose recorded full sha256 no longer matches the plugin's file on disk;
 #   - a preview whose bytes differ from the manifest's recorded sha256;
@@ -71,6 +72,11 @@ for name in "${names[@]}"; do
     rfn="$(jq -r --arg f "$family" '[.fonts[]|select(.family==$f)][0].rfn' "$pm")"
     [[ "$(jq -r .rfn "$mf")" == "$rfn" ]] || err "$name/$family: manifest rfn '$(jq -r .rfn "$mf")' != plugin rfn '$rfn'"
     [[ "$(jq -r .source "$mf")" == "$(jq -r --arg f "$family" '[.fonts[]|select(.family==$f)][0].source' "$pm")" ]] || err "$name/$family: manifest source differs from the plugin's"
+
+    # the family's licence text ships beside the manifest, identical to the plugin's
+    ofl="$plugins/$name/$(dirname "$(jq -r --arg f "$family" '[.fonts[]|select(.family==$f)][0].file' "$pm")")/OFL.txt"
+    if [[ ! -f "$dir/OFL.txt" ]]; then err "$name/$family: OFL.txt is missing beside the previews"
+    elif ! cmp -s "$dir/OFL.txt" "$ofl"; then err "$name/$family: OFL.txt differs from the plugin's"; fi
 
     # each plugin file of the family has a manifest entry whose hashes hold
     while IFS=$'\t' read -r file psha; do

@@ -42,6 +42,18 @@ stale() { jq '.files[0].preview_sha256 = "00"' "$tmp"/albitor/web/static/fonts/l
 case_ refuse "manifest hash stale" stale "differs from its manifest"
 extra() { cp "$tmp"/albitor/web/static/fonts/looks/font-geometric/*/*.woff2 "$tmp/albitor/web/static/fonts/looks/font-geometric/extra.woff2"; }
 case_ refuse "unlisted extra preview" extra "do not reproduce"
+nolic() { rm "$tmp"/albitor/web/static/fonts/looks/font-geometric/*/OFL.txt; }
+case_ refuse "licence text missing" nolic "OFL.txt is missing"
+editlic() { echo "extra term" >>"$tmp"/albitor/web/static/fonts/looks/font-geometric/*/OFL.txt; }
+case_ refuse "licence text altered" editlic "OFL.txt differs"
+# a renamed family whose preview directory and file keep the RFN in the path (bytes and hashes otherwise honest)
+rfnpath() {
+  local l="$tmp/albitor/web/static/fonts/looks/font-technical" d f
+  d="$l/preview-sans"; f="$d/preview-sans-400-normal.woff2"
+  mv "$f" "$d/plex-400-normal.woff2"
+  jq '(.files[]|select(.preview=="preview-sans-400-normal.woff2")|.preview) = "plex-400-normal.woff2"' "$d/manifest.json" >"$tmp/m" && mv "$tmp/m" "$d/manifest.json"
+}
+case_ refuse "preview path keeps its Reserved Font Name" rfnpath "preview path keeps Reserved Font Name"
 # a preview that is the plugin's own file, unrenamed, standing in for a Reserved Font Name family
 unrenamed() {
   local d f; d="$(ls -d "$tmp"/albitor/web/static/fonts/looks/font-technical/preview-sans)"; f="$d/preview-sans-400-normal.woff2"

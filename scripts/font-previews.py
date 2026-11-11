@@ -8,7 +8,7 @@ only on the plugin's full font, scripts/font-previews.json and the pinned tools:
 and layout features are fixed, hinting is dropped, head timestamps are fixed and a family with a
 Reserved Font Name is renamed (an OFL Modified Version may not keep the name).
 """
-import hashlib, json, os, re, sys
+import hashlib, json, os, re, shutil, sys
 
 from fontTools import subset
 from fontTools.ttLib import TTFont
@@ -17,9 +17,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # name IDs that are legal text or version strings and may legitimately carry an RFN: copyright (0),
 # version (5), trademark (7), manufacturer (8), designer (9), vendor and designer URLs (11, 12),
 # licence text, URL (13, 14).
+LEGAL_NAME_IDS = {0, 5, 7, 8, 9, 11, 12, 13, 14}
 # 2026-01-01T00:00:00Z in the 1904 epoch fontTools uses
 FIXED_TIME = 3850070400
-LEGAL_NAME_IDS = {0, 5, 7, 8, 9, 11, 12, 13, 14}
 
 
 def sha256(path):
@@ -123,6 +123,11 @@ def generate(plugins, out, names):
             base = slug(new or family)
             fdir = os.path.join(out, name, base)
             os.makedirs(fdir, exist_ok=True)
+            # the family's licence text (it carries the upstream copyright line) ships with the preview
+            ofl = os.path.join(pdir, os.path.dirname(first["file"]), "OFL.txt")
+            if not os.path.isfile(ofl):
+                sys.exit(f"{name}: no OFL.txt beside {first['file']}")
+            shutil.copyfile(ofl, os.path.join(fdir, "OFL.txt"))
             entries = []
             for rel, e in sorted(files.items()):
                 src = os.path.join(pdir, rel)
