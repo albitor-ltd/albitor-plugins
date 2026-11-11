@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "label": "High legibility",
+  "character": "Built for low vision, every letter distinct",
+  "size_kb": 47,
+  "order": 2,
+  "font_heading": "\"Atkinson Hyperlegible Next\", \"Atkinson Hyperlegible Next Fallback\", Arial, sans-serif",
+  "font_body": "\"Atkinson Hyperlegible Next\", \"Atkinson Hyperlegible Next Fallback\", Arial, sans-serif",
+  "font_data": "\"Atkinson Hyperlegible Next\", \"Atkinson Hyperlegible Next Fallback\", Arial, sans-serif",
+  "font_label": "\"Atkinson Hyperlegible Next\", \"Atkinson Hyperlegible Next Fallback\", Arial, sans-serif"
+}

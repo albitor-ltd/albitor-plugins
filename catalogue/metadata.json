@@ -342,5 +342,103 @@
       "preview-tokens"
     ],
     "license": "MIT"
+  },
+  "font-high-legibility": {
+    "description": "The High legibility font look: Atkinson Hyperlegible Next for headings, body, data and labels. Designed by the Braille Institute for low vision, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "atkinson",
+      "preview-tokens"
+    ],
+    "license": "MIT"
+  },
+  "font-technical": {
+    "description": "The Technical font look: IBM Plex Sans for headings and body, IBM Plex Mono for data and labels. Precise and data-ready (Carbon's default type), self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "ibm-plex",
+      "preview-tokens"
+    ],
+    "license": "MIT"
+  },
+  "font-friendly": {
+    "description": "The Friendly font look: Nunito for headings and Nunito Sans for body, data and labels. A warm, rounded pairing, self-hosted as the full upstream variable fonts, losslessly converted to woff2, under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "nunito",
+      "preview-tokens"
+    ],
+    "license": "MIT"
+  },
+  "font-futuristic": {
+    "description": "The Futuristic font look: Space Grotesk for headings, Inter for body, data and labels. Bold and forward-looking, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "space-grotesk",
+      "preview-tokens"
+    ],
+    "license": "MIT"
+  },
+  "font-geometric": {
+    "description": "The Geometric font look: Plus Jakarta Sans for headings, body, data and labels. A modern geometric sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "plus-jakarta",
+      "preview-tokens"
+    ],
+    "license": "MIT"
+  },
+  "font-editorial": {
+    "description": "The Editorial font look: Source Serif 4 for headings with Source Sans 3 for body, data and labels. A reading-led serif and sans pairing, self-hosted as the full unmodified upstream woff2 files under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "source-serif",
+      "preview-tokens"
+    ],
+    "license": "MIT"
+  },
+  "font-console": {
+    "description": "The Console font look: JetBrains Mono for headings, data and labels, Inter for body text. A terminal character with readable long text, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
+    "category": "development",
+    "keywords": [
+      "typeface",
+      "font",
+      "font-look",
+      "self-hosted",
+      "ofl",
+      "jetbrains-mono",
+      "preview-tokens"
+    ],
+    "license": "MIT"
   }
 }

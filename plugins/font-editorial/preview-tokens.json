@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "label": "Editorial",
+  "character": "Serif headings over a plain sans, built for reading",
+  "size_kb": 327,
+  "order": 5,
+  "font_heading": "\"Source Serif 4\", \"Source Serif 4 Fallback\", \"Times New Roman\", serif",
+  "font_body": "\"Source Sans 3\", \"Source Sans 3 Fallback\", Arial, sans-serif",
+  "font_data": "\"Source Sans 3\", \"Source Sans 3 Fallback\", Arial, sans-serif",
+  "font_label": "\"Source Sans 3\", \"Source Sans 3 Fallback\", Arial, sans-serif"
+}

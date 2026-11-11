@@ -1,0 +1,39 @@
+/* Friendly font look: Nunito for headings, Nunito Sans for body, data and labels, self-hosted. Yours to change once seeded.
+   Every src is a relative path to a file in this directory tree; nothing is fetched from another
+   origin (the page's CSP is font-src 'self'). Each family is the distributor's variable woff2,
+   unmodified, so one file serves every weight. */
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("nunito/Nunito-wght.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Nunito Sans";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("nunito-sans/NunitoSans-VF.woff2") format("woff2");
+}
+
+/* Size-adjusted stand-ins shown until a face loads, so the swap does not move the page.
+   Measured against Arial (Liberation Sans is metric-compatible) at the regular weight. */
+@font-face {
+  font-family: "Nunito Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 101.9%;
+  ascent-override: 99.2%;
+  descent-override: 34.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Nunito Sans Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 101.9%;
+  ascent-override: 99.2%;
+  descent-override: 34.6%;
+  line-gap-override: 0%;
+}

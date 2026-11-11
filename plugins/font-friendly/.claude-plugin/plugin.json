@@ -1,0 +1,100 @@
+{
+  "schema": 2,
+  "name": "font-friendly",
+  "displayName": "Font: Friendly",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Friendly font look: Nunito for headings and Nunito Sans for body, data and labels. A warm, rounded pairing, self-hosted as the full upstream variable fonts, losslessly converted to woff2, under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "nunito",
+    "nunito-sans",
+    "rounded",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Nunito",
+      "role": "heading",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito/Nunito-wght.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "9aeb45aa57a69e2bc816ec3646169ed6edf2de8b0a97e808e92ba9cba4020c2a",
+      "source": "https://github.com/googlefonts/nunito/blob/8c6a9bb9732545b9ed53f29ec5e1ab0ff53c4e6f/fonts/variable/Nunito[wght].ttf (Nunito 3.602, TTF sha256 bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207), losslessly converted to woff2 with fontTools 4.68.0 TTFont.flavor=woff2 and brotli 1.2.1, no glyph or table changes",
+      "rfn": "none"
+    },
+    {
+      "family": "Nunito Sans",
+      "role": "body",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito-sans/NunitoSans-VF.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e0b00eba09fc76304e0225a7ceaca60c383fd8b2a7cff1b4dd8611d17306bb98",
+      "source": "https://github.com/googlefonts/NunitoSans/blob/058bd7a2f33d6ad5ef1df985b3db403622016a8c/fonts/variable/NunitoSans[YTLC,opsz,wdth,wght].ttf (Nunito Sans 3.101, TTF sha256 f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d), losslessly converted to woff2 with fontTools 4.68.0 TTFont.flavor=woff2 and brotli 1.2.1, no glyph or table changes",
+      "rfn": "none"
+    },
+    {
+      "family": "Nunito Sans",
+      "role": "data",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito-sans/NunitoSans-VF.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e0b00eba09fc76304e0225a7ceaca60c383fd8b2a7cff1b4dd8611d17306bb98",
+      "source": "https://github.com/googlefonts/NunitoSans/blob/058bd7a2f33d6ad5ef1df985b3db403622016a8c/fonts/variable/NunitoSans[YTLC,opsz,wdth,wght].ttf (Nunito Sans 3.101, TTF sha256 f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d), losslessly converted to woff2 with fontTools 4.68.0 TTFont.flavor=woff2 and brotli 1.2.1, no glyph or table changes",
+      "rfn": "none"
+    },
+    {
+      "family": "Nunito Sans",
+      "role": "label",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito-sans/NunitoSans-VF.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e0b00eba09fc76304e0225a7ceaca60c383fd8b2a7cff1b4dd8611d17306bb98",
+      "source": "https://github.com/googlefonts/NunitoSans/blob/058bd7a2f33d6ad5ef1df985b3db403622016a8c/fonts/variable/NunitoSans[YTLC,opsz,wdth,wght].ttf (Nunito Sans 3.101, TTF sha256 f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d), losslessly converted to woff2 with fontTools 4.68.0 TTFont.flavor=woff2 and brotli 1.2.1, no glyph or table changes",
+      "rfn": "none"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-friendly"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito/Nunito-wght.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito/OFL.txt",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito-sans/NunitoSans-VF.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito-sans/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}

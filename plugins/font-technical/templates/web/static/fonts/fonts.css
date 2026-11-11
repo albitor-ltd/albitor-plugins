@@ -1,0 +1,56 @@
+/* Technical font look, self-hosted. Yours to change once seeded.
+   Every src is a relative path to a file in this directory tree; nothing is fetched from another
+   origin (the page's CSP is font-src 'self'). The files are the full upstream woff2, unmodified. */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("ibm-plex-sans/IBMPlexSans-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("ibm-plex-sans/IBMPlexSans-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("ibm-plex-mono/IBMPlexMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("ibm-plex-mono/IBMPlexMono-Medium.woff2") format("woff2");
+}
+
+/* Size-adjusted stand-in for IBM Plex Sans shown until it loads, so the swap does not move the page.
+   Measured against Arial (Liberation Sans is metric-compatible) at the regular weight. */
+@font-face {
+  font-family: "IBM Plex Sans Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 101.6%;
+  ascent-override: 100.9%;
+  descent-override: 27.1%;
+  line-gap-override: 0%;
+}
+
+/* Size-adjusted stand-in for IBM Plex Mono shown until it loads, so the swap does not move the page.
+   Measured against Courier New (Liberation Mono is metric-compatible) at the regular weight. */
+@font-face {
+  font-family: "IBM Plex Mono Fallback";
+  src: local("Courier New"), local("Liberation Mono"), local("Courier");
+  size-adjust: 100%;
+  ascent-override: 102.5%;
+  descent-override: 27.5%;
+  line-gap-override: 0%;
+}

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "label": "Console",
+  "character": "Terminal feel with mono headings and readable body",
+  "size_kb": 601,
+  "order": 8,
+  "font_heading": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", \"Courier New\", monospace",
+  "font_body": "\"Inter\", \"Inter Fallback\", Arial, sans-serif",
+  "font_data": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", \"Courier New\", monospace",
+  "font_label": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", \"Courier New\", monospace"
+}

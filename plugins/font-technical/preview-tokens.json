@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "label": "Technical",
+  "character": "Precise and engineered with mono data and labels",
+  "size_kb": 230,
+  "order": 6,
+  "font_heading": "\"IBM Plex Sans\", \"IBM Plex Sans Fallback\", Arial, sans-serif",
+  "font_body": "\"IBM Plex Sans\", \"IBM Plex Sans Fallback\", Arial, sans-serif",
+  "font_data": "\"IBM Plex Mono\", \"IBM Plex Mono Fallback\", \"Courier New\", monospace",
+  "font_label": "\"IBM Plex Mono\", \"IBM Plex Mono Fallback\", \"Courier New\", monospace"
+}

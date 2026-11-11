@@ -1,0 +1,150 @@
+{
+  "schema": 2,
+  "name": "font-technical",
+  "displayName": "Font: Technical",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Technical font look: IBM Plex Sans for headings and body, IBM Plex Mono for data and labels. Precise and data-ready (Carbon's default type), self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "ibm-plex",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "IBM Plex Sans",
+      "role": "heading",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-sans/IBMPlexSans-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-sans%401.1.0 (IBM Plex Sans 1.1.0, ibm-plex-sans.zip, ibm-plex-sans/fonts/complete/woff2/IBMPlexSans-Regular.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Sans",
+      "role": "heading",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-sans/IBMPlexSans-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-sans%401.1.0 (IBM Plex Sans 1.1.0, ibm-plex-sans.zip, ibm-plex-sans/fonts/complete/woff2/IBMPlexSans-SemiBold.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Sans",
+      "role": "body",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-sans/IBMPlexSans-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-sans%401.1.0 (IBM Plex Sans 1.1.0, ibm-plex-sans.zip, ibm-plex-sans/fonts/complete/woff2/IBMPlexSans-Regular.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Sans",
+      "role": "body",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-sans/IBMPlexSans-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-sans%401.1.0 (IBM Plex Sans 1.1.0, ibm-plex-sans.zip, ibm-plex-sans/fonts/complete/woff2/IBMPlexSans-SemiBold.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "role": "data",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-mono/IBMPlexMono-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-mono%402.5.0 (IBM Plex Mono 2.5.0, ibm-plex-mono.zip, ibm-plex-mono/fonts/complete/woff2/IBMPlexMono-Regular.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "role": "data",
+      "weight": "500",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-mono/IBMPlexMono-Medium.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-mono%402.5.0 (IBM Plex Mono 2.5.0, ibm-plex-mono.zip, ibm-plex-mono/fonts/complete/woff2/IBMPlexMono-Medium.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "role": "label",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-mono/IBMPlexMono-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-mono%402.5.0 (IBM Plex Mono 2.5.0, ibm-plex-mono.zip, ibm-plex-mono/fonts/complete/woff2/IBMPlexMono-Regular.woff2)",
+      "rfn": "Plex"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "role": "label",
+      "weight": "500",
+      "style": "normal",
+      "file": "templates/web/static/fonts/ibm-plex-mono/IBMPlexMono-Medium.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25",
+      "source": "https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-mono%402.5.0 (IBM Plex Mono 2.5.0, ibm-plex-mono.zip, ibm-plex-mono/fonts/complete/woff2/IBMPlexMono-Medium.woff2)",
+      "rfn": "Plex"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-technical"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/ibm-plex-sans/IBMPlexSans-Regular.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/ibm-plex-sans/IBMPlexSans-SemiBold.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/ibm-plex-mono/IBMPlexMono-Regular.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/ibm-plex-mono/IBMPlexMono-Medium.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/ibm-plex-sans/OFL.txt",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/ibm-plex-mono/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}

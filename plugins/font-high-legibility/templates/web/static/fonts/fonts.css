@@ -1,0 +1,22 @@
+/* High legibility font look: Atkinson Hyperlegible Next, self-hosted. Yours to change once seeded.
+   Every src is a relative path to a file in this directory tree; nothing is fetched from another
+   origin (the page's CSP is font-src 'self'). Each family is the distributor's variable woff2,
+   unmodified, so one file serves every weight. */
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("atkinson-hyperlegible-next/AtkinsonHyperlegibleNext-wght.woff2") format("woff2");
+}
+
+/* Size-adjusted stand-ins shown until a face loads, so the swap does not move the page.
+   Measured against Arial (Liberation Sans is metric-compatible) at the regular weight. */
+@font-face {
+  font-family: "Atkinson Hyperlegible Next Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 100%;
+  ascent-override: 98.4%;
+  descent-override: 31.6%;
+  line-gap-override: 0%;
+}

@@ -1,0 +1,13 @@
+albitor-plugin font-technical
+==============================
+
+This plugin's own files (manifest, skill, fonts.css, preview-tokens.json) are licensed under the
+MIT Licence, see LICENCE.
+
+Bundled fonts
+-------------
+
+All fonts are redistributed unmodified under the SIL Open Font Licence 1.1.
+
+- `templates/web/static/fonts/ibm-plex-sans/` holds IBM Plex Sans 1.1.0, redistributed unmodified from the ibm-plex-sans.zip release at https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-sans%401.1.0; its licence text is `OFL.txt` beside the font files.
+- `templates/web/static/fonts/ibm-plex-mono/` holds IBM Plex Mono 2.5.0, redistributed unmodified from the ibm-plex-mono.zip release at https://github.com/IBM/plex/releases/tag/%40ibm%2Fplex-mono%402.5.0; its licence text is `OFL.txt` beside the font files.
