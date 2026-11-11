@@ -7,7 +7,7 @@
   font-style: normal;
   font-weight: 200 1000;
   font-display: swap;
-  src: url("nunito/Nunito-latin-wght-normal.woff2") format("woff2");
+  src: url("nunito/Nunito-wght.woff2") format("woff2");
 }
 
 @font-face {
@@ -15,7 +15,7 @@
   font-style: normal;
   font-weight: 200 1000;
   font-display: swap;
-  src: url("nunito-sans/NunitoSans-latin-wght-normal.woff2") format("woff2");
+  src: url("nunito-sans/NunitoSans-VF.woff2") format("woff2");
 }
 
 /* Size-adjusted stand-ins shown until a face loads, so the swap does not move the page.

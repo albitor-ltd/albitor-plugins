@@ -13,9 +13,9 @@ look takes effect through a rebuild, not a re-render):
 
 | Seeded path | What it is |
 | --- | --- |
-| `web/static/fonts/nunito/Nunito-latin-wght-normal.woff2` | Nunito: the upstream variable font (200 1000), unmodified |
+| `web/static/fonts/nunito/Nunito-wght.woff2` | Nunito: the upstream variable font (200 1000), unmodified |
 | `web/static/fonts/nunito/OFL.txt` | The upstream licence text for Nunito, with the authors' copyright line |
-| `web/static/fonts/nunito-sans/NunitoSans-latin-wght-normal.woff2` | Nunito Sans: the upstream variable font (200 1000), unmodified |
+| `web/static/fonts/nunito-sans/NunitoSans-VF.woff2` | Nunito Sans: the upstream variable font (200 1000), unmodified |
 | `web/static/fonts/nunito-sans/OFL.txt` | The upstream licence text for Nunito Sans, with the authors' copyright line |
 | `web/static/fonts/fonts.css` | The `@font-face` rules, a relative `src`, `font-display: swap`, and size-adjusted fallbacks |
 
@@ -43,5 +43,4 @@ that does not load is fixed by correcting a path, never by adding a host.
 - Reserved Font Names: none for both families. Neither upstream `OFL.txt` copyright line declares a Reserved Font Name.
 - This look ships no italic. Keep `font-style: italic` to the occasional emphasis; the browser
   synthesises it.
-- Latin text only for now; other scripts fall back to the system stack.
 - Keep each `"... Fallback"` entry in the stacks, before `Arial`, so the swap does not move the page.
