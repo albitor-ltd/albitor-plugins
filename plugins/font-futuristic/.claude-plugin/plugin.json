@@ -1,0 +1,136 @@
+{
+  "schema": 2,
+  "name": "font-futuristic",
+  "displayName": "Font: Futuristic",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Futuristic font look: Space Grotesk for headings, Inter for body, data and labels. Bold and forward-looking, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "space-grotesk",
+    "inter",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Space Grotesk",
+      "role": "heading",
+      "weight": "300 700",
+      "style": "normal",
+      "file": "templates/web/static/fonts/space-grotesk/SpaceGrotesk[wght].woff2",
+      "licence": "OFL-1.1",
+      "sha256": "8e085aa438094f11487a836652edd5c054fa6a96f63fc7c282105ee3a4b08c07",
+      "source": "https://github.com/floriankarsten/space-grotesk/releases/tag/2.0.0 (Space Grotesk 2.0.0, SpaceGrotesk-2.0.0.zip, SpaceGrotesk-2.0.0/woff2/SpaceGrotesk[wght].woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "body",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-Regular.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "body",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-SemiBold.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "data",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-Regular.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "data",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-SemiBold.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "label",
+      "weight": "400",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-Regular.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-Regular.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Inter",
+      "role": "label",
+      "weight": "600",
+      "style": "normal",
+      "file": "templates/web/static/fonts/inter/Inter-SemiBold.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301",
+      "source": "https://github.com/rsms/inter/releases/tag/v4.1 (Inter 4.1, Inter-4.1.zip, web/Inter-SemiBold.woff2)",
+      "rfn": "none"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-futuristic"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/space-grotesk/SpaceGrotesk[wght].woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/inter/Inter-Regular.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/inter/Inter-SemiBold.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/space-grotesk/OFL.txt",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/inter/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}
