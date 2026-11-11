@@ -1,0 +1,100 @@
+{
+  "schema": 2,
+  "name": "font-friendly",
+  "displayName": "Font: Friendly",
+  "version": "0.1.0",
+  "kind": "socket",
+  "description": "The Friendly font look: Nunito for headings and Nunito Sans for body, data and labels. A warm, rounded pairing, self-hosted as the unmodified variable Latin woff2 files under the SIL Open Font Licence 1.1.",
+  "author": {
+    "name": "Albitor Ltd",
+    "email": "jamie@albitor.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "typeface",
+    "font",
+    "font-look",
+    "self-hosted",
+    "ofl",
+    "nunito",
+    "nunito-sans",
+    "rounded",
+    "preview-tokens"
+  ],
+  "provides": [
+    "typeface@1"
+  ],
+  "fonts": [
+    {
+      "family": "Nunito",
+      "role": "heading",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito/Nunito-latin-wght-normal.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "ba344451eab25b217a165363b1982048a5e5830a0daf36577973955a04cac793",
+      "source": "https://www.npmjs.com/package/@fontsource-variable/nunito/v/5.3.0 (@fontsource-variable/nunito 5.3.0, Nunito 3.602, files/nunito-latin-wght-normal.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Nunito Sans",
+      "role": "body",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito-sans/NunitoSans-latin-wght-normal.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "29e3890496844a9ea81975c52771c587c872b4eb317026422d1995b88d21b57d",
+      "source": "https://www.npmjs.com/package/@fontsource-variable/nunito-sans/v/5.3.0 (@fontsource-variable/nunito-sans 5.3.0, Nunito Sans 3.101, files/nunito-sans-latin-wght-normal.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Nunito Sans",
+      "role": "data",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito-sans/NunitoSans-latin-wght-normal.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "29e3890496844a9ea81975c52771c587c872b4eb317026422d1995b88d21b57d",
+      "source": "https://www.npmjs.com/package/@fontsource-variable/nunito-sans/v/5.3.0 (@fontsource-variable/nunito-sans 5.3.0, Nunito Sans 3.101, files/nunito-sans-latin-wght-normal.woff2)",
+      "rfn": "none"
+    },
+    {
+      "family": "Nunito Sans",
+      "role": "label",
+      "weight": "200 1000",
+      "style": "normal",
+      "file": "templates/web/static/fonts/nunito-sans/NunitoSans-latin-wght-normal.woff2",
+      "licence": "OFL-1.1",
+      "sha256": "29e3890496844a9ea81975c52771c587c872b4eb317026422d1995b88d21b57d",
+      "source": "https://www.npmjs.com/package/@fontsource-variable/nunito-sans/v/5.3.0 (@fontsource-variable/nunito-sans 5.3.0, Nunito Sans 3.101, files/nunito-sans-latin-wght-normal.woff2)",
+      "rfn": "none"
+    }
+  ],
+  "contributes": {
+    "skills": [
+      "font-friendly"
+    ],
+    "files": [
+      {
+        "path": "web/static/fonts/fonts.css",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito/Nunito-latin-wght-normal.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito/OFL.txt",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito-sans/NunitoSans-latin-wght-normal.woff2",
+        "mode": "example"
+      },
+      {
+        "path": "web/static/fonts/nunito-sans/OFL.txt",
+        "mode": "example"
+      }
+    ]
+  }
+}

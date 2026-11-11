@@ -1,0 +1,13 @@
+/* web/src/lib/app/app.css: the four font roles for the Friendly look.
+   Keep these identical to preview-tokens.json. Declared unlayered so they win over the kit. */
+:root {
+  --font-heading: "Nunito", "Nunito Fallback", Arial, sans-serif;
+  --font-body: "Nunito Sans", "Nunito Sans Fallback", Arial, sans-serif;
+  --font-data: "Nunito Sans", "Nunito Sans Fallback", Arial, sans-serif;
+  --font-label: "Nunito Sans", "Nunito Sans Fallback", Arial, sans-serif;
+}
+
+body { font-family: var(--font-body); }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 700; }
+table, .figure { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+button, label, th, .badge { font-family: var(--font-label); font-weight: 600; }
