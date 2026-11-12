@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.7.0",
-        "sha": "b3e7a851063f86587ea085f14eb950fdcae351dc"
+        "ref": "web-svelte/v0.7.2",
+        "sha": "6809059c36b1ebb3b3b842d5a0707dac8b49209f"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.7.0",
-        "sha": "9665e33972603f7e3df1e0fa41343f0debee6da8"
+        "ref": "api-go/v0.8.0",
+        "sha": "d843331a14c334c14d54cc82c5f4a5778170d8f0"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.6.3",
-        "sha": "dd147e2c8a1c90983eed51d850fd7bedf6223a93"
+        "ref": "test-playwright/v0.6.5",
+        "sha": "6809059c36b1ebb3b3b842d5a0707dac8b49209f"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -263,8 +263,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/data-dynamodb",
-        "ref": "data-dynamodb/v0.3.0",
-        "sha": "9d7220e5dc69e7246f7dcf7e6119498029c5f3f0"
+        "ref": "data-dynamodb/v0.3.1",
+        "sha": "d843331a14c334c14d54cc82c5f4a5778170d8f0"
       },
       "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.9.2",
-        "sha": "b3e7a851063f86587ea085f14eb950fdcae351dc"
+        "ref": "auth-cognito/v0.10.0",
+        "sha": "d843331a14c334c14d54cc82c5f4a5778170d8f0"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me, and the web side keeps a provider-independent session and a route guard. The sign-in calls, the sign-in, sign-up, confirm, reset screens, a Sign out button and the People admin are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.4.5",
-        "sha": "61d59e7f69f22146311de01324102b8f94579bd6"
+        "ref": "auth-hosted/v0.5.0",
+        "sha": "d843331a14c334c14d54cc82c5f4a5778170d8f0"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -351,8 +351,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-none",
-        "ref": "auth-none/v0.4.0",
-        "sha": "8b7c59c3f0420a2d336aa7282c6ee22469e6d13f"
+        "ref": "auth-none/v0.5.0",
+        "sha": "d843331a14c334c14d54cc82c5f4a5778170d8f0"
       },
       "description": "The auth plugin for an app with no sign-in: a stub identity seam for the Go API in which every request acts for one fixed owner, so a handler written against it works unchanged under a real sign-in. No screens, no middleware, no routes, and no requirements, so a web-only profile composes it too.",
       "category": "development",
