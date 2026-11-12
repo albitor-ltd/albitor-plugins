@@ -228,8 +228,10 @@ invocation: see the web-app-architecture `screen-data` pattern.
 
 `internal/identity/owned_data_scope_test.go` (`TestOwnedDataScope`) runs in process against `app.Routes`
 with two signed-in people. The platform runs the same test names (`go test -run '^TestOwnedDataScope'`)
-and judges the report, so this test must cover exactly the operations the platform requires, and does:
-for every collection of `openapi.yaml` (a `POST` with no path parameter that is neither public nor
+and judges the report, so this test covers the operations the platform requires (judged on the merged
+report of every package, and on the contract after the plan's `shared` declarations: a plan-level
+`shared` entity is not owed a row, and the platform's required set is the answer when they differ).
+For every collection of `openapi.yaml` (a `POST` with no path parameter that is neither public nor
 admin-only, with records under it) it covers the create, the list and every route under one record (the
 record itself and actions such as `POST /things/{id}/archive`), except a collection whose create names
 (`x-entity`) an entity the `x-data-model` declares `shared`. A route naming no entity is still covered:
@@ -264,6 +266,9 @@ names `/api/things/{id}` where the contract has `/things/{id}` under a `/api` se
   update, delete, action or admin-only route; each reason is at least three words and names the
   entity or the route, and no one reason is used on more than two operations; and at most a quarter
   (rounded down, at least one) of the operations the platform requires may be waived.
+  The platform counts the quarter and the reuse of a reason across the merged report of every test
+  package, while the helper sees one package; so the helper refuses any waiver when `Config.Elsewhere`
+  or `Config.Only` is set. Keep the waivers to a package that covers the whole contract.
   The test fails on a waiver that breaks a rule. A waiver is read by a reviewer and is never a way to
   make the test pass.
 - **The contract must be readable.** The helper reads `openapi.yaml` with a small reader (the module is
@@ -271,7 +276,9 @@ names `/api/things/{id}` where the contract has `/things/{id}` under a `/api` se
   tab indentation, a duplicate key, several documents. Write the contract in plain block or flow style.
 - **`Elsewhere` is not a waiver.** `Config.Elsewhere` names path prefixes another test package covers (the
   sign-in plugin's own routes, tested beside the code that serves them). The platform merges every
-  package's report and still requires each operation; never list a route of your own there.
+  package's report and still requires each operation; never list a route of your own there. `Config.Only` is the inverse: it covers only the operations under
+  its path prefixes (the sign-in plugin's own test uses `/api/auth/`) and leaves the rest to the
+  package that owns them.
 - **Never skip it.** Do not `t.Skip` it or gate it behind an environment variable; it needs no
   network, no docker and no setting but the optional report path. A test package's tests share one
   report file and merge into it, so more than one `TestOwnedDataScope...` test per package is fine.

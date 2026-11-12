@@ -667,17 +667,24 @@ func TestScopeHelperRequiredSetMatchesThePlatform(t *testing.T) {
 func TestScopeHelperFailsClosedOnYAMLItCannotRead(t *testing.T) {
 	t.Setenv(ReportEnv, "")
 	for name, doc := range map[string]string{
-		"tab":       "paths:\n\t/a:\n\t\tpost: {}\n",
-		"anchor":    "paths:\n  /a: &a\n    post: {}\n  /b: *a\n",
-		"alias":     "paths:\n  /a:\n    post: *x\n",
-		"merge":     "paths:\n  /a:\n    <<: {post: {}}\n",
-		"duplicate": "paths:\n  /a:\n    post: {}\n  /a:\n    get: {}\n",
-		"two docs":  "paths:\n  /a:\n    post: {}\n---\npaths: {}\n",
-		"stray":     "paths:\n  /a:\n    post: {}\n   garbage\n",
-		"unclosed":  "paths: {\n  /a: {post: {}}\n",
-		"no paths":  "openapi: 3.1.0\n",
-		"not yaml":  "just some words",
-		"item list": "paths:\n  /a:\n    - post\n",
+		"tab":              "paths:\n\t/a:\n\t\tpost: {}\n",
+		"anchor":           "paths:\n  /a: &a\n    post: {}\n  /b: *a\n",
+		"alias":            "paths:\n  /a:\n    post: *x\n",
+		"merge":            "paths:\n  /a:\n    <<: {post: {}}\n",
+		"duplicate":        "paths:\n  /a:\n    post: {}\n  /a:\n    get: {}\n",
+		"two docs":         "paths:\n  /a:\n    post: {}\n---\npaths: {}\n",
+		"stray":            "paths:\n  /a:\n    post: {}\n   garbage\n",
+		"unclosed":         "paths: {\n  /a: {post: {}}\n",
+		"no paths":         "openapi: 3.1.0\n",
+		"not yaml":         "just some words",
+		"item list":        "paths:\n  /a:\n    - post\n",
+		"key anchor":       "paths:\n  &a /a:\n    post: {}\n",
+		"key alias":        "paths:\n  /a:\n    post: {}\n  *a : {}\n",
+		"key tag":          "paths:\n  !!str /a:\n    post: {}\n",
+		"flow key":         "paths:\n  /a: {&k post: {}}\n",
+		"item key":         "paths:\n  /a:\n    - &k post: {}\n",
+		"yaml-only escape": "paths:\n  \"\\/items\":\n    post: {}\n",
+		"escape value":     "paths:\n  /a:\n    post: {x-entity: \"\\/items\"}\n",
 	} {
 		if _, err := readContract(doc); err == nil {
 			t.Errorf("%s: a contract that cannot be read was accepted", name)
@@ -890,5 +897,62 @@ paths:
 	errs := strings.Join(ft.run(func() { Run(ft, cfg) }), "\n")
 	if !strings.Contains(errs, "too many waivers") {
 		t.Errorf("waivers over a quarter of the platform's required set were accepted: %s", errs)
+	}
+}
+
+// A package that covers part of the contract (the sign-in plugin's own routes) sets Only, so the
+// app's per-user entities, which it does not own, owe it nothing; its admin-only routes are probed.
+func TestScopeHelperOnlyLeavesOtherPackagesOperationsAlone(t *testing.T) {
+	doc := `servers: [{url: /api}]
+x-data-model:
+  entities:
+    Note: {ownership: per-user, reads: mine}
+paths:
+  /notes: {post: {x-entity: Note}, get: {x-entity: Note}}
+  /notes/{id}: {get: {x-entity: Note}, delete: {x-entity: Note}}
+  /auth/users: {get: {x-admin-only: true}, post: {x-admin-only: true}}
+`
+	t.Setenv(ReportEnv, filepath.Join(t.TempDir(), "report.json"))
+	// The sign-in routes refuse everyone but alice; the app's notes routes do not exist here at all.
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/auth/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Who") != "alice" {
+			w.WriteHeader(http.StatusForbidden)
+		}
+	})
+	cfg := config(t, mux)
+	cfg.OpenAPI = writeContract(t, doc)
+	cfg.AdminProbes = []Probe{{Method: "GET", Path: "/api/auth/users"}, {Method: "POST", Path: "/api/auth/users"}}
+	// Without Only the Note operations are owed a row.
+	ft := &fakeT{}
+	if errs := strings.Join(ft.run(func() { Run(ft, cfg) }), "\n"); !strings.Contains(errs, "/api/notes") {
+		t.Errorf("the per-user entity was not required without Only: %s", errs)
+	}
+	cfg.Only = []string{"/api/auth/"}
+	ft = &fakeT{}
+	var entries []Entry
+	if errs := ft.run(func() { entries = Run(ft, cfg) }); len(errs) != 0 {
+		t.Fatalf("Only did not drop the operations of the app's own entity: %v", errs)
+	}
+	if len(entries) != 2 {
+		t.Errorf("want the two admin-only entries, got %+v", entries)
+	}
+}
+
+func TestScopeHelperNoWaiversWhenOnlyOrElsewhereIsSet(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	for name, set := range map[string]func(*Config){
+		"only":      func(c *Config) { c.Only = []string{"/api/"} },
+		"elsewhere": func(c *Config) { c.Elsewhere = []string{"/api/rules"} },
+	} {
+		cfg := config(t, newArmies(true).Routes(), armyRow())
+		row := armyRow()
+		row.Waive = map[string]string{"GET /api/armies": "the armies list is paged elsewhere"}
+		cfg.Rows = []Row{row}
+		set(&cfg)
+		ft := &fakeT{}
+		if errs := strings.Join(ft.run(func() { Run(ft, cfg) }), "\n"); !strings.Contains(errs, "not allowed when Elsewhere or Only is set") {
+			t.Errorf("%s: a waiver was accepted: %s", name, errs)
+		}
 	}
 }

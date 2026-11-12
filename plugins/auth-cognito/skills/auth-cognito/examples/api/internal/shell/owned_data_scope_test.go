@@ -28,6 +28,8 @@ func TestOwnedDataScopePeopleAdminRoutes(t *testing.T) {
 	ownedscope.Run(t, ownedscope.Config{
 		Handler: inviteOnlyGate(f, srv, identityTestLogger()),
 		// Neither is a user administrator: the second is the one that must be refused.
+		// The app's own entities are covered by internal/identity's test; this one owns /api/auth/.
+		Only:   []string{"/api/auth/"},
 		First:  person("first"),
 		Second: person("second", "editors"),
 		AdminProbes: []ownedscope.Probe{

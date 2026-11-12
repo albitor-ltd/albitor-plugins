@@ -201,6 +201,13 @@ type Config struct {
 	// operation, so an operation nobody covers still fails the check. Never use it to drop a route of
 	// your own.
 	Elsewhere []string
+	// Only, when not empty, limits this test to the operations whose path starts with one of these
+	// prefixes: every other operation is dropped the way Elsewhere drops it (neither covered nor
+	// reported), because another test package owns it. A sign-in plugin's test of its own routes
+	// sets this to its prefix, so an app's per-user entities are left to the app's own test. The
+	// platform still requires every operation of the merged report. Never use it to drop a route
+	// of your own.
+	Only []string
 	// AdminProbes drive each operation the contract declares admin-only. The second identity must
 	// not be an admin; it must be answered 403. An admin-only operation cannot be waived.
 	AdminProbes []Probe
@@ -235,7 +242,7 @@ func Run(t TB, cfg Config) []Entry {
 
 func runOps(t TB, cfg Config, c Contract) []Entry {
 	t.Helper()
-	c = c.without(cfg.Elsewhere)
+	c = c.without(cfg.Elsewhere).only(cfg.Only)
 	ops := c.PerUser
 	var entries []Entry
 	t.Cleanup(func() {
@@ -261,6 +268,16 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 			}
 		}
 		rows[r.Entity] = r
+	}
+
+	if len(cfg.Elsewhere) > 0 || len(cfg.Only) > 0 {
+		// The platform counts the allowance and the reuse of a reason across the merged report of
+		// every package; one package's view of it (this one) is partial, so it cannot judge a waiver.
+		for _, r := range cfg.Rows {
+			if len(r.Waive) > 0 {
+				t.Errorf("owned data scope: %s has waivers, which are not allowed when Elsewhere or Only is set: the platform counts them across every package's report, so a package that covers only part of the contract cannot judge them", r.Entity)
+			}
+		}
 	}
 
 	byEntity := map[string][]Operation{}
@@ -730,6 +747,23 @@ func (c Contract) without(prefixes []string) Contract {
 		var out []Operation
 		for _, o := range ops {
 			if !slices.ContainsFunc(prefixes, func(p string) bool { return strings.HasPrefix(o.Path, p) }) {
+				out = append(out, o)
+			}
+		}
+		return out
+	}
+	return Contract{PerUser: keep(c.PerUser), Admin: keep(c.Admin)}
+}
+
+// only keeps the operations whose path starts with one of the prefixes; no prefix keeps all.
+func (c Contract) only(prefixes []string) Contract {
+	if len(prefixes) == 0 {
+		return c
+	}
+	keep := func(ops []Operation) []Operation {
+		var out []Operation
+		for _, o := range ops {
+			if slices.ContainsFunc(prefixes, func(p string) bool { return strings.HasPrefix(o.Path, p) }) {
 				out = append(out, o)
 			}
 		}

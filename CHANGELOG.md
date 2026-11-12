@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   rewritten atomically. The helper's own tests are named `TestScopeHelper...` and set the report
   variable themselves, so the platform's `-run TestOwnedDataScope` never runs or reads them. `auth-cognito`'s example contract marks the People admin routes `x-admin-only: true` and its examples add `TestOwnedDataScopePeopleAdminRoutes` (a non-admin is answered 403); the seeded identity test leaves `/api/auth/` to it through `Config.Elsewhere`. The skill
   says what the in-process test does not prove.
+  `Config.Only` limits a package to its own path prefixes (the People admin test uses `/api/auth/`); waivers are refused when `Only` or `Elsewhere` is set, since the platform counts them across packages; a YAML anchor, alias or tag on a key, or an escape the reader does not know, fails closed.
 
 - `font-high-legibility`, `font-technical`, `font-friendly`, `font-futuristic`, `font-geometric`,
   `font-editorial` and `font-console`, each `0.1.0` (albitor-ltd/albitor#4685; tags follow the

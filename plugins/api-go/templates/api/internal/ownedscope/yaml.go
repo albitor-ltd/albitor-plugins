@@ -132,7 +132,10 @@ func (p *yparser) mapping(ind int) (any, error) {
 		if l.indent > ind {
 			return nil, fmt.Errorf("line %d: unexpected indentation before %q", l.no, l.text)
 		}
-		key, rest, ok := splitKey(l.text)
+		key, rest, ok, err := splitKey(l.text)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: %w", l.no, err)
+		}
 		if !ok {
 			return nil, fmt.Errorf("line %d: cannot read %q as a key and a value", l.no, l.text)
 		}
@@ -166,7 +169,10 @@ func (p *yparser) list(ind int) (any, error) {
 		}
 		rest := strings.TrimLeft(l.text[1:], " ")
 		if rest != "" {
-			_, _, isKey := splitKey(rest)
+			_, _, isKey, err := splitKey(rest)
+			if err != nil {
+				return nil, fmt.Errorf("line %d: %w", l.no, err)
+			}
 			if isKey || isItem(rest) {
 				// "- key: v" and "- - x": the item's own block starts where its text does.
 				l.indent += len(l.text) - len(rest)
@@ -239,40 +245,56 @@ func (p *yparser) value(rest string, parent, no int, inMap bool) (any, error) {
 			p.i++
 			text += " " + l.text
 		}
-		return scalar(text), nil
+		v, err := scalar(text)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: %w", no, err)
+		}
+		return v, nil
 	}
 	text := rest
 	for l := p.peek(); l != nil && l.indent > parent; l = p.peek() {
 		p.i++
 		text += " " + l.text
 	}
-	return scalar(text), nil
+	v, err := scalar(text)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: %w", no, err)
+	}
+	return v, nil
 }
 
 // splitKey splits "key: value" (the key plain or quoted). ok is false when text is no such line.
-func splitKey(text string) (key, rest string, ok bool) {
+func splitKey(text string) (key, rest string, ok bool, err error) {
+	if text != "" && strings.IndexByte("&*!", text[0]) >= 0 {
+		// An anchor, alias or tag on a key is not read; failing closed beats a key that reads wrong.
+		return "", "", false, fmt.Errorf("an anchor, alias or tag (%q) on a key is not read", text[:1])
+	}
 	if text == "" || text[0] == '[' || text[0] == '{' || text[0] == '?' && (len(text) == 1 || text[1] == ' ') {
-		return "", "", false
+		return "", "", false, nil
 	}
 	if q := text[0]; q == '"' || q == '\'' {
 		end := closingQuote(text)
 		if end < 0 {
-			return "", "", false
+			return "", "", false, nil
 		}
 		after := strings.TrimLeft(text[end+1:], " ")
 		if !strings.HasPrefix(after, ":") || (len(after) > 1 && after[1] != ' ') {
-			return "", "", false
+			return "", "", false, nil
 		}
-		return scalarString(text[:end+1]), strings.TrimSpace(after[1:]), true
+		k, err := scalarString(text[:end+1])
+		if err != nil {
+			return "", "", false, err
+		}
+		return k, strings.TrimSpace(after[1:]), true, nil
 	}
 	idx := strings.Index(text, ": ")
 	if idx < 0 && strings.HasSuffix(text, ":") {
 		idx = len(text) - 1
 	}
 	if idx <= 0 {
-		return "", "", false
+		return "", "", false, nil
 	}
-	return strings.TrimSpace(text[:idx]), strings.TrimSpace(text[idx+1:]), true
+	return strings.TrimSpace(text[:idx]), strings.TrimSpace(text[idx+1:]), true, nil
 }
 
 // closingQuote is the index of the quote that closes the quoted scalar starting text, or -1.
@@ -317,42 +339,48 @@ func flowClosed(text string) bool {
 	return depth <= 0 && quote == 0
 }
 
-func scalarString(text string) string {
-	if s, ok := scalar(text).(string); ok {
-		return s
+func scalarString(text string) (string, error) {
+	v, err := scalar(text)
+	if err != nil {
+		return "", err
 	}
-	return text
+	if s, ok := v.(string); ok {
+		return s, nil
+	}
+	return text, nil
 }
 
 // scalar reads one scalar: a quoted string, null, a boolean, a number or a plain string.
-func scalar(text string) any {
+func scalar(text string) (any, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
-		return nil
+		return nil, nil
 	}
 	if end := closingQuote2(text); end > 0 {
 		inner := text[1:end]
 		if text[0] == '\'' {
-			return strings.ReplaceAll(inner, "''", "'")
+			return strings.ReplaceAll(inner, "''", "'"), nil
 		}
-		if s, err := strconv.Unquote(text[:end+1]); err == nil {
-			return s
+		s, err := strconv.Unquote(text[:end+1])
+		if err != nil {
+			// A YAML escape Go does not share (\/, say) must not read as raw text: fail closed.
+			return nil, fmt.Errorf("the quoted scalar %s has an escape that is not read", text[:end+1])
 		}
-		return inner
+		return s, nil
 	}
 	switch text {
 	case "~", "null", "Null", "NULL":
-		return nil
+		return nil, nil
 	case "true", "True", "TRUE":
-		return true
+		return true, nil
 	case "false", "False", "FALSE":
-		return false
+		return false, nil
 	}
 	if _, err := strconv.ParseFloat(text, 64); err == nil && !strings.ContainsAny(text, "_xXnNiI") {
 		f, _ := strconv.ParseFloat(text, 64)
-		return f
+		return f, nil
 	}
-	return text
+	return text, nil
 }
 
 func closingQuote2(text string) int {
@@ -442,7 +470,10 @@ func (f *flow) value() (any, error) {
 		if end < 0 {
 			return nil, fmt.Errorf("a quoted scalar is never closed")
 		}
-		v := scalar(f.s[f.i : f.i+end+1])
+		v, err := scalar(f.s[f.i : f.i+end+1])
+		if err != nil {
+			return nil, err
+		}
 		f.i += end + 1
 		return v, nil
 	}
@@ -450,7 +481,7 @@ func (f *flow) value() (any, error) {
 	for f.i < len(f.s) && strings.IndexByte(",]}", f.s[f.i]) < 0 {
 		f.i++
 	}
-	return scalar(f.s[start:f.i]), nil
+	return scalar(f.s[start:f.i])
 }
 
 // key reads a flow mapping's key: quoted, or plain up to its colon.
@@ -461,7 +492,10 @@ func (f *flow) key() (string, error) {
 		if end < 0 {
 			return "", fmt.Errorf("a quoted key is never closed")
 		}
-		k := scalarString(f.s[f.i : f.i+end+1])
+		k, err := scalarString(f.s[f.i : f.i+end+1])
+		if err != nil {
+			return "", err
+		}
 		f.i += end + 1
 		return k, nil
 	}
@@ -474,6 +508,9 @@ func (f *flow) key() (string, error) {
 		f.i++
 	}
 	k := strings.TrimSpace(f.s[start:f.i])
+	if k != "" && strings.IndexByte("&*!", k[0]) >= 0 {
+		return "", fmt.Errorf("an anchor, alias or tag (%q) on a key is not read", k[:1])
+	}
 	if k == "" {
 		return "", fmt.Errorf("a flow mapping has an empty key")
 	}
