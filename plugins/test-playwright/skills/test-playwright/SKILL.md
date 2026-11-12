@@ -64,8 +64,13 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   (`limits.md`), not a reason to write thousands of fixtures. Fix a 503 here, in the spec, never by
   batching or throttling writes inside the app. On a deployed walk the journey `context` also holds the
   page's own API reads to 4 in flight and retries a 429 or 503 read with jittered backoff
-  (`helpers/throttle.ts`), so a transient throttle does not fail a step; a read still throttled after
-  its retries is the app's to fix (one aggregating call per page), not the spec's. Do not sign up or
+  (`helpers/throttle.ts`), so a transient throttle does not fail a step. This stacks with the app
+  client's own retry (bounded: at most 3 attempts each, so a read is tried at most 4 times by the
+  harness, each of those up to 3 by the client). It must not hide a defect, so each screen's cost is
+  reported (ledger line, `throttle-retries` annotation): a read still throttled after the retries
+  fails the step, and a screen needing more than one retry or firing more than 8 reads gets a
+  `request-budget` annotation. Treat that as the app's to fix: load the page's data through one
+  aggregating endpoint (web-app-architecture `screen-data` pattern), not the spec's. Do not sign up or
   seed an account per journey: the demo session is the suite's one account and `fixtureScope`
   cleans what a test makes. The worker count is the walk's (`--workers=1`); if
   you run the suite yourself against a deployed app, keep `--workers` at 1 or 2.

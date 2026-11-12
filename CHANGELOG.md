@@ -12,7 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   merge). Hosted request budget. The journey `context` of a deployed walk now keeps the page's own
   same-origin API reads inside the app's throttle (`helpers/throttle.ts`, with unit tests): at most
   four in flight, and a 429 or 503 read retried up to three times with full-jitter backoff,
-  honouring `Retry-After` up to a 5 second cap; writes and streams are never touched. The seeded
+  honouring `Retry-After` up to a 5 second cap; writes and streams are never touched. These retries
+  stack, bounded, with the API client's own (up to 3 attempts each). They are reported, not hidden:
+  per screen the ledger line carries `api_reads`, `throttle_retries`, `throttled` and `peak_queued`,
+  the test gets `throttle-retries` and `request-budget` annotations, a read still throttled after
+  the retries fails the step, and a screen needing more than one retry or firing more than 8 reads
+  raises the `request-budget` finding. The seeded
   API client's `MAX_IN_FLIGHT` drops from 6 to 4 to sit well under the hosted function's 10
   concurrent executions. The `test-playwright` skill says a journey neither signs up nor seeds an
   account of its own.
