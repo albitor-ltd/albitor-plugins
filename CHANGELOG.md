@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- `test-playwright` `0.6.4` and `web-svelte` `0.7.1` (albitor-ltd/albitor#4779; tags follow the
+  merge). The journey helper's `judgeScreen` now fails a step when the screen shows developer source
+  text: a visible line starting `//` or `/*`, or containing `<!--`, outside `<pre>`, `<code>`,
+  `<textarea>`, inputs and contenteditable regions, URLs excluded (pure rule `sourceTextProblem` in
+  `helpers/screen-rules.ts`, with unit tests). A delivered app once rendered 18 `//` comment lines
+  above its header on every signed-in screen and no walk noticed. The `web-svelte` skill says a
+  component's file-level note goes in an HTML comment or inside `<script>`; no seeded or example
+  component has a non-tag first line.
+
 ### Added
 
 - `font-high-legibility`, `font-technical`, `font-friendly`, `font-futuristic`, `font-geometric`,

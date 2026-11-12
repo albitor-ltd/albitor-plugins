@@ -73,6 +73,10 @@ the file. Replace the whole page, marker included; never keep the comment to qui
 `src/app.html` was written once from the `web.root-classes` slot and is yours: edit the `html` and
 `body` classes there, and put head content (favicon, meta) in `<svelte:head>` in a layout.
 
+A component's first line is a tag. A file-level note goes in an HTML comment (`<!-- ... -->`) or
+inside `<script>`: bare `//` or `/* */` lines above `<script>` are markup text and render on the
+screen.
+
 ## Plugins: providers and the route guard
 
 A plugin that fills `web.providers` or `web.route-guard` names an identifier and ships a module in

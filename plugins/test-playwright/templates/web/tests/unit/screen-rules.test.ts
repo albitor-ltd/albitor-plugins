@@ -1,7 +1,7 @@
 // Starting point (test-playwright). Run with `npm run unit` from web/tests.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { authFor, onApp, safeOpenPath, titleProblem } from "../helpers/screen-rules.ts";
+import { authFor, CODE_CONTEXT_SELECTOR, onApp, safeOpenPath, sourceTextProblem, titleProblem } from "../helpers/screen-rules.ts";
 
 describe("titleProblem", () => {
 	it("accepts a short name", () => {
@@ -69,5 +69,42 @@ describe("authFor", () => {
 	it("does not overwrite an Authorization header the request already carries", () => {
 		const got = authFor("http://localhost:3000/", "http://localhost:3000", { authorization: "Bearer own" }, auth);
 		assert.equal(got, undefined);
+	});
+});
+
+describe("sourceTextProblem", () => {
+	it("refuses a line that starts with //", () => {
+		assert.match(sourceTextProblem(["// Starting point: the claims header"]), /source text/);
+		assert.match(sourceTextProblem(["  //TODO fix this"]), /source text/);
+	});
+	it("refuses a block of comment lines in one text node", () => {
+		assert.match(sourceTextProblem(["\n// one\n// two\n"]), /source text/);
+	});
+	it("refuses a line that starts with /*", () => {
+		assert.match(sourceTextProblem(["/* styles for the header */"]), /source text/);
+	});
+	it("refuses an HTML comment marker", () => {
+		assert.match(sourceTextProblem(["Welcome <!-- todo -->"]), /source text/);
+	});
+	it("accepts ordinary text", () => {
+		assert.equal(sourceTextProblem(["Claims queue", "Welcome back, Alice"]), "");
+		assert.equal(sourceTextProblem([]), "");
+	});
+	it("accepts // in the middle of a sentence", () => {
+		assert.equal(sourceTextProblem(["Pick a // b from the list"]), "");
+		assert.equal(sourceTextProblem(["Use 1/2 or 3 * 4"]), "");
+	});
+	it("accepts urls", () => {
+		assert.equal(sourceTextProblem(["See https://example.com/docs for more"]), "");
+		assert.equal(sourceTextProblem(["http://localhost:3000/a"]), "");
+		assert.equal(sourceTextProblem(["//cdn.example.com/x.js"]), "");
+	});
+	it("leaves code samples and editable regions to the extraction, which skips them", () => {
+		// The page extraction (visibleTextChunks in journey.ts) drops text under these elements
+		// before this rule sees it, so a code sample in <pre> never reaches sourceTextProblem.
+		for (const el of ["pre", "code", "textarea", "input", "[contenteditable]"]) {
+			assert.ok(CODE_CONTEXT_SELECTOR.split(", ").some((s) => s.startsWith(el)), el);
+		}
+		assert.match(CODE_CONTEXT_SELECTOR, /contenteditable\]:not\(\[contenteditable=false\]\)/);
 	});
 });
