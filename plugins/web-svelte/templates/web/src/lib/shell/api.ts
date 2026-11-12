@@ -69,7 +69,7 @@ function checkPath(path: string): void {
 
 /** Most requests in flight at once per tab. The host allows an app only a few concurrent
  * executions, so a burst beyond this would be throttled; the rest wait their turn here. */
-export const MAX_IN_FLIGHT = 6;
+export const MAX_IN_FLIGHT = 4;
 
 /** Attempts in all (the first plus retries) for a GET or HEAD that is throttled or unreachable. */
 export const MAX_ATTEMPTS = 3;

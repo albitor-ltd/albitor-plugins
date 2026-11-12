@@ -62,7 +62,12 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   or 503 a few times with jittered backoff (honouring `Retry-After` up to the 5 s cap) before it throws. Seed the
   smallest set that proves the behaviour; that the app copes with a large list is the app's job
   (`limits.md`), not a reason to write thousands of fixtures. Fix a 503 here, in the spec, never by
-  batching or throttling writes inside the app. The worker count is the walk's (`--workers=1`); if
+  batching or throttling writes inside the app. On a deployed walk the journey `context` also holds the
+  page's own API reads to 4 in flight and retries a 429 or 503 read with jittered backoff
+  (`helpers/throttle.ts`), so a transient throttle does not fail a step; a read still throttled after
+  its retries is the app's to fix (one aggregating call per page), not the spec's. Do not sign up or
+  seed an account per journey: the demo session is the suite's one account and `fixtureScope`
+  cleans what a test makes. The worker count is the walk's (`--workers=1`); if
   you run the suite yourself against a deployed app, keep `--workers` at 1 or 2.
 
 ## Seeding a deployed preview

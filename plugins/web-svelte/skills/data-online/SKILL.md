@@ -81,7 +81,7 @@ Mutations are never retried automatically. After a write, invalidate the lists i
   ```
 - Retries: `api()` retries a GET or HEAD that gets 429 or 503, or an unreachable API, up to three
   attempts in all, with jittered backoff never sooner than `Retry-After`; a `Retry-After` over 5
-  seconds is not waited for. It never retries a write. It also holds at most `MAX_IN_FLIGHT` (6)
+  seconds is not waited for. It never retries a write. It also holds at most `MAX_IN_FLIGHT` (4)
   requests in flight per tab and queues the rest, which is a safety net, not a licence to fan out.
   A failure `api()` already retried is final; the query layer does not retry it again. Other
   server errors, timeouts and an unreachable API retry twice with backoff; client errors (400 to

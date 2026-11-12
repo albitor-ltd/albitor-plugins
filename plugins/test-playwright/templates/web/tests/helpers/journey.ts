@@ -6,6 +6,7 @@ import { expectNoA11yViolations, type A11yOptions } from "./a11y";
 import { authHeader, localIssuerRunning, signInAs } from "./local-auth";
 import { onApp, titleProblem } from "./screen-rules";
 import { pageSourceTextProblem } from "./source-text";
+import { budgetApiReads } from "./throttle";
 
 // One step of a journey: run it, photograph the screen it left behind, and record
 // that the step completed.
@@ -436,6 +437,10 @@ export const test = base.extend<JourneyFixtures>({
   context: async ({ context }, use) => {
     const origin = appOrigin();
     const all = await watchContext(context, origin);
+    // A deployed walk keeps the page API reads inside the app throttle (helpers/throttle.ts).
+    if (process.env.ALBITOR_JOURNEY_BASE_URL) {
+      await budgetApiReads(context, origin);
+    }
     await use(context);
     for (const page of context.pages()) {
       try {
