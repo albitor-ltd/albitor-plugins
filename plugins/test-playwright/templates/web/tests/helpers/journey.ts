@@ -6,6 +6,7 @@ import { expectNoA11yViolations, type A11yOptions } from "./a11y";
 import { authHeader, localIssuerRunning, signInAs } from "./local-auth";
 import { onApp, titleProblem } from "./screen-rules";
 import { pageSourceTextProblem } from "./source-text";
+import { budgetApiReads, budgetProblem, budgetStatsOf, type ScreenBudget } from "./throttle";
 
 // One step of a journey: run it, photograph the screen it left behind, and record
 // that the step completed.
@@ -190,7 +191,7 @@ async function capture(page: Page, step: number, name: string): Promise<Capture 
 // One ledger line per completed step. `route` is the path the step ended on and
 // must start with "/" — that is what labels the tile — and `file` is the bare
 // image name in the screenshot directory.
-function record(page: Page, step: number, name: string, shot: Capture | null): void {
+function record(page: Page, step: number, name: string, shot: Capture | null, budget?: ScreenBudget): void {
   if (!ledgerPath || !shot) {
     return;
   }
@@ -213,6 +214,16 @@ function record(page: Page, step: number, name: string, shot: Capture | null): v
       height: shot.height,
       // Additive: present only when the page was taller than the cap.
       ...(shot.clipped ? { clipped: true } : {}),
+      // Additive: present on a deployed walk only. What the screen cost the app's request budget
+      // (see helpers/throttle.ts): API reads, throttle retries, reads still throttled, peak queue.
+      ...(budget
+        ? {
+            api_reads: budget.reads,
+            throttle_retries: budget.retries,
+            throttled: budget.throttled,
+            peak_queued: budget.peakQueued,
+          }
+        : {}),
     })}\n`,
   );
 }
@@ -436,6 +447,10 @@ export const test = base.extend<JourneyFixtures>({
   context: async ({ context }, use) => {
     const origin = appOrigin();
     const all = await watchContext(context, origin);
+    // A deployed walk keeps the page API reads inside the app throttle (helpers/throttle.ts).
+    if (process.env.ALBITOR_JOURNEY_BASE_URL) {
+      await budgetApiReads(context, origin);
+    }
     await use(context);
     for (const page of context.pages()) {
       try {
@@ -478,11 +493,30 @@ export async function journeyStep(
       problems = await watchPage(page, origin);
     }
     await body();
+    // What this screen cost the request budget. A read still throttled after the retries fails the
+    // step; a cost the retries hid (many reads, repeated retries) is a finding, recorded as the
+    // `request-budget` annotation beside `throttle-retries`, and in the ledger line below.
+    const budget = budgetStatsOf(page.context())?.take();
+    if (budget) {
+      const verdict = budgetProblem(budget);
+      if (budget.retries > 0 || budget.throttled > 0) {
+        base.info().annotations.push({
+          type: "throttle-retries",
+          description: `${name}: ${budget.retries} retries, ${budget.throttled} still throttled, peak queue ${budget.peakQueued}, ${budget.reads} API reads`,
+        });
+      }
+      if (verdict.finding) {
+        base.info().annotations.push({ type: "request-budget", description: `${name}: ${verdict.finding}` });
+      }
+      if (verdict.fail) {
+        problems.push(verdict.fail);
+      }
+    }
     await judgeScreen(page, problems, origin);
     if (options.a11y && onApp(page.url(), origin)) {
       await expectNoA11yViolations(page, options.a11y === true ? {} : options.a11y);
     }
     const step = nextStep();
-    record(page, step, name, await capture(page, step, name));
+    record(page, step, name, await capture(page, step, name), budget);
   });
 }
