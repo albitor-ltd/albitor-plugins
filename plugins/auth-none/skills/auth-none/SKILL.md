@@ -16,6 +16,9 @@ Written once and plain app code, yours to edit:
 
 - `api/internal/identity/identity.go`, `identity_test.go`: the identity package, with the same API a
   real sign-in plugin (such as auth-cognito) gives.
+- `api/internal/identity/owned_data_scope_test.go`: `TestOwnedDataScope`, the two-owner contract test over the
+  app's per-user routes (see the api-go skill). Keep it and register a factory per per-user entity; never
+  weaken it.
 - `web/tests/auth/provider.ts`: the `auth@2` provider the specs call (with the Playwright harness).
 
 There are no examples: an app with no sign-in has nothing to copy.

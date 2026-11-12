@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `api-go` `0.8.0`, `auth-none` `0.5.0`, `auth-cognito` `0.10.0`, `auth-hosted` `0.5.0` and
+  `data-dynamodb` `0.3.1` (albitor-ltd/albitor#4779; tags follow the merge). The kit's two-owner
+  contract test. `api-go` seeds `internal/ownedscope` (stdlib only): a table-driven helper that reads
+  the app's `openapi.yaml` (`x-data-model` ownership and each route's `x-entity`) and, for every
+  route of a per-user entity, makes a record as one identity and asserts a second identity cannot
+  read, update, delete or list it (a 404 or 403, and the list excludes it) and that a create with
+  the same id leaves the first record intact. App-registered factories supply the bodies and ids;
+  a route may be waived only with a written reason; a per-user route with neither a row nor a
+  waiver fails the test. With `OWNED_DATA_SCOPE_REPORT` set it writes
+  `{"operations":[{"method","path","outcome":"refused"|"leaked"|"waived","reason"}]}`. Each auth
+  plugin seeds `internal/identity/owned_data_scope_test.go` (`TestOwnedDataScope`), which runs the helper
+  against `Routes` with two injected identities; the skills tell the builder to keep it, register a
+  factory for every per-user entity and never weaken it. `data-dynamodb` only gains skill text.
+  Admin-only operations (`x-admin-only`, `x-required-groups` or `x-groups` naming admin) are probed
+  with a non-admin identity and must be refused; waivers are limited to reads and lists, with a
+  specific reason of three or more words used on at most two operations, at most a quarter (minimum
+  one) of the required operations; the report is merged into the package's file and rewritten atomically.
+
 - `font-high-legibility`, `font-technical`, `font-friendly`, `font-futuristic`, `font-geometric`,
   `font-editorial` and `font-console`, each `0.1.0` (albitor-ltd/albitor#4685; tags follow the
   merge). The seven remaining ADR-0107 `typeface@1` plugins, each self-hosting its OFL-1.1 woff2

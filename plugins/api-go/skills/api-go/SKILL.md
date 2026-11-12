@@ -20,6 +20,8 @@ them, and change them when the app needs it.
   JSON 404, request logging, middleware chain
 - `internal/apikit/`: JSON and error writers, correlation ids, paging
 - `internal/localauth/`: the local test issuer
+- `internal/ownedscope/`: the two-owner contract test's helper (see "The two-owner test"); an auth plugin
+  seeds the test that uses it, `internal/identity/owned_data_scope_test.go`
 - `internal/app/routes.go`: where your handlers are registered
 - `openapi.yaml`: the base contract (an auth plugin's skill carries the variant with `GET /api/me`)
 
@@ -221,6 +223,43 @@ invocation: see the web-app-architecture `screen-data` pattern.
 - **Take the owner of a record from the verified identity**, never from the body or the query.
 - **Reach data only through the store interface** the data-store plugin provides, so the handler
   works in the local run as well as deployed.
+
+## The two-owner test
+
+`internal/identity/owned_data_scope_test.go` (`TestOwnedDataScope`) runs in process against `app.Routes`
+with two signed-in people. For every route of a per-user entity in `openapi.yaml` (its
+`x-data-model` says `ownership: per-user`, and the route names it with `x-entity`), the first
+person makes a record, and the second person must not be able to read, update or delete it or find it
+in a list, and must not be able to take it over by creating a record with the same id.
+
+- **Keep this test.** It is part of the app. It runs with `go test ./...`; set
+  `OWNED_DATA_SCOPE_REPORT` to a path to also get its JSON report, one entry per route covered
+  (`refused`, `leaked` or `waived` with a reason).
+- **Register a factory for every per-user entity you add**, in `ownedDataScopeRows`, in the same
+  change as the entity. A factory makes one record through the app's own routes as the first person
+  and returns its `ID` and a valid create body (and, where they must differ, an `Update` body and a
+  `Collide` body). The test never guesses a body. A route that is not create, list, read, update
+  or delete (an action on a record) takes a `Probe`.
+- **"Refused" means** the second person got a 404 or a 403 and the first person's record was left
+  exactly as it was; for a list it means the record is not in the answer; for the same-id create it
+  means the first person's record is intact (a record in the second person's own keyspace is fine).
+  Any other answer, a 2xx included, is "leaked" and fails the test.
+- **A route with no factory row fails the test.** Add the row.
+- **Admin-only routes are in the test.** For every operation the contract declares admin-only
+  (`x-admin-only: true`, or `x-required-groups` / `x-groups` naming admin) add a probe to
+  `ownedDataScopeAdminProbes`; the second person is not an admin and must be refused with a 404 or
+  a 403. These routes cannot be waived. **An app with any admin-only route keeps this test even if all
+  its data is shared**, and the test works with no entity registered: leave `ownedDataScopeRows` empty
+  and fill only `ownedDataScopeAdminProbes`.
+- **Waivers are narrow.** A row's `Waive` map may excuse only a read or a list, never a create,
+  update, delete, action or admin-only route; each reason is at least three words and names the
+  entity or the route, and no one reason is used on more than two operations; and at most a quarter (at
+  least one) of the operations the test must cover may be waived.
+  The test fails on a waiver that breaks a rule. A waiver is read by a reviewer and is never a way to
+  make the test pass.
+- **Never skip it.** Do not `t.Skip` it or gate it behind an environment variable; it needs no
+  network, no docker and no setting but the optional report path. A test package's tests share one
+  report file and merge into it, so more than one `TestOwnedDataScope...` test per package is fine.
 
 ## Read secrets from the app's secret store
 

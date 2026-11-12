@@ -75,6 +75,10 @@ handlers that need it. Test with `store.NewMemory()`.
   `fmt.Sprintf`.
 - **The owner comes from the verified identity**, never the body or the query. Put it in the
   partition key, so one user cannot list or replay another's records.
+- **A per-user entity needs a factory in the two-owner test** (`ownedDataScopeRows` in
+  `internal/identity/owned_data_scope_test.go`, see the api-go skill), added with the entity. Keep
+  the owner in the key (`store.Key("OWNER", owner, ...)`): two people using the same record id then
+  never meet, which is what the test's same-id create checks.
 - **Lists go through `apikit.ServeList` and `Store.Query`.** `Query` already speaks
   `apikit.Page`: map the records to your type and return the page. Its cursor is bound to the
   partition and prefix; a forged or foreign cursor is `store.ErrInvalidCursor` (`apikit` answers
