@@ -15,7 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `helpers/screen-rules.ts`, with unit tests). A delivered app once rendered 18 `//` comment lines
   above its header on every signed-in screen and no walk noticed. The `web-svelte` skill says a
   component's file-level note goes in an HTML comment or inside `<script>`; no seeded or example
-  component has a non-tag first line.
+  component has a non-tag first line. The check reads rendered text (`innerText`), lives in
+  `helpers/source-text.ts` with a `source-text.spec.ts` browser self-test, rethrows anything but a
+  mid-navigation error, and skips any element carrying `data-allow-source-text`.
 
 ### Added
 

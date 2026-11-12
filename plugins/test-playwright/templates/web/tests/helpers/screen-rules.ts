@@ -28,13 +28,15 @@ export function titleProblem(raw: string): string {
 
 // CODE_CONTEXT_SELECTOR matches the elements whose text a person is meant to read as code or to
 // type into, or that never render: text inside any of them is not "source text shown by mistake".
+// `[data-allow-source-text]` is the opt-out for user content that legitimately shows code (a
+// code-snippet field rendered in a div): put the attribute on its container.
 export const CODE_CONTEXT_SELECTOR =
-	"pre, code, textarea, input, select, script, style, noscript, template, [contenteditable]:not([contenteditable=false])";
+	"pre, code, textarea, input, select, script, style, noscript, template, [data-allow-source-text], [contenteditable]:not([contenteditable=false])";
 
 // sourceTextProblem says what is wrong when the screen's visible text contains developer source
 // text, or "" when nothing is.
 //
-// `chunks` is the text of each visible text node, already stripped of everything a person is meant
+// `chunks` is the rendered text (innerText) of the page, already stripped of everything a person is meant
 // to read as code: <pre>, <code>, <textarea>, inputs, contenteditable regions, scripts and styles
 // (see visibleTextChunks in journey.ts). A live app once rendered 18 lines of `//` comments above
 // its header on every signed-in screen, because two components had comment lines above <script>:

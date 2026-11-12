@@ -19,6 +19,7 @@ web/tests/helpers/roles.ts
 web/tests/helpers/screen-rules.ts
 web/tests/helpers/second-identity.ts
 web/tests/helpers/seed.ts
+web/tests/helpers/source-text.ts
 web/tests/helpers/storage-state.ts
 web/tests/journeys/README.md
 web/tests/package-lock.json
@@ -26,6 +27,7 @@ web/tests/package.json
 web/tests/playwright.config.ts
 web/tests/roles.spec.ts
 web/tests/smoke.spec.ts
+web/tests/source-text.spec.ts
 web/tests/unit/a11y-report.test.ts
 web/tests/unit/config.test.ts
 web/tests/unit/fixture-scope.test.ts

@@ -35,6 +35,7 @@
       { "path": "web/tests/unit/**", "mode": "example" },
       { "path": "web/tests/smoke.spec.ts", "mode": "example" },
       { "path": "web/tests/a11y.spec.ts", "mode": "example" },
+      { "path": "web/tests/source-text.spec.ts", "mode": "example" },
       { "path": "web/tests/auth-scope.spec.ts", "mode": "example" },
       { "path": "web/tests/roles.spec.ts", "mode": "example" },
       { "path": "web/tests/journeys/README.md", "mode": "example" },

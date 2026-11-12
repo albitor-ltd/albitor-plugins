@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { test as base, type BrowserContext, type Page } from "@playwright/test";
 import { expectNoA11yViolations, type A11yOptions } from "./a11y";
 import { authHeader, localIssuerRunning, signInAs } from "./local-auth";
-import { CODE_CONTEXT_SELECTOR, onApp, sourceTextProblem, titleProblem } from "./screen-rules";
+import { onApp, titleProblem } from "./screen-rules";
+import { pageSourceTextProblem } from "./source-text";
 
 // One step of a journey: run it, photograph the screen it left behind, and record
 // that the step completed.
@@ -379,24 +380,6 @@ function brokenScreen(found: string[]): Error {
   return new Error(`this screen is broken: ${found.join("; ")}`);
 }
 
-// visibleTextChunks returns the text of each visible text node on the page, leaving out what a
-// person is meant to read as code or type into: <pre>, <code>, <textarea>, inputs, contenteditable
-// regions, and script, style and template content.
-async function visibleTextChunks(page: Page): Promise<string[]> {
-  return page.evaluate((skip) => {
-    const out: string[] = [];
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      const el = n.parentElement;
-      const text = n.textContent || "";
-      if (!el || text.trim() === "" || el.closest(skip)) continue;
-      if (!el.checkVisibility()) continue;
-      out.push(text);
-    }
-    return out;
-  }, CODE_CONTEXT_SELECTOR);
-}
-
 // judgeScreen fails the step on anything the page did wrong since the last one.
 async function judgeScreen(page: Page, problems: string[], origin: string): Promise<void> {
   const found = problems.splice(0, problems.length);
@@ -412,13 +395,9 @@ async function judgeScreen(page: Page, problems: string[], origin: string): Prom
     if (problem) {
       found.push(problem);
     }
-    try {
-      const sourceProblem = sourceTextProblem(await visibleTextChunks(page));
-      if (sourceProblem) {
-        found.push(sourceProblem);
-      }
-    } catch {
-      // Mid-navigation, as above: the next step judges whatever it lands on.
+    const sourceProblem = await pageSourceTextProblem(page);
+    if (sourceProblem) {
+      found.push(sourceProblem);
     }
   }
   if (found.length > 0) {
