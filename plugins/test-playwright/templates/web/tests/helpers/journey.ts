@@ -5,6 +5,7 @@ import { test as base, type BrowserContext, type Page } from "@playwright/test";
 import { expectNoA11yViolations, type A11yOptions } from "./a11y";
 import { authHeader, localIssuerRunning, signInAs } from "./local-auth";
 import { onApp, titleProblem } from "./screen-rules";
+import { pageSourceTextProblem } from "./source-text";
 
 // One step of a journey: run it, photograph the screen it left behind, and record
 // that the step completed.
@@ -393,6 +394,10 @@ async function judgeScreen(page: Page, problems: string[], origin: string): Prom
     const problem = title === undefined ? "" : titleProblem(title);
     if (problem) {
       found.push(problem);
+    }
+    const sourceProblem = await pageSourceTextProblem(page);
+    if (sourceProblem) {
+      found.push(sourceProblem);
     }
   }
   if (found.length > 0) {

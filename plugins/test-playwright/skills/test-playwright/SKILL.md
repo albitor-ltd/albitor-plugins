@@ -36,8 +36,10 @@ test("browse the claims", async ({ page, fixtureScope }) => {
 
 - **Import `test` and `expect` from `helpers/journey` or `helpers/seed`**, never from
   `@playwright/test`. Every page in that context is watched from before its first navigation: a
-  script the Content-Security-Policy blocks, an uncaught exception or a `<title>` that is not a short
-  name fails the step. Only a sign-in or signed-out spec imports `@playwright/test`, to control its own
+  script the Content-Security-Policy blocks, an uncaught exception, a `<title>` that is not a short
+  name, or developer source text on the screen (a visible line starting `//` or `/*`, or containing
+  `<!--`, outside `<pre>`, `<code>`, a textarea, an input or an editable region) fails the step; user content that legitimately shows code in a plain
+  element takes `data-allow-source-text` on its container to be skipped. Only a sign-in or signed-out spec imports `@playwright/test`, to control its own
   identity.
 - **One `journeyStep` per screen**, in the order a person reaches them, named for what the person is
   doing. Assert what the person must see. Pass `{ a11y: true }` to audit the screen for WCAG 2.2 A
