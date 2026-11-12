@@ -21,10 +21,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   plugin seeds `internal/identity/owned_data_scope_test.go` (`TestOwnedDataScope`), which runs the helper
   against `Routes` with two injected identities; the skills tell the builder to keep it, register a
   factory for every per-user entity and never weaken it. `data-dynamodb` only gains skill text.
-  Admin-only operations (`x-admin-only`, `x-required-groups` or `x-groups` naming admin) are probed
-  with a non-admin identity and must be refused; waivers are limited to reads and lists, with a
-  specific reason of three or more words used on at most two operations, at most a quarter (minimum
-  one) of the required operations; the report is merged into the package's file and rewritten atomically.
+  The required set is the platform's own rule (`perUserOperations` in the albitor runner), copied and
+  held to it by fixtures (`ownedscope/testdata/contracts`): for each collection with a create, the
+  create, the list and the routes under one record (actions included), except a collection whose
+  create names an entity the data model declares `shared`; the `servers[0]` base path is applied;
+  admin detection matches (case-insensitive `admin`, scopes, path-item keys); the helper reads
+  `openapi.yaml` with a stdlib reader that fails closed on YAML it cannot read. Admin-only operations
+  are probed with a non-admin identity and must be answered 403; waivers are limited to reads (`GET`),
+  with a specific reason of three or more words used on at most two operations, at most a quarter
+  (minimum one) of the required operations; the report is merged into the package's file and
+  rewritten atomically. The helper's own tests are named `TestScopeHelper...` and set the report
+  variable themselves, so the platform's `-run TestOwnedDataScope` never runs or reads them. `auth-cognito`'s example contract marks the People admin routes `x-admin-only: true` and its examples add `TestOwnedDataScopePeopleAdminRoutes` (a non-admin is answered 403); the seeded identity test leaves `/api/auth/` to it through `Config.Elsewhere`. The skill
+  says what the in-process test does not prove.
 
 - `font-high-legibility`, `font-technical`, `font-friendly`, `font-futuristic`, `font-geometric`,
   `font-editorial` and `font-console`, each `0.1.0` (albitor-ltd/albitor#4685; tags follow the

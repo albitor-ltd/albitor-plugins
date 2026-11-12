@@ -1,0 +1,10 @@
+DELETE /armies/{}
+GET /armies
+GET /armies/{}
+GET /notes/{}
+GET /odds/{}
+POST /armies
+POST /armies/{}/archive
+POST /notes
+POST /odds
+PUT /armies/{}

@@ -1,0 +1,10 @@
+DELETE /things/{}
+GET /admin/members
+GET /admin/scoped
+GET /admin/stats
+GET /things
+GET /things/{}
+GET /things/{}/export
+POST /admin/purge
+POST /things
+PUT /admin/members

@@ -43,7 +43,7 @@ func asPerson(name, sub string) ownedscope.Identity {
 //		},
 //		// A route that is not create, list, read, update or delete is driven by a Probe...
 //		Probes: []ownedscope.Probe{{Method: "POST", Path: "/api/armies/{id}/archive"}},
-//		// ...A read or list (only those) may be waived, with a specific reason of three or more words.
+//		// ...A read (GET, only that) may be waived, with a specific reason of three or more words.
 //		// Waive: map[string]string{"GET /api/armies": "armies are listed by the reporting service"},
 //	},
 func ownedDataScopeRows() []ownedscope.Row {

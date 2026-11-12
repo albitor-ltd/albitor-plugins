@@ -1,0 +1,4 @@
+GET /v1/crates
+GET /v1/crates/{}
+PATCH /v1/crates/{}
+POST /v1/crates

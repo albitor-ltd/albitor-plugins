@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -195,7 +196,8 @@ func config(t *testing.T, h http.Handler, rows ...Row) Config {
 	return Config{Handler: h, First: who("alice"), Second: who("bob"), OpenAPI: writeContract(t, contract), Rows: rows}
 }
 
-func TestOwnedDataScopeHelperAcceptsAScopedHandler(t *testing.T) {
+func TestScopeHelperAcceptsAScopedHandler(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	var entries []Entry
 	errs := ft.run(func() { entries = Run(ft, config(t, newArmies(true).Routes(), armyRow())) })
@@ -212,7 +214,8 @@ func TestOwnedDataScopeHelperAcceptsAScopedHandler(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperCatchesALeakingHandler(t *testing.T) {
+func TestScopeHelperCatchesALeakingHandler(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	var entries []Entry
 	errs := ft.run(func() { entries = Run(ft, config(t, newArmies(false).Routes(), armyRow())) })
@@ -235,7 +238,8 @@ func TestOwnedDataScopeHelperCatchesALeakingHandler(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperCatchesACollisionThatOverwrites(t *testing.T) {
+func TestScopeHelperCatchesACollisionThatOverwrites(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	row := armyRow()
 	f := row.Factory
@@ -257,7 +261,8 @@ func TestOwnedDataScopeHelperCatchesACollisionThatOverwrites(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperFailsOnMissingCoverage(t *testing.T) {
+func TestScopeHelperFailsOnMissingCoverage(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	errs := ft.run(func() { Run(ft, config(t, newArmies(true).Routes())) })
 	joined := strings.Join(errs, "\n")
@@ -269,7 +274,8 @@ func TestOwnedDataScopeHelperFailsOnMissingCoverage(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperWaiverNeedsAReasonAndMustBeReal(t *testing.T) {
+func TestScopeHelperWaiverNeedsAReasonAndMustBeReal(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	row := armyRow()
 	row.Waive = map[string]string{"DELETE /api/armies/{id}": "  "}
@@ -305,7 +311,8 @@ func TestOwnedDataScopeHelperWaiverNeedsAReasonAndMustBeReal(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperRejectsAFactoryRowForNothing(t *testing.T) {
+func TestScopeHelperRejectsAFactoryRowForNothing(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	errs := ft.run(func() {
 		Run(ft, config(t, newArmies(true).Routes(), armyRow(), Row{Entity: "Rule", Factory: armyRow().Factory}))
@@ -315,7 +322,7 @@ func TestOwnedDataScopeHelperRejectsAFactoryRowForNothing(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperWritesTheReport(t *testing.T) {
+func TestScopeHelperWritesTheReport(t *testing.T) {
 	report := filepath.Join(t.TempDir(), "report.json")
 	t.Setenv(ReportEnv, report)
 	ft := &fakeT{}
@@ -351,7 +358,7 @@ func TestOwnedDataScopeHelperWritesTheReport(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperReportsAnEmptyContract(t *testing.T) {
+func TestScopeHelperReportsAnEmptyContract(t *testing.T) {
 	report := filepath.Join(t.TempDir(), "report.json")
 	t.Setenv(ReportEnv, report)
 	ft := &fakeT{}
@@ -366,7 +373,8 @@ func TestOwnedDataScopeHelperReportsAnEmptyContract(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperReadsTheContract(t *testing.T) {
+func TestScopeHelperReadsTheContract(t *testing.T) {
+	t.Setenv(ReportEnv, "")
 	doc := `
 x-data-model:
   entities:
@@ -377,6 +385,8 @@ x-data-model:
       ownership: shared
       reads: all
 paths:
+  /api/armies:
+    post: { x-entity: Army }
   "/api/armies/{id}":
     description: |
       get:
@@ -386,31 +396,41 @@ paths:
       summary: remove
       x-entity: "Army"
   /api/notes:
+    post:
+      x-entity: Note
+    get:
+      x-entity: Note
+  /api/notes/{id}:
     get:
       x-entity: Note
   /api/armies/{id}/orders:
     post:
       x-entity: Army
 `
-	c := readContract(doc)
+	c, err := readContract(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
 	var got []string
 	for _, o := range c.PerUser {
 		got = append(got, o.Key())
 	}
-	want := "DELETE /api/armies/{id}, GET /api/armies/{id}, POST /api/armies/{id}/orders"
+	sort.Strings(got)
+	want := "DELETE /api/armies/{id}, GET /api/armies/{id}, POST /api/armies, POST /api/armies/{id}/orders"
 	if strings.Join(got, ", ") != want {
-		t.Errorf("operations = %v, want %s", got, want)
+		t.Errorf("operations = %v, want %s (the shared Note collection skipped)", got, want)
 	}
 }
 
-func TestOwnedDataScopeHelperRefusesBadWaivers(t *testing.T) {
+func TestScopeHelperRefusesBadWaivers(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	for name, tc := range map[string]struct {
 		waive map[string]string
 		want  string
 	}{
-		"delete":     {map[string]string{"DELETE /api/armies/{id}": "armies are never deleted here"}, "only a read or a list"},
-		"update":     {map[string]string{"PUT /api/armies/{id}": "armies are never updated here"}, "only a read or a list"},
-		"create":     {map[string]string{"POST /api/armies": "armies are made by import"}, "only a read or a list"},
+		"delete":     {map[string]string{"DELETE /api/armies/{id}": "armies are never deleted here"}, "only a read (GET)"},
+		"update":     {map[string]string{"PUT /api/armies/{id}": "armies are never updated here"}, "only a read (GET)"},
+		"create":     {map[string]string{"POST /api/armies": "armies are made by import"}, "only a read (GET)"},
 		"two words":  {map[string]string{"GET /api/armies": "armies elsewhere"}, "at least three words"},
 		"not about":  {map[string]string{"GET /api/armies": "covered by another test somewhere"}, "does not name the entity"},
 		"too many":   {map[string]string{"GET /api/armies": "armies list is covered", "GET /api/armies/{id}": "army read is covered"}, "too many waivers"},
@@ -471,7 +491,8 @@ func adminProbes() []Probe {
 	}
 }
 
-func TestOwnedDataScopeHelperRefusesANonAdminOnAdminOperations(t *testing.T) {
+func TestScopeHelperRefusesANonAdminOnAdminOperations(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	cfg := config(t, adminHandler(map[string]bool{"alice": true}, false), armyRow())
 	cfg.OpenAPI = writeContract(t, adminContract)
@@ -494,7 +515,8 @@ func TestOwnedDataScopeHelperRefusesANonAdminOnAdminOperations(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperCatchesAnAdminOperationOpenToAUser(t *testing.T) {
+func TestScopeHelperCatchesAnAdminOperationOpenToAUser(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	cfg := config(t, adminHandler(map[string]bool{"alice": true}, true), armyRow())
 	cfg.OpenAPI = writeContract(t, adminContract)
@@ -505,7 +527,8 @@ func TestOwnedDataScopeHelperCatchesAnAdminOperationOpenToAUser(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperFailsOnAnAdminOperationWithNoProbe(t *testing.T) {
+func TestScopeHelperFailsOnAnAdminOperationWithNoProbe(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	ft := &fakeT{}
 	cfg := config(t, adminHandler(nil, false), armyRow())
 	cfg.OpenAPI = writeContract(t, adminContract)
@@ -516,7 +539,7 @@ func TestOwnedDataScopeHelperFailsOnAnAdminOperationWithNoProbe(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperReportIsAtomicAndMergesTests(t *testing.T) {
+func TestScopeHelperReportIsAtomicAndMergesTests(t *testing.T) {
 	dir := t.TempDir()
 	report := filepath.Join(dir, "report.json")
 	t.Setenv(ReportEnv, report)
@@ -553,7 +576,8 @@ func TestOwnedDataScopeHelperReportIsAtomicAndMergesTests(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperWaiverReasonsAreNotReused(t *testing.T) {
+func TestScopeHelperWaiverReasonsAreNotReused(t *testing.T) {
+	t.Setenv(ReportEnv, "") // the platform reads this file: a helper test must never write to it
 	doc := contract + "  /api/armies/{id}/units:\n    get:\n      x-entity: Army\n"
 	ft := &fakeT{}
 	row := armyRow()
@@ -567,7 +591,7 @@ func TestOwnedDataScopeHelperWaiverReasonsAreNotReused(t *testing.T) {
 	}
 }
 
-func TestOwnedDataScopeHelperAdminOnlyWithNoPerUserEntities(t *testing.T) {
+func TestScopeHelperAdminOnlyWithNoPerUserEntities(t *testing.T) {
 	doc := `openapi: 3.1.0
 x-data-model:
   entities:
@@ -601,5 +625,270 @@ paths:
 	errs := strings.Join(ft.run(func() { Run(ft, cfg) }), "\n")
 	if !strings.Contains(errs, "POST /api/admin/purge (admin-only)") {
 		t.Errorf("an admin-only operation was not required when the data is shared: %s", errs)
+	}
+}
+
+// TestMain keeps the whole package off the platform's report file, whatever a test forgets.
+func TestMain(m *testing.M) {
+	_ = os.Unsetenv(ReportEnv)
+	os.Exit(m.Run())
+}
+
+// The fixtures in testdata/contracts are read by the platform's own reader as well: each .required
+// file is the platform's answer (the required operations by its perUserOperations and
+// requiredOperations, as method and path with the /api base and parameter names left out), and this
+// package must give the same. A fixture changed here must be re-checked against the platform's
+// own reader before its .required file is rewritten.
+func TestScopeHelperRequiredSetMatchesThePlatform(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	files, err := filepath.Glob("testdata/contracts/*.yaml")
+	if err != nil || len(files) < 5 {
+		t.Fatalf("fixtures missing: %v %v", files, err)
+	}
+	for _, f := range files {
+		raw, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, err := os.ReadFile(strings.TrimSuffix(f, ".yaml") + ".required")
+		if err != nil {
+			t.Fatalf("%s has no .required file: %v", f, err)
+		}
+		c, err := readContract(string(raw))
+		if err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		if got := strings.Join(c.Required(), "\n") + "\n"; got != string(want) {
+			t.Errorf("%s: required operations differ from the platform's\n got:\n%s want:\n%s", f, got, want)
+		}
+	}
+}
+
+func TestScopeHelperFailsClosedOnYAMLItCannotRead(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	for name, doc := range map[string]string{
+		"tab":       "paths:\n\t/a:\n\t\tpost: {}\n",
+		"anchor":    "paths:\n  /a: &a\n    post: {}\n  /b: *a\n",
+		"alias":     "paths:\n  /a:\n    post: *x\n",
+		"merge":     "paths:\n  /a:\n    <<: {post: {}}\n",
+		"duplicate": "paths:\n  /a:\n    post: {}\n  /a:\n    get: {}\n",
+		"two docs":  "paths:\n  /a:\n    post: {}\n---\npaths: {}\n",
+		"stray":     "paths:\n  /a:\n    post: {}\n   garbage\n",
+		"unclosed":  "paths: {\n  /a: {post: {}}\n",
+		"no paths":  "openapi: 3.1.0\n",
+		"not yaml":  "just some words",
+		"item list": "paths:\n  /a:\n    - post\n",
+	} {
+		if _, err := readContract(doc); err == nil {
+			t.Errorf("%s: a contract that cannot be read was accepted", name)
+		}
+	}
+	// And Run fails the test rather than checking nothing.
+	cfg := config(t, newArmies(true).Routes(), armyRow())
+	cfg.OpenAPI = writeContract(t, "paths:\n\t/a: {}\n")
+	ft := &fakeT{}
+	if errs := ft.run(func() { Run(ft, cfg) }); len(errs) == 0 || !strings.Contains(errs[0], "tab") {
+		t.Errorf("Run accepted a contract it cannot read: %v", errs)
+	}
+	cfg.OpenAPI = filepath.Join(t.TempDir(), "missing.yaml")
+	ft = &fakeT{}
+	if errs := ft.run(func() { Run(ft, cfg) }); len(errs) == 0 {
+		t.Errorf("Run accepted a missing contract")
+	}
+}
+
+func TestScopeHelperAppliesTheServersBasePath(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	c, err := readContract("servers:\n  - url: https://example.test/v2/\npaths:\n  /boxes:\n    post: {}\n  /boxes/{id}:\n    get: {}\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, o := range c.PerUser {
+		got = append(got, o.Key())
+	}
+	sort.Strings(got)
+	if strings.Join(got, ",") != "GET /v2/boxes/{id},POST /v2/boxes" {
+		t.Errorf("paths = %v, want the /v2 base in front", got)
+	}
+}
+
+func TestScopeHelperAdminDetectionMatchesThePlatform(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	c, err := readContract(`paths:
+  /a: {get: {x-required-groups: [Admin]}}
+  /b: {get: {x-groups: [ops, ADMIN]}}
+  /c: {get: {x-groups: [administrators]}}
+  /d:
+    x-admin-only: true
+    get: {}
+  /e:
+    get:
+      security: [{oauth: ["reports:admin"]}]
+  /f:
+    get:
+      security: [{oauth: ["reports:admin"]}, {oauth: [read]}]
+  /g: {get: {x-admin-only: "true"}}
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, o := range c.Admin {
+		got = append(got, o.Path)
+	}
+	sort.Strings(got)
+	if strings.Join(got, ",") != "/a,/b,/d,/e" {
+		t.Errorf("admin-only = %v, want /a,/b,/d,/e (any case, a path-item key, a scope; not a substring, a mixed alternative or a string)", got)
+	}
+}
+
+// A collection whose records have an action route, and one that names no entity: both are required,
+// and the action is a probe, not a create.
+const actionContract = `servers: [{url: /api}]
+x-data-model:
+  entities:
+    Army: {ownership: per-user, reads: mine}
+paths:
+  /armies:
+    get: {x-entity: Army}
+    post: {x-entity: Army}
+  /armies/{id}:
+    get: {x-entity: Army}
+  /armies/{id}/archive:
+    post: {x-entity: Army}
+  /armies/{id}/export:
+    get: {x-entity: Army}
+`
+
+func TestScopeHelperClassifiesActionRoutes(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	c, err := readContract(actionContract)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]shape{
+		"POST /api/armies":              shapeCreate,
+		"GET /api/armies":               shapeList,
+		"GET /api/armies/{id}":          shapeRead,
+		"POST /api/armies/{id}/archive": shapeOther,
+		"GET /api/armies/{id}/export":   shapeOther,
+	}
+	for _, o := range c.PerUser {
+		if s, ok := want[o.Key()]; !ok || shapeOf(o) != s {
+			t.Errorf("%s: shape %v, want %v", o.Key(), shapeOf(o), s)
+		}
+		delete(want, o.Key())
+	}
+	if len(want) != 0 {
+		t.Errorf("operations not read: %v", want)
+	}
+}
+
+func TestScopeHelperActionRouteNeedsAProbeAndIsRefusedWhenScoped(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	h := func(perOwner bool) http.Handler {
+		base := newArmies(perOwner)
+		mux := base.Routes().(*http.ServeMux)
+		mux.HandleFunc("POST /api/armies/{id}/archive", func(w http.ResponseWriter, r *http.Request) {
+			base.mu.Lock()
+			defer base.mu.Unlock()
+			if _, ok := base.space(r)[r.PathValue("id")]; !ok {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+		})
+		mux.HandleFunc("GET /api/armies/{id}/export", func(w http.ResponseWriter, r *http.Request) {
+			base.mu.Lock()
+			defer base.mu.Unlock()
+			if _, ok := base.space(r)[r.PathValue("id")]; !ok {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+		})
+		return mux
+	}
+	cfgOf := func(handler http.Handler, row Row) Config {
+		cfg := config(t, handler, row)
+		cfg.OpenAPI = writeContract(t, actionContract)
+		return cfg
+	}
+	// No probe for the action and no waiver for the export: both are missing.
+	ft := &fakeT{}
+	errs := strings.Join(ft.run(func() { Run(ft, cfgOf(h(true), armyRow())) }), "\n")
+	if !strings.Contains(errs, "POST /api/armies/{id}/archive (Army)") || !strings.Contains(errs, "GET /api/armies/{id}/export (Army)") {
+		t.Errorf("action routes were not required: %s", errs)
+	}
+	// With a probe for the action and the export waived (a GET may be), a scoped app passes.
+	row := armyRow()
+	row.Probes = []Probe{{Method: "POST", Path: "/api/armies/{id}/archive"}}
+	row.Waive = map[string]string{"GET /api/armies/{id}/export": "the export is built by the army reporting job"}
+	ft = &fakeT{}
+	if errs := ft.run(func() { Run(ft, cfgOf(h(true), row)) }); len(errs) != 0 {
+		t.Fatalf("a scoped app with the action probed failed: %v", errs)
+	}
+	// An action that acts on another's record is a leak.
+	ft = &fakeT{}
+	leaky := newArmies(false)
+	mux := leaky.Routes().(*http.ServeMux)
+	mux.HandleFunc("POST /api/armies/{id}/archive", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+	errs = strings.Join(ft.run(func() { Run(ft, cfgOf(mux, row)) }), "\n")
+	if !strings.Contains(errs, "LEAKED POST /api/armies/{id}/archive") {
+		t.Errorf("an action that answers another person's record passed: %s", errs)
+	}
+}
+
+func TestScopeHelperAnAdminProbeMustSeeA403(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	for status, leaked := range map[int]bool{http.StatusForbidden: false, http.StatusNotFound: true, http.StatusUnauthorized: true, http.StatusOK: true} {
+		h := http.NewServeMux()
+		h.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(status) })
+		cfg := config(t, h)
+		cfg.OpenAPI = writeContract(t, "paths:\n  /api/admin/purge:\n    post:\n      x-admin-only: true\n")
+		cfg.AdminProbes = []Probe{{Method: "POST", Path: "/api/admin/purge"}}
+		ft := &fakeT{}
+		var entries []Entry
+		ft.run(func() { entries = Run(ft, cfg) })
+		if len(entries) != 1 || (entries[0].Outcome == Leaked) != leaked {
+			t.Errorf("status %d: entries %+v, leaked want %v", status, entries, leaked)
+		}
+	}
+}
+
+func TestScopeHelperWaiverAllowanceCountsThePlatformsRequiredSet(t *testing.T) {
+	t.Setenv(ReportEnv, "")
+	// Two collections, one naming no entity: 4 + 2 = 6 required operations, so one waiver is allowed
+	// (6/4 = 1) and a second is not. The shared Rule collection adds none.
+	doc := `servers: [{url: /api}]
+x-data-model:
+  entities:
+    Army: {ownership: per-user, reads: mine}
+    Rule: {ownership: shared, reads: all}
+paths:
+  /armies: {post: {x-entity: Army}, get: {x-entity: Army}}
+  /armies/{id}: {get: {x-entity: Army}, delete: {x-entity: Army}}
+  /rules: {post: {x-entity: Rule}, get: {x-entity: Rule}}
+  /rules/{id}: {get: {x-entity: Rule}, delete: {x-entity: Rule}}
+  /notes: {post: {}}
+  /notes/{id}: {get: {}}
+`
+	c, err := readContract(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := len(c.PerUser) + len(c.Admin); n != 6 {
+		t.Fatalf("required = %d (%v), want 6", n, c.Required())
+	}
+	cfg := config(t, newArmies(true).Routes(), armyRow())
+	cfg.OpenAPI = writeContract(t, doc)
+	row := armyRow()
+	row.Waive = map[string]string{"GET /api/armies": "the armies list is paged elsewhere", "GET /api/armies/{id}": "reading an army goes through the roster"}
+	cfg.Rows = []Row{row, {Entity: "/api/notes", Factory: armyRow().Factory, Waive: map[string]string{"GET /api/notes/{id}": "notes are read by the notes service"}}}
+	ft := &fakeT{}
+	errs := strings.Join(ft.run(func() { Run(ft, cfg) }), "\n")
+	if !strings.Contains(errs, "too many waivers") {
+		t.Errorf("waivers over a quarter of the platform's required set were accepted: %s", errs)
 	}
 }

@@ -112,6 +112,7 @@ paths:
   /api/auth/users:
     get:
       operationId: listPeople
+      x-admin-only: true
       summary: People with an account. Invite-only apps, administrators only; 404 in an open app.
       parameters:
         - { name: next, in: query, required: false, schema: { type: string } }
@@ -150,6 +151,7 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
     post:
       operationId: invitePerson
+      x-admin-only: true
       summary: Add a person with a generated temporary password. Nothing is emailed. Invite-only apps, administrators only.
       requestBody:
         required: true
@@ -182,6 +184,7 @@ paths:
   /api/auth/users/disable:
     post:
       operationId: disablePerson
+      x-admin-only: true
       summary: Disable a person's account. Invite-only apps, administrators only. You cannot disable yourself.
       requestBody:
         required: true
@@ -202,6 +205,7 @@ paths:
   /api/auth/users/enable:
     post:
       operationId: enablePerson
+      x-admin-only: true
       summary: Enable a disabled account. Invite-only apps, administrators only.
       requestBody:
         required: true
@@ -222,6 +226,7 @@ paths:
   /api/auth/users/reset-password:
     post:
       operationId: resetPersonPassword
+      x-admin-only: true
       summary: Give a person a new temporary password, shown once. Invite-only apps, administrators only.
       requestBody:
         required: true

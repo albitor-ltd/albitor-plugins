@@ -43,7 +43,7 @@ func asPerson(name, sub string) ownedscope.Identity {
 //		},
 //		// A route that is not create, list, read, update or delete is driven by a Probe...
 //		Probes: []ownedscope.Probe{{Method: "POST", Path: "/api/armies/{id}/archive"}},
-//		// ...A read or list (only those) may be waived, with a specific reason of three or more words.
+//		// ...A read (GET, only that) may be waived, with a specific reason of three or more words.
 //		// Waive: map[string]string{"GET /api/armies": "armies are listed by the reporting service"},
 //	},
 func ownedDataScopeRows() []ownedscope.Row {
@@ -65,10 +65,14 @@ func TestOwnedDataScope(t *testing.T) {
 	mux := http.NewServeMux()
 	app.Routes(mux)
 	ownedscope.Run(t, ownedscope.Config{
-		Handler:     mux,
-		First:       asPerson("alice", "00000000-0000-4000-8000-00000000a11c"),
-		Second:      asPerson("bob", "00000000-0000-4000-8000-000000000b0b"),
-		Rows:        ownedDataScopeRows(),
+		Handler: mux,
+		First:   asPerson("alice", "00000000-0000-4000-8000-00000000a11c"),
+		Second:  asPerson("bob", "00000000-0000-4000-8000-000000000b0b"),
+		Rows:    ownedDataScopeRows(),
+		// The sign-in routes under /api/auth/ (the People admin, in an invite-only app) are served
+		// by internal/shell and tested there (owned_data_scope_test.go in that package, a skill
+		// example). The platform still requires them: this only says another package covers them.
+		Elsewhere:   []string{"/api/auth/"},
 		AdminProbes: ownedDataScopeAdminProbes(),
 	})
 }

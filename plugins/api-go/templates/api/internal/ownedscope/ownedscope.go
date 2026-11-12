@@ -12,18 +12,39 @@
 //
 // After each attempt the first identity's record is read back and must be unchanged.
 //
-// ADMIN-ONLY ROUTES. For every operation the contract declares admin-only (x-admin-only: true, or
-// x-required-groups / x-groups naming admin) the second identity, who must not be an admin, calls
-// it through an entry in Config.AdminProbes and must be refused (403 or 404).
+// WHICH ROUTES. The set the test must cover is computed by the PLATFORM's rule, which this package
+// copies (readContract; testdata holds both to the same answers): for every collection (a POST with
+// no path parameter, neither public nor admin-only) that has records under it, the create, the list
+// and every route under one record (the record, and actions such as POST /things/{id}/archive),
+// except a collection whose create names an entity the data model declares shared. A route that
+// names no entity is still required, under its collection's path as the Row's Entity.
 //
-// WAIVERS are narrow: only a read or a list, never a create, update, delete, action or admin-only
+// ADMIN-ONLY ROUTES. For every operation the contract declares admin-only (x-admin-only: true,
+// x-required-groups / x-groups naming admin in any case, or a security requirement asking for an
+// admin scope) the second identity, who must not be an admin, calls it through an entry in
+// Config.AdminProbes and must be answered 403 exactly: a 404 is a route that does not exist, which
+// says nothing about who may call it.
+//
+// WAIVERS are narrow: only a read (GET), never a create, update, delete, action or admin-only
 // route; a reason of at least three words that names the entity or the route; and no more than a
-// quarter (at least one) of the operations the test must cover, and one reason on no more than two operations. The test fails on a waiver that breaks a rule.
+// quarter (at least one) of the operations the test must cover (the platform's required set), and
+// one reason on no more than two operations. The test fails on a waiver that breaks a rule.
+//
+// WHAT THIS DOES NOT COVER. It runs the app's router in this process with two injected identities,
+// so it proves the handlers and the store scope records by the identity they are given. It does not
+// prove that the deployed sign-in puts the right identity there (token checks, the gateway, the
+// authoriser), that a route the contract does not list is scoped, that a store behind a different
+// wiring in production scopes the same way, or that the response bodies hide nothing the tests do
+// not look at.
 //
 // NEVER SKIPPED, ONE FILE PER PACKAGE. The report is one file for the test package: tests in the
 // same package merge into it (read, merge by method and path, rewrite atomically through a
 // temporary file and a rename), so none truncates another's entries. The test needs no network, no
 // docker and no environment variable but the report path, and must never be skipped.
+//
+// The report is read by the platform, which runs `go test -run ^TestOwnedDataScope` in every package
+// and reads OWNED_DATA_SCOPE_REPORT: the tests of THIS package are therefore named TestScopeHelper...
+// and never write to that file (each sets the variable itself).
 //
 // Keep the test. Register a Factory for every per-user entity you add. Never weaken it: do not
 // widen the refused statuses, drop a row, or waive a route to make it pass.
@@ -39,6 +60,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -148,15 +170,16 @@ type Probe struct {
 
 // Row is one per-user entity in the table.
 type Row struct {
-	// Entity is the x-entity name.
+	// Entity is the x-entity of the collection's create, or the collection's path when the create
+	// names none.
 	Entity  string
 	Factory Factory
 	// Probes cover routes of the entity that are not create, list, read, update or delete.
 	Probes []Probe
 	// Waive gives, by "METHOD /path/{id}", the reason a read or list operation is not tested. A
 	// waiver is a statement a reviewer reads, not a way to make the test pass, and the test refuses
-	// one that is not allowed: only a read (GET on an item) or a list (GET on a collection) can be
-	// waived, never a create, update, delete or admin-only route; the reason is at least three
+	// one that is not allowed: only a read (GET) can be waived, never a create, update, delete,
+	// action or admin-only route; the reason is at least three
 	// words and names the entity or the route; and waivers are at most a quarter of the operations
 	// the contract requires the test to cover.
 	Waive map[string]string
@@ -172,8 +195,14 @@ type Config struct {
 	OpenAPI string
 	// Rows is the table, one row per per-user entity.
 	Rows []Row
+	// Elsewhere lists path prefixes whose operations ANOTHER test package covers (a sign-in plugin's
+	// own routes, say, tested beside the code that serves them): this test neither covers nor
+	// reports them. The platform merges the reports of every package and still requires each
+	// operation, so an operation nobody covers still fails the check. Never use it to drop a route of
+	// your own.
+	Elsewhere []string
 	// AdminProbes drive each operation the contract declares admin-only. The second identity must
-	// not be an admin; it must be refused (403 or 404). An admin-only operation cannot be waived.
+	// not be an admin; it must be answered 403. An admin-only operation cannot be waived.
 	AdminProbes []Probe
 }
 
@@ -206,6 +235,7 @@ func Run(t TB, cfg Config) []Entry {
 
 func runOps(t TB, cfg Config, c Contract) []Entry {
 	t.Helper()
+	c = c.without(cfg.Elsewhere)
 	ops := c.PerUser
 	var entries []Entry
 	t.Cleanup(func() {
@@ -237,7 +267,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 	known := map[string]bool{}
 	for _, o := range ops {
 		byEntity[o.Entity] = append(byEntity[o.Entity], o)
-		known[o.Key()] = true
+		known[o.MatchKey()] = true
 	}
 	for entity := range rows {
 		if len(byEntity[entity]) == 0 {
@@ -246,7 +276,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 	}
 	for _, r := range rows {
 		for key := range r.Waive {
-			if !known[key] && !adminKeys0(c)[key] {
+			if !known[keyOf(key)] && !adminKeys0(c)[keyOf(key)] {
 				t.Errorf("owned data scope: %s waives %q, which is not a per-user operation of the contract", r.Entity, key)
 			}
 		}
@@ -259,11 +289,11 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 	reasonUses := map[string]int{}
 	adminKeys := map[string]bool{}
 	for _, o := range c.Admin {
-		adminKeys[o.Key()] = true
+		adminKeys[o.MatchKey()] = true
 	}
 	opByKey := map[string]Operation{}
 	for _, o := range ops {
-		opByKey[o.Key()] = o
+		opByKey[o.MatchKey()] = o
 	}
 	valid := map[string]bool{} // "Entity|key" of waivers that pass the rules
 	waivers := 0
@@ -274,12 +304,12 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 		}
 		sort.Strings(keys)
 		for _, key := range keys {
-			o, per := opByKey[key]
+			o, per := opByKey[keyOf(key)]
 			if !per {
 				continue // reported as stale above, or admin-only below
 			}
-			if sh := shapeOf(o); sh != shapeRead && sh != shapeList {
-				t.Errorf("owned data scope: %s cannot be waived: only a read or a list may be, never a create, update, delete or action", key)
+			if o.Method != http.MethodGet {
+				t.Errorf("owned data scope: %s cannot be waived: only a read (GET) may be, never a create, update, delete or action", key)
 				continue
 			}
 			if why := waiverReasonProblem(r.Waive[key], o); why != "" {
@@ -297,10 +327,10 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 				t.Errorf("owned data scope: too many waivers: at most a quarter (at least one) of the %d operations the contract requires to be covered (%d) may be waived; %s is over the limit", required, allowed, key)
 				continue
 			}
-			valid[r.Entity+"|"+key] = true
+			valid[r.Entity+"|"+keyOf(key)] = true
 		}
 		for key := range r.Waive {
-			if adminKeys[key] {
+			if adminKeys[keyOf(key)] {
 				t.Errorf("owned data scope: %s is admin-only and cannot be waived", key)
 			}
 		}
@@ -309,7 +339,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 	covered := map[string]bool{}
 	record := func(o Operation, outcome, reason string) {
 		entries = append(entries, Entry{Method: o.Method, Path: o.Path, Outcome: outcome, Reason: reason})
-		covered[o.Key()] = true
+		covered[o.MatchKey()] = true
 		if outcome == Leaked {
 			t.Errorf("owned data scope: LEAKED %s: %s", o.Key(), reason)
 		}
@@ -331,7 +361,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 		}
 		var live []Operation
 		for _, o := range eops {
-			if reason, waived := row.Waive[o.Key()]; waived && valid[row.Entity+"|"+o.Key()] {
+			if reason, waived := waiveReason(row, o); waived && valid[row.Entity+"|"+o.MatchKey()] {
 				record(o, Waived, reason)
 				continue
 			}
@@ -350,7 +380,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 	for _, o := range c.Admin {
 		var probe *Probe
 		for i := range cfg.AdminProbes {
-			if strings.ToUpper(cfg.AdminProbes[i].Method) == o.Method && cfg.AdminProbes[i].Path == o.Path {
+			if keyOf(cfg.AdminProbes[i].Method+" "+cfg.AdminProbes[i].Path) == o.MatchKey() {
 				probe = &cfg.AdminProbes[i]
 			}
 		}
@@ -372,27 +402,27 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 			continue
 		}
 		res := second.Do(o.Method, p, probe.Body)
-		if res.Status == http.StatusForbidden || res.Status == http.StatusNotFound {
-			record(o, Refused, fmt.Sprintf("a signed-in non-admin identity called this admin-only operation and was answered %d", res.Status))
+		if res.Status == http.StatusForbidden {
+			record(o, Refused, "a signed-in non-admin identity called this admin-only operation and was answered 403")
 		} else {
-			record(o, Leaked, fmt.Sprintf("a signed-in non-admin identity called this admin-only operation and was answered %d, not a 403 or 404", res.Status))
+			record(o, Leaked, fmt.Sprintf("a signed-in non-admin identity called this admin-only operation and was answered %d, not a 403 (a 404 is a route that is not there, which proves nothing)", res.Status))
 		}
 	}
 
 	var missing []string
 	for _, o := range c.Admin {
-		if !covered[o.Key()] {
+		if !covered[o.MatchKey()] {
 			missing = append(missing, o.Key()+" (admin-only)")
 		}
 	}
 	for _, o := range ops {
-		if !covered[o.Key()] {
+		if !covered[o.MatchKey()] {
 			missing = append(missing, o.Key()+" ("+o.Entity+")")
 		}
 	}
 	if len(missing) > 0 {
 		t.Errorf("owned data scope: per-user operations of the contract with no row, no probe and no waiver in the table (admin-only ones need an entry in AdminProbes): %s. "+
-			"Register a Factory row for each entity (and a Probe for a route that is not create, list, read, update or delete); waive only a read or list, with a specific written reason",
+			"Register a Factory row for each entity (and a Probe for a route that is not create, list, read, update or delete, such as an action on a record); waive only a read (GET), with a specific written reason",
 			strings.Join(missing, "; "))
 	}
 	return entries
@@ -423,7 +453,7 @@ func exercise(t TB, row Row, live []Operation, first, second *Actor, record func
 		p := o.Path
 		for _, name := range pathParams(p) {
 			v, ok := rec.Params[name]
-			if name == itemParam(o.Path) {
+			if name == itemParam(o) {
 				v, ok = rec.ID, true
 			}
 			if !ok {
@@ -511,7 +541,7 @@ func exercise(t TB, row Row, live []Operation, first, second *Actor, record func
 	for _, o := range byShape[shapeOther] {
 		matched := false
 		for _, pr := range row.Probes {
-			if strings.ToUpper(pr.Method) == o.Method && pr.Path == o.Path {
+			if keyOf(pr.Method+" "+pr.Path) == o.MatchKey() {
 				matched = true
 				if p, ok := fill(o); ok {
 					refusal(o, second.Do(o.Method, p, pr.Body), "called "+o.Key()+" on the first identity's record")
@@ -558,7 +588,7 @@ func itemPathOf(live []Operation, rec Record) (string, bool) {
 			p := o.Path
 			for _, name := range pathParams(p) {
 				v, ok := rec.Params[name]
-				if name == itemParam(o.Path) {
+				if name == itemParam(o) {
 					v, ok = rec.ID, true
 				}
 				if !ok {
@@ -570,17 +600,6 @@ func itemPathOf(live []Operation, rec Record) (string, bool) {
 		}
 	}
 	return "", false
-}
-
-// pathParams lists the {name} parameters of a path template in order.
-func pathParams(p string) []string {
-	var out []string
-	for _, seg := range strings.Split(p, "/") {
-		if m := paramPattern.FindStringSubmatch(seg); m != nil {
-			out = append(out, m[1])
-		}
-	}
-	return out
 }
 
 // mentions reports whether a JSON answer carries id as a string anywhere.
@@ -668,7 +687,7 @@ func AsContext(ctx func(context.Context) context.Context) func(*http.Request) *h
 func adminKeys0(c Contract) map[string]bool {
 	m := map[string]bool{}
 	for _, o := range c.Admin {
-		m[o.Key()] = true
+		m[o.MatchKey()] = true
 	}
 	return m
 }
@@ -685,9 +704,36 @@ func waiverReasonProblem(reason string, o Operation) string {
 	}
 	for _, seg := range strings.Split(o.Path, "/") {
 		seg = strings.ToLower(seg)
-		if seg != "" && seg != "api" && !paramPattern.MatchString(seg) && strings.Contains(low, seg) {
+		if seg != "" && seg != "api" && !templateParam.MatchString(seg) && strings.Contains(low, seg) {
 			return ""
 		}
 	}
 	return "has a reason that does not name the entity or the route it is for (" + o.Entity + ", " + o.Path + ")"
+}
+
+// waiveReason is the reason row waives o for, matched as the platform matches operations.
+func waiveReason(row Row, o Operation) (string, bool) {
+	for key, reason := range row.Waive {
+		if keyOf(key) == o.MatchKey() {
+			return reason, true
+		}
+	}
+	return "", false
+}
+
+// without drops the operations whose path starts with one of the prefixes.
+func (c Contract) without(prefixes []string) Contract {
+	if len(prefixes) == 0 {
+		return c
+	}
+	keep := func(ops []Operation) []Operation {
+		var out []Operation
+		for _, o := range ops {
+			if !slices.ContainsFunc(prefixes, func(p string) bool { return strings.HasPrefix(o.Path, p) }) {
+				out = append(out, o)
+			}
+		}
+		return out
+	}
+	return Contract{PerUser: keep(c.PerUser), Admin: keep(c.Admin)}
 }

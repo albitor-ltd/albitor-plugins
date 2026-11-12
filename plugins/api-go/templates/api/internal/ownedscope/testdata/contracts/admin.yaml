@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info: {title: admin, version: "1"}
+servers:
+  - url: https://example.test/api/
+security:
+  - bearer: []
+components:
+  securitySchemes:
+    bearer: {type: http, scheme: bearer}
+paths:
+  /things:
+    post: {summary: create}
+    get: {summary: list}
+  /things/{id}:
+    get: {summary: read}
+    delete:
+      summary: admin may delete
+      x-admin-only: true
+  /things/{id}/export:
+    get:
+      summary: grouped admin
+      x-required-groups: [Admin]
+  /admin/stats:
+    get:
+      x-groups:
+        - ADMIN
+  /admin/purge:
+    post:
+      x-admin-only: true
+  /admin/scoped:
+    get:
+      security:
+        - oauth: [read, "reports:admin"]
+        - oauth2: ["https://example.test/admin"]
+  /admin/partly:
+    get:
+      security:
+        - oauth: ["reports:admin"]
+        - oauth: [read]
+  /admin/not-a-bool:
+    get:
+      x-admin-only: "true"
+  /admin/members:
+    x-admin-only: true
+    get: {summary: path item level}
+    put: {summary: path item level}
+  /admin/public:
+    get:
+      x-admin-only: true
+      x-public: true
+  /admin/open:
+    get:
+      x-admin-only: true
+      security: []
+  /admin/head:
+    head:
+      x-admin-only: true
+    options:
+      x-admin-only: true
+  /api/_local/token:
+    post:
+      x-admin-only: true
+  /api/health:
+    get:
+      x-admin-only: true

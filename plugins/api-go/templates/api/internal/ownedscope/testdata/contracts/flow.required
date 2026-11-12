@@ -1,0 +1,5 @@
+GET /docs
+GET /docs/{}
+POST /docs
+POST /ops/reindex
+PUT /docs/{}

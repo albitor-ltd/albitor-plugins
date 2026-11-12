@@ -1,0 +1,15 @@
+{
+  "openapi": "3.1.0",
+  "servers": [{"url": "/api"}],
+  "x-data-model": {"entities": {"Doc": {"ownership": "per-user", "reads": "mine: only"},
+    "Pub": {"ownership": "shared", "reads": "all"}}},
+  "paths": {
+    "/docs": {"post": {"x-entity": "Doc"}, "get": {"x-entity": "Doc"}},
+    "/docs/{id}": {"get": {"x-entity": "Doc"}, "put": {"x-entity": "Doc"}},
+    "/pubs": {"post": {"x-entity": "Pub"}},
+    "/pubs/{id}": {"get": {"x-entity": "Pub"}},
+    "/ops/reindex": {"post": {"x-admin-only": true}},
+    "/ref": {"$ref": "./elsewhere.yaml#/paths/~1ref"},
+    "/nothing": null
+  }
+}
