@@ -1,0 +1,37 @@
+openapi: 3.0.3
+info:
+  title: a base that is not /api
+  version: "1"
+servers:
+  - url: "https://api.example.test"
+  - url: https://api.example.test/v1/
+  - url: /other
+paths:
+  /v1/crates:
+    post:
+      x-entity: Crate
+  /crates/{crateId}:
+    get:
+      x-entity: Crate
+    patch:
+      x-entity: Crate
+  /crates:
+    get:
+      x-entity: Crate
+  /v1:
+    get:
+      summary: the base itself
+  /crates/{crateId}/lid/{lidId}:
+    get:
+      x-entity: Crate
+  /public-things:
+    post:
+      security: []
+  /public-things/{id}:
+    get:
+      summary: under a public create
+x-data-model:
+  entities:
+    Crate:
+      ownership: per-user
+      reads: mine

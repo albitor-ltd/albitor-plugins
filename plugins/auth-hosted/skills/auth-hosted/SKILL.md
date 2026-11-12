@@ -27,6 +27,7 @@ which is what keeps one person's records from another.
 | `api/internal/shell/identity_token.go` | The RS256 check against the pool's JWKS: signature, `iss`, `token_use`, client, expiry. Standard library only |
 | `api/internal/shell/identity_hosted.go` | The environment, the ID-token gate and the `SIGNUP_DOMAINS` rule, refresh at the token endpoint, and the `__Host-` session cookies (HttpOnly, Secure, SameSite=Strict) |
 | `api/internal/shell/identity_test.go` | The gate, the token checks, the email and domain rule on every request and refresh, key rotation and the local issuer |
+| `api/internal/identity/owned_data_scope_test.go` | `TestOwnedDataScope`: the two-owner contract test over the app's per-user routes (see the api-go skill). Keep it and register a factory per per-user entity; never weaken it |
 | `web/src/lib/auth/session.ts` | `getSession()`, which asks `GET /api/me`. Provider-independent: the guard and the screens both read it |
 | `web/src/lib/auth/guard.ts` | `requireSession`, the `web.route-guard` entry. Sends a signed-out person to `/sign-in?next=...` |
 | `web/src/lib/shell/scope.d/auth-hosted.ts` | Exports the name the `web.route-guard` slot resolves to |

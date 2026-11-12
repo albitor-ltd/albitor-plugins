@@ -1,0 +1,5 @@
+DELETE /memos/{}
+GET /memos
+GET /memos/{}
+POST /memos
+POST /memos/{}/share

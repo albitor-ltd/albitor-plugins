@@ -21,6 +21,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `api-go` `0.8.0`, `auth-none` `0.5.0`, `auth-cognito` `0.10.0`, `auth-hosted` `0.5.0` and
+  `data-dynamodb` `0.3.1` (albitor-ltd/albitor#4779; tags follow the merge). The kit's two-owner
+  contract test. `api-go` seeds `internal/ownedscope` (stdlib only): a table-driven helper that reads
+  the app's `openapi.yaml` (`x-data-model` ownership and each route's `x-entity`) and, for every
+  route of a per-user entity, makes a record as one identity and asserts a second identity cannot
+  read, update, delete or list it (a 404 or 403, and the list excludes it) and that a create with
+  the same id leaves the first record intact. App-registered factories supply the bodies and ids;
+  a route may be waived only with a written reason; a per-user route with neither a row nor a
+  waiver fails the test. With `OWNED_DATA_SCOPE_REPORT` set it writes
+  `{"operations":[{"method","path","outcome":"refused"|"leaked"|"waived","reason"}]}`. Each auth
+  plugin seeds `internal/identity/owned_data_scope_test.go` (`TestOwnedDataScope`), which runs the helper
+  against `Routes` with two injected identities; the skills tell the builder to keep it, register a
+  factory for every per-user entity and never weaken it. `data-dynamodb` only gains skill text.
+  The required set is the platform's own rule (`perUserOperations` in the albitor runner), copied and
+  held to it by fixtures (`ownedscope/testdata/contracts`): for each collection with a create, the
+  create, the list and the routes under one record (actions included), except a collection whose
+  create names an entity the data model declares `shared`; the `servers[0]` base path is applied;
+  admin detection matches (case-insensitive `admin`, scopes, path-item keys); the helper reads
+  `openapi.yaml` with a stdlib reader that fails closed on YAML it cannot read. Admin-only operations
+  are probed with a non-admin identity and must be answered 403; waivers are limited to reads (`GET`),
+  with a specific reason of three or more words used on at most two operations, at most a quarter
+  (minimum one) of the required operations; the report is merged into the package's file and
+  rewritten atomically. The helper's own tests are named `TestScopeHelper...` and set the report
+  variable themselves, so the platform's `-run TestOwnedDataScope` never runs or reads them. `auth-cognito`'s example contract marks the People admin routes `x-admin-only: true` and its examples add `TestOwnedDataScopePeopleAdminRoutes` (a non-admin is answered 403); the seeded identity test leaves `/api/auth/` to it through `Config.Elsewhere`. The skill
+  says what the in-process test does not prove.
+  `Config.Only` limits a package to its own path prefixes (the People admin test uses `/api/auth/`); waivers are refused when `Only` or `Elsewhere` is set, since the platform counts them across packages; a YAML anchor, alias or tag on a key, or an escape the reader does not know, fails closed.
+
 - `font-high-legibility`, `font-technical`, `font-friendly`, `font-futuristic`, `font-geometric`,
   `font-editorial` and `font-console`, each `0.1.0` (albitor-ltd/albitor#4685; tags follow the
   merge). The seven remaining ADR-0107 `typeface@1` plugins, each self-hosting its OFL-1.1 woff2

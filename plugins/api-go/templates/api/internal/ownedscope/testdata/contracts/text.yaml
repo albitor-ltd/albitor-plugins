@@ -1,0 +1,45 @@
+# A contract with the text shapes real ones carry.
+openapi: "3.1.0"
+info:
+  title: "text: shapes"
+  description: >
+    A folded description that mentions
+    paths:
+      /fake: {get: {x-admin-only: true}}
+  version: '1.0'
+servers: [{url: "/api"}]
+x-data-model:
+  entities:
+    Memo:
+      ownership: per-user   # who owns it
+      reads: "only the author #1"
+paths:
+  /memos:
+    summary: it's a long
+      summary over two lines
+    post:
+      description: |
+        x-admin-only: true
+      x-entity: Memo
+      responses:
+        "201": {description: created}
+    get:
+      x-entity: Memo
+      parameters:
+      - name: page
+        in: query
+  /memos/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+    get:
+      x-entity: Memo
+    delete:
+      x-entity: Memo
+  "/memos/{id}/share":
+    post:
+      x-entity: Memo
+  /memos/{id}/{name}.json:
+    get:
+      x-entity: Memo

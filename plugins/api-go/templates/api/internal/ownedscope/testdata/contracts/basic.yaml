@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info: {title: basic, version: "1"}
+servers:
+  - url: /api
+x-data-model:
+  entities:
+    Army:
+      ownership: per-user
+      reads: each user reads only the armies they made
+    Rule:
+      ownership: shared
+      reads: everyone reads every rule
+    Odd:
+      ownership: sometimes
+      reads: unclear
+paths:
+  /armies:
+    get: {x-entity: Army}
+    post: {x-entity: Army}
+  /armies/{id}:
+    get: {x-entity: Army}
+    put: {x-entity: Army}
+    delete: {x-entity: Army}
+  /armies/{id}/archive:
+    post: {x-entity: Army}
+  /armies/{id}/units/{unitId}:
+    get: {x-entity: Army}
+  /rules:
+    get: {x-entity: Rule}
+    post: {x-entity: Rule}
+  /rules/{id}:
+    get: {x-entity: Rule}
+    delete: {x-entity: Rule}
+  /odds:
+    post: {x-entity: Odd}
+  /odds/{id}:
+    get: {x-entity: Odd}
+  /notes:
+    post:
+      summary: no entity named
+  /notes/{id}:
+    get:
+      summary: read a note
+  /health:
+    get: {summary: always public}
+  /static/app.js:
+    get: {summary: always public prefix}

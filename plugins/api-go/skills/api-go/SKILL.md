@@ -20,6 +20,8 @@ them, and change them when the app needs it.
   JSON 404, request logging, middleware chain
 - `internal/apikit/`: JSON and error writers, correlation ids, paging
 - `internal/localauth/`: the local test issuer
+- `internal/ownedscope/`: the two-owner contract test's helper (see "The two-owner test"); an auth plugin
+  seeds the test that uses it, `internal/identity/owned_data_scope_test.go`
 - `internal/app/routes.go`: where your handlers are registered
 - `openapi.yaml`: the base contract (an auth plugin's skill carries the variant with `GET /api/me`)
 
@@ -221,6 +223,72 @@ invocation: see the web-app-architecture `screen-data` pattern.
 - **Take the owner of a record from the verified identity**, never from the body or the query.
 - **Reach data only through the store interface** the data-store plugin provides, so the handler
   works in the local run as well as deployed.
+
+## The two-owner test
+
+`internal/identity/owned_data_scope_test.go` (`TestOwnedDataScope`) runs in process against `app.Routes`
+with two signed-in people. The platform runs the same test names (`go test -run '^TestOwnedDataScope'`)
+and judges the report, so this test covers the operations the platform requires (judged on the merged
+report of every package, and on the contract after the plan's `shared` declarations: a plan-level
+`shared` entity is not owed a row, and the platform's required set is the answer when they differ).
+For every collection of `openapi.yaml` (a `POST` with no path parameter that is neither public nor
+admin-only, with records under it) it covers the create, the list and every route under one record (the
+record itself and actions such as `POST /things/{id}/archive`), except a collection whose create names
+(`x-entity`) an entity the `x-data-model` declares `shared`. A route naming no entity is still covered:
+its row's `Entity` is the collection's path. The first person makes a record, and the second person must
+not be able to read, update or delete it or find it in a list, and must not be able to take it over by
+creating a record with the same id. The `servers[0]` base path is applied to the paths (the report
+names `/api/things/{id}` where the contract has `/things/{id}` under a `/api` server).
+
+- **Keep this test.** It is part of the app. It runs with `go test ./...`; set
+  `OWNED_DATA_SCOPE_REPORT` to a path to also get its JSON report, one entry per route covered
+  (`refused`, `leaked` or `waived` with a reason). The helper's own tests are named `TestScopeHelper...`
+  and never write that file; do not name an app test `TestOwnedDataScope...` unless it is meant to be
+  judged.
+- **Register a factory for every collection you add**, in `ownedDataScopeRows`, in the same change as
+  the collection. A factory makes one record through the app's own routes as the first person
+  and returns its `ID` and a valid create body (and, where they must differ, an `Update` body and a
+  `Collide` body). The test never guesses a body. A route that is not create, list, read, update
+  or delete (an action on a record, `POST` or `GET`) takes a `Probe`.
+- **"Refused" means** the second person got a 404 or a 403 and the first person's record was left
+  exactly as it was; for a list it means the record is not in the answer; for the same-id create it
+  means the first person's record is intact (a record in the second person's own keyspace is fine).
+  Any other answer, a 2xx included, is "leaked" and fails the test.
+- **A route with no factory row fails the test.** Add the row.
+- **Admin-only routes are in the test.** For every operation the contract declares admin-only
+  (`x-admin-only: true`, `x-required-groups` or `x-groups` naming `admin` in any case, on the operation
+  or its path item, or a `security` requirement whose every alternative asks for an admin scope) add a
+  probe to `ownedDataScopeAdminProbes`; the second person is not an admin and must be answered **403**
+  (a 404 is a route that is not there and proves nothing). These routes cannot be waived. **An app with
+  any admin-only route keeps this test even if all its data is shared**, and the test works with no
+  entity registered: leave `ownedDataScopeRows` empty and fill only `ownedDataScopeAdminProbes`.
+- **Waivers are narrow.** A row's `Waive` map may excuse only a read (`GET`), never a create,
+  update, delete, action or admin-only route; each reason is at least three words and names the
+  entity or the route, and no one reason is used on more than two operations; and at most a quarter
+  (rounded down, at least one) of the operations the platform requires may be waived.
+  The platform counts the quarter and the reuse of a reason across the merged report of every test
+  package, while the helper sees one package; so the helper refuses any waiver when `Config.Elsewhere`
+  or `Config.Only` is set. Keep the waivers to a package that covers the whole contract.
+  The test fails on a waiver that breaks a rule. A waiver is read by a reviewer and is never a way to
+  make the test pass.
+- **The contract must be readable.** The helper reads `openapi.yaml` with a small reader (the module is
+  standard library only) and FAILS the test on YAML it cannot read: anchors, aliases, tags, merge keys,
+  tab indentation, a duplicate key, several documents. Write the contract in plain block or flow style.
+- **`Elsewhere` is not a waiver.** `Config.Elsewhere` names path prefixes another test package covers (the
+  sign-in plugin's own routes, tested beside the code that serves them). The platform merges every
+  package's report and still requires each operation; never list a route of your own there. `Config.Only` is the inverse: it covers only the operations under
+  its path prefixes (the sign-in plugin's own test uses `/api/auth/`) and leaves the rest to the
+  package that owns them.
+- **Never skip it.** Do not `t.Skip` it or gate it behind an environment variable; it needs no
+  network, no docker and no setting but the optional report path. A test package's tests share one
+  report file and merge into it, so more than one `TestOwnedDataScope...` test per package is fine.
+- **What it does not prove.** It drives the router in process with two injected identities. It does
+  not prove that the deployed sign-in (token checks, the gateway, the authoriser) puts the right
+  identity on a request, that a route the contract does not list is scoped, that a store wired
+  differently in production scopes the same way, or that a response hides every field of another
+  person's record. A plan that declares the data `shared` lowers what the platform requires; this test
+  cannot know the plan, so it still covers per-user collections. The platform's checks and review are
+  the backstop for the rest.
 
 ## Read secrets from the app's secret store
 
