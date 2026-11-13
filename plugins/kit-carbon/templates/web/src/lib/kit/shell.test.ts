@@ -5,7 +5,7 @@
 // <html data-theme="light" | "dark"> force a scheme, and react when either changes.
 import { flushSync, mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Showcase from './Showcase.svelte';
+import ShellFixture from './__fixtures__/ShellFixture.svelte';
 
 let app: ReturnType<typeof mount> | undefined;
 let listeners: Array<() => void> = [];
@@ -33,7 +33,7 @@ function preference(dark: boolean) {
 }
 
 async function show() {
-	app = mount(Showcase, { target: document.body });
+	app = mount(ShellFixture, { target: document.body });
 	flushSync();
 	await tick();
 }

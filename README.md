@@ -152,7 +152,7 @@ import type { FooterLink } from '../lib/kit';
 </AppShell>
 ```
 
-Each kit ships `contract.test.ts` and `ContractProbe.svelte` (seeded once): the exports exist, the
+Each kit ships `contract.test.ts` and `__fixtures__/ContractProbe.svelte` (seeded once): the exports exist, the
 landmarks above hold, the sign-in page and the footer pass axe. A kit's other pieces (`Button`,
 `Field`, `Table`, ...) stay kit-specific in props that match across kits where they can, but only
 these three are the contract. **Upgrading an existing app.** The

@@ -1,39 +1,29 @@
-// The kit's shell pieces, rendered on the server the way a build prerenders them, loaded into a
-// DOM and audited with axe. The test runs in Node and builds its own jsdom, because Vitest's
+// The kit's shell, rendered on the server the way a build prerenders it, loaded into a DOM and
+// audited with axe. The test runs in Node and builds its own jsdom, because Vitest's
 // jsdom environment would compile the components for the browser and this renders them for the
 // server. jsdom has no layout, so colour contrast is audited from the tokens in contrast.test.ts
-// and switched off here.
-import axe from 'axe-core';
-import { JSDOM } from 'jsdom';
-import { render } from 'svelte/server';
+// and switched off here. The other pieces are tested beside this file, each against its own
+// fixture in __fixtures__/ (button.test.ts, field.test.ts, table.test.ts, emptystate.test.ts,
+// dialog.test.ts), so a piece an app never uses can go with its fixture and its test.
+import type { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import Showcase from './Showcase.svelte';
+import { audit as auditDom, serverDom } from './__fixtures__/dom';
+import ShellFixture from './__fixtures__/ShellFixture.svelte';
 import { toast } from './toast.svelte';
 
 let dom: JSDOM;
 
 async function mount(props: Record<string, unknown> = {}): Promise<HTMLElement> {
-	const { body } = render(Showcase, { props });
-	dom = new JSDOM(`<!doctype html><html lang="en"><head><title>Kit</title></head><body>${body}</body></html>`, {
-		runScripts: 'outside-only'
-	});
+	dom = serverDom(ShellFixture, props);
 	return dom.window.document.body;
 }
 
-async function audit(): Promise<string[]> {
-	const win = dom.window as unknown as { eval(code: string): unknown; axe: typeof axe };
-	win.eval(axe.source);
-	const result = await win.axe.run(dom.window.document.body, {
-		runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] },
-		rules: { 'color-contrast': { enabled: false }, region: { enabled: false } }
-	});
-	return result.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html).join(' | ')}`);
-}
+const audit = () => auditDom(dom);
 
 beforeEach(() => toast.clear());
 afterEach(() => dom?.window.close());
 
-describe('the shell showcase', () => {
+describe('the shell', () => {
 	it('has no axe violations', async () => {
 		toast.push({ message: 'Saved', tone: 'success' });
 		await mount();
@@ -86,75 +76,6 @@ describe('main landmark', () => {
 	});
 });
 
-describe('Button', () => {
-	it('is type=button unless told otherwise, so it never submits a form by accident', async () => {
-		const root = await mount();
-		const byText = (t: string) =>
-			[...root.querySelectorAll('form button')].find((b) => b.textContent?.includes(t))!;
-		expect(byText('Send report').getAttribute('type')).toBe('submit');
-		for (const t of ['Save draft', 'Reset', 'Delete report']) {
-			expect(byText(t).getAttribute('type'), t).toBe('button');
-		}
-	});
-
-	it('maps each variant onto its Carbon kind', async () => {
-		const root = await mount();
-		const cls = (t: string) =>
-			[...root.querySelectorAll('form button')].find((b) => b.textContent?.includes(t))!.className;
-		expect(cls('Send report')).toContain('bx--btn--primary');
-		expect(cls('Save draft')).toContain('bx--btn--secondary');
-		expect(cls('Reset')).toContain('bx--btn--ghost');
-		expect(cls('Delete report')).toContain('bx--btn--danger');
-	});
-});
-
-describe('Field', () => {
-	it('ties the label, hint and error to the control', async () => {
-		const root = await mount();
-		const input = root.querySelector<HTMLInputElement>('input[type="email"]')!;
-		const label = root.querySelector(`label[for="${input.id}"]`);
-		expect(label?.textContent).toContain('Email address');
-		expect(input.getAttribute('aria-invalid')).toBe('true');
-		const described = input.getAttribute('aria-describedby')!.split(' ');
-		expect(described).toHaveLength(2);
-		for (const id of described) expect(root.querySelector(`#${id}`)).not.toBeNull();
-		expect(root.querySelector(`#${described[1]}`)!.textContent).toContain('Enter an email address');
-	});
-
-	it('keeps a caller\'s aria-describedby and adds the hint and error ids to it', async () => {
-		const root = await mount();
-		const notes = root.querySelector('textarea')!;
-		expect(notes.getAttribute('aria-describedby')).toBe('notes-help');
-		const email = root.querySelector('input[type="email"]')!;
-		// The field's own wiring comes first and is never replaced by a caller's attribute.
-		expect(email.getAttribute('aria-describedby')!.split(' ')).toHaveLength(2);
-	});
-
-	it('gives two fields different ids', async () => {
-		const root = await mount();
-		const ids = [...root.querySelectorAll('input, textarea, select')].map((e) => e.id);
-		expect(ids.every(Boolean)).toBe(true);
-		expect(new Set(ids).size).toBe(ids.length);
-	});
-});
-
-describe('Table', () => {
-	it('has a caption and scoped headers', async () => {
-		const root = await mount();
-		const table = root.querySelector('table')!;
-		expect(table.querySelector('caption')?.textContent).toContain('Recent reports');
-		for (const th of table.querySelectorAll('thead th')) {
-			expect(th.getAttribute('scope')).toBe('col');
-		}
-	});
-
-	it('renders cell values as text, never as markup', async () => {
-		const root = await mount({ rowName: '<b id="pwned">x</b>' });
-		expect(root.querySelector('#pwned')).toBeNull();
-		expect(root.querySelector('table')!.textContent).toContain('<b id="pwned">x</b>');
-	});
-});
-
 describe('Toaster', () => {
 	it('announces a message politely and an error assertively', async () => {
 		toast.push({ message: 'Saved', tone: 'success' });
@@ -199,13 +120,5 @@ describe('Toaster', () => {
 	it('rejects a message that is empty or absurdly long', () => {
 		expect(() => toast.push({ message: '' })).toThrow();
 		expect(() => toast.push({ message: 'x'.repeat(501) })).toThrow();
-	});
-});
-
-describe('EmptyState', () => {
-	it('is a heading with a reason, so the page is never blank', async () => {
-		const root = await mount({ empty: true });
-		const h = root.querySelector('[data-kit="empty-state"] h2, [data-kit="empty-state"] h3');
-		expect(h?.textContent).toContain('No reports yet');
 	});
 });

@@ -8,7 +8,7 @@ import { JSDOM } from 'jsdom';
 import { render } from 'svelte/server';
 import { afterEach, describe, expect, it } from 'vitest';
 import * as kit from './index';
-import ContractProbe from './ContractProbe.svelte';
+import ContractProbe from './__fixtures__/ContractProbe.svelte';
 
 let dom: JSDOM;
 

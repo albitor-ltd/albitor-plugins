@@ -11,7 +11,7 @@ whose root layout renders the kit's `AppShell`.
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark, GOV.UK footer
   colours; not GOV.UK's footer component, so no Crown copyright, OGL line or crest) and `SignInPage`
   (new: GOV.UK error summary linked to the email field, then the fields). The contract is in the
-  repository README; `contract.test.ts` and `ContractProbe.svelte` (seeded once) audit it.
+  repository README; `contract.test.ts` and `__fixtures__/ContractProbe.svelte` (seeded once) audit it.
 - The shell pieces in [GOV.UK Frontend](https://frontend.design-system.service.gov.uk/) v6.4.0
   markup and classes: `AppShell` (skip link, a text-only header, service navigation with the
   current page marked, one `main`), `Button`, `Field` (label, hint and error tied to the control),
@@ -28,9 +28,12 @@ whose root layout renders the kit's `AppShell`.
   still wins.
 - **No Crown, no GOV.UK logotype, no GDS Transport font** (the font falls back to arial). They are
   licensed for services on GOV.UK only; this kit is for the apps that are not. The header is text.
-- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell pieces on the server and
-  runs axe over them, plus behaviour checks (current page, label wiring, text not markup, a
-  text-only header); `dialog.test.ts` mounts the dialog in jsdom for axe, its open state and its initial focus;
+- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell on the server and
+  runs axe over it, and `button.test.ts`, `field.test.ts`, `table.test.ts` and `errorsummary.test.ts` do the same for their pieces, plus behaviour checks (current page, label wiring, text not markup, a
+  text-only header); `dialog.test.ts` mounts the dialog in jsdom for axe, its open state and its initial focus; each piece has its own test and fixture (`field.test.ts`
+  with `__fixtures__/FieldFixture.svelte`, and so on), so an app that never uses a piece deletes the
+  piece, its fixture and its test together; `web/knip.json` ignores `__fixtures__/` folders so the
+  end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture. 
   `contrast.test.ts` reads GOV.UK Frontend's colours from the installed stylesheet and checks every
   pair the components use against WCAG 2.2 AA.
 - The `govuk-design-system` and `govuk-accessibility` skills from `gds` (components, patterns,
@@ -40,8 +43,9 @@ whose root layout renders the kit's `AppShell`.
   `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`,
   `DetailPage`, `FormPage`, `DashboardPage`, `SettingsPage` (with `SettingsSection`) and
   `SignInPage`, over `PageHeader` and `StateNotice`, in GOV.UK markup (back link, summary list,
-  error summary, notification banner). `PagesShowcase.svelte` and `pages.test.ts` render every
-  template in every state and run axe over them.
+  error summary, notification banner). Each has its own `<name>.test.ts` and
+  `__fixtures__/<Name>Fixture.svelte` that render it in every state and run axe over it
+  (`PagesShowcase.svelte` is the shared frame, `pages.test.ts` covers the sign-in page).
 - `preview-tokens.json`: GOV.UK Frontend 6.4.0's palette for the build preview.
 - The `govuk-frontend` dependency is pinned at 6.5.1; the markup and palette above follow 6.4.0, which 6.5.x leaves unchanged (it only adds trial components).
 
@@ -80,5 +84,5 @@ recognises the kit as GOV.UK by its name and keywords (`core.IsGOVUKDesignSystem
 ## Ownership
 
 The components and `govuk.scss` are `example` files: seeded once, then the app's. The contrast and
-axe tests, `Showcase.svelte` and `web/vitest.config.ts` are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are seeded once and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The `gds` plugin is
+axe tests, the fixtures in `__fixtures__/`, `web/knip.json` and `web/vitest.config.ts` are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). `contract.test.ts`, `signin.test.ts` and their probes (`__fixtures__/ContractProbe.svelte`, `__fixtures__/SignInHarness.svelte`) are seeded once and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The `gds` plugin is
 unchanged and is retired separately.

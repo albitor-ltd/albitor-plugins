@@ -97,18 +97,18 @@ func TestKitGDSFileModes(t *testing.T) {
 	// Every kit file is seeded once and app-owned. The contrast and axe test files stay managed only because the platform's
 	// kit certification still demands them: those tests and the themeable token file.
 	for p, want := range map[string]string{
-		"web/vitest.config.ts":             "example",
-		"web/src/lib/kit/contrast.test.ts": "example",
-		"web/src/lib/kit/kit.test.ts":      "example",
-		"web/src/lib/kit/dialog.test.ts":   "example",
-		"web/src/lib/kit/Showcase.svelte":  "example",
-		"web/src/lib/kit/AppShell.svelte":  "example",
-		"web/src/lib/kit/Button.svelte":    "example",
-		"web/src/lib/kit/Dialog.svelte":    "example",
-		"web/src/lib/kit/Field.svelte":     "example",
-		"web/src/lib/kit/Table.svelte":     "example",
-		"web/src/lib/kit/govuk.scss":       "example",
-		"web/src/lib/kit/index.ts":         "example",
+		"web/vitest.config.ts":                             "example",
+		"web/src/lib/kit/contrast.test.ts":                 "example",
+		"web/src/lib/kit/kit.test.ts":                      "example",
+		"web/src/lib/kit/dialog.test.ts":                   "example",
+		"web/src/lib/kit/__fixtures__/ShellFixture.svelte": "example",
+		"web/src/lib/kit/AppShell.svelte":                  "example",
+		"web/src/lib/kit/Button.svelte":                    "example",
+		"web/src/lib/kit/Dialog.svelte":                    "example",
+		"web/src/lib/kit/Field.svelte":                     "example",
+		"web/src/lib/kit/Table.svelte":                     "example",
+		"web/src/lib/kit/govuk.scss":                       "example",
+		"web/src/lib/kit/index.ts":                         "example",
 	} {
 		if modes[p] != want {
 			t.Errorf("%s: mode %q, want %q", p, modes[p], want)

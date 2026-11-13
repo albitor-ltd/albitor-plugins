@@ -1,0 +1,44 @@
+<!-- A starting point: the shell contract on one page. AppShell, Footer
+     and SignInPage are imported from the kit's index, the way the sign-in code imports them, so
+     contract.test.ts fails if the kit stops exporting one. Keep it so the audit still runs; it is not routed and nothing links here. -->
+<script lang="ts">
+	import { AppShell, Footer, SignInPage } from '../index';
+	import type { NavGroup } from '../../shell/types';
+
+	let {
+		withFooter = true,
+		withAccount = true,
+		error,
+		email,
+		busy = false,
+		extraLink,
+		repeatLink = false
+	}: { withFooter?: boolean; withAccount?: boolean; error?: string; email?: string; busy?: boolean; extraLink?: string; repeatLink?: boolean } = $props();
+
+	const nav: NavGroup[] = [
+		{ id: null, items: [{ label: 'Home', order: 0, href: '/' }] },
+		{ id: 'admin', items: [{ label: 'People', order: 10, href: '/people', group: 'admin' }] }
+	];
+</script>
+
+{#snippet account()}
+	<button type="button">Sign out</button>
+{/snippet}
+
+{#snippet footer()}
+	<Footer
+		links={[
+			{ href: '/privacy', label: 'Privacy' },
+			{ href: '/accessibility', label: 'Accessibility statement' },
+			...(repeatLink ? [{ href: '/privacy', label: 'Privacy again' }] : []),
+			...(extraLink ? [{ href: '/extra', label: extraLink }] : [])
+		]}
+	>
+		Example Ltd
+</Footer>
+{/snippet}
+
+<AppShell {nav} path="/" title="Example app" footer={withFooter ? footer : undefined}
+	account={withAccount ? account : undefined}>
+	<SignInPage {error} {email} {busy} resetHref="/reset" signUpHref="/sign-up" onsubmit={() => {}} />
+</AppShell>

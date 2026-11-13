@@ -37,9 +37,11 @@ import { Button, Field, Table, Dialog, EmptyState, toast } from '../../lib/kit';
 ## Pages
 
 A page is `web/src/routes/<name>/+page.svelte` (see the `svelte-shell` skill for nav entries). Build
-it from the table below and the page templates; `Showcase.svelte`, `PagesShowcase.svelte` and
-`ContractProbe.svelte` are test fixtures that `kit.test.ts` audits, never a starting point and never
-imported by a route.
+it from the table below and the page templates; the `*Fixture.svelte` components, `PagesShowcase.svelte`,
+`ContractProbe.svelte` and `SignInHarness.svelte` in the kit's `__fixtures__/` folders are test fixtures
+the kit's tests audit, never a starting point and never imported by a route. Each piece has its own
+fixture and test, so an app that does not use a piece deletes the piece, its fixture and its test
+together; `web/knip.json` keeps the fixture folders out of the end-of-build prune.
 
 | Need | Use |
 |---|---|
@@ -64,9 +66,12 @@ and error states.
 
 Start every new page from the template that matches it. The templates are worked examples, not
 seeded files: they sit in `examples/web/src/lib/kit/pages/` beside this skill, laid out by
-repository path. Copy the ones the app needs to `web/src/lib/kit/pages/`, and `pages.test.ts` beside them with its
-test fixture `PagesShowcase.svelte` (it runs axe over every template in every state; no route or
-component imports the fixture, and the fixture check fails if one does), import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
+repository path. Copy the ones the app needs to `web/src/lib/kit/pages/`, each with its test (`listpage.test.ts` for
+`ListPage`) and its fixture from `__fixtures__/` (`ListPageFixture.svelte`; they run axe over the
+template in every state), plus `pages.test.ts` and the folder's shared `PagesShowcase.svelte` (the
+frame), `SignInPageFixture.svelte` and `helpers.ts`. A template the app does not use needs none of its
+test or fixture. No route or component imports a fixture, and the fixture check fails if one does.
+Import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
 never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and the rest) and
 `SignInPage` are already in the repository. Do not rebuild a template by hand.
 
