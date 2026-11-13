@@ -1,5 +1,7 @@
 // Starting point (test-playwright).
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
+import { test } from "@playwright/test";
+import { NO_SECOND_IDENTITY, resolveSecondIdentity } from "./second-identity";
 import { authFor } from "./screen-rules";
 
 // SIGN IN AS A NAMED TEST IDENTITY, IN A LOCAL RUN ONLY.
@@ -73,6 +75,27 @@ export async function localTokens(request: APIRequestContext, identity: LocalIde
 // The header an API call carries to act as these tokens' identity.
 export function authHeader(tokens: LocalTokens): Record<string, string> {
   return { Authorization: `Bearer ${tokens.idToken}` };
+}
+
+// The SECOND person for a cross-account spec ("another account cannot read this account's records"),
+// as the header a direct `request` call carries. One spec runs both places:
+//
+//  - local: bob's bearer from the local issuer (the journey fixture's `appAuthHeaders` is alice's);
+//  - deployed: the platform's seeded verifier-b, whose ID token is read from the session the setup
+//    saved (tests/.auth, see saveSecondSession). There is no local issuer there.
+//
+// When neither exists the test SKIPS, with a reason that says it is for want of a second identity
+// (NO_SECOND_IDENTITY), so a walk reports it as unverified rather than green. Call it first in the
+// test, or from a beforeEach.
+export async function secondIdentityHeaders(request: APIRequestContext): Promise<Record<string, string>> {
+  const headers = await resolveSecondIdentity(async () =>
+    (await localIssuerRunning(request)) ? authHeader(await localTokens(request, "bob")) : null,
+  );
+  if (!headers) {
+    test.skip(true, NO_SECOND_IDENTITY);
+    throw new Error(NO_SECOND_IDENTITY); // unreachable: test.skip throws
+  }
+  return headers;
 }
 
 // The session cookies a signed-in browser carries, for a local run. The auth plugins read the

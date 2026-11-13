@@ -165,6 +165,38 @@ fails with no error to explain it.
   screen fails the setup. Specs that need a
   session skip themselves with `test.skip(!hasDemoSession(), ...)` in a `beforeEach`.
 
+## Cross-account specs ("refuses another account's ...")
+
+A spec proving one account cannot read or change another's records needs a second person. Use
+`secondIdentityHeaders(request)` from `helpers/local-auth.ts`, never a spec written on the local
+issuer alone: that skips on every deployed run and the journey is handed over unverified.
+
+- **Local:** bob's bearer from the local issuer (`appAuthHeaders` is alice's).
+- **Deployed:** the platform's seeded verifier-b. Its sign-in saves a browser session; the helper
+  reads the ID token out of that session cookie and sends it as `Authorization: Bearer`, which wins
+  over the primary's cookie on the same `request`.
+- **Neither:** the test skips with `no second signed-in identity: this run has neither the local
+  issuer (bob) nor a verifier-b session`. A walk reads that as unverified, not as a pass.
+
+```ts
+// @journey keep-claims-private
+import { secondIdentityHeaders } from "../helpers/local-auth";
+import { expect, test } from "../helpers/seed";
+
+test("refuses another account's claim", async ({ request, fixtureScope, appAuthHeaders }) => {
+  const other = await secondIdentityHeaders(request); // skips when there is no second identity
+  const claim = await fixtureScope.create<{ id: string }>("/api/claims", {
+    title: fixtureScope.uniqueName("claim"),
+  });
+  // The creator still reads it; the second account is refused (404 or 403, whichever the API gives).
+  expect((await request.get(`/api/claims/${claim.id}`, { headers: appAuthHeaders })).status()).toBe(200);
+  expect((await request.get(`/api/claims/${claim.id}`, { headers: other })).status()).toBe(404);
+});
+```
+
+Assert the one status the API gives; do not accept either of two. For a browser check as the second
+person, load `VERIFIER_B_STORAGE_STATE` into a second context (`hasVerifierBSession()` guards it).
+
 ## Running
 
 ```sh
