@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "font-futuristic",
   "displayName": "Font: Futuristic",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
   "description": "The Futuristic font look: Space Grotesk for headings, Inter for body, data and labels. Bold and forward-looking, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
   "author": {

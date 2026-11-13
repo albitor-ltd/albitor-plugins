@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "font-friendly",
   "displayName": "Font: Friendly",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
   "description": "The Friendly font look: Nunito for headings and Nunito Sans for body, data and labels. A warm, rounded pairing, self-hosted as the full upstream variable fonts, losslessly converted to woff2, under the SIL Open Font Licence 1.1.",
   "author": {

@@ -1,6 +1,6 @@
 /* Geometric font look: Plus Jakarta Sans, self-hosted. Yours to change once seeded.
    Every src is a relative path to a file in this directory tree; nothing is fetched from another
-   origin (the page's CSP is font-src 'self'). The family is the full upstream variable woff2,
+   origin (the page's CSP only allows fonts from there). The family is the full upstream variable woff2,
    unmodified (weights 200 to 800), so one file serves every weight. */
 @font-face {
   font-family: "Plus Jakarta Sans";

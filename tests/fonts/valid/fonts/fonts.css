@@ -1,4 +1,6 @@
-/* A same-origin @font-face: relative src, swap. */
+/* A same-origin @font-face: relative src, swap. Every src is a relative path to a file in this
+   directory tree; nothing is fetched from another origin (the page's CSP only allows fonts from
+   there). */
 @font-face {
   font-family: "Fixture Sans";
   font-style: normal;
