@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "api-go",
   "displayName": "Go API runtime",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "kind": "socket",
   "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
   "author": {
@@ -45,6 +45,10 @@
         "api": { "command": "cd api && go build -o dist/api .", "output": "api/dist" }
       },
       "http": { "runtime": "go", "handler": "api" }
+    },
+    "unusedCode": {
+      "command": "cd api && go run golang.org/x/tools/cmd/deadcode@v0.48.0 -test ./...",
+      "keep": ["api/main.go", "api/internal/shell/**", "api/internal/app/**", "api/internal/ownedscope/**", "api/openapi.yaml", "api/**/testdata/**"]
     },
     "skills": ["api-go"]
   }

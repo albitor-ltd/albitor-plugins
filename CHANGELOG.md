@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `0.8.0` and `api-go` `0.9.0` (albitor-ltd/albitor#4842; tags follow the merge). Each
+  declares `contributes.unusedCode`, the deterministic tool the end-of-build prune step runs to
+  remove code nothing reaches, and the globs it never touches: `knip` pinned at `6.44.0` in
+  production mode for the web tree (files, exports and types only; never dependencies), and
+  `deadcode` pinned at `v0.48.0` with `-test` for the Go tree. Needs a platform that reads the key
+  (the parser rejects an unknown `contributes` key), so land the platform change first.
 - `web-svelte` `0.7.3` and `api-go` `0.8.1` (albitor-ltd/albitor#4820; tags follow the merge). The
   seeded `web/.gitignore` and `api/.gitignore` ignore test and coverage output (`test-results/`,
   `playwright-report/`, an app-root `/coverage/`, and for Go `*.coverprofile`; `*.out` was already ignored), so a
