@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.9.1",
-        "sha": "d1a350bfcad84f664bd45ea0dd1ae3839d8742b4"
+        "ref": "kit-shadcn/v0.10.0",
+        "sha": "9e3fbe607b6bcdc4fb28252048050ab211332fe5"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -371,8 +371,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.8.1",
-        "sha": "d1a350bfcad84f664bd45ea0dd1ae3839d8742b4"
+        "ref": "kit-carbon/v0.9.0",
+        "sha": "9e3fbe607b6bcdc4fb28252048050ab211332fe5"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -391,8 +391,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.8.1",
-        "sha": "d1a350bfcad84f664bd45ea0dd1ae3839d8742b4"
+        "ref": "kit-gds/v0.9.0",
+        "sha": "9e3fbe607b6bcdc4fb28252048050ab211332fe5"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
