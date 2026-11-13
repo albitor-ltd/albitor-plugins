@@ -1,6 +1,6 @@
 /* Technical font look, self-hosted. Yours to change once seeded.
    Every src is a relative path to a file in this directory tree; nothing is fetched from another
-   origin (the page's CSP is font-src 'self'). The files are the full upstream woff2, unmodified. */
+   origin (the page's CSP only allows fonts from there). The files are the full upstream woff2, unmodified. */
 @font-face {
   font-family: "IBM Plex Sans";
   font-style: normal;

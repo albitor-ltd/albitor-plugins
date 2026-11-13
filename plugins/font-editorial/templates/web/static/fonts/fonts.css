@@ -1,7 +1,7 @@
 /* Editorial font look: Source Serif 4 for headings, Source Sans 3 for body, data and labels,
    self-hosted. Yours to change once seeded.
    Every src is a relative path to a file in this directory tree; nothing is fetched from another
-   origin (the page's CSP is font-src 'self'). Every file is the full upstream woff2, unmodified:
+   origin (the page's CSP only allows fonts from there). Every file is the full upstream woff2, unmodified:
    Source Serif 4 as the static Semibold (600) and Bold (700) files, Source Sans 3 as the variable
    upright (weights 200 to 900). */
 @font-face {

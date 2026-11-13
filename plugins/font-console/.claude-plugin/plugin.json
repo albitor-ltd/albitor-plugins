@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "font-console",
   "displayName": "Font: Console",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
   "description": "The Console font look: JetBrains Mono for headings, data and labels, Inter for body text. A terminal character with readable long text, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
   "author": {

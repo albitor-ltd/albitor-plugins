@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `font-clear`, `font-console`, `font-editorial`, `font-friendly`, `font-futuristic`,
+  `font-geometric`, `font-high-legibility` and `font-technical`, each `0.1.1`
+  (albitor-ltd/albitor#4852; tags follow the merge). The seeded `fonts.css` header comment no
+  longer spells the CSP directive; it says the page's CSP only allows fonts from the app's own
+  origin. The font gate fixture carries the same wording.
+
 - `kit-shadcn` `0.10.0`, `kit-carbon` `0.9.0` and `kit-gds` `0.9.0` (albitor-ltd/albitor#4846; tags
   follow the merge). Per-component test fixtures, so the end-of-build prune (#4842) neither removes
   a fixture the kit's tests need nor keeps a component it could shed. The one shared

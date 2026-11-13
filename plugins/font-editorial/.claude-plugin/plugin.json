@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "font-editorial",
   "displayName": "Font: Editorial",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
   "description": "The Editorial font look: Source Serif 4 for headings with Source Sans 3 for body, data and labels. A reading-led serif and sans pairing, self-hosted as the full unmodified upstream woff2 files under the SIL Open Font Licence 1.1.",
   "author": {

@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "font-geometric",
   "displayName": "Font: Geometric",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "socket",
   "description": "The Geometric font look: Plus Jakarta Sans for headings, body, data and labels. A modern geometric sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
   "author": {

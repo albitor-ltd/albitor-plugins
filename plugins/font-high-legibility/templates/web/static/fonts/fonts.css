@@ -1,6 +1,6 @@
 /* High legibility font look: Atkinson Hyperlegible Next, self-hosted. Yours to change once seeded.
    Every src is a relative path to a file in this directory tree; nothing is fetched from another
-   origin (the page's CSP is font-src 'self'). Each family is the distributor's variable woff2,
+   origin (the page's CSP only allows fonts from there). Each family is the distributor's variable woff2,
    unmodified, so one file serves every weight. */
 @font-face {
   font-family: "Atkinson Hyperlegible Next";
