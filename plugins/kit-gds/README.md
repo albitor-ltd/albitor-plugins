@@ -33,7 +33,7 @@ whose root layout renders the kit's `AppShell`.
   text-only header); `dialog.test.ts` mounts the dialog in jsdom for axe, its open state and its initial focus; each piece has its own test and fixture (`field.test.ts`
   with `__fixtures__/FieldFixture.svelte`, and so on), so an app that never uses a piece deletes the
   piece, its fixture and its test together; `web/knip.json` ignores `__fixtures__/` folders so the
-  end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture. 
+  end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture (it lists a piece the app does not use; delete that piece, its fixture and its test together). 
   `contrast.test.ts` reads GOV.UK Frontend's colours from the installed stylesheet and checks every
   pair the components use against WCAG 2.2 AA.
 - The `govuk-design-system` and `govuk-accessibility` skills from `gds` (components, patterns,

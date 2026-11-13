@@ -28,7 +28,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape. Each piece has its own test and fixture (`field.test.ts`
   with `__fixtures__/FieldFixture.svelte`, and so on), so an app that never uses a piece deletes the
   piece, its fixture and its test together. `web/knip.json` ignores `__fixtures__/` folders so the
-  end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture.
+  end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture (it lists a piece the app does not use; delete that piece, its fixture and its test together).
 - The page templates, worked examples in the skill's `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and

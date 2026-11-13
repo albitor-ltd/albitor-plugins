@@ -24,10 +24,7 @@
   ],
   "themeable": false,
   "kind": "socket",
-  "provides": [
-    "component-kit@1",
-    "component-kit@2"
-  ],
+  "provides": ["component-kit@1", "component-kit@2"],
   "requires": [
     "web-framework@1"
   ],
@@ -269,14 +266,8 @@
     ],
     "slots": {
       "web.root-classes": [
-        {
-          "target": "html",
-          "class": "govuk-template"
-        },
-        {
-          "target": "body",
-          "class": "govuk-template__body"
-        }
+        { "target": "html", "class": "govuk-template" },
+        { "target": "body", "class": "govuk-template__body" }
       ]
     },
     "skills": [
