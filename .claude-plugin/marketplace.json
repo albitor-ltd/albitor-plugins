@@ -527,8 +527,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-clear",
-        "ref": "font-clear/v0.1.0",
-        "sha": "d0cf7c98d4583ef1a56cace8745db43f4836d0e3"
+        "ref": "font-clear/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Clear font look: Source Sans 3 for headings, body, data and labels. A clean, everyday humanist sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -549,8 +549,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-high-legibility",
-        "ref": "font-high-legibility/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-high-legibility/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The High legibility font look: Atkinson Hyperlegible Next for headings, body, data and labels. Designed by the Braille Institute for low vision, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -573,8 +573,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-technical",
-        "ref": "font-technical/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-technical/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Technical font look: IBM Plex Sans for headings and body, IBM Plex Mono for data and labels. Precise and data-ready (Carbon's default type), self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -595,8 +595,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-friendly",
-        "ref": "font-friendly/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-friendly/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Friendly font look: Nunito for headings and Nunito Sans for body, data and labels. A warm, rounded pairing, self-hosted as the full upstream variable fonts, losslessly converted to woff2, under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -619,8 +619,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-futuristic",
-        "ref": "font-futuristic/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-futuristic/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Futuristic font look: Space Grotesk for headings, Inter for body, data and labels. Bold and forward-looking, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -642,8 +642,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-geometric",
-        "ref": "font-geometric/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-geometric/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Geometric font look: Plus Jakarta Sans for headings, body, data and labels. A modern geometric sans, self-hosted as the full unmodified upstream variable woff2 under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -664,8 +664,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-editorial",
-        "ref": "font-editorial/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-editorial/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Editorial font look: Source Serif 4 for headings with Source Sans 3 for body, data and labels. A reading-led serif and sans pairing, self-hosted as the full unmodified upstream woff2 files under the SIL Open Font Licence 1.1.",
       "category": "development",
@@ -687,8 +687,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/font-console",
-        "ref": "font-console/v0.1.0",
-        "sha": "9b622c96c3c062ad6d3186c9ae980b0bce45fe80"
+        "ref": "font-console/v0.1.1",
+        "sha": "a353904df5fd684d4572acfa59d02343efe889d1"
       },
       "description": "The Console font look: JetBrains Mono for headings, data and labels, Inter for body text. A terminal character with readable long text, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
       "category": "development",
