@@ -45,7 +45,7 @@ func TestKitCarbonHasTheSameShellPiecesAsKitShadcn(t *testing.T) {
 		"web/src/lib/kit/Dialog.svelte", "web/src/lib/kit/EmptyState.svelte",
 		"web/src/lib/kit/Field.svelte", "web/src/lib/kit/Table.svelte",
 		"web/src/lib/kit/Toaster.svelte", "web/src/lib/kit/toast.svelte.ts",
-		"web/src/lib/kit/index.ts", "web/src/lib/kit/Showcase.svelte",
+		"web/src/lib/kit/index.ts", "web/src/lib/kit/__fixtures__/ShellFixture.svelte",
 		"web/src/lib/kit/kit.test.ts", "web/src/lib/kit/dialog.test.ts",
 		"web/src/lib/kit/contrast.test.ts", "web/vitest.config.ts",
 	} {
@@ -88,22 +88,22 @@ func TestKitCarbonFileModes(t *testing.T) {
 	// the platform's kit certification still demands it; the
 	// components and the theme choice are the app's to edit.
 	for p, want := range map[string]string{
-		"web/vitest.config.ts":              "example",
-		"web/src/lib/kit/vitest.setup.ts":   "example",
-		"web/src/lib/kit/contrast.test.ts":  "example",
-		"web/src/lib/kit/kit.test.ts":       "example",
-		"web/src/lib/kit/dialog.test.ts":    "example",
-		"web/src/lib/kit/shell.test.ts":     "example",
-		"web/src/lib/kit/Showcase.svelte":   "example",
-		"web/src/lib/kit/AppShell.svelte":   "example",
-		"web/src/lib/kit/Button.svelte":     "example",
-		"web/src/lib/kit/Dialog.svelte":     "example",
-		"web/src/lib/kit/Field.svelte":      "example",
-		"web/src/lib/kit/Table.svelte":      "example",
-		"web/src/lib/kit/Toaster.svelte":    "example",
-		"web/src/lib/kit/EmptyState.svelte": "example",
-		"web/src/lib/kit/toast.svelte.ts":   "example",
-		"web/src/lib/kit/theme.ts":          "example",
+		"web/vitest.config.ts":                             "example",
+		"web/src/lib/kit/vitest.setup.ts":                  "example",
+		"web/src/lib/kit/contrast.test.ts":                 "example",
+		"web/src/lib/kit/kit.test.ts":                      "example",
+		"web/src/lib/kit/dialog.test.ts":                   "example",
+		"web/src/lib/kit/shell.test.ts":                    "example",
+		"web/src/lib/kit/__fixtures__/ShellFixture.svelte": "example",
+		"web/src/lib/kit/AppShell.svelte":                  "example",
+		"web/src/lib/kit/Button.svelte":                    "example",
+		"web/src/lib/kit/Dialog.svelte":                    "example",
+		"web/src/lib/kit/Field.svelte":                     "example",
+		"web/src/lib/kit/Table.svelte":                     "example",
+		"web/src/lib/kit/Toaster.svelte":                   "example",
+		"web/src/lib/kit/EmptyState.svelte":                "example",
+		"web/src/lib/kit/toast.svelte.ts":                  "example",
+		"web/src/lib/kit/theme.ts":                         "example",
 	} {
 		if modes[p] != want {
 			t.Errorf("%s: mode %q, want %q", p, modes[p], want)

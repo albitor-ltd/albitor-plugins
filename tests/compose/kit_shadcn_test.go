@@ -200,18 +200,18 @@ func TestKitShadcnFileModes(t *testing.T) {
 	}
 	// Every kit file is seeded once and app-owned; the token file and the contrast and axe tests stay managed only because the platform's kit certification still demands them.
 	for p, want := range map[string]string{
-		"web/src/lib/kit/tokens.css":        "example",
-		"web/src/lib/kit/contrast.test.ts":  "example",
-		"web/src/lib/kit/kit.test.ts":       "example",
-		"web/src/lib/kit/dialog.test.ts":    "example",
-		"web/src/lib/kit/Showcase.svelte":   "example",
-		"web/src/lib/kit/AppShell.svelte":   "example",
-		"web/src/lib/kit/Dialog.svelte":     "example",
-		"web/src/lib/kit/Field.svelte":      "example",
-		"web/src/lib/kit/Table.svelte":      "example",
-		"web/src/lib/kit/Toaster.svelte":    "example",
-		"web/src/lib/kit/EmptyState.svelte": "example",
-		"web/src/lib/kit/toast.svelte.ts":   "example",
+		"web/src/lib/kit/tokens.css":                       "example",
+		"web/src/lib/kit/contrast.test.ts":                 "example",
+		"web/src/lib/kit/kit.test.ts":                      "example",
+		"web/src/lib/kit/dialog.test.ts":                   "example",
+		"web/src/lib/kit/__fixtures__/ShellFixture.svelte": "example",
+		"web/src/lib/kit/AppShell.svelte":                  "example",
+		"web/src/lib/kit/Dialog.svelte":                    "example",
+		"web/src/lib/kit/Field.svelte":                     "example",
+		"web/src/lib/kit/Table.svelte":                     "example",
+		"web/src/lib/kit/Toaster.svelte":                   "example",
+		"web/src/lib/kit/EmptyState.svelte":                "example",
+		"web/src/lib/kit/toast.svelte.ts":                  "example",
 	} {
 		if modes[p] != want {
 			t.Errorf("%s: mode %q, want %q", p, modes[p], want)
@@ -233,9 +233,10 @@ func kitShipsExactly(t *testing.T, kit string) {
 			strings.Contains(f.Path, "..") || strings.Contains(f.Path, "*") {
 			t.Errorf("unclean or glob path %q", f.Path)
 		}
-		// Every file sits under the kit directory except the Vitest config its tests need.
-		if !strings.HasPrefix(f.Path, "web/src/lib/kit/") && f.Path != "web/vitest.config.ts" {
-			t.Errorf("%s: the kit writes only under web/src/lib/kit/ (and web/vitest.config.ts)", f.Path)
+		// Every file sits under the kit directory except the Vitest config its tests need and the
+		// knip config that keeps its test fixtures out of the end-of-build prune (#4846).
+		if !strings.HasPrefix(f.Path, "web/src/lib/kit/") && f.Path != "web/vitest.config.ts" && f.Path != "web/knip.json" {
+			t.Errorf("%s: the kit writes only under web/src/lib/kit/ (and web/vitest.config.ts, web/knip.json)", f.Path)
 		}
 		declared["templates/"+f.Path] = true
 	}

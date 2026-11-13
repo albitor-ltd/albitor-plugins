@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Showcase.svelte, PagesShowcase.svelte and ContractProbe.svelte are test fixtures: the kit's tests
-# render them to run axe over every piece. An app that imports one from a route or a component, or
-# keeps a copy outside the kit folder, ships the fixture (OrgMap, Gistral and Roadkeep each shipped
-# copies, albitor-plugins#181). So:
+# A kit's test fixtures are components its tests render to run axe over the pieces: the
+# *Fixture.svelte files, PagesShowcase.svelte (the frame the page fixtures render inside),
+# ContractProbe.svelte, SignInHarness.svelte, RootClassesProbe.svelte and the Showcase.svelte
+# older kits shipped. An app that imports one from a route or a component, or keeps a copy
+# outside the fixture folder, ships the fixture (OrgMap, Gistral and Roadkeep each shipped copies,
+# albitor-plugins#181). So:
 #   - only *.test.ts files and the fixtures themselves may mention them;
-#   - a fixture file may live only at .../lib/kit/<name> (Showcase, ContractProbe) or
-#     .../lib/kit/pages/PagesShowcase.svelte, never beside a route or elsewhere;
+#   - a fixture file may live only in .../lib/kit/__fixtures__/ or .../lib/kit/pages/__fixtures__/,
+#     the folders `web/knip.json` ignores so the end-of-build prune never targets them (#4846);
 #   - no skill may tell an agent to start from one.
 #
 #   check-kit-fixtures.sh <dir>...
@@ -18,20 +20,19 @@ for d in "$@"; do
   [[ -d "$d" ]] || { echo "check-kit-fixtures: no such directory: $d" >&2; exit 2; }
 done
 
-fixture='(Pages)?Showcase|ContractProbe'
+fixture='(Pages)?Showcase|ContractProbe|SignInHarness|RootClassesProbe|__fixtures__'
+fixture_file='^([A-Za-z]+Fixture|(Pages)?Showcase|ContractProbe|SignInHarness|RootClassesProbe)\.svelte$'
 fail=0
 
 while IFS= read -r f; do
   base="${f##*/}"
-  case "$base" in
-    Showcase.svelte | ContractProbe.svelte)
-      [[ "$f" == */lib/kit/"$base" ]] || { echo "error: $f: fixture outside lib/kit/" >&2; fail=1; }
-      continue ;;
-    PagesShowcase.svelte)
-      [[ "$f" == */lib/kit/pages/"$base" ]] || { echo "error: $f: fixture outside lib/kit/pages/" >&2; fail=1; }
-      continue ;;
-    *.test.ts) continue ;;
-  esac
+  if [[ "$base" =~ $fixture_file ]]; then
+    [[ "$f" == */lib/kit/__fixtures__/"$base" || "$f" == */lib/kit/pages/__fixtures__/"$base" ]] \
+      || { echo "error: $f: fixture outside lib/kit/__fixtures__/ or lib/kit/pages/__fixtures__/" >&2; fail=1; }
+    continue
+  fi
+  # Helpers beside the fixtures (dom.ts, nav.ts) are test support too, and tests are tests.
+  [[ "$f" == */lib/kit/__fixtures__/* || "$f" == */lib/kit/pages/__fixtures__/* || "$base" == *.test.ts ]] && continue
   if grep -qE "$fixture" "$f"; then
     echo "error: $f references a test fixture ($(grep -oE "$fixture" "$f" | sort -u | paste -sd, -)); only *.test.ts may" >&2
     fail=1

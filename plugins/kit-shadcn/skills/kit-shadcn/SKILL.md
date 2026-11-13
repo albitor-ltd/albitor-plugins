@@ -35,9 +35,11 @@ import { Button, Field, Table, Dialog, EmptyState, toast } from '../../lib/kit';
 ## Pages
 
 A page is `web/src/routes/<name>/+page.svelte` (see the `svelte-shell` skill for nav entries). Build
-it from the table below and the page templates; `Showcase.svelte`, `PagesShowcase.svelte` and
-`ContractProbe.svelte` are test fixtures that `kit.test.ts` audits, never a starting point and never
-imported by a route.
+it from the table below and the page templates; the `*Fixture.svelte` components, `PagesShowcase.svelte`,
+`ContractProbe.svelte` and `SignInHarness.svelte` in the kit's `__fixtures__/` folders are test fixtures
+the kit's tests audit, never a starting point and never imported by a route. Each piece has its own
+fixture and test, so an app that does not use a piece deletes the piece, its fixture and its test
+together; `web/knip.json` keeps the fixture folders out of the end-of-build prune.
 
 | Need | Use |
 |---|---|
@@ -59,9 +61,12 @@ replaces it; overflow, focus and ARIA).
 
 Start every new page from the template that matches it. The templates are worked examples, not
 seeded files: they sit in `examples/web/src/lib/kit/pages/` beside this skill, laid out by
-repository path. Copy the ones the app needs to `web/src/lib/kit/pages/`, and `pages.test.ts` beside them with its
-test fixture `PagesShowcase.svelte` (it runs axe over every template in every state; no route or
-component imports the fixture, and the fixture check fails if one does), import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
+repository path. Copy the ones the app needs to `web/src/lib/kit/pages/`, each with its test (`listpage.test.ts` for
+`ListPage`) and its fixture from `__fixtures__/` (`ListPageFixture.svelte`; they run axe over the
+template in every state), plus `pages.test.ts` and the folder's shared `PagesShowcase.svelte` (the
+frame), `SignInPageFixture.svelte` and `helpers.ts`. A template the app does not use needs none of its
+test or fixture. No route or component imports a fixture, and the fixture check fails if one does.
+Import from `'../../lib/kit/pages'`, then edit them: they are the app's code once copied and
 never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and the rest) and
 `SignInPage` are already in the repository. Do not rebuild a template by hand.
 
@@ -89,7 +94,7 @@ viewport). Choose by how much vertical space the list can spend:
 - `narrow="scroll"` (default): sideways scroll, nothing changes. Use for wide, comparison-style data
   where column alignment matters more than reading one row.
 
-Both modes are in `PagesShowcase.svelte` and audited in `pages.test.ts`. Values stay text.
+Both modes are in `__fixtures__/ListPageFixture.svelte` and audited in `listpage.test.ts`. Values stay text.
 
 `PageHeader` (the one `<h1>`, a description, a back link, actions) and `StateNotice` (loading
 `status`, failure `alert` with a retry) are the skeleton under every template; use them directly for
@@ -118,7 +123,7 @@ and `data-theme="dark"` forces it.
 
 If you override colours, keep `contrast.test.ts` passing. It computes WCAG 2.2 AA ratios (4.5:1 for
 text, 3:1 for the control border, focus ring and primary fill) for every pair the components use,
-in light and dark. `kit.test.ts` renders the shell pieces and runs axe on them; axe cannot judge
+in light and dark. `kit.test.ts` and the piece tests beside it render the shell and each piece and run axe on them; axe cannot judge
 contrast without a layout engine, which is why the contrast test exists.
 
 Accessibility statements and VPAT/ACR (when one is needed, what it contains, a fill-in template) are

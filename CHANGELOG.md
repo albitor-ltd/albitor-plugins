@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `kit-shadcn` `0.10.0`, `kit-carbon` `0.9.0` and `kit-gds` `0.9.0` (albitor-ltd/albitor#4846; tags
+  follow the merge). Per-component test fixtures, so the end-of-build prune (#4842) neither removes
+  a fixture the kit's tests need nor keeps a component it could shed. The one shared
+  `Showcase.svelte` (which mounted every component, so `knip --production` listed it as unused and
+  a removed Dialog broke `kit.test.ts`) is gone: each kit ships a `__fixtures__/` folder with a
+  small fixture per piece (`ShellFixture`, `FieldFixture`, `TableFixture`, `DialogFixture` and the
+  kit's others) and the piece's own test (`field.test.ts`, `table.test.ts` and so on; `kit.test.ts`
+  keeps the shell and, where the kit has one, the toaster), with the same assertions as before.
+  `ContractProbe`, `SignInHarness` and gds's `RootClassesProbe` moved into `__fixtures__/` too.
+  Each kit seeds `web/knip.json` (`ignore: src/**/__fixtures__/**`), so the web-svelte prune command
+  never lists a fixture, and an app that never uses a piece deletes the piece, its fixture and its
+  test as one unit. The skill's page examples split the same way: `pages/__fixtures__/` holds the
+  frame (`PagesShowcase.svelte`, kept under that name because the platform's kit certification looks
+  for it), a fixture per page template and shared helpers, with `listpage.test.ts`,
+  `detailpage.test.ts`, `formpage.test.ts`, `dashboardpage.test.ts` and `settingspage.test.ts`
+  beside `pages.test.ts` (now the sign-in page). `scripts/check-kit-fixtures.sh` enforces the new
+  fixture locations.
 - `web-svelte` `0.8.0` and `api-go` `0.9.0` (albitor-ltd/albitor#4842; tags follow the merge). Each
   declares `contributes.unusedCode`, the deterministic tool the end-of-build prune step runs to
   remove code nothing reaches, and the globs it never touches: `knip` pinned at `6.44.0` in

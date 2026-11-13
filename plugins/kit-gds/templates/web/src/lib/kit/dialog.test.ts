@@ -7,7 +7,7 @@
 import axe from 'axe-core';
 import { flushSync, mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
-import Showcase from './Showcase.svelte';
+import DialogFixture from './__fixtures__/DialogFixture.svelte';
 
 let app: ReturnType<typeof mount> | undefined;
 
@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 async function show(props: Record<string, unknown> = {}) {
-	app = mount(Showcase, { target: document.body, props });
+	app = mount(DialogFixture, { target: document.body, props });
 	flushSync();
 	await tick();
 }

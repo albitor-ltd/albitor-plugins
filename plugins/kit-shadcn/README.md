@@ -10,7 +10,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark) and `SignInPage`
   (its own file, `SignInPage.svelte`). The contract is in the repository README; `contract.test.ts` and
-  `ContractProbe.svelte` (seeded once) audit it.
+  `__fixtures__/ContractProbe.svelte` (seeded once) audit it.
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
   (on [Bits UI](https://bits-ui.com)), `Toaster` and `toast`, `EmptyState`.
@@ -23,14 +23,18 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - Colour contrast that passes out of the box: `contrast.test.ts` computes WCAG 2.2 AA ratios for
   every foreground and background pair the components use, in both schemes, from the shipped
   tokens (axe cannot judge contrast without layout).
-- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell pieces on the server and
-  runs axe over them, plus behaviour checks (current page, label wiring, live regions, text not
-  markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape.
+- Tests that ship with the app (seeded once): `kit.test.ts` renders the shell on the server and
+  runs axe over it, and `field.test.ts`, `table.test.ts` and `emptystate.test.ts` do the same for their pieces, plus behaviour checks (current page, label wiring, live regions, text not
+  markup); `dialog.test.ts` mounts the dialog in jsdom for axe, focus and Escape. Each piece has its own test and fixture (`field.test.ts`
+  with `__fixtures__/FieldFixture.svelte`, and so on), so an app that never uses a piece deletes the
+  piece, its fixture and its test together. `web/knip.json` ignores `__fixtures__/` folders so the
+  end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture (it lists a piece the app does not use; delete that piece, its fixture and its test together).
 - The page templates, worked examples in the skill's `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
   `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
-  empty states, one `<h1>`, and form errors in a focused summary. `PagesShowcase.svelte` and
-  `pages.test.ts` render every template in every state and run axe over them
+  empty states, one `<h1>`, and form errors in a focused summary. Each has its own
+  `<name>.test.ts` and `__fixtures__/<Name>Fixture.svelte` that render it in every state and run axe
+  over it (`PagesShowcase.svelte` is the shared frame, `pages.test.ts` covers the sign-in page)
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
   skill, so a build does not rebuild the same list, form or settings page.
 - The `kit-shadcn` skill: rules, components, patterns, tokens and design-system notes (the Bits
@@ -43,7 +47,7 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 ## Ownership
 
 The components are `example` files: seeded once, then the app's, which is shadcn's model. The
-tokens, the contrast test and `web/vitest.config.ts` are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). `contract.test.ts`, `signin.test.ts` and their probes (`ContractProbe.svelte`, `SignInHarness.svelte`) are seeded once and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The vitest config extends
+tokens, the contrast test and `web/vitest.config.ts` are seeded once like the rest (the contrast test, `kit.test.ts`, `dialog.test.ts` and the token file stay in the manifest as `managed` only because the platform's kit certification still requires it). `contract.test.ts`, `signin.test.ts` and their probes (`__fixtures__/ContractProbe.svelte`, `__fixtures__/SignInHarness.svelte`) are seeded once and import the kit's `index.ts` (the `component-kit@2` exports), which is the app's: an app that removes an export fails them. The vitest config extends
 web-svelte's `vite.config.ts` so Bits UI's `.svelte` files compile and `mount` resolves to the
 client build.
 

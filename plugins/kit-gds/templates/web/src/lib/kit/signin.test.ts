@@ -5,7 +5,7 @@
 // client behaviour.
 import { flushSync, mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
-import SignInHarness from './SignInHarness.svelte';
+import SignInHarness from './__fixtures__/SignInHarness.svelte';
 
 let app: (ReturnType<typeof mount> & { set(next: { error?: string; email?: string; busy?: boolean }): void }) | undefined;
 
