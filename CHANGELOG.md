@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.6.6` (albitor-ltd/albitor#4810; tag follows the merge). Cross-account specs run
+  on a deployed walk: `secondIdentityHeaders(request)` (`helpers/local-auth.ts`) gives bob's bearer
+  from the local issuer locally and verifier-b's ID token, read from its saved session, on a deployed
+  run, and skips with "no second signed-in identity ..." when neither exists. Pure helpers
+  `bearerFromStorageState` and `resolveSecondIdentity` in `helpers/second-identity.ts`, with unit
+  tests covering both paths. The skill gains a cross-account section and example spec. No
+  `web-svelte` copy of these helpers exists.
 - `test-playwright` `0.6.5` and `web-svelte` `0.7.2` (albitor-ltd/albitor#4779; tags follow the
   merge). Hosted request budget. The journey `context` of a deployed walk now keeps the page's own
   same-origin API reads inside the app's throttle (`helpers/throttle.ts`, with unit tests): at most
