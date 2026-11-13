@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `0.7.3` and `api-go` `0.8.1` (albitor-ltd/albitor#4820; tags follow the merge). The
+  seeded `web/.gitignore` and `api/.gitignore` ignore test and coverage output (`test-results/`,
+  `playwright-report/`, an app-root `/coverage/`, and for Go `*.coverprofile`; `*.out` was already ignored), so a
+  test run's `.last-run.json` is never committed and handed over.
 - `test-playwright` `0.6.6` (albitor-ltd/albitor#4810; tag follows the merge). Cross-account specs run
   on a deployed walk: `secondIdentityHeaders(request)` (`helpers/local-auth.ts`) gives bob's bearer
   from the local issuer locally and verifier-b's ID token, read from its saved session, on a deployed
