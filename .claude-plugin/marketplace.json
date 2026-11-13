@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.7.3",
-        "sha": "1d8cc820171ecd715614598851df3ad9abd42a4a"
+        "ref": "web-svelte/v0.8.0",
+        "sha": "04f810e160668e75dddc390e414f90816e9f082a"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.8.1",
-        "sha": "1d8cc820171ecd715614598851df3ad9abd42a4a"
+        "ref": "api-go/v0.9.0",
+        "sha": "04f810e160668e75dddc390e414f90816e9f082a"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
