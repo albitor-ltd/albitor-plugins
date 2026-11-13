@@ -36,6 +36,7 @@ web/tests/unit/hosted-signin.test.ts
 web/tests/unit/preview-seed.test.ts
 web/tests/unit/roles.test.ts
 web/tests/unit/screen-rules.test.ts
+web/tests/unit/second-identity-bearer.test.ts
 web/tests/unit/secret-artifacts.test.ts
 web/tests/unit/session.test.ts
 web/tests/unit/throttle.test.ts
