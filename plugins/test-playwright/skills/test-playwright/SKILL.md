@@ -75,6 +75,26 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   cleans what a test makes. The worker count is the walk's (`--workers=1`); if
   you run the suite yourself against a deployed app, keep `--workers` at 1 or 2.
 
+## Exercising requirements
+
+When the task lists requirements, each needs a test that performs the behaviour and asserts the
+outcome that follows. A test that an element is visible, present or enabled does not count.
+
+- Bulk actions: select several rows, apply the action, assert the rows changed or went.
+- Offline: `context.setOffline(true)`, act and reload, assert the app still works and the data
+  persists.
+- Mobile drawer: set a phone viewport, open the drawer, assert its contents and that it closes.
+- Performance: time the operation and assert it is within the stated budget.
+- Sort and filter: choose one and assert the resulting order or rows.
+
+If a requirement cannot be exercised here (it needs a real network, a third-party service or
+hardware), do not write a visibility check and call it covered. Record it as `unverified` with a
+reason in the `<albitor-spec-coverage>` block. The block is JSON
+(`{"requirements":[{"requirement":"<id>","status":"exercised"|"unverified",...}]}`) and ends the
+final answer; every requirement id shown needs a row, and a row left out is recorded unverified, as
+is a `spec` path the journey does not hold. For every requirement claimed as exercised, cite the
+spec path, the test title, the action and the outcome.
+
 ## Seeding a deployed preview
 
 A walk of a deployed preview seeds through the app's **real API**, as the demo identity, and nothing

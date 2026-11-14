@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.6.7` (albitor-ltd/albitor#4737; tag follows the merge). The skill gains an
+  "Exercising requirements" section: each listed requirement needs a test that performs the
+  behaviour and asserts the outcome, and one that cannot be exercised is recorded `unverified`
+  with a reason, never covered by a visibility check.
+
 - `web-svelte` `0.9.0`, `kit-shadcn` `0.11.0`, `kit-carbon` `0.10.0` and `kit-gds` `0.10.0`
   (albitor-ltd/albitor#4779, speed option D; tags follow the merge). Parallel feature nodes no
   longer edit shared lists. The shell seeds `collectRegistry` (`lib/shell/registry.ts`, tested): a
