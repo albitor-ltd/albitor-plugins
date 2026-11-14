@@ -145,6 +145,11 @@ type Contract struct {
 	// `x-required-groups` / `x-groups` naming admin in any case, or a security requirement whose
 	// every alternative asks for an admin scope), whatever entity they name.
 	Admin []Operation
+	// Nested are the non-public, non-admin operations under a record of a PerUser collection that
+	// take the record's id and at least one more path parameter (/lists/{id}/items/{itemId}). The
+	// platform does not require them and the test does not fail on them; the helper drives them as
+	// advisory evidence (nested.go). Collection and Entity are the parent's.
+	Nested []Operation
 }
 
 // Required are the match keys of every operation the test must cover, sorted.
@@ -271,10 +276,12 @@ func readContract(doc string) (Contract, error) {
 		if create.ownership == "shared" {
 			continue // a collection of shared records has no owner to scope to
 		}
-		var items []rawOp
+		var items, deeper []rawOp
 		var list *rawOp
 		for i, o := range ops {
 			switch {
+			case len(o.params) >= 2 && !o.Admin && !o.public && strings.HasPrefix(o.Path, create.Path+"/{"+o.params[0]+"}"):
+				deeper = append(deeper, o)
 			case o.Method == "GET" && o.Path == create.Path && len(o.params) == 0:
 				list = &ops[i]
 			case len(o.params) == 1 && strings.HasPrefix(o.Path, create.Path+"/{"+o.params[0]+"}") && !o.Admin:
@@ -294,6 +301,13 @@ func readContract(doc string) (Contract, error) {
 		}
 		for _, o := range items {
 			add(o, group, create.Path)
+		}
+		for _, o := range deeper {
+			o.Operation.Entity, o.Operation.Collection = group, create.Path
+			if k := o.MatchKey(); !seen["nested "+k] {
+				seen["nested "+k] = true
+				c.Nested = append(c.Nested, o.Operation)
+			}
 		}
 	}
 	for _, o := range ops {
