@@ -30,6 +30,18 @@ describe('collectRegistry', () => {
 		expect(got[0]!.source).toBe('/src/features/c/item.ts');
 	});
 
+	it('treats a parse that throws like a returned reason', () => {
+		const boom = () => {
+			throw new Error('boom');
+		};
+		const modules = { '/src/x/item.ts': mod({ order: 1, label: 'X' }) };
+		expect(() => collectRegistry(modules, 'item', boom, true)).toThrow(/boom/);
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		expect(collectRegistry(modules, 'item', boom, false)).toEqual([]);
+		expect(warn).toHaveBeenCalledOnce();
+		warn.mockRestore();
+	});
+
 	it('is empty with no modules', () => {
 		expect(collectRegistry({}, 'item', parse, true)).toEqual([]);
 	});

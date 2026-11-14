@@ -30,7 +30,12 @@ export function collectRegistry<T extends Ordered>(
 		console.warn(message);
 	};
 	for (const source of Object.keys(modules).sort()) {
-		const parsed = parse((modules[source] as Record<string, unknown> | null)?.[exportName]);
+		let parsed: T | string;
+		try {
+			parsed = parse((modules[source] as Record<string, unknown> | null)?.[exportName]);
+		} catch (err) {
+			parsed = err instanceof Error ? err.message : String(err);
+		}
 		if (typeof parsed === 'string') {
 			reject(source, parsed);
 			continue;
@@ -41,5 +46,6 @@ export function collectRegistry<T extends Ordered>(
 		}
 		out.push({ ...parsed, source });
 	}
-	return out.sort((a, b) => a.order - b.order || a.source.localeCompare(b.source));
+	// Sources were visited in code-unit order and the sort is stable, so ties keep that order.
+	return out.sort((a, b) => a.order - b.order);
 }

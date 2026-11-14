@@ -67,6 +67,10 @@ assembled instead, the way nav is:
    // web/src/lib/app/panes.ts
    import { collectRegistry, type Ordered } from '../shell/registry';
    export interface PaneMeta extends Ordered { title: string; load: () => Promise<unknown> }
+   function parsePane(v: unknown): PaneMeta | string {
+     const p = v as Partial<PaneMeta> | undefined;
+     return p && typeof p.title === 'string' && typeof p.load === 'function' ? (p as PaneMeta) : 'a pane needs a title and load';
+   }
    const modules = import.meta.glob('/src/**/pane.ts', { eager: true });
    export const panes = collectRegistry<PaneMeta>(modules, 'pane', parsePane);
    ```
