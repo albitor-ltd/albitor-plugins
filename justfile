@@ -15,6 +15,8 @@ manifests:
     scripts/test-catalogue-guards.sh
     scripts/validate-preview-tokens.sh
     scripts/test-preview-tokens.sh
+    scripts/check-release-paths.sh
+    scripts/test-check-release-paths.sh
     scripts/validate-fonts.sh
     scripts/test-fonts.sh
     scripts/check-all-internal-references.sh
