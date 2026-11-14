@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.6.7` (albitor-ltd/albitor#4737; tag follows the merge). The skill gains an
+  "Exercising requirements" section: each listed requirement needs a test that performs the
+  behaviour and asserts the outcome, and one that cannot be exercised is recorded `unverified`
+  with a reason, never covered by a visibility check.
+
 - `font-futuristic` `0.1.2` (albitor-ltd/albitor#4870; tag follows the merge). The Space Grotesk
   file is `SpaceGrotesk-wght.woff2`, not `SpaceGrotesk[wght].woff2`: a bracket is outside the hosted
   release's path rule, so the seeded app could not deploy. `just ci` now checks every template path
