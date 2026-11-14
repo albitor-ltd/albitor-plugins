@@ -46,6 +46,12 @@
 // and reads OWNED_DATA_SCOPE_REPORT: the tests of THIS package are therefore named TestScopeHelper...
 // and never write to that file (each sets the variable itself).
 //
+// PROVENANCE AND NESTED ROUTES (advisory). Every row of the report carries a stamp (provenance.go)
+// the platform checks, and the report's "nested" list holds the nested-route checks (nested.go):
+// for a route under a record that takes a parent id and another, the second identity calls it with
+// the first identity's parent id and its own child id. Both are evidence only: neither fails this
+// test or the platform's check, and the Factory registered for the entity supplies the records.
+//
 // Keep the test. Register a Factory for every per-user entity you add. Never weaken it: do not
 // widen the refused statuses, drop a row, or waive a route to make it pass.
 package ownedscope
@@ -219,11 +225,15 @@ type Entry struct {
 	Path    string `json:"path"`
 	Outcome string `json:"outcome"`
 	Reason  string `json:"reason"`
+	// Provenance is the stamp the helper puts on the row it writes (provenance.go).
+	Provenance *Provenance `json:"provenance,omitempty"`
 }
 
-// Report is the JSON written to OWNED_DATA_SCOPE_REPORT.
+// Report is the JSON written to OWNED_DATA_SCOPE_REPORT. Operations is what the platform judges;
+// Nested is advisory evidence (nested.go) and never fails the test.
 type Report struct {
-	Operations []Entry `json:"operations"`
+	Operations []Entry       `json:"operations"`
+	Nested     []NestedEntry `json:"nested,omitempty"`
 }
 
 // Run is the whole test. Call it from TestOwnedDataScope... with the app's table.
@@ -244,9 +254,14 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 	t.Helper()
 	c = c.without(cfg.Elsewhere).only(cfg.Only)
 	ops := c.PerUser
+	nestedBy := map[string][]Operation{}
+	for _, o := range c.Nested {
+		nestedBy[o.Entity] = append(nestedBy[o.Entity], o)
+	}
 	var entries []Entry
+	var nested []NestedEntry
 	t.Cleanup(func() {
-		if err := writeReport(os.Getenv(ReportEnv), entries); err != nil {
+		if err := writeReport(os.Getenv(ReportEnv), entries, nested); err != nil {
 			t.Errorf("owned data scope: %v", err)
 		}
 	})
@@ -391,7 +406,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 			t.Errorf("owned data scope: the row for %s has no Factory", entity)
 			continue
 		}
-		exercise(t, row, live, first, second, record)
+		exercise(t, row, live, nestedBy[entity], first, second, record, func(n NestedEntry) { nested = append(nested, n) })
 	}
 
 	for _, o := range c.Admin {
@@ -447,7 +462,7 @@ func runOps(t TB, cfg Config, c Contract) []Entry {
 
 // exercise makes a record as the first identity and attacks it as the second, for the live
 // operations of one entity.
-func exercise(t TB, row Row, live []Operation, first, second *Actor, record func(Operation, string, string)) {
+func exercise(t TB, row Row, live, nested []Operation, first, second *Actor, record func(Operation, string, string), nestedOut func(NestedEntry)) {
 	t.Helper()
 	rec := row.Factory(t, first)
 	if rec.ID == "" {
@@ -589,6 +604,9 @@ func exercise(t TB, row Row, live []Operation, first, second *Actor, record func
 			record(o, Refused, fmt.Sprintf("the second identity created a record with the same id (answered %d); the first identity's record is intact", res.Status))
 		}
 	}
+	// Advisory: the nested routes, with the first identity's parent id swapped in (nested.go). Never
+	// an error of the test.
+	driveNested(t, row, nested, rec, intact, second, nestedOut)
 	// Tidy up: the first identity removes its own record when the contract lets it.
 	for _, o := range byShape[shapeDelete] {
 		if p, ok := fill(o); ok {
@@ -642,21 +660,30 @@ func sameJSON(a, b []byte) bool {
 // writeReport merges entries into the report at path and rewrites it atomically (a temporary file
 // in the same directory, then a rename), or does nothing when path is empty. Entries already in the
 // file (another test of the same package) are kept; one with the same method and path is replaced.
-func writeReport(path string, entries []Entry) error {
+func writeReport(path string, entries []Entry, nested []NestedEntry) error {
 	if path == "" {
 		return nil
 	}
 	merged := map[string]Entry{}
+	mergedNested := map[string]NestedEntry{}
 	if raw, err := os.ReadFile(path); err == nil {
 		var prev Report
 		if json.Unmarshal(raw, &prev) == nil {
 			for _, e := range prev.Operations {
 				merged[e.Method+" "+e.Path] = e
 			}
+			for _, e := range prev.Nested {
+				mergedNested[e.Method+" "+e.Path] = e
+			}
 		}
 	}
 	for _, e := range entries {
+		e.Provenance = stamp(e.Method, e.Path, e.Outcome, e.Reason)
 		merged[e.Method+" "+e.Path] = e
+	}
+	for _, e := range nested {
+		e.Provenance = stamp(e.Method, e.Path, e.Outcome, e.Reason)
+		mergedNested[e.Method+" "+e.Path] = e
 	}
 	out := make([]Entry, 0, len(merged))
 	for _, e := range merged {
@@ -668,7 +695,17 @@ func writeReport(path string, entries []Entry) error {
 		}
 		return out[i].Method < out[j].Method
 	})
-	raw, err := json.Marshal(Report{Operations: out})
+	outNested := make([]NestedEntry, 0, len(mergedNested))
+	for _, e := range mergedNested {
+		outNested = append(outNested, e)
+	}
+	sort.Slice(outNested, func(i, j int) bool {
+		if outNested[i].Path != outNested[j].Path {
+			return outNested[i].Path < outNested[j].Path
+		}
+		return outNested[i].Method < outNested[j].Method
+	})
+	raw, err := json.Marshal(Report{Operations: out, Nested: outNested})
 	if err != nil {
 		return fmt.Errorf("encode the report: %w", err)
 	}
@@ -752,7 +789,7 @@ func (c Contract) without(prefixes []string) Contract {
 		}
 		return out
 	}
-	return Contract{PerUser: keep(c.PerUser), Admin: keep(c.Admin)}
+	return Contract{PerUser: keep(c.PerUser), Admin: keep(c.Admin), Nested: keep(c.Nested)}
 }
 
 // only keeps the operations whose path starts with one of the prefixes; no prefix keeps all.
@@ -769,5 +806,5 @@ func (c Contract) only(prefixes []string) Contract {
 		}
 		return out
 	}
-	return Contract{PerUser: keep(c.PerUser), Admin: keep(c.Admin)}
+	return Contract{PerUser: keep(c.PerUser), Admin: keep(c.Admin), Nested: keep(c.Nested)}
 }

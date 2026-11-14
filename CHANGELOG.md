@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   update, delete always inside the verified owner's partition; another person's record is
   `ErrNotFound`), and now requires `auth@1` because it imports `internal/identity`. The skill
   examples use it; nothing requires it. `api-go` only points its skill at it.
+- `api-go` `0.10.0` (albitor-ltd/albitor#4932 item 7; tag follows the merge). The two-owner helper
+  stamps each report row with provenance (helper, kit release, a digest of the helper's source and of the
+  row) and drives nested routes, with the first person's parent id swapped in, as advisory rows in the
+  report's `nested` list. Both are shadow evidence the platform records; neither fails the test.
 
 - `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`
   (albitor-ltd/albitor#4779 replan option 3; tags follow the merge). The platform testing contract:
