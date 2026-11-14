@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`
+  (albitor-ltd/albitor#4779 replan option 3; tags follow the merge). The platform testing contract:
+  the `test-playwright` skill states the walk environment's facts for spec authors (the demo account
+  is shared and persistent so assert a change from a baseline read; wait for the sync pull before
+  reading; a test has 30 s in all and a walk's spec 4 minutes; wait on ready signals, never sleeps
+  or longer timeouts; the site's CSP admits images from `'self'` and `data:` only), and seeds
+  `helpers/baseline.ts` (`expectChangeFromBaseline`) with unit tests. The `deploy-hosted` and
+  `deploy-byoa-aws` skills state the site's Content-Security-Policy for builders (no `blob:` image).
+
 - `font-clear`, `font-console`, `font-editorial`, `font-friendly`, `font-futuristic`,
   `font-geometric`, `font-high-legibility` and `font-technical`, each `0.1.1`
   (albitor-ltd/albitor#4852; tags follow the merge). The seeded `fonts.css` header comment no
