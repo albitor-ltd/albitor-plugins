@@ -80,16 +80,25 @@ test("browse the claims", async ({ page, fixtureScope }) => {
 Specs are pinned before the first walk, so write them for where they will run, a deployed preview
 walked as the demo identity. Five facts, each the cause of a spec revised or a build blocked:
 
+- **Every read of server-synced data after a navigation or reload goes through `expect.poll` (or
+  `expectChangeFromBaseline`). Never assert on such data straight after `goto`.** A page that
+  syncs shows the empty local store first and the pulled data later, so a straight assertion
+  passes or fails on timing. Wait until the app's own saved/synced indicator shows the data is
+  saved and the page shows content the pull brings, then take the baseline.
+
+  ```ts
+  await page.goto("/claims");
+  await expect.poll(async () => page.getByTestId("claim-row").count(), { timeout: 10_000 })
+    .toBeGreaterThan(0);                       // the pull has landed
+  const baseline = await page.getByTestId("claim-row").count();   // only now read the baseline
+  ```
 - **The demo account is shared and persistent**, across every spec and every walk of the preview.
   Its lists already hold other records. Never assert an absolute count, "the list is empty" or "the
   only item": read a baseline first and assert the change from it, and find the test's own record by
   its `fixtureScope.uniqueName`. `expectChangeFromBaseline(read, act, delta)` in
   `helpers/baseline.ts` does the read, the action and the wait. It accepts a change of at least
   `delta` (other records can arrive on a shared account); pass `{ exact: true }` only when nothing
-  else can write. Take the baseline after the sync pull, below.
-- **Wait for the sync pull before reading** on an offline-first app. A read taken before the first
-  pull sees the empty local store. Wait until the app's own saved/synced indicator shows the
-  data is saved and the page shows content the pull brings, then take the baseline.
+  else can write. Take the baseline after the sync pull, as above.
 - **A test has 30 s in all** (`timeout: 30_000` in `playwright.config.ts`: the whole test, every
   `journeyStep` together, not each step; one `expect` waits at most 5 s). The whole spec file has 4
   minutes in a walk. Keep a test to a few steps, seed outside it (`fixtureScope`, or the
