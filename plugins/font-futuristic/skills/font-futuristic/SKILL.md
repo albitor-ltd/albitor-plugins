@@ -13,7 +13,7 @@ look takes effect through a rebuild, not a re-render):
 
 | Seeded path | What it is |
 | --- | --- |
-| `web/static/fonts/space-grotesk/SpaceGrotesk[wght].woff2` | Space Grotesk 300 700, the full upstream woff2, unmodified |
+| `web/static/fonts/space-grotesk/SpaceGrotesk-wght.woff2` | Space Grotesk 300 700, the full upstream woff2, unmodified |
 | `web/static/fonts/space-grotesk/OFL.txt` | The upstream licence text for Space Grotesk, with the authors' copyright line |
 | `web/static/fonts/inter/Inter-Regular.woff2` | Inter 400, the full upstream woff2, unmodified |
 | `web/static/fonts/inter/Inter-SemiBold.woff2` | Inter 600, the full upstream woff2, unmodified |
@@ -37,8 +37,9 @@ that does not load is fixed by correcting a path, never by adding a host.
 
 ## Rules
 
-- Do not rename, subset, convert or re-encode any woff2. They are the distributors' own files, used
-  unmodified; each recorded `sha256` is checked by the self-hosting gate.
+- Do not subset, convert or re-encode any woff2, and keep the release-safe file names (no
+  brackets: `SpaceGrotesk-wght.woff2` is upstream's `SpaceGrotesk[wght].woff2`). They are the
+  distributors' own files, used unmodified; each recorded `sha256` is checked by the self-hosting gate.
 - Do not add `@import`, a `<link>` to a font host, a `preconnect`, or a `data:` font. Do not widen
   `font-src`.
 - Mono is never the body face. This look has no mono face.

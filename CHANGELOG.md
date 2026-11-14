@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `font-futuristic` `0.1.2` (albitor-ltd/albitor#4870; tag follows the merge). The Space Grotesk
+  file is `SpaceGrotesk-wght.woff2`, not `SpaceGrotesk[wght].woff2`: a bracket is outside the hosted
+  release's path rule, so the seeded app could not deploy. `just ci` now checks every template path
+  against that rule (`scripts/check-release-paths.sh`).
+
 - `font-clear`, `font-console`, `font-editorial`, `font-friendly`, `font-futuristic`,
   `font-geometric`, `font-high-legibility` and `font-technical`, each `0.1.1`
   (albitor-ltd/albitor#4852; tags follow the merge). The seeded `fonts.css` header comment no
