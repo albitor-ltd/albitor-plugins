@@ -56,6 +56,18 @@ never add an IAM policy or a `.tf` file of your own for it.
 Inviting needs write access to the repository; `docs/inviting-people.md` is delivered at handover.
 See the README.
 
+## The site's Content-Security-Policy
+
+The site is served with `default-src 'self'` and, among others, `img-src 'self' data:`,
+`connect-src 'self'`, `font-src 'self'` and `object-src 'none'`. Scripts run by hash. Consequences
+for a build and for the journeys that walk it:
+
+- **No `blob:` image.** `URL.createObjectURL` for an image preview is blocked: the preview shows an
+  uploaded image from the app's own served URL or a `data:` URL (`FileReader.readAsDataURL`).
+- **No third-party image, font, script or fetch.** Serve it from the app's own origin.
+- A journey that uploads an image asserts that the person sees it (the `img` is visible and loaded:
+  `naturalWidth > 0`), which fails on a blocked source; do not weaken the check, change the source.
+
 ## Custom domains
 
 `dns_mode = "none"` serves the CloudFront URL. `in_account` needs the parent zone in the same
