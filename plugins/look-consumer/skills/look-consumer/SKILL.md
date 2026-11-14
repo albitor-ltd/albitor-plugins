@@ -60,7 +60,7 @@ the app's own brand colour replaces it and the platform recalculates the depende
 ## Empty-state art
 
 A small illustration can lift a first-run empty list. It is optional and the app's own code: copy
-`examples/web/src/lib/look/EmptyArt.svelte` beside this skill to `web/src/lib/look/EmptyArt.svelte`
+`examples/web/src/lib/look/EmptyArt.svelte` from this skill to `web/src/lib/look/EmptyArt.svelte`
 and edit it. It is never seeded.
 
 - **Use it** on a first-run empty list or page (nothing created yet), above the plain sentence that
@@ -75,7 +75,10 @@ and edit it. It is never seeded.
   `var(--border)` on the shadcn kit; the app's own names otherwise), never a hex, so it follows the
   light and dark pages with no second asset. Use opacity for tints, not new colours. It never
   carries the only cue for anything.
-- **Look-specific:** Shapes are round and soft: circles, blobs and 24px-radius cards that overlap, one berry mark, a couple of small scattered dots. Warm and slightly desaturated: use the accent at reduced opacity for tints, never a second hue, and keep the art about 160px on a phone so the sentence and the bottom-reach action stay first.
+- **Look-specific:** shapes are round and soft: circles, blobs and 24px-radius cards that overlap,
+  one berry mark, a couple of small scattered dots. Warm and slightly desaturated: use the accent at
+  reduced opacity for tints, never a second hue, and keep the art about 160px on a phone so the
+  sentence and the bottom-reach action stay first.
 
 ## Phone navigation
 

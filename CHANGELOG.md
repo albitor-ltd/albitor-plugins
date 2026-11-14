@@ -10,9 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - `look-consumer` `0.1.4`, `look-business` `0.1.3` and `look-startup` `0.1.3`
   (albitor-ltd/albitor#4947; tags follow the merge). Each look skill gains an "Empty-state art"
-  section and an `EmptyArt.svelte` worked example (example mode, never seeded): a small decorative
-  inline SVG of simple shapes in the look's own character, filled from the app's colour tokens so it
-  follows light and dark, `aria-hidden`, no lettering. For first-run empty lists only, never
+  section and an `EmptyArt.svelte` worked example under the skill (copied by the coder, not
+  seeded): a small decorative inline SVG of simple shapes in the look's own character, filled from
+  the app's colour tokens so it follows light and dark, `aria-hidden`, no lettering. For first-run empty lists only, never
   errors, dense admin tables or GDS and Carbon apps.
 
 - `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`

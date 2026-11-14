@@ -31,10 +31,6 @@
       {
         "path": "web/src/lib/look/look.json",
         "mode": "example"
-      },
-      {
-        "path": "web/src/lib/look/EmptyArt.svelte",
-        "mode": "example"
       }
     ]
   }

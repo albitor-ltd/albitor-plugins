@@ -16,7 +16,7 @@
 	focusable="false"
 >
 	<!-- business: a ruled page with square corners and straight lines; calm and quiet -->
-	<rect class="page" x="36" y="24" width="88" height="112" rx="4" />
+	<rect class="page" x="36" y="24" width="88" height="112" rx="2" />
 	<rect class="bar" x="50" y="42" width="40" height="8" rx="2" />
 	<line class="rule" x1="50" y1="70" x2="110" y2="70" />
 	<line class="rule" x1="50" y1="88" x2="110" y2="88" />
