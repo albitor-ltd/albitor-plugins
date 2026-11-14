@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "web-svelte",
   "displayName": "Web shell (SvelteKit)",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
   "author": {
     "name": "Albitor Ltd",
@@ -45,6 +45,8 @@
       { "path": "web/src/lib/shell/scope.test.ts", "mode": "example" },
       { "path": "web/src/lib/shell/nav.ts", "mode": "example" },
       { "path": "web/src/lib/shell/nav.test.ts", "mode": "example" },
+      { "path": "web/src/lib/shell/registry.ts", "mode": "example" },
+      { "path": "web/src/lib/shell/registry.test.ts", "mode": "example" },
       { "path": "web/src/lib/shell/guard.ts", "mode": "example" },
       { "path": "web/src/lib/shell/guard.test.ts", "mode": "example" },
       { "path": "web/src/lib/shell/api.ts", "mode": "example" },
