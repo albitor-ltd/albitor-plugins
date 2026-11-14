@@ -6,7 +6,7 @@
     {
       "socket": "web-framework",
       "plugin": "web-svelte",
-      "version": "0.8.0"
+      "version": "0.9.0"
     },
     {
       "socket": "component-kit",
@@ -220,6 +220,16 @@
       "plugins": "web-svelte"
     },
     {
+      "path": "web/src/lib/shell/registry.test.ts",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
+      "path": "web/src/lib/shell/registry.ts",
+      "mode": "example",
+      "plugins": "web-svelte"
+    },
+    {
       "path": "web/src/lib/shell/scope.d/auth-stub.ts",
       "mode": "example",
       "plugins": "auth-stub"
@@ -396,6 +406,8 @@ export const providers = checkProviders([DataProvider, StubProvider]);
 /** Route guards. The slot is single-valued, so this holds zero or one. */
 export const routeGuards = checkGuards([stubGuard]);
 
+=== web/src/lib/shell/registry.test.ts ===
+=== web/src/lib/shell/registry.ts ===
 === web/src/lib/shell/scope.d/auth-stub.ts ===
 === web/src/lib/shell/scope.d/data-layer.ts ===
 === web/src/lib/shell/scope.test.ts ===
