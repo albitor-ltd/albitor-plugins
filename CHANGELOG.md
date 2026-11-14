@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `data-dynamodb` `0.4.0` and `api-go` `0.9.1` (albitor-ltd/albitor#4932; tags follow the merge).
+  `data-dynamodb` seeds `store.Owned(s, r)`, an optional owner-scoped handle (get, list, create,
+  update, delete always inside the verified owner's partition; another person's record is
+  `ErrNotFound`), and now requires `auth@1` because it imports `internal/identity`. The skill
+  examples use it; nothing requires it. `api-go` only points its skill at it.
+
 - `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`
   (albitor-ltd/albitor#4779 replan option 3; tags follow the merge). The platform testing contract:
   the `test-playwright` skill states the walk environment's facts for spec authors (the demo account

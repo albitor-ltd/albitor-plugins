@@ -40,11 +40,32 @@ read-modify-write without the revision.
 
 1. Define the Go type and `encoding/json` it into `Record.Data`. Keep that type in
    `api/internal/app/`.
-2. Choose the keys once, in one place, with `store.Key`:
-   `store.Key("OWNER", owner, "ITEM")` for the partition, and an id for the sort key. Time-ordered
+2. For a per-user record, use the owner-scoped handle (next section). For anything else, choose the
+   keys once, in one place, with `store.Key`: a partition, and an id for the sort key. Time-ordered
    ids make "newest first" a `Reverse` query.
 3. Write the handler against `store.Store`. Open it once at start with
    `store.Open(os.Getenv, store.DataTable)` and hand it to your handlers.
+
+## Per-user records: `store.Owned`
+
+`store.Owned(s, r)` returns a handle for the person `r` acts for (the owner is
+`identity.Owner(r)`, never an argument). Its operations take a `kind` and an `id`, and the
+partition is built inside as `store.Key("OWNER", owner, kind)`, so the scope cannot be forgotten
+or forged:
+
+```go
+h, err := store.Owned(s, r)             // store.ErrNoOwner: answer 401
+rec, err := h.Create(ctx, "note", id, data)   // stored under this person
+rec, err = h.Get(ctx, "note", id)       // another person's id is ErrNotFound
+page, err := h.List(ctx, "note", store.Query{Limit: q.Limit, Cursor: q.Cursor})
+rec, err = h.Update(ctx, "note", id, data, rev)   // Replace with the revision you read
+err = h.Delete(ctx, "note", id, rev)
+```
+
+Another person's record is not there: `Get`, `Update` and `Delete` answer `ErrNotFound`, `List`
+never returns it, and the same id can be used by two people. A `kind` may not contain `#`. It is a
+convenience and not a requirement: scoping by hand with `store.Key` stays valid, and the two-owner
+test is the check either way.
 
 ## Add a table
 
@@ -74,10 +95,11 @@ handlers that need it. Test with `store.NewMemory()`.
   taken from a request cannot climb into another partition. Never build a key with `+` or
   `fmt.Sprintf`.
 - **The owner comes from the verified identity**, never the body or the query. Put it in the
-  partition key, so one user cannot list or replay another's records.
+  partition key, so one user cannot list or replay another's records: `store.Owned(s, r)` does
+  this for you.
 - **A per-user entity needs a factory in the two-owner test** (`ownedDataScopeRows` in
   `internal/identity/owned_data_scope_test.go`, see the api-go skill), added with the entity. Keep
-  the owner in the key (`store.Key("OWNER", owner, ...)`): two people using the same record id then
+  the owner in the key (`store.Owned`, or `store.Key("OWNER", owner, ...)`): two people using the same record id then
   never meet, which is what the test's same-id create checks.
 - **Lists go through `apikit.ServeList` and `Store.Query`.** `Query` already speaks
   `apikit.Page`: map the records to your type and return the page. Its cursor is bound to the

@@ -9,6 +9,7 @@ provides, requires and contributes, and the platform composer renders it into a 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
 | `api/internal/store/store.go` | starting point | `Store`, `Record`, `Query`, the errors, `Key`, validation, cursors |
+| `api/internal/store/owned.go` | starting point | `Owned(s, r)`: an optional owner-scoped handle (owner from `identity.Owner`; get, list, create, update, delete always in that owner's partition) |
 | `api/internal/store/memory.go` | starting point | The in-memory fake for a local run and tests |
 | `api/internal/store/dynamodb.go`, `sigv4.go` | starting point | The DynamoDB adapter: JSON API over `net/http`, SigV4, retries |
 | `api/internal/store/open.go` | starting point | `Open`: picks the adapter from the environment, never falls back to memory |
@@ -17,7 +18,7 @@ provides, requires and contributes, and the platform composer renders it into a 
 
 It contributes the `data` table to `services.tables` in `albitor.yaml` (string `pk` and `sk`) and
 the `data-dynamodb` skill. It requires `api-runtime@1` (the module, `apikit` paging and the local
-run contract). It contributes no Terraform: the deploy target realises the table, and hands the
+run contract) and `auth@1` (`owned.go` imports `internal/identity`). It contributes no Terraform: the deploy target realises the table, and hands the
 function its name as `ALBITOR_TABLE_DATA`.
 
 The module stays stdlib-only. The adapter signs its own requests (SigV4) rather than importing the

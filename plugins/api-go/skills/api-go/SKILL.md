@@ -68,7 +68,8 @@ func createWidget(w http.ResponseWriter, r *http.Request) {
 		apikit.WriteError(w, http.StatusBadRequest, "name is required")
 		return
 	}
-	// Take the owner from the verified identity, never the body; write through the store.
+	// Take the owner from the verified identity, never the body; write through the store
+	// (with data-dynamodb, store.Owned(s, r) scopes every call to that owner).
 	apikit.WriteJSON(w, http.StatusCreated, in)
 }
 ```
@@ -220,7 +221,8 @@ invocation: see the web-app-architecture `screen-data` pattern.
 - **Log with the correlation id.** `apikit.CorrelationIDFromContext(r.Context())` on every line you
   add. The shell already logs one line per request (method, path without the query string, status,
   duration); do not log request bodies or tokens.
-- **Take the owner of a record from the verified identity**, never from the body or the query.
+- **Take the owner of a record from the verified identity**, never from the body or the query. With
+  the data-dynamodb plugin, `store.Owned(s, r)` does it for you (optional; scoping by hand is valid).
 - **Reach data only through the store interface** the data-store plugin provides, so the handler
   works in the local run as well as deployed.
 
