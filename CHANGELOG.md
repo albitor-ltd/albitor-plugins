@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `font-futuristic` `0.1.2` (albitor-ltd/albitor#4870; tag follows the merge). The Space Grotesk
+  file is `SpaceGrotesk-wght.woff2`, not `SpaceGrotesk[wght].woff2`: a bracket is outside the hosted
+  release's path rule, so the seeded app could not deploy. `just ci` now checks every template path
+  against that rule (`scripts/check-release-paths.sh`).
+
 - `web-svelte` `0.9.0`, `kit-shadcn` `0.11.0`, `kit-carbon` `0.10.0` and `kit-gds` `0.10.0`
   (albitor-ltd/albitor#4779, speed option D; tags follow the merge). Parallel feature nodes no
   longer edit shared lists. The shell seeds `collectRegistry` (`lib/shell/registry.ts`, tested): a

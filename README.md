@@ -27,6 +27,7 @@ scripts/validate-preview-tokens.sh  every plugins/*/preview-tokens.json against 
 scripts/test-preview-tokens.sh    accept/refuse cases for that validator (tests/preview-tokens/)
 scripts/validate-fonts.sh         the font self-hosting gate over every typeface plugin (ADR-0107 section 4; run by `just ci`)
 scripts/test-fonts.sh             accept/refuse cases for that gate (tests/fonts/)
+scripts/check-release-paths.sh    every file under `plugins/*/templates/` is a path the hosted release can hold (`[A-Za-z0-9._~@+=,/-]`, at most 512 characters (505 on the checked path), no empty, `.` or `..` segment; #4870; run by `just ci`, refusal tests in `scripts/test-check-release-paths.sh`)
 scripts/subset-previews.sh        cuts the Look-step Latin preview subsets of the typeface plugins' fonts into an albitor checkout's `web/static/fonts/looks/` (ADR-0107 section 3; pinned fontTools in `font-previews.pin`; `just font-previews <albitor checkout>`)
 scripts/check-font-previews.sh    the drift test: those checked-in previews reproduce byte for byte from the plugins, hashes and versions match, no preview keeps a Reserved Font Name (`just font-previews-check <albitor checkout>`; not in `just ci`, like compose-check)
 scripts/test-font-previews.sh     proves that test fails on a tampered plugin file, a missing or stale preview and a kept RFN (`just font-previews-test`)
@@ -197,7 +198,7 @@ templates, manifests or the composer contract, also run `just compose <albitor c
 
 `just ci` runs: manifest validation (JSON parses, `name` equals the directory, semver
 `version`, catalogue metadata present), preview-token validation (`scripts/validate-preview-tokens.sh`
-and its refusal tests), the font self-hosting gate (`scripts/validate-fonts.sh` and its refusal tests: OFL-1.1 licence and canonical `OFL.txt`, a real woff2 with the recorded sha256, same-origin `@font-face` only, a recorded `rfn` that matches the quoted Reserved Font Name(s) in the copyright line, comma-separated when there are several), catalogue reproducibility (`--check`), shellcheck and JSON lint, and the
+and its refusal tests), the font self-hosting gate (`scripts/validate-fonts.sh` and its refusal tests: OFL-1.1 licence and canonical `OFL.txt`, a real woff2 with the recorded sha256, same-origin `@font-face` only, a recorded `rfn` that matches the quoted Reserved Font Name(s) in the copyright line, comma-separated when there are several), catalogue reproducibility (`--check`), the template release-path rule (`scripts/check-release-paths.sh`), shellcheck and JSON lint, and the
 plugin verifies (api-go, data-dynamodb, auth, deploy-byoa-aws, deploy-hosted, object-s3).
 
 Compose and certification run only via `just compose <albitor checkout>`: the real manifest parser

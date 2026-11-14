@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "font-futuristic",
   "displayName": "Font: Futuristic",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "kind": "socket",
   "description": "The Futuristic font look: Space Grotesk for headings, Inter for body, data and labels. Bold and forward-looking, self-hosted as the full unmodified upstream woff2 under the SIL Open Font Licence 1.1.",
   "author": {
@@ -29,10 +29,10 @@
       "role": "heading",
       "weight": "300 700",
       "style": "normal",
-      "file": "templates/web/static/fonts/space-grotesk/SpaceGrotesk[wght].woff2",
+      "file": "templates/web/static/fonts/space-grotesk/SpaceGrotesk-wght.woff2",
       "licence": "OFL-1.1",
       "sha256": "8e085aa438094f11487a836652edd5c054fa6a96f63fc7c282105ee3a4b08c07",
-      "source": "https://github.com/floriankarsten/space-grotesk/releases/tag/2.0.0 (Space Grotesk 2.0.0, SpaceGrotesk-2.0.0.zip, SpaceGrotesk-2.0.0/woff2/SpaceGrotesk[wght].woff2)",
+      "source": "https://github.com/floriankarsten/space-grotesk/releases/tag/2.0.0 (Space Grotesk 2.0.0, SpaceGrotesk-2.0.0.zip, SpaceGrotesk-2.0.0/woff2/SpaceGrotesk-wght.woff2)",
       "rfn": "none"
     },
     {
@@ -112,7 +112,7 @@
         "mode": "example"
       },
       {
-        "path": "web/static/fonts/space-grotesk/SpaceGrotesk[wght].woff2",
+        "path": "web/static/fonts/space-grotesk/SpaceGrotesk-wght.woff2",
         "mode": "example"
       },
       {
