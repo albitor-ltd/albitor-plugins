@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`
+  (albitor-ltd/albitor#4779 replan option 3; tags follow the merge). The platform testing contract:
+  the `test-playwright` skill states the walk environment's facts for spec authors (the demo account
+  is shared and persistent so assert a change from a baseline read; every read of synced data
+  after a navigation goes through `expect.poll`, never straight after `goto`; a test has 30 s in all and a walk's spec 4 minutes; wait on ready signals, never sleeps
+  or longer timeouts; the site's CSP admits images from `'self'` and `data:` only), and seeds
+  `helpers/baseline.ts` (`expectChangeFromBaseline`) with unit tests. The `deploy-hosted` and
+  `deploy-byoa-aws` skills state the site's Content-Security-Policy for builders (no `blob:` image).
+
+- `test-playwright` `0.6.7` (albitor-ltd/albitor#4737; tag follows the merge). The skill gains an
+  "Exercising requirements" section: each listed requirement needs a test that performs the
+  behaviour and asserts the outcome, and one that cannot be exercised is recorded `unverified`
+  with a reason, never covered by a visibility check.
+
+- `font-futuristic` `0.1.2` (albitor-ltd/albitor#4870; tag follows the merge). The Space Grotesk
+  file is `SpaceGrotesk-wght.woff2`, not `SpaceGrotesk[wght].woff2`: a bracket is outside the hosted
+  release's path rule, so the seeded app could not deploy. `just ci` now checks every template path
+  against that rule (`scripts/check-release-paths.sh`).
+
 - `web-svelte` `0.9.0`, `kit-shadcn` `0.11.0`, `kit-carbon` `0.10.0` and `kit-gds` `0.10.0`
   (albitor-ltd/albitor#4779, speed option D; tags follow the merge). Parallel feature nodes no
   longer edit shared lists. The shell seeds `collectRegistry` (`lib/shell/registry.ts`, tested): a
@@ -17,15 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   directory instead of editing it. `web-app-architecture` gains the `shared-registries` pattern, and
   the seeded `web/.gitignore` also covers `.vite/`, `.DS_Store`, `*.tsbuildinfo`, Vite timestamp
   files and logs.
-
-- `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`
-  (albitor-ltd/albitor#4779 replan option 3; tags follow the merge). The platform testing contract:
-  the `test-playwright` skill states the walk environment's facts for spec authors (the demo account
-  is shared and persistent so assert a change from a baseline read; every read of synced data
-  after a navigation goes through `expect.poll`, never straight after `goto`; a test has 30 s in all and a walk's spec 4 minutes; wait on ready signals, never sleeps
-  or longer timeouts; the site's CSP admits images from `'self'` and `data:` only), and seeds
-  `helpers/baseline.ts` (`expectChangeFromBaseline`) with unit tests. The `deploy-hosted` and
-  `deploy-byoa-aws` skills state the site's Content-Security-Policy for builders (no `blob:` image).
 
 - `font-clear`, `font-console`, `font-editorial`, `font-friendly`, `font-futuristic`,
   `font-geometric`, `font-high-legibility` and `font-technical`, each `0.1.1`
