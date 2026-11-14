@@ -21,7 +21,7 @@ var ErrNoOwner = errors.New("request has no owner")
 // handler may still build its own keys with Key. What the handle adds is that the scope cannot be
 // forgotten or forged:
 //
-//   - the owner is the verified identity (identity.Owner), never an argument;
+//   - the owner is the verified identity (identity.Owner, whose error is ErrNoOwner here), never an argument;
 //
 //   - the partition is built here, as Key("OWNER", owner, kind), so a caller cannot name another
 //     owner's partition;
@@ -44,7 +44,11 @@ func Owned(s Store, r *http.Request) (*Handle, error) {
 	if s == nil || r == nil {
 		return nil, ErrNoOwner
 	}
-	return ownedBy(s, identity.Owner(r))
+	owner, err := identity.Owner(r)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNoOwner, err)
+	}
+	return ownedBy(s, owner)
 }
 
 // ownedBy is the one place an owner string becomes a handle, so a change in how identity answers

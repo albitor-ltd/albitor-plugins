@@ -95,6 +95,14 @@ a composed root cannot `init` before it exists).
 
 ## Who can sign in: the seeded accounts and the invite
 
+The pool's app client cannot write `email_verified` (its `write_attributes` is `email` in `open`, `name`
+in `invite_only`), and in `open` an address change must be confirmed by a mailed code before it takes
+effect (`attributes_require_verification_before_update`), so the address in a token is one the pool
+has verified. The `auth-cognito` API holds a `signup_domains` list to that claim. The fixture accounts
+below are also added to the reserved pool group `platform-seeded`, which the API exempts from the list
+instead of exempting their `.invalid` addresses. An administrator-created account (the invite, the seed)
+is created with `email_verified=true`.
+
 **Seeded on every `dev` deploy** (Albitor's ADR-0071), after the apply and before the bundle ships,
 under the deploy role: `demo@albitor-demo.invalid`, the owner's account for trying the app, and
 `verifier@albitor-verify.invalid`, which Albitor's checks sign in with. Each is created confirmed with

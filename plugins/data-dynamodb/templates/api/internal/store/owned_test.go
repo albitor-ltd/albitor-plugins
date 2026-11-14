@@ -159,3 +159,13 @@ func TestOwnedNeedsAnOwner(t *testing.T) {
 		t.Errorf("Owner = %q", h.Owner())
 	}
 }
+
+// A deployed function with no identity on the request has no owner: Owned fails with ErrNoOwner
+// rather than scoping records to a shared anonymous one.
+func TestOwnedRefusesADeployedRequestWithNoIdentity(t *testing.T) {
+	t.Setenv("AWS_LAMBDA_FUNCTION_NAME", "my-app-api")
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	if _, err := Owned(NewMemory(), r); !errors.Is(err, ErrNoOwner) {
+		t.Errorf("deployed, no identity = %v, want ErrNoOwner", err)
+	}
+}

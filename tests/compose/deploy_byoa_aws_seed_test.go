@@ -18,6 +18,8 @@ import (
 //	status/<user>  admin-get-user's UserStatus for a user (a missing file is UserNotFoundException)
 //
 //	groups         admin-add-user-to-group appends "<user> <group>" lines to this file
+//	seeded         the same for the reserved platform-seeded group, kept apart so "who is in which
+//	               role" reads as it always did
 //
 // admin-set-user-password's request file is copied to set.log, because that file is the only place
 // the password may be.
@@ -47,7 +49,11 @@ case "$1 $2" in
     echo >>"$FAKE/set.log"
     ;;
   "cognito-idp admin-add-user-to-group")
-    echo "$(arg --username "$@") $(arg --group-name "$@")" >>"$FAKE/groups"
+    if [ "$(arg --group-name "$@")" = "platform-seeded" ]; then
+      echo "$(arg --username "$@")" >>"$FAKE/seeded"
+    else
+      echo "$(arg --username "$@") $(arg --group-name "$@")" >>"$FAKE/groups"
+    fi
     ;;
   "cognito-idp admin-get-user")
     user="$(arg --username "$@")"
@@ -264,8 +270,8 @@ func TestSeedPlatformAccountsWithoutAnAdminGroupAddsNobody(t *testing.T) {
 		if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=" {
 			t.Errorf("args %q = %v %q", args, r.err, r.out)
 		}
-		if strings.Contains(r.read(t, "calls.log"), "add-user-to-group") {
-			t.Errorf("a group call was made with no admin group:\n%s", r.read(t, "calls.log"))
+		if got := r.read(t, "groups"); got != "" {
+			t.Errorf("a role group call was made with no admin group:\n%s", got)
 		}
 	}
 	r := runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "Bad;Group")
@@ -635,5 +641,33 @@ func TestSeedPlatformAccountsSeedsVerifierBWithoutAGroup(t *testing.T) {
 	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment, "admin")
 	if r.err != nil || r.out != "seed_status=seeded\nseeded_roles=admin" {
 		t.Errorf("a missing verifier-b changed the status: %v %q", r.err, r.out)
+	}
+}
+
+// TestSeedPlatformAccountsPutsEveryFixtureInTheSeededGroupAndNobodyElse: the API exempts the
+// platform's accounts from a signup_domains list by membership of platform-seeded, so each fixture
+// (demo, verifier, verifier-b, every role account) joins it, with or without role groups, and the
+// owner (a real person) never does. A re-run adds them again, which is how an account seeded before
+// the group existed is brought in.
+func TestSeedPlatformAccountsPutsEveryFixtureInTheSeededGroupAndNobodyElse(t *testing.T) {
+	files := withOwner(map[string]string{
+		"params/ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD":    "vb-Pw-0123456789",
+		"params/ALBITOR_ROLE_REVIEWER_ACCOUNT_PASSWORD": "rr-Pw-0123456789",
+	})
+	r := runScript(t, "seed-platform-accounts.sh", files, testPool, testSegment, "admin", "admin,reviewer", "invite_only", "user-admins")
+	if r.err != nil {
+		t.Fatalf("seed failed: %v\n%s", r.err, r.output)
+	}
+	want := "demo@albitor-demo.invalid\nverifier@albitor-verify.invalid\nverifier-b@albitor-verify.invalid\nreviewer@albitor-role.invalid\n"
+	if got := r.read(t, "seeded"); got != want {
+		t.Errorf("seeded group members = %q, want %q", got, want)
+	}
+	if strings.Contains(r.read(t, "seeded"), "ada@example.com") {
+		t.Error("the owner joined the seeded group")
+	}
+	// An app with no role groups still seeds its fixtures into it.
+	r = runScript(t, "seed-platform-accounts.sh", bothPasswords, testPool, testSegment)
+	if r.err != nil || r.read(t, "seeded") != "demo@albitor-demo.invalid\nverifier@albitor-verify.invalid\n" {
+		t.Errorf("no role groups: %v %q", r.err, r.read(t, "seeded"))
 	}
 }

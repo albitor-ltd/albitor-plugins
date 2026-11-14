@@ -102,7 +102,8 @@ func TestSignUpConfirmAndResetReachThePool(t *testing.T) {
 		{"/api/auth/resend", `{"email":"new@example.invalid"}`, http.StatusNoContent, ""},
 		{"/api/auth/forgot", `{"email":"new@example.invalid"}`, http.StatusNoContent, ""},
 		{"/api/auth/reset", `{"email":"new@example.invalid","code":"123456","password":"Long-enough-2"}`, http.StatusNoContent, ""},
-		{"/api/auth/unknown", `{"email":"new@example.invalid"}`, http.StatusNotFound, ""},
+		// Not a call the gate names: refused before the handler, so there is no sign-in to answer it.
+		{"/api/auth/unknown", `{"email":"new@example.invalid"}`, http.StatusUnauthorized, ""},
 	}
 	for _, s := range steps {
 		rec := authDo(t, h, http.MethodPost, s.path, s.body, nil)
@@ -115,8 +116,8 @@ func TestSignUpConfirmAndResetReachThePool(t *testing.T) {
 			}
 		}
 	}
-	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-in", "", nil); rec.Code != http.StatusNotFound {
-		t.Fatalf("GET /api/auth/sign-in = %d, want 404", rec.Code)
+	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-in", "", nil); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("GET /api/auth/sign-in = %d, want 401", rec.Code)
 	}
 }
 
@@ -413,9 +414,9 @@ func TestSignOutFormPostIsSameSiteOnlyAndRedirects(t *testing.T) {
 		t.Fatal("form sign-out did not revoke the refresh token")
 	}
 
-	// A GET never signs anyone out.
-	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-out", "", nil); rec.Code != http.StatusNotFound {
-		t.Fatalf("GET /api/auth/sign-out = %d, want 404", rec.Code)
+	// A GET never signs anyone out: it is not the POST the gate lets by, so it needs a session.
+	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-out", "", nil); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("GET /api/auth/sign-out = %d, want 401", rec.Code)
 	}
 }
 

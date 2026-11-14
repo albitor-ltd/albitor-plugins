@@ -79,6 +79,10 @@ variable "groups" {
     condition     = length(var.groups) <= 20
     error_message = "At most twenty groups."
   }
+  validation {
+    condition     = !contains(var.groups, "platform-seeded")
+    error_message = "platform-seeded is reserved for the platform's seeded accounts."
+  }
 }
 
 variable "admin_group" {

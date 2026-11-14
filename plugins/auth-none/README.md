@@ -7,7 +7,7 @@ The `auth@1` plugin for an app with no sign-in (albitor-ltd/albitor#3170, ADR-00
 
 | Repository path in the app | Mode | What |
 | --- | --- | --- |
-| `api/internal/identity/identity.go` | seeded | `Owner(r)` always answers `FixedOwner`; the same API as `auth-cognito`'s `identity` package |
+| `api/internal/identity/identity.go` | seeded | `Owner(r)` always answers `FixedOwner` (and a nil error, the signature the sign-in plugins share); the same API as `auth-cognito`'s `identity` package |
 | `api/internal/identity/identity_test.go` | seeded | Unit tests |
 | `web/tests/auth/provider.ts` | seeded | The `auth@2` provider: no roles |
 

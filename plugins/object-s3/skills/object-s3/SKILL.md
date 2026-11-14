@@ -100,7 +100,7 @@ A signed URL is a bearer token: whoever holds it can use it until it expires. So
 made before it is minted, on the server.
 
 - **Owner-scoped keys.** The key is `<owner>/<record>/<file>`. The owner is the verified identity
-  (`identity.Owner(r)`), never a body field or a query parameter. The record id comes from the URL
+  (`identity.Owner(r)`, answering 401 on its error), never a body field or a query parameter. The record id comes from the URL
   and is turned into a safe key segment by `objects.Segment` (an id that is already `[A-Za-z0-9._-]`
   and short stays as it is; anything else, such as a composite sort key `REC#2026/17`, an email or
   a unicode id, becomes `h` plus a hash). Use `Segment` everywhere a record id becomes a key, pass

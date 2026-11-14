@@ -8,14 +8,14 @@ import (
 
 func TestEveryRequestActsForTheFixedOwner(t *testing.T) {
 	r := httptest.NewRequest("GET", "/api/items", nil)
-	if got := Owner(r); got != FixedOwner {
-		t.Fatalf("Owner = %q, want %q", got, FixedOwner)
+	if got, err := Owner(r); err != nil || got != FixedOwner {
+		t.Fatalf("Owner = %q, %v, want %q", got, err, FixedOwner)
 	}
 	// A header naming someone else changes nothing: there is no sign-in to read.
 	r.Header.Set("Authorization", "Bearer someone-else")
 	r.Header.Set("X-User", "someone-else")
-	if got := Owner(r); got != FixedOwner {
-		t.Fatalf("Owner with a token = %q, want %q", got, FixedOwner)
+	if got, err := Owner(r); err != nil || got != FixedOwner {
+		t.Fatalf("Owner with a token = %q, %v, want %q", got, err, FixedOwner)
 	}
 }
 

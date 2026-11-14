@@ -312,3 +312,51 @@ run "a_malformed_signup_domain_is_refused" {
   }
   expect_failures = [var.signup_domains]
 }
+
+# The client may not write email_verified: a person's own token cannot say an address is verified.
+# open writes email (the sign-up call sets it) and an address change must be confirmed by code
+# before it takes effect; invite_only has no self-service address change and no email to confirm
+# with, so the client writes only a display name and no update setting is planned (AWS requires the
+# attribute to be auto-verified for it).
+run "open_client_writes_email_only_and_an_address_change_needs_verification" {
+  command = plan
+  variables {
+    sign_up = "open"
+  }
+  assert {
+    condition     = aws_cognito_user_pool_client.this.write_attributes == toset(["email"])
+    error_message = "the open client writes email and never email_verified"
+  }
+  assert {
+    condition     = one(aws_cognito_user_pool.this.user_attribute_update_settings).attributes_require_verification_before_update == toset(["email"])
+    error_message = "a changed address is confirmed by code before it replaces the verified one"
+  }
+}
+
+run "invite_only_client_cannot_write_email_or_email_verified" {
+  command = plan
+  assert {
+    condition     = aws_cognito_user_pool_client.this.write_attributes == toset(["name"])
+    error_message = "invite_only: people never change their own address, so email is not writable"
+  }
+  assert {
+    condition     = length(aws_cognito_user_pool.this.user_attribute_update_settings) == 0
+    error_message = "AWS needs the attribute auto-verified for this setting, and invite_only has none"
+  }
+}
+
+run "the_seeded_group_always_exists_and_is_reserved" {
+  command = plan
+  assert {
+    condition     = aws_cognito_user_group.seeded.name == "platform-seeded" && output.seeded_group == "platform-seeded"
+    error_message = "the platform's seeded accounts have a group the API exempts them by"
+  }
+}
+
+run "an_app_group_cannot_take_the_seeded_group_name" {
+  command = plan
+  variables {
+    groups = ["staff", "platform-seeded"]
+  }
+  expect_failures = [var.groups]
+}

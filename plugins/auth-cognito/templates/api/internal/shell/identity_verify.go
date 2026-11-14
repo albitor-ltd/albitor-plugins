@@ -4,15 +4,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 
 	"webapp/internal/apikit"
 	"webapp/internal/identity"
 )
 
 // THE API IDENTITY SEAM. It fills two slots of the generated router: IdentityVerify in
-// api.middleware and IdentityRoutes in api.routes. Every /api/ request needs a verified sign-in,
-// except /api/health and the sign-in calls under /api/auth/.
+// api.middleware and IdentityRoutes in api.routes. Every request needs a verified sign-in, on any
+// path, except /api/health and the public sign-in calls in publicRoutes.
 //
 // The pieces:
 //   - identity_verify.go (this file): the middleware and GET /api/me.
@@ -33,13 +32,31 @@ const (
 	authPathRoot = "/api/auth/"
 )
 
+// publicRoutes are the only requests the gate lets through with no session, as "METHOD path": the
+// health route and the sign-in calls this plugin's example (identity_flows.go,
+// identity_people.go) answers. They carry no session because they are how a person gets one.
+// Every other path, under /api/ or not, needs a verified identity, including the rest of
+// /api/auth/ (change-password, delete, the People admin): add a route here only when it must work
+// for someone who is not signed in. Nothing here matches by prefix.
+var publicRoutes = map[string]bool{
+	"POST /api/auth/sign-in":      true,
+	"POST /api/auth/sign-up":      true,
+	"POST /api/auth/confirm":      true,
+	"POST /api/auth/resend":       true,
+	"POST /api/auth/forgot":       true,
+	"POST /api/auth/reset":        true,
+	"POST /api/auth/new-password": true,
+	"POST /api/auth/sign-out":     true,
+	"GET /api/auth/config":        true,
+}
+
 // processSignIn is decided once, when the process starts, from its environment
 // (see signInFromEnv).
 var processSignIn = signInFromEnv(os.Getenv)
 
 // IdentityVerify is the api.middleware entry: it verifies the request's token,
-// refuses an /api/ request with no verified identity, and puts the verified
-// identity where identity.Owner reads it.
+// refuses a request with no verified identity unless it is health or one of
+// publicRoutes, and puts the verified identity where identity.Owner reads it.
 func IdentityVerify(next http.Handler) http.Handler {
 	return newIdentityGate(next, processSignIn, slog.Default())
 }
@@ -90,15 +107,15 @@ func newIdentityGate(next http.Handler, setup signIn, logger *slog.Logger) http.
 }
 
 func (g *identityGate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
-	if !strings.HasPrefix(path, "/api/") || path == healthPath || g.setup.anonymous {
+	if r.URL.Path == healthPath || g.setup.anonymous {
 		g.next.ServeHTTP(w, r)
 		return
 	}
 
 	// A route the API does not have answers 404 to everyone, as it would with
 	// no sign-in: there is nothing behind it to protect, and the deploy's smoke
-	// check expects an unknown /api/ path to be a JSON 404.
+	// check expects an unknown /api/ path to be a JSON 404. Every route the API
+	// does have, wherever it sits, is protected unless publicRoutes names it.
 	if unknownRoute(g.next, r) {
 		g.next.ServeHTTP(w, r)
 		return
@@ -114,7 +131,7 @@ func (g *identityGate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// The sign-in calls are how a person gets a session: they carry none.
-	if strings.HasPrefix(path, authPathRoot) {
+	if publicRoutes[r.Method+" "+r.URL.Path] {
 		g.next.ServeHTTP(w, r)
 		return
 	}

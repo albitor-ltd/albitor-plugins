@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `auth-cognito` `0.11.0`, `auth-hosted` `0.6.0`, `auth-none` `0.6.0`, `deploy-byoa-aws` `0.10.0`,
+  `data-dynamodb` `0.4.1` and `object-s3` `0.1.3` (albitor-ltd/albitor#4932; tags follow the merge).
+  Hardening of the identity checks. The sign-in gate in `auth-cognito` and `auth-hosted` is
+  default-deny on every path (health, the exact sign-in routes, and on a schedule or queue function
+  the platform's `POST /events`). `identity.Owner` returns `(owner, error)`, and fails in a deployed
+  function with no identity. A `signup_domains` list now needs a verified address, and the
+  platform's own accounts are exempt by the `platform-seeded` pool group; `deploy-byoa-aws` sets the
+  app client's `write_attributes` and verification before an address change. The legacy `auth` plugin
+  keeps its old gate.
 - `data-dynamodb` `0.4.0` and `api-go` `0.9.1` (albitor-ltd/albitor#4932; tags follow the merge).
   `data-dynamodb` seeds `store.Owned(s, r)`, an optional owner-scoped handle (get, list, create,
   update, delete always inside the verified owner's partition; another person's record is

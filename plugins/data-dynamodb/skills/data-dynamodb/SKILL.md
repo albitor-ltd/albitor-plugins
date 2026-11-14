@@ -54,7 +54,7 @@ partition is built inside as `store.Key("OWNER", owner, kind)`, so the scope can
 or forged:
 
 ```go
-h, err := store.Owned(s, r)             // store.ErrNoOwner: answer 401
+h, err := store.Owned(s, r)             // store.ErrNoOwner (no identity, deployed too): answer 401
 rec, err := h.Create(ctx, "note", id, data)   // stored under this person
 rec, err = h.Get(ctx, "note", id)       // another person's id is ErrNotFound
 page, err := h.List(ctx, "note", store.Query{Limit: q.Limit, Cursor: q.Cursor})

@@ -32,8 +32,8 @@ repository path, which the skill tells a coder to copy and alter.
 
 | Repository path in the app | Seeded | What |
 | --- | --- | --- |
-| `api/internal/identity/` | yes | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
-| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
+| `api/internal/identity/` | yes | `Identity`, `Owner(r)` (an owner and an error), `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
+| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`, default-deny: only `/api/health` and the exact sign-in routes in `publicRoutes` pass with no session, plus `POST /events` on a function the platform runs for a schedule or queue, where `AWS_LWA_PASS_THROUGH_PATH` is `/events`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
 | `api/internal/shell/identity_token.go` | yes | RS256 check against the pool's JWKS, standard library only |
 | `api/internal/shell/identity_hosted.go` | yes | The environment, the ID-token gate, refresh, the sign-up domain rule, the cookies |
 | `api/internal/shell/identity_test.go` | yes | The gate, token and domain-rule hardening tests |

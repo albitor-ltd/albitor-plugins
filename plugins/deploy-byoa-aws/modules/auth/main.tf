@@ -15,6 +15,18 @@ resource "aws_cognito_user_pool" "this" {
   # forgot-password mail (see account_recovery_setting). Both are in-place pool updates.
   auto_verified_attributes = var.sign_up == "open" ? ["email"] : []
 
+  # open: a person who changes their own address keeps the old, verified one on the account until
+  # they confirm a code mailed to the new one, so the address in a token is one the pool has
+  # verified. The API holds a domain list to that claim (email_verified). invite_only has no
+  # self-service address change at all (the client below cannot write email), and the setting needs
+  # email to be auto-verified, which invite_only deliberately is not, so nothing is set there.
+  dynamic "user_attribute_update_settings" {
+    for_each = var.sign_up == "open" ? [1] : []
+    content {
+      attributes_require_verification_before_update = ["email"]
+    }
+  }
+
   # The auth-cognito API lowercases the email it signs in with, so the pool must not tell
   # Ada@x.com from ada@x.com. Immutable once the pool exists.
   username_configuration {
@@ -74,6 +86,13 @@ resource "aws_cognito_user_pool_client" "this" {
 
   explicit_auth_flows = ["ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
 
+  # What a person's own token may write to their account. email_verified is never in it: only the
+  # pool or an administrator's call may say an address is verified, so a person cannot assert it.
+  # open: email, because the sign-up call sets it. invite_only: sign-up is off and people never
+  # change their own address (an administrator creates every account with the address already
+  # verified), so the one standard attribute the client may still write is a display name.
+  write_attributes = var.sign_up == "open" ? ["email"] : ["name"]
+
   access_token_validity  = 1
   id_token_validity      = 1
   refresh_token_validity = 30
@@ -91,6 +110,17 @@ resource "aws_cognito_user_group" "user_admin" {
 
   name         = var.user_admin_group
   user_pool_id = aws_cognito_user_pool.this.id
+}
+
+# The group the deploy's seed puts the platform's own accounts in (the verifier, the demo account
+# and each role's account). The auth-cognito API exempts them from a signup_domains list by this
+# membership, never by their address. Only an administrator's IAM call adds anyone to a group, and
+# the app's People screen adds to its two fixed groups alone. The name is reserved: var.groups
+# refuses it, so an app's own role can never share it.
+resource "aws_cognito_user_group" "seeded" {
+  name         = local.seeded_group
+  user_pool_id = aws_cognito_user_pool.this.id
+  description  = "Platform-seeded accounts: exempt from the email domain list."
 }
 
 resource "aws_cognito_user_group" "this" {

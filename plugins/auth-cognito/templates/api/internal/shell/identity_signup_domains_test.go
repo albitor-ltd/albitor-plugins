@@ -70,7 +70,7 @@ func TestSignupAllowed(t *testing.T) {
 // The list holds every token, not only the sign-up call: a person who registered straight with the
 // pool's public client id (never touching /api/auth/sign-up) is refused by the API, as is an
 // invitee or an existing account on another domain, an access token (no address) and a token whose
-// address was moved. Listed and platform-seeded addresses pass, and with no list nothing changes.
+// address was moved. Listed addresses and the platform-seeded group pass, and with no list nothing changes.
 func TestTheDomainListHoldsEveryToken(t *testing.T) {
 	f, srv := newFakeCognito(t)
 	gate := func(domains []string) http.Handler {
@@ -102,12 +102,61 @@ func TestTheDomainListHoldsEveryToken(t *testing.T) {
 	if rec.Code != http.StatusForbidden || responseCookie(rec, sessionCookie) == nil || responseCookie(rec, sessionCookie).MaxAge >= 0 {
 		t.Fatalf("a refused session cookie = %d %v, want 403 and the cookie cleared", rec.Code, rec.Result().Cookies())
 	}
-	for _, email := range []string{"A@Example.ORG", "demo@albitor-demo.invalid", "verifier@albitor-verify.invalid", "admin@albitor-role.invalid"} {
-		if rec := get(limited, with(email), false); rec.Code != http.StatusOK {
-			t.Fatalf("%q = %d, want 200", email, rec.Code)
-		}
+	if rec := get(limited, with("A@Example.ORG"), false); rec.Code != http.StatusOK {
+		t.Fatalf("a listed address = %d, want 200", rec.Code)
+	}
+	// The platform's accounts pass by the group the seed puts them in, not by their address.
+	seeded := f.token("u", map[string]any{"email": "demo@albitor-demo.invalid", "cognito:groups": []string{platformSeededGroup}})
+	if rec := get(limited, seeded, false); rec.Code != http.StatusOK {
+		t.Fatalf("a seeded account = %d, want 200", rec.Code)
+	}
+	if rec := get(limited, with("demo@albitor-demo.invalid"), false); rec.Code != http.StatusForbidden {
+		t.Fatalf("a seeded address outside the seeded group = %d, want 403", rec.Code)
 	}
 	if rec := get(gate(nil), with("direct@other.test"), false); rec.Code != http.StatusOK {
 		t.Fatalf("no list = %d, want 200", rec.Code)
+	}
+}
+
+// Under a domain list the token's address must be one the pool has verified: a person who moved
+// their address to an in-domain one they have not confirmed is refused, and an in-domain verified
+// one passes. The platform's own accounts are exempt by identity, the seeded group the deploy's
+// seed adds them to, and never by address: an address on a seeded domain that is not in the group
+// is held to the list like any other.
+func TestTheDomainListNeedsAVerifiedAddressAndExemptsSeededIdentitiesOnly(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	limited := composeIdentity(signIn{auth: &cognitoAuth{
+		clientID: testClientID, endpoint: srv.URL + "/", client: srv.Client(), signupDomains: []string{"example.org"},
+		verifier: newCognitoVerifier(f.issuer, testClientID, f.issuer+"/.well-known/jwks.json", srv.Client()),
+	}})
+	status := func(claims map[string]any) int {
+		return authDo(t, limited, http.MethodGet, "/api/me", "", withBearer(f.token("u", claims))).Code
+	}
+
+	if got := status(map[string]any{"email": "a@example.org", "email_verified": true}); got != http.StatusOK {
+		t.Errorf("a verified in-domain address = %d, want 200", got)
+	}
+	for name, claims := range map[string]map[string]any{
+		"unverified in-domain":           {"email": "a@example.org", "email_verified": false},
+		"no email_verified claim":        {"email": "a@example.org", "email_verified": nil},
+		"email_verified as a bad string": {"email": "a@example.org", "email_verified": "yes"},
+		"verified, out of domain":        {"email": "a@other.test", "email_verified": true},
+		// The seeded domains buy nothing without the group, whether or not the address is verified.
+		"seeded domain, no group, verified":   {"email": "demo@albitor-demo.invalid", "email_verified": true},
+		"seeded domain, no group, unverified": {"email": "verifier@albitor-verify.invalid", "email_verified": false},
+		"seeded role domain, other group":     {"email": "x@albitor-role.invalid", "email_verified": true, "cognito:groups": []string{"staff"}},
+	} {
+		if got := status(claims); got != http.StatusForbidden {
+			t.Errorf("%s = %d, want 403", name, got)
+		}
+	}
+	// The seeded identity passes by its group, whatever address it carries.
+	for name, claims := range map[string]map[string]any{
+		"seeded account":              {"email": "demo@albitor-demo.invalid", "email_verified": true, "cognito:groups": []string{platformSeededGroup}},
+		"seeded account and its role": {"email": "admin@albitor-role.invalid", "email_verified": true, "cognito:groups": []string{"admin", platformSeededGroup}},
+	} {
+		if got := status(claims); got != http.StatusOK {
+			t.Errorf("%s = %d, want 200", name, got)
+		}
 	}
 }
