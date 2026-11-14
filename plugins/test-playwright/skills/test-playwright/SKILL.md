@@ -84,18 +84,21 @@ walked as the demo identity. Five facts, each the cause of a spec revised or a b
   Its lists already hold other records. Never assert an absolute count, "the list is empty" or "the
   only item": read a baseline first and assert the change from it, and find the test's own record by
   its `fixtureScope.uniqueName`. `expectChangeFromBaseline(read, act, delta)` in
-  `helpers/baseline.ts` does the read, the action and the wait.
+  `helpers/baseline.ts` does the read, the action and the wait. It accepts a change of at least
+  `delta` (other records can arrive on a shared account); pass `{ exact: true }` only when nothing
+  else can write. Take the baseline after the sync pull, below.
 - **Wait for the sync pull before reading** on an offline-first app. A read taken before the first
-  pull sees the empty local store. Wait until the sync status line (`role="status"`) shows the data
-  is saved and the page shows content the pull brings, then take the baseline.
+  pull sees the empty local store. Wait until the app's own saved/synced indicator shows the
+  data is saved and the page shows content the pull brings, then take the baseline.
 - **A test has 30 s in all** (`timeout: 30_000` in `playwright.config.ts`: the whole test, every
   `journeyStep` together, not each step; one `expect` waits at most 5 s). The whole spec file has 4
   minutes in a walk. Keep a test to a few steps, seed outside it (`fixtureScope`, or the
   once-per-preview seed below), and never plan on a step that takes tens of seconds.
 - **Wait on a ready signal, never a sleep or a bigger timeout.** `await expect(locator).toBeVisible()`
-  or `toHaveText`, `page.waitForResponse`, a status line, a row with the record's unique name. No
-  `waitForTimeout`, no `setTimeout`, no raised `timeout` to cover a slow settle. A spec that needs a
-  timeout longer than the default is waiting on the wrong thing.
+  or `toHaveText`, `page.waitForResponse`, the app's saved/synced indicator, a row with the record's unique name. No
+  `waitForTimeout`, no `setTimeout`, no raised `timeout` to cover a slow settle. A journey test that needs a
+  timeout longer than the default is waiting on the wrong thing. (The once-per-preview seed setup
+  project below is not a journey test and has its own long timeout.)
 - **The hosted site's Content-Security-Policy admits images from `'self'` and `data:` only**
   (`connect-src 'self'` too). A `blob:` image or fetch is blocked, so a journey cannot rely on an
   object-URL preview; the app shows an uploaded image from its own served URL or a `data:` URL, and

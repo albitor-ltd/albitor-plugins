@@ -28,8 +28,19 @@ describe("expectChangeFromBaseline", () => {
   });
   it("fails, naming both numbers, when the change never comes", async () => {
     await assert.rejects(
-      expectChangeFromBaseline(async () => 5, async () => {}, 1, 300),
-      /change of 1 from a baseline of 5, saw 0/,
+      expectChangeFromBaseline(async () => 5, async () => {}, 1, { timeoutMs: 300 }),
+      /change of at least 1 from a baseline of 5, saw 0/,
+    );
+  });
+  it("accepts more than delta by default, since a shared account can gain other records", async () => {
+    let n = 0;
+    await expectChangeFromBaseline(async () => n, async () => { n += 3; }, 1);
+  });
+  it("refuses more than delta when exact is asked for", async () => {
+    let n = 0;
+    await assert.rejects(
+      expectChangeFromBaseline(async () => n, async () => { n += 3; }, 1, { exact: true, timeoutMs: 300 }),
+      /change of 1 from a baseline of 0, saw 3/,
     );
   });
 });
