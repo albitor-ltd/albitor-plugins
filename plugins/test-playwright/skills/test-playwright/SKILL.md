@@ -75,6 +75,36 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   cleans what a test makes. The worker count is the walk's (`--workers=1`); if
   you run the suite yourself against a deployed app, keep `--workers` at 1 or 2.
 
+## The walk environment: write the spec for it
+
+Specs are pinned before the first walk, so write them for where they will run, a deployed preview
+walked as the demo identity. Five facts, each the cause of a spec revised or a build blocked:
+
+- **The demo account is shared and persistent**, across every spec and every walk of the preview.
+  Its lists already hold other records. Never assert an absolute count, "the list is empty" or "the
+  only item": read a baseline first and assert the change from it, and find the test's own record by
+  its `fixtureScope.uniqueName`. `expectChangeFromBaseline(read, act, delta)` in
+  `helpers/baseline.ts` does the read, the action and the wait.
+- **Wait for the sync pull before reading** on an offline-first app. A read taken before the first
+  pull sees the empty local store. Wait until the sync status line (`role="status"`) shows the data
+  is saved and the page shows content the pull brings, then take the baseline.
+- **A test has 30 s in all** (`timeout: 30_000` in `playwright.config.ts`: the whole test, every
+  `journeyStep` together, not each step; one `expect` waits at most 5 s). The whole spec file has 4
+  minutes in a walk. Keep a test to a few steps, seed outside it (`fixtureScope`, or the
+  once-per-preview seed below), and never plan on a step that takes tens of seconds.
+- **Wait on a ready signal, never a sleep or a bigger timeout.** `await expect(locator).toBeVisible()`
+  or `toHaveText`, `page.waitForResponse`, a status line, a row with the record's unique name. No
+  `waitForTimeout`, no `setTimeout`, no raised `timeout` to cover a slow settle. A spec that needs a
+  timeout longer than the default is waiting on the wrong thing.
+- **The hosted site's Content-Security-Policy admits images from `'self'` and `data:` only**
+  (`connect-src 'self'` too). A `blob:` image or fetch is blocked, so a journey cannot rely on an
+  object-URL preview; the app shows an uploaded image from its own served URL or a `data:` URL, and
+  the spec asserts that.
+
+When a spec fails for one of these reasons, fix the spec's waiting or its baseline; do not change
+what the product does. If it needs a person's decision, the ask describes the product's behaviour
+(what the person sees or can do), never an assertion in the test.
+
 ## Seeding a deployed preview
 
 A walk of a deployed preview seeds through the app's **real API**, as the demo identity, and nothing
