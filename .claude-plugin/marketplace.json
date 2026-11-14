@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.6.7",
-        "sha": "6f89758ffe37171aac220040a8e69e987a688de4"
+        "ref": "test-playwright/v0.7.0",
+        "sha": "d30a7243827f93b4f90419d896c76fb7ee52b0bb"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.9.0",
-        "sha": "6b3dbfc1060c65323db3527fa0eee5fddda3bc1c"
+        "ref": "deploy-byoa-aws/v0.9.1",
+        "sha": "d30a7243827f93b4f90419d896c76fb7ee52b0bb"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.7.0",
-        "sha": "9050a5702befde93c9d0e8a349d4ba684ee6b5e9"
+        "ref": "deploy-hosted/v0.7.1",
+        "sha": "d30a7243827f93b4f90419d896c76fb7ee52b0bb"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
