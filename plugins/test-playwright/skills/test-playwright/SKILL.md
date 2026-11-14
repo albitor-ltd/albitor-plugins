@@ -75,6 +75,48 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   cleans what a test makes. The worker count is the walk's (`--workers=1`); if
   you run the suite yourself against a deployed app, keep `--workers` at 1 or 2.
 
+## The walk environment: write the spec for it
+
+Specs are pinned before the first walk, so write them for where they will run, a deployed preview
+walked as the demo identity. Five facts, each the cause of a spec revised or a build blocked:
+
+- **Every read of server-synced data after a navigation or reload goes through `expect.poll` (or
+  `expectChangeFromBaseline`). Never assert on such data straight after `goto`.** A page that
+  syncs shows the empty local store first and the pulled data later, so a straight assertion
+  passes or fails on timing. Wait until the app's own saved/synced indicator shows the data is
+  saved and the page shows content the pull brings, then take the baseline.
+
+  ```ts
+  await page.goto("/claims");
+  await expect.poll(async () => page.getByTestId("claim-row").count(), { timeout: 10_000 })
+    .toBeGreaterThan(0);                       // the pull has landed
+  const baseline = await page.getByTestId("claim-row").count();   // only now read the baseline
+  ```
+- **The demo account is shared and persistent**, across every spec and every walk of the preview.
+  Its lists already hold other records. Never assert an absolute count, "the list is empty" or "the
+  only item": read a baseline first and assert the change from it, and find the test's own record by
+  its `fixtureScope.uniqueName`. `expectChangeFromBaseline(read, act, delta)` in
+  `helpers/baseline.ts` does the read, the action and the wait. It accepts a change of at least
+  `delta` (other records can arrive on a shared account); pass `{ exact: true }` only when nothing
+  else can write. Take the baseline after the sync pull, as above.
+- **A test has 30 s in all** (`timeout: 30_000` in `playwright.config.ts`: the whole test, every
+  `journeyStep` together, not each step; one `expect` waits at most 5 s). The whole spec file has 4
+  minutes in a walk. Keep a test to a few steps, seed outside it (`fixtureScope`, or the
+  once-per-preview seed below), and never plan on a step that takes tens of seconds.
+- **Wait on a ready signal, never a sleep or a bigger timeout.** `await expect(locator).toBeVisible()`
+  or `toHaveText`, `page.waitForResponse`, the app's saved/synced indicator, a row with the record's unique name. No
+  `waitForTimeout`, no `setTimeout`, no raised `timeout` to cover a slow settle. A journey test that needs a
+  timeout longer than the default is waiting on the wrong thing. (The once-per-preview seed setup
+  project below is not a journey test and has its own long timeout.)
+- **The hosted site's Content-Security-Policy admits images from `'self'` and `data:` only**
+  (`connect-src 'self'` too). A `blob:` image or fetch is blocked, so a journey cannot rely on an
+  object-URL preview; the app shows an uploaded image from its own served URL or a `data:` URL, and
+  the spec asserts that.
+
+When a spec fails for one of these reasons, fix the spec's waiting or its baseline; do not change
+what the product does. If it needs a person's decision, the ask describes the product's behaviour
+(what the person sees or can do), never an assertion in the test.
+
 ## Exercising requirements
 
 When the task lists requirements, each needs a test that performs the behaviour and asserts the

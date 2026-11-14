@@ -37,6 +37,18 @@ An app with neither takes none of it.
 Do not add Terraform, a deploy workflow, a cloud credential or a role: the platform deploys with
 its own identity, and none of them is read.
 
+## The site's Content-Security-Policy
+
+The site is served with `default-src 'self'` and, among others, `img-src 'self' data:`,
+`connect-src 'self'`, `font-src 'self'` and `object-src 'none'`. Scripts run by hash. Consequences
+for a build and for the journeys that walk it:
+
+- **No `blob:` image.** `URL.createObjectURL` for an image preview is blocked: the preview shows an
+  uploaded image from the app's own served URL or a `data:` URL (`FileReader.readAsDataURL`).
+- **No third-party image, font, script or fetch.** Serve it from the app's own origin.
+- A journey that uploads an image asserts that the person sees it (the `img` is visible and loaded:
+  `naturalWidth > 0`), which fails on a blocked source; do not weaken the check, change the source.
+
 ## The gate
 
 `ci.yml` runs on every pull request and every push to main, with `contents: read` and no secret:
