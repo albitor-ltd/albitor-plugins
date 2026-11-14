@@ -57,6 +57,26 @@ The authored light palette: text `#0d1013`, secondary text `#565d68`, border
 `#f7f8fa`, accent `#08737f` with `#ffffff` on it. The accent is a default:
 the app's own brand colour replaces it and the platform recalculates the dependent shades.
 
+## Empty-state art
+
+A small illustration can lift a first-run empty list. It is optional and the app's own code: copy
+`examples/web/src/lib/look/EmptyArt.svelte` beside this skill to `web/src/lib/look/EmptyArt.svelte`
+and edit it. It is never seeded.
+
+- **Use it** on a first-run empty list or page (nothing created yet), above the plain sentence that
+  says why it is empty and the one action that fixes it. The sentence and the action do the work;
+  the art is decoration.
+- **Do not use it** for errors or failed loads (say what went wrong and how to retry, with a status
+  glyph and a word), for an empty search or filter result, inside dense admin tables or a data-heavy
+  view, or in a GDS or Carbon app, whose kit has its own conventions and no illustration.
+- **Build it** as an inline SVG Svelte component of simple geometric shapes: no lettering, no
+  photographic or detailed drawing, `aria-hidden="true"` and `focusable="false"`, no `<title>`.
+  Fill and stroke only with the app's colour tokens (`var(--primary)`, `var(--muted)`,
+  `var(--border)` on the shadcn kit; the app's own names otherwise), never a hex, so it follows the
+  light and dark pages with no second asset. Use opacity for tints, not new colours. It never
+  carries the only cue for anything.
+- **Look-specific:** Shapes are precise layers: stacked cards at the look's 10px radius with 1px hairline edges and one accent mark, no glow, no gradient, no offset shadow. Keep it about 152px and understated; a technical product empty state reads better with less.
+
 ## Phone navigation
 
 Stance: lean towards a bottom tab bar when the product has 2 to 5 core destinations, and a
