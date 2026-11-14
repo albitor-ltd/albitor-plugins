@@ -140,3 +140,7 @@ The general WCAG 2.2 AA content (criteria, audits, accessibility statements) liv
 - Do not remove the focus outlines.
 - Do not import Carbon's CSS a second time or pick a theme other than `white` and `g100`; the
   contrast audit covers those two.
+- Do not edit a kit component, the barrel or the theme from a feature. Features built in parallel
+  collide on them at every merge. Wrap or extend a piece in the feature's own directory; a change
+  every feature needs goes in the shared skeleton node, once. Lists features add to are
+  glob-assembled (`svelte-shell`, "Add to a registry").

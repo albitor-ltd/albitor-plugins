@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `0.9.0`, `kit-shadcn` `0.11.0`, `kit-carbon` `0.10.0` and `kit-gds` `0.10.0`
+  (albitor-ltd/albitor#4779, speed option D; tags follow the merge). Parallel feature nodes no
+  longer edit shared lists. The shell seeds `collectRegistry` (`lib/shell/registry.ts`, tested): a
+  glob-assembled registry for panes, tabs and widgets, as nav already is, and the `svelte-shell`
+  skill says to add one file per entry, never a line to a shared list (append-only, one entry per
+  line where a list is unavoidable). The kit skills say a feature wraps a kit component in its own
+  directory instead of editing it. `web-app-architecture` gains the `shared-registries` pattern, and
+  the seeded `web/.gitignore` also covers `.vite/`, `.DS_Store`, `*.tsbuildinfo`, Vite timestamp
+  files and logs.
+
 - `font-clear`, `font-console`, `font-editorial`, `font-friendly`, `font-futuristic`,
   `font-geometric`, `font-high-legibility` and `font-technical`, each `0.1.1`
   (albitor-ltd/albitor#4852; tags follow the merge). The seeded `fonts.css` header comment no

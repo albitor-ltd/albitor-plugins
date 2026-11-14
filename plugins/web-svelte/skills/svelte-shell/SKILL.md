@@ -45,6 +45,54 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
   `src/routes/**/nav.ts` at build time through `import.meta.glob`; a malformed one fails the dev
   server with the file named, and is skipped with a warning in a production build.
 
+## Add to a registry (panes, tabs, widgets, settings sections)
+
+**A feature never edits a shared hand-maintained list.** Features built in parallel that each add a
+line to one `panes.ts`, `tabs.ts`, `studio.ts`, routes table or barrel conflict on every merge, and
+the mechanical merge cannot resolve an edit inside an array or object literal. Make the list
+assembled instead, the way nav is:
+
+1. One tiny module per entry, in the feature's own directory, with a fixed file name and export:
+
+   ```ts
+   // web/src/features/roster/pane.ts
+   import type { PaneMeta } from '../../lib/app/panes';
+   export const pane: PaneMeta = { order: 20, title: 'Roster', load: () => import('./RosterPane.svelte') };
+   ```
+
+2. The registry is written once, by the first feature that needs it (the shared-skeleton node), and
+   collects every entry through the shell's `collectRegistry` (`src/lib/shell/registry.ts`):
+
+   ```ts
+   // web/src/lib/app/panes.ts
+   import { collectRegistry, type Ordered } from '../shell/registry';
+   export interface PaneMeta extends Ordered { title: string; load: () => Promise<unknown> }
+   function parsePane(v: unknown): PaneMeta | string {
+     const p = v as Partial<PaneMeta> | undefined;
+     return p && typeof p.title === 'string' && typeof p.load === 'function' ? (p as PaneMeta) : 'a pane needs a title and load';
+   }
+   const modules = import.meta.glob('/src/**/pane.ts', { eager: true });
+   export const panes = collectRegistry<PaneMeta>(modules, 'pane', parsePane);
+   ```
+
+   `parsePane` returns the entry or a reason string; a bad entry throws in dev with its file
+   named and is skipped with a warning in a production build. Entries order by `order`, then path.
+3. Adding a pane is then adding `pane.ts`; removing one is deleting it. No existing file changes.
+
+Rules that keep the merge mechanical:
+
+- **Glob, do not list.** Never write `import a from './a'; import b from './b'; export const all =
+  [a, b]` for something features extend. If a hand-kept list is unavoidable (a barrel, a route
+  table), keep it **one entry per line, append-only**: append at the end, never reorder, never
+  reformat, never edit another entry's line.
+- **Shared files are append-only for features.** A feature node does not rewrite `+layout.svelte`,
+  a registry file, `nav.generated.ts`, `vite.config.ts` or `.gitignore`; it adds its own files.
+  The seeded `.gitignore` already covers `node_modules`, `.svelte-kit`, `build`, `.env*`, test and
+  coverage output, `.vite`, `*.tsbuildinfo` and logs; a feature that finds an output missing adds
+  one line at the end, nothing more.
+- **One region, one file.** When several features contribute to one page (a dashboard of widgets),
+  the page renders a registry of widget entries; it does not inline each feature's markup.
+
 ## What the shell seeds (yours from the first compose)
 
 | File | Role |
@@ -53,6 +101,7 @@ export const nav: NavMeta = { label: 'Reports', order: 20, group: 'data' };
 | `src/lib/shell/AccountBar.svelte` | Empty. Shown above the page when `showNav` is true; an auth plugin's example fills it with the Sign out control, which must be a POST form button, never a link. `lib/shell/signout.ts` lets the app run work first (`onBeforeSignOut`) |
 | `src/lib/shell/nav.generated.ts`, `providers.generated.ts` | Rendered from plugin slot fragments (`web.nav`, `web.providers`, `web.route-guard`) |
 | `src/lib/shell/nav.ts`, `guard.ts`, `api.ts`, `types.ts`, `scope.ts` | Nav merge and ordering, guard runner, API client, contract types |
+| `src/lib/shell/registry.ts` | `collectRegistry`: the generic glob-assembled registry (panes, tabs, widgets); see "Add to a registry" |
 | `src/service-worker/` | Caches the built app so it opens offline; never caches `/api` |
 | `src/lib/data-layer/`, `src/lib/data/` | The online data layer (TanStack Query, the data-online skill) and the entry point `data-layer/index.ts` that exports it. An app that must work offline copies the layer in from the data-offline skill's example |
 | `vite.config.ts` (SvelteKit 3 config lives here), `tsconfig.json`, `scripts/local-serve.mjs` | Build and the local run |

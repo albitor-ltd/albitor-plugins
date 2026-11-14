@@ -162,3 +162,7 @@ detail, and the map from other shadcn components to their Bits UI primitive, is 
   Tailwind plugin. If you do want it, that is a change to `vite.config.ts` (see `svelte-shell`).
 - Do not hand-roll focus management or portals; use Bits UI, which the dialog already wraps.
 - Do not remove the focus outlines.
+- Do not edit a kit component, the barrel or the tokens from a feature. Features built in parallel
+  collide on them at every merge. Wrap or extend a piece in the feature's own directory (a
+  `RosterTable.svelte` that renders `Table`); a change every feature needs goes in the shared
+  skeleton node, once. Lists features add to are glob-assembled (`svelte-shell`, "Add to a registry").

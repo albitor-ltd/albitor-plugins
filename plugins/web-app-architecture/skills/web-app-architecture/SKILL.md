@@ -65,3 +65,11 @@ Read `patterns/seeding-for-deployed-walks.md`.
 - **Avoid when** the journeys only exercise empty states or sign-in.
 - **How to decide** If a journey needs data, the plan names the app-API calls that create it and the
   node that owns them; no test-only route is ever planned.
+
+## shared-registries
+
+Read `patterns/shared-registries.md`.
+
+- **Use when** two or more nodes of the plan could each add an entry to one list: panes, tabs, routes, nav, widgets, settings sections, a barrel, or a kit component.
+- **Avoid when** one node owns the list outright.
+- **How to decide** If the plan has parallel feature nodes and a shared list, the skeleton node writes a glob-assembled registry and each feature adds its own file; never plan two nodes editing one list or one kit component.

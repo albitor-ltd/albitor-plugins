@@ -59,6 +59,8 @@
 === web/src/lib/shell/nav.test.ts ===
 === web/src/lib/shell/nav.ts ===
 === web/src/lib/shell/providers.generated.ts ===
+=== web/src/lib/shell/registry.test.ts ===
+=== web/src/lib/shell/registry.ts ===
 === web/src/lib/shell/scope.d/data-layer.ts ===
 === web/src/lib/shell/scope.test.ts ===
 === web/src/lib/shell/scope.ts ===
