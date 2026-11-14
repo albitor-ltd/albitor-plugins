@@ -94,15 +94,26 @@ type jwtHeader struct {
 }
 
 type jwtClaims struct {
-	Iss      string   `json:"iss"`
-	Sub      string   `json:"sub"`
-	Aud      string   `json:"aud"`
-	ClientID string   `json:"client_id"`
-	TokenUse string   `json:"token_use"`
-	Email    string   `json:"email"`
-	Groups   []string `json:"cognito:groups"`
-	Exp      int64    `json:"exp"`
-	Iat      int64    `json:"iat"`
+	Iss      string `json:"iss"`
+	Sub      string `json:"sub"`
+	Aud      string `json:"aud"`
+	ClientID string `json:"client_id"`
+	TokenUse string `json:"token_use"`
+	Email    string `json:"email"`
+	// EmailVerified is the pool's own claim: Cognito sets it, and a person cannot.
+	EmailVerified flexBool `json:"email_verified"`
+	Groups        []string `json:"cognito:groups"`
+	Exp           int64    `json:"exp"`
+	Iat           int64    `json:"iat"`
+}
+
+// flexBool reads a JSON boolean, or the strings "true" and "false", which Cognito has emitted for
+// email_verified. Anything else is false: an unverified address is never assumed verified.
+type flexBool bool
+
+func (b *flexBool) UnmarshalJSON(raw []byte) error {
+	*b = strings.Trim(string(raw), `"`) == "true"
+	return nil
 }
 
 // verify returns the identity a token carries, errTokenExpired for a genuine
@@ -156,7 +167,7 @@ func (v *cognitoVerifier) verify(ctx context.Context, raw string) (identity.Iden
 	if now.Unix() >= claims.Exp { // a missing exp is 0: expired
 		return identity.Identity{}, errTokenExpired
 	}
-	return identity.Identity{Sub: claims.Sub, Email: claims.Email, Groups: claims.Groups}, nil
+	return identity.Identity{Sub: claims.Sub, Email: claims.Email, EmailVerified: bool(claims.EmailVerified), Groups: claims.Groups}, nil
 }
 
 func decodeJWTSegment(seg string, into any) error {

@@ -12,8 +12,8 @@ repository path, which the skill tells a coder to copy and alter.
 
 | Repository path in the app | Seeded | What |
 | --- | --- | --- |
-| `api/internal/identity/` | yes | `Identity`, `Owner(r)`, `FromContext`: the one identity API handlers use |
-| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
+| `api/internal/identity/` | yes | `Identity`, `Owner(r)` (an owner and an error), `FromContext`: the one identity API handlers use |
+| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`, default-deny: only `/api/health` and the exact sign-in calls in `publicRoutes` pass with no session), `IdentityRoutes` (`api.routes`): `GET /api/me` |
 | `api/internal/shell/identity_token.go` | yes | RS256 check against the pool's JWKS, standard library only |
 | `api/internal/shell/identity_cognito.go` | yes | Pool from the environment, the session cookies, refresh |
 | `api/internal/shell/identity_test.go`, `identity_hardening_test.go` | yes | The gate and the token hardening tests |
@@ -76,8 +76,13 @@ shows as it is, and never reaches the pool; `GET /api/auth/config` adds `signup_
 mode so a screen can name the domains. The list also holds **every token** the API takes (the seeded
 identity core, as `auth-hosted` does): a person who registered straight with the pool's public client
 id, an existing user and an invitee on an unlisted domain are all refused (403 `email_not_allowed`,
-session cookie cleared), and an access token, which carries no address, is refused too. The platform-seeded
-`albitor-demo.invalid`, `albitor-verify.invalid` and `albitor-role.invalid` accounts always pass.
+session cookie cleared), and an access token, which carries no address, is refused too. The address must
+also be one the pool has **verified** (the token's `email_verified` claim is true): an unverified in-domain
+address is refused. The platform's own accounts (the verifier, the demo account and the role accounts)
+pass by **identity**, membership of the pool group `platform-seeded` that the deploy's seed adds them
+to, never by their `.invalid` address: an address on one of those domains held by anyone else is held
+to the list like any other.
+In `open` mode a person who changes their address must confirm the new one by code before it counts; under a domain list their session is refused until they do, and they sign in again afterwards.
 **Choose the list before launch, or include every current user's domain.** The pool gets no Lambda
 trigger, so the API is the gate. A malformed entry closes the API rather than open it. Use
 punycode (`xn--`) for an IDN domain. Entries are lower-case; a trailing-dot or look-alike address

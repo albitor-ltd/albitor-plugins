@@ -27,7 +27,7 @@ There are no examples: an app with no sign-in has nothing to copy.
 
 | Call | Answers |
 | --- | --- |
-| `identity.Owner(r)` | Always `identity.FixedOwner` (`"owner"`) |
+| `identity.Owner(r)` | Always `identity.FixedOwner` (`"owner"`) and a nil error; check the error as under a real sign-in |
 | `identity.FromContext(ctx)` | Nothing: no middleware puts an identity on the request |
 
 There are no screens, no route guard, no middleware, no `GET /api/me` and no `services.auth` in
@@ -41,7 +41,8 @@ pretend to be someone. An app that needs roles needs a real auth plugin.
 
 ## Writing handlers
 
-Use `identity.Owner(r)` for the owner exactly as you would under a real sign-in: put it in the
+Use `owner, err := identity.Owner(r)` for the owner exactly as you would under a real sign-in (the
+error is always nil here, but check it, so the handler is right under a real sign-in): put it in the
 partition key, never take it from a body or a query parameter. Then adding sign-in later (replacing
 this plugin with auth-cognito) changes who the owner is and nothing in the handlers. Do not
 hard-code `"owner"`.

@@ -211,8 +211,21 @@ func composeIdentity(setup signIn) http.Handler {
 		apikit.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("/api/items", func(w http.ResponseWriter, r *http.Request) {
-		apikit.WriteJSON(w, http.StatusOK, map[string]string{"owner": identity.Owner(r)})
+		owner, err := identity.Owner(r)
+		if err != nil {
+			apikit.WriteError(w, http.StatusUnauthorized, "sign-in required")
+			return
+		}
+		apikit.WriteJSON(w, http.StatusOK, map[string]string{"owner": owner})
 	})
+	// Routes outside /api/, as an app registers them: the gate must protect every one it does not
+	// name in publicRoutes. (The /api/auth/ routes are registered by the plugin's example, so the
+	// default-deny test builds its own mux for them.)
+	for _, pattern := range []string{"/admin/report", "/events"} {
+		mux.HandleFunc(pattern, func(w http.ResponseWriter, _ *http.Request) {
+			apikit.WriteJSON(w, http.StatusOK, map[string]string{"reached": "yes"})
+		})
+	}
 	registerIdentityRoutes(mux, setup, identityTestLogger())
 	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		apikit.WriteError(w, http.StatusNotFound, "not found")

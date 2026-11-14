@@ -31,7 +31,9 @@ environment variable; unset means `open`), which the screens read to know which 
 names the domains) reaches the function as `AUTH_SIGNUP_DOMAINS`; `sign-up` for another domain answers
 403 `email_not_allowed` and `GET /api/auth/config` adds `signup_domains` in `open` mode. The list is
 held on every token (`holdsSession` in the seeded identity core), so it also refuses existing users and
-invitees on unlisted domains: it is chosen before launch, or it includes every current user's domain.
+invitees on unlisted domains, and an address the pool has not verified (`email_verified` must be true):
+it is chosen before launch, or it includes every current user's domain. The platform's own accounts
+pass by membership of the `platform-seeded` pool group, not by address.
 Keep the sign-up and sign-in screens showing the API's message.
 All of that is in the repository: read it, then extend it. The plugin declares `services.auth`
 (provider `cognito`, posture `private`) in `albitor.yaml`; the deploy target realises the user pool
@@ -46,8 +48,8 @@ which is what keeps one person's records from another.
 
 | File | What it does |
 | --- | --- |
-| `api/internal/identity/identity.go` | `identity.Owner(r)`, `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
-| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every `/api/` request without a verified token except `/api/health`, `/api/auth/*` and an unknown path; `IdentityRoutes` serves `GET /api/me` |
+| `api/internal/identity/identity.go` | `identity.Owner(r)` (returns `(owner, error)`), `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
+| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every request, on any path, without a verified token, except `/api/health`, the exact sign-in calls in `publicRoutes` (`POST /api/auth/sign-in`, `sign-up`, `confirm`, `resend`, `forgot`, `reset`, `new-password`, `sign-out` and `GET /api/auth/config`) and a path nothing serves (the JSON 404); nothing matches by prefix, so a route you add under `/api/auth/` or outside `/api/` is protected unless you name it in `publicRoutes`; `IdentityRoutes` serves `GET /api/me` |
 | `api/internal/shell/identity_token.go` | The RS256 check against the pool's JWKS: signature, `iss`, `token_use`, client, expiry. Standard library only |
 | `api/internal/shell/identity_cognito.go` | Where the pool comes from (`signInFromEnv`), the session cookies, refresh, and the one call helper to Cognito |
 | `api/internal/shell/identity_test.go`, `identity_hardening_test.go` | The gate, the token checks, key rotation, refresh and the local issuer. Each fails when the check it is named for is removed |
@@ -94,7 +96,7 @@ readable by page script. A script or test client may send `Authorization: Bearer
 
 ## What the build writes
 
-- **Authorisation.** Take the owner from `identity.Owner(r)` and put it in the partition key. Never
+- **Authorisation.** Take the owner from `owner, err := identity.Owner(r)` (answer 401 on `err`: a deployed function with no identity never acts as an anonymous owner) and put it in the partition key. Never
   take the owner from a body or a query parameter. An app has one kind of signed-in account unless
   the plan declares roles: never invent roles or an admin group. A route that only some people may
   use gates on `id.InGroup(<the declared admin_group>)` after `identity.FromContext`, and that group

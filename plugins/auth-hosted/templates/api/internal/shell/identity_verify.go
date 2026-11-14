@@ -4,15 +4,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 
 	"webapp/internal/apikit"
 	"webapp/internal/identity"
 )
 
 // THE API IDENTITY SEAM. It fills two slots of the generated router: IdentityVerify in
-// api.middleware and IdentityRoutes in api.routes. Every /api/ request needs a verified sign-in,
-// except /api/health and the sign-in routes under /api/auth/.
+// api.middleware and IdentityRoutes in api.routes. Every request needs a verified sign-in, on any
+// path, except /api/health and the public routes in publicRoutes.
 //
 // The pieces:
 //   - identity_verify.go (this file): the middleware and GET /api/me.
@@ -34,13 +33,40 @@ const (
 	authPathRoot = "/api/auth/"
 )
 
+// publicRoutes are the only requests the gate lets through with no session, as "METHOD path": the
+// sign-in routes this plugin's example (identity_flows.go) answers, and the platform's own
+// trigger. They carry no session because they are how a person gets one. Every other path, under
+// /api/ or not, needs a verified identity, including the rest of /api/auth/ (account deletion,
+// say): add a route here only when it must work for someone who is not signed in. Nothing here
+// matches by prefix.
+//
+// POST /events is not in this map: it is the platform's own trigger, not a person's request, and
+// it is open only on a function that receives native events (see eventsPassThroughEnv).
+var publicRoutes = map[string]bool{
+	"GET /api/auth/login":     true,
+	"GET /api/auth/callback":  true,
+	"POST /api/auth/sign-out": true,
+}
+
+// eventsPath is where the Lambda Web Adapter delivers a schedule's or queue's native event, as a
+// POST with no session. eventsPassThroughEnv is the adapter's own setting for it. The platform sets
+// it to eventsPath on the functions that run a schedule or a queue, and never on the public HTTP
+// function, where API Gateway can forward /events from the internet when the app has neither. So
+// the gate lets POST /events by with no session only where that variable names it: exactly where
+// the event can only have come from a native invocation. Anywhere else /events needs a verified
+// identity like any other route.
+const (
+	eventsPath           = "/events"
+	eventsPassThroughEnv = "AWS_LWA_PASS_THROUGH_PATH"
+)
+
 // processSignIn is decided once, when the process starts, from its environment
 // (see signInFromEnv).
 var processSignIn = signInFromEnv(os.Getenv)
 
 // IdentityVerify is the api.middleware entry: it verifies the request's token,
-// refuses an /api/ request with no verified identity, and puts the verified
-// identity where identity.Owner reads it.
+// refuses a request with no verified identity unless it is health or one of
+// publicRoutes, and puts the verified identity where identity.Owner reads it.
 func IdentityVerify(next http.Handler) http.Handler {
 	return newIdentityGate(next, processSignIn, slog.Default())
 }
@@ -81,25 +107,31 @@ type identityGate struct {
 	next   http.Handler
 	setup  signIn
 	logger *slog.Logger
+	// nativeEvents is whether this function receives schedule and queue events (decided once, from
+	// eventsPassThroughEnv).
+	nativeEvents bool
 }
 
 func newIdentityGate(next http.Handler, setup signIn, logger *slog.Logger) http.Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &identityGate{next: next, setup: setup, logger: logger}
+	return &identityGate{
+		next: next, setup: setup, logger: logger,
+		nativeEvents: os.Getenv(eventsPassThroughEnv) == eventsPath,
+	}
 }
 
 func (g *identityGate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
-	if !strings.HasPrefix(path, "/api/") || path == healthPath || g.setup.anonymous {
+	if r.URL.Path == healthPath || g.setup.anonymous {
 		g.next.ServeHTTP(w, r)
 		return
 	}
 
 	// A route the API does not have answers 404 to everyone, as it would with
 	// no sign-in: there is nothing behind it to protect, and the deploy's smoke
-	// check expects an unknown /api/ path to be a JSON 404.
+	// check expects an unknown /api/ path to be a JSON 404. Every route the API
+	// does have, wherever it sits, is protected unless publicRoutes names it.
 	if unknownRoute(g.next, r) {
 		g.next.ServeHTTP(w, r)
 		return
@@ -115,7 +147,8 @@ func (g *identityGate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// The sign-in calls are how a person gets a session: they carry none.
-	if strings.HasPrefix(path, authPathRoot) {
+	if publicRoutes[r.Method+" "+r.URL.Path] ||
+		(g.nativeEvents && r.Method == http.MethodPost && r.URL.Path == eventsPath) {
 		g.next.ServeHTTP(w, r)
 		return
 	}

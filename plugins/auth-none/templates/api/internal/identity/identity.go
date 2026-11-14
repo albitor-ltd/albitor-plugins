@@ -52,9 +52,13 @@ func FromContext(ctx context.Context) (Identity, bool) {
 // signs in. Handlers call it exactly as they would with a real sign-in, so adding
 // a real sign-in later changes who the owner is and nothing in them. Never take
 // the owner from the request body or a query parameter.
-func Owner(r *http.Request) string {
+//
+// The error is always nil here. It exists so the signature matches the sign-in plugins', whose
+// Owner fails in a deployed function with no verified identity: handlers check it the same way
+// under every plugin.
+func Owner(r *http.Request) (string, error) {
 	if id, ok := FromContext(r.Context()); ok {
-		return id.Sub
+		return id.Sub, nil
 	}
-	return FixedOwner
+	return FixedOwner, nil
 }

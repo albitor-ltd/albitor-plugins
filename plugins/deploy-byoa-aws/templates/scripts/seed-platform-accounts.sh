@@ -61,6 +61,13 @@
 #   /albitor/apps/<secrets segment>/secrets/ALBITOR_VERIFIER_B_ACCOUNT_PASSWORD
 # so cross-account isolation can be proved; its absence is a warning only and not a seed_status.
 #
+# The seeded group. Every fixture account above (demo, verifier, verifier-b and each role's) is also
+# added to the pool's reserved group platform-seeded, which the auth-cognito API reads to exempt them
+# from a services.auth.signup_domains list by identity, never by their .invalid address. The owner
+# is a real person and is never added. Idempotent like the rest, so an account seeded before the
+# group existed is added on the next deploy. The group is created by the module with the pool, so a
+# missing one fails the deploy rather than leaving a fixture locked out.
+#
 # Idempotent. It creates each account when it is absent and sets its password every time. A password
 # reaches neither argv nor another step's environment: the set-password call reads a 0600 JSON file
 # that is removed on the way out, and nothing is written to $GITHUB_ENV.
@@ -79,6 +86,7 @@ readonly demo_username="demo@albitor-demo.invalid"
 readonly verifier_username="verifier@albitor-verify.invalid"
 readonly verifier_b_username="verifier-b@albitor-verify.invalid"
 readonly demo_display_name="Demo User"
+readonly seeded_group="platform-seeded"
 
 pool_id="${1:-}"
 secrets_segment="${2:-}"
@@ -234,6 +242,11 @@ json.dump({
   fi
   rm -f "$payload"
   payload=""
+  if ! aws cognito-idp admin-add-user-to-group \
+    --user-pool-id "$pool_id" --username "$username" --group-name "$seeded_group" >/dev/null; then
+    echo "::error::could not add the ${label} to the ${seeded_group} group in ${pool_id}" >&2
+    return 1
+  fi
   if [ -n "$group" ]; then
     if ! aws cognito-idp admin-add-user-to-group \
       --user-pool-id "$pool_id" --username "$username" --group-name "$group" >/dev/null; then

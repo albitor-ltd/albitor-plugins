@@ -63,7 +63,11 @@ func (f *Files) Routes(r *http.ServeMux) {
 // authorise resolves the key for a request, or answers and returns false. A
 // record the person does not own is a 404, the same as one that is not there.
 func (f *Files) authorise(w http.ResponseWriter, r *http.Request, file string) (key, owner string, ok bool) {
-	owner = identity.Owner(r)
+	owner, err := identity.Owner(r)
+	if err != nil {
+		apikit.WriteError(w, http.StatusUnauthorized, "sign-in required")
+		return "", "", false
+	}
 	// The URL's record id is turned into a safe key segment; the same id
 	// must be passed to OwnsRecord, which compares it with the record's own.
 	record := objects.Segment(r.PathValue("record"))
@@ -235,7 +239,11 @@ func (f *Files) remove(w http.ResponseWriter, r *http.Request) {
 // failure then leaves the record to retry from, where deleting the record
 // first would leave files nothing points at.
 func DeleteRecordFiles(r *http.Request, s objects.Store, record string) error {
-	prefix, err := objects.Prefix(identity.Owner(r), objects.Segment(record))
+	owner, err := identity.Owner(r)
+	if err != nil {
+		return err
+	}
+	prefix, err := objects.Prefix(owner, objects.Segment(record))
 	if err != nil {
 		return err
 	}
