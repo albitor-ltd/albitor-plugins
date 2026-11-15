@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `look-consumer` `0.1.4`, `look-business` `0.1.3` and `look-startup` `0.1.3`
+  (albitor-ltd/albitor#4947; tags follow the merge). Each look skill gains an "Empty-state art"
+  section and an `EmptyArt.svelte` worked example under the skill (copied by the coder, not
+  seeded): a small decorative inline SVG of simple shapes in the look's own character, filled from
+  the app's colour tokens so it follows light and dark, `aria-hidden`, no lettering. For first-run empty lists only, never
+  errors, dense admin tables or GDS and Carbon apps.
 - `auth-cognito` `0.11.0`, `auth-hosted` `0.6.0`, `auth-none` `0.6.0`, `deploy-byoa-aws` `0.10.0`,
   `data-dynamodb` `0.4.1` and `object-s3` `0.1.3` (albitor-ltd/albitor#4932; tags follow the merge).
   Hardening of the identity checks. The sign-in gate in `auth-cognito` and `auth-hosted` is
