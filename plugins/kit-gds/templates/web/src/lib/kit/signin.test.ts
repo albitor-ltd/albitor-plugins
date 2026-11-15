@@ -5,6 +5,7 @@
 // client behaviour.
 import { flushSync, mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
+import ShellFixture from './__fixtures__/ShellFixture.svelte';
 import SignInHarness from './__fixtures__/SignInHarness.svelte';
 
 let app: (ReturnType<typeof mount> & { set(next: { error?: string; email?: string; busy?: boolean }): void }) | undefined;
@@ -15,8 +16,8 @@ afterEach(() => {
 	document.body.innerHTML = '';
 });
 
-async function show() {
-	app = mount(SignInHarness, { target: document.body }) as typeof app;
+async function show(initial: { mark?: string } = {}) {
+	app = mount(SignInHarness, { target: document.body, props: { initial } }) as typeof app;
 	flushSync();
 	await tick();
 }
@@ -35,6 +36,42 @@ const alertHasFocus = () => {
 	return !!a && (a.matches('[role="alert"]') || !!a.querySelector('[role="alert"]'));
 };
 const SAME = 'Email or password is incorrect';
+
+// AppShell's mark is a client event too (the image failing to load), so its test lives here.
+describe('AppShell mark', () => {
+	it('is removed when its file fails to load, and the name stays', async () => {
+		const shell = mount(ShellFixture, { target: document.body, props: { mark: '/brand/mark.svg' } });
+		flushSync();
+		await tick();
+		const img = document.querySelector('header img')!;
+		expect(img.getAttribute('alt')).toBe('');
+		img.dispatchEvent(new Event('error'));
+		flushSync();
+		expect(document.querySelector('header img')).toBeNull();
+		expect(document.querySelector('header')!.textContent).toContain('Example app');
+		unmount(shell);
+	});
+});
+
+describe('SignInPage mark', () => {
+	it('draws the app mark with an empty alt, above the one heading', async () => {
+		await show({ mark: '/brand/mark.svg' });
+		const img = document.querySelector('img')!;
+		expect(img.getAttribute('src')).toBe('/brand/mark.svg');
+		expect(img.getAttribute('alt')).toBe('');
+		expect(document.querySelectorAll('h1')).toHaveLength(1);
+	});
+
+	it('draws no image without a mark, or once its file fails to load', async () => {
+		await show();
+		expect(document.querySelector('img')).toBeNull();
+		unmount(app!);
+		await show({ mark: '/brand/mark.svg' });
+		document.querySelector('img')!.dispatchEvent(new Event('error'));
+		flushSync();
+		expect(document.querySelector('img')).toBeNull();
+	});
+});
 
 describe('SignInPage errors', () => {
 	it('shows no alert and takes no focus before a failure', async () => {

@@ -67,6 +67,26 @@ describe('AppShell', () => {
 	});
 });
 
+describe('AppShell mark', () => {
+	it('draws the app mark beside the name with an empty alt', () => {
+		const root = mount({ mark: '/brand/mark.svg' });
+		const img = root.querySelector('header img')!;
+		expect(img.getAttribute('src')).toBe('/brand/mark.svg');
+		expect(img.getAttribute('alt')).toBe('');
+		expect(root.querySelector('header')!.textContent).toContain('Example app');
+	});
+
+	it('stays text only without a mark', () => {
+		const root = mount();
+		expect(root.querySelector('header img')).toBeNull();
+	});
+
+	it('has no axe violations with a mark', async () => {
+		mount({ mark: '/brand/mark.svg' });
+		expect(await audit(dom)).toEqual([]);
+	});
+});
+
 describe('Toaster', () => {
 	it('announces a message politely and an error assertively', () => {
 		toast.push({ message: 'Saved', tone: 'success' });

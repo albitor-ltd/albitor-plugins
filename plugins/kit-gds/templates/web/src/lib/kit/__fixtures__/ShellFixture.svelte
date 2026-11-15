@@ -5,11 +5,11 @@
 	import AppShell from '../AppShell.svelte';
 	import { fixtureNav } from './nav';
 
-	let { path = '/', extraNav }: { path?: string; extraNav?: string } = $props();
+	let { path = '/', extraNav, mark }: { path?: string; extraNav?: string; mark?: string } = $props();
 	const nav = $derived(fixtureNav(extraNav));
 </script>
 
-<AppShell {nav} {path} title="Example app">
+<AppShell {nav} {path} {mark} title="Example app">
 	<h1 class="govuk-heading-l">Reports</h1>
 	<p class="govuk-body">The page content.</p>
 </AppShell>

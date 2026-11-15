@@ -68,6 +68,26 @@ describe('AppShell', () => {
 	});
 });
 
+describe('AppShell mark', () => {
+	it('draws the app mark beside the name with an empty alt', async () => {
+		const root = await mount({ mark: '/brand/mark.svg' });
+		const img = root.querySelector('header img')!;
+		expect(img.getAttribute('src')).toBe('/brand/mark.svg');
+		expect(img.getAttribute('alt')).toBe('');
+		expect(root.querySelector('header')!.textContent).toContain('Example app');
+	});
+
+	it('stays text only without a mark', async () => {
+		const root = await mount();
+		expect(root.querySelector('header img')).toBeNull();
+	});
+
+	it('has no axe violations with a mark', async () => {
+		await mount({ mark: '/brand/mark.svg' });
+		expect(await audit()).toEqual([]);
+	});
+});
+
 describe('GOV.UK branding', () => {
 	it('renders a text-only header: no Crown, no logotype, no image', async () => {
 		const root = await mount();

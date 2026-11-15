@@ -19,6 +19,7 @@
 
 	let {
 		title = 'Sign in',
+		mark,
 		error,
 		busy = false,
 		resetHref,
@@ -27,6 +28,8 @@
 		onsubmit
 	}: {
 		title?: string;
+		/** URL of the app's mark (`/brand/mark.svg`), shown above the heading with an empty alt. */
+		mark?: string;
 		/** One plain sentence; never which of email or password was wrong. */
 		error?: string;
 		busy?: boolean;
@@ -36,6 +39,9 @@
 		email?: string;
 		onsubmit: (email: string, password: string) => void | Promise<void>;
 	} = $props();
+
+	// Hidden when the file is missing, so an app with no brand files shows no broken image.
+	let markFailed = $state(false);
 
 	// An initial value only: the person's typing wins, and a later prop change does not overwrite it.
 	let email = $state(untrack(() => initialEmail));
@@ -70,6 +76,7 @@
 			<ErrorSummary errors={[{ field: 'signin-email', message: error }]} />
 		{/key}
 	{/if}
+	{#if mark && !markFailed}<img class="kit-signin__mark" src={mark} alt="" onerror={() => (markFailed = true)} />{/if}
 	<h1 class="govuk-heading-l">{title}</h1>
 	<form onsubmit={handle} novalidate>
 		<Field
@@ -102,6 +109,14 @@
 <style>
 	.kit-signin {
 		max-width: 30rem;
+	}
+	.kit-signin__mark {
+		display: block;
+		height: 3rem;
+		width: auto;
+		max-width: 6rem;
+		margin: 0 0 20px;
+		object-fit: contain;
 	}
 	.kit-signin__links {
 		display: flex;
