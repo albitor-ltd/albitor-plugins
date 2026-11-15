@@ -40,7 +40,7 @@
 		onsubmit: (email: string, password: string) => void | Promise<void>;
 	} = $props();
 
-	// Hidden when the file is missing, so an app with no seeded brand files shows no broken image.
+	// Hidden when the file is missing, so an app with no brand files shows no broken image.
 	let markFailed = $state(false);
 
 	// An initial value only: the person's typing wins, and a later prop change does not overwrite it.

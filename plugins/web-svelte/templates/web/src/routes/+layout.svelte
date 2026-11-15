@@ -1,6 +1,6 @@
 <!-- The slot host. Providers wrap the kit's app shell, which
      receives the nav, the app's name (the platform's app_name token, sanitised for a quoted
-     attribute) and its mark (`static/brand/mark.svg`, which the platform seeds from the app's logo;
+     attribute) and its mark (`static/brand/mark.svg`, which the platform rewrites from the app's logo;
      the kit hides the image when the file is missing). `data.showNav` (from `+layout.ts`) hides
      the nav, and the AccountBar, from a signed-out visitor. Per-area chrome belongs in a route
      group's own +layout.svelte. -->

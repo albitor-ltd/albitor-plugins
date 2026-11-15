@@ -99,7 +99,7 @@ writes.
 - From the platform: the `app_name` token. A composer that does not own it refuses the composition
   (`unknown_token`), so this version needs an albitor composer with it (albitor-ltd/albitor#3428). The root layout passes `app_name` to `AppShell` as
   its `title`, so the header names the app, and `mark` as `/brand/mark.svg`: the platform
-  seeds `web/static/brand/` (the app's logo, favicon, touch icon and manifest) beside `look.json`
+  writes `web/static/brand/` on every compose (the app's logo, favicon, touch icon and manifest) beside `look.json`
   (albitor-ltd/albitor#4945), `src/app.html` links them, and the kit hides the image when the file
   is missing. Nothing in the files or paths names the platform.
 

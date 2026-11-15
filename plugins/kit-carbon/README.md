@@ -11,7 +11,7 @@ same shell pieces, names and props as `kit-shadcn`, so a build can swap one kit 
 ## What it provides
 
 - The app's mark (albitor-ltd/albitor#4945): `AppShell` and `SignInPage` take an optional `mark` (a
-  URL; web-svelte's layout passes `/brand/mark.svg`, which the platform seeds). It is drawn with an
+  URL; web-svelte's layout passes `/brand/mark.svg`, which the platform writes). It is drawn with an
   empty `alt` beside the name and is not rendered when the file fails to load.
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet, placed beside the side nav the way Carbon places `Content`), `Footer` (new, in

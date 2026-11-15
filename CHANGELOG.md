@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `SignInPage` take an optional `mark` (a URL), drawn beside the name or above the heading with an
   empty `alt` and not rendered when the file fails to load; `kit-gds` stays text only without one.
   `web-svelte`'s `app.html` links the icon, touch icon and manifest, and its layout passes
-  `/brand/mark.svg`. The platform seeds `web/static/brand/*` beside `look.json`
+  `/brand/mark.svg`. The platform rewrites `web/static/brand/*` on every compose beside `look.json`
   (ADR-0109 section 9). The kit skills say where the mark lives and not to redraw it.
 - `look-consumer` `0.1.4`, `look-business` `0.1.3` and `look-startup` `0.1.3`
   (albitor-ltd/albitor#4947; tags follow the merge). Each look skill gains an "Empty-state art"
