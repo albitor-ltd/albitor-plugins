@@ -68,7 +68,8 @@ func createWidget(w http.ResponseWriter, r *http.Request) {
 		apikit.WriteError(w, http.StatusBadRequest, "name is required")
 		return
 	}
-	// Take the owner from the verified identity, never the body; write through the store.
+	// Take the owner from the verified identity, never the body; write through the store
+	// (with data-dynamodb, store.Owned(s, r) scopes every call to that owner).
 	apikit.WriteJSON(w, http.StatusCreated, in)
 }
 ```
@@ -220,7 +221,8 @@ invocation: see the web-app-architecture `screen-data` pattern.
 - **Log with the correlation id.** `apikit.CorrelationIDFromContext(r.Context())` on every line you
   add. The shell already logs one line per request (method, path without the query string, status,
   duration); do not log request bodies or tokens.
-- **Take the owner of a record from the verified identity**, never from the body or the query.
+- **Take the owner of a record from the verified identity**, never from the body or the query. With
+  the data-dynamodb plugin, `store.Owned(s, r)` does it for you (optional; scoping by hand is valid).
 - **Reach data only through the store interface** the data-store plugin provides, so the handler
   works in the local run as well as deployed.
 
@@ -240,6 +242,19 @@ not be able to read, update or delete it or find it in a list, and must not be a
 creating a record with the same id. The `servers[0]` base path is applied to the paths (the report
 names `/api/things/{id}` where the contract has `/things/{id}` under a `/api` server).
 
+- **Provenance and nested routes are advisory evidence.** The helper stamps every row it writes with
+  its name, the kit release, a digest of its own source (`provenance.go`, `nested.go` and the other
+  helper files) and a digest of the row, and lists the nested routes it drove in the report's
+  `nested` array. A nested route is one under a record that takes the record's id and another
+  (`GET /api/lists/{id}/items/{itemId}`): the second person makes a record of their own with the same
+  factory and calls the route with the first person's parent id and their own child id, and must be
+  refused (404 or 403). Give each person ids of their own in the factory (derive them from
+  `as.Identity.Name`), and put every id of the record in `Record.Params` by path-parameter name;
+  a route with a body needs a `Probe`. A `not-driven` row says what is missing. The stamp is not
+  tamper-proof: anyone who owns the app's files can edit the helper. It lets the platform tell a
+  report the helper wrote from one typed by hand, and a helper that is the kit's from one that was
+  changed. Neither the stamp nor the nested rows ever fail the test. Do not edit the files under
+  `internal/ownedscope/` or the report.
 - **Keep this test.** It is part of the app. It runs with `go test ./...`; set
   `OWNED_DATA_SCOPE_REPORT` to a path to also get its JSON report, one entry per route covered
   (`refused`, `leaked` or `waived` with a reason). The helper's own tests are named `TestScopeHelper...`

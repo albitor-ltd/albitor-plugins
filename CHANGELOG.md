@@ -14,6 +14,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   seeded): a small decorative inline SVG of simple shapes in the look's own character, filled from
   the app's colour tokens so it follows light and dark, `aria-hidden`, no lettering. For first-run empty lists only, never
   errors, dense admin tables or GDS and Carbon apps.
+- `auth-cognito` `0.11.0`, `auth-hosted` `0.6.0`, `auth-none` `0.6.0`, `deploy-byoa-aws` `0.10.0`,
+  `data-dynamodb` `0.4.1` and `object-s3` `0.1.3` (albitor-ltd/albitor#4932; tags follow the merge).
+  Hardening of the identity checks. The sign-in gate in `auth-cognito` and `auth-hosted` is
+  default-deny on every path (health, the exact sign-in routes, and on a schedule or queue function
+  the platform's `POST /events`). `identity.Owner` returns `(owner, error)`, and fails in a deployed
+  function with no identity. A `signup_domains` list now needs a verified address, and the
+  platform's own accounts are exempt by the `platform-seeded` pool group; `deploy-byoa-aws` sets the
+  app client's `write_attributes` and verification before an address change. The legacy `auth` plugin
+  keeps its old gate.
+- `data-dynamodb` `0.4.0` and `api-go` `0.9.1` (albitor-ltd/albitor#4932; tags follow the merge).
+  `data-dynamodb` seeds `store.Owned(s, r)`, an optional owner-scoped handle (get, list, create,
+  update, delete always inside the verified owner's partition; another person's record is
+  `ErrNotFound`), and now requires `auth@1` because it imports `internal/identity`. The skill
+  examples use it; nothing requires it. `api-go` only points its skill at it.
+- `api-go` `0.10.0` (albitor-ltd/albitor#4932 item 7; tag follows the merge). The two-owner helper
+  stamps each report row with provenance (helper, kit release, a digest of the helper's source and of the
+  row) and drives nested routes, with the first person's parent id swapped in, as advisory rows in the
+  report's `nested` list. Both are shadow evidence the platform records; neither fails the test.
 
 - `test-playwright` `0.7.0`, `deploy-hosted` `0.7.1` and `deploy-byoa-aws` `0.9.1`
   (albitor-ltd/albitor#4779 replan option 3; tags follow the merge). The platform testing contract:

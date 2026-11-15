@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 
@@ -234,25 +233,31 @@ func (a *cognitoAuth) signupAllowed(email string) bool {
 // errEmailNotAllowed is what a refusal by the sign-up domain list tells the person.
 const errEmailNotAllowed = "This app is limited to certain email domains, and this account's address is not one of them. Ask the person who runs this app."
 
-// platformSeededDomains are the domains of the accounts the platform seeds into the pool (the
-// verifier, the demo account and each role's account). They are .invalid (RFC 2606), so no real
-// person can hold one, and the list never locks them out: journeys and the demo sign-in need them.
-var platformSeededDomains = []string{"albitor-verify.invalid", "albitor-demo.invalid", "albitor-role.invalid"}
+// platformSeededGroup is the pool group the deploy's seed puts the platform's own accounts in (the
+// verifier, the demo account and each role's account). Only an administrator's IAM call can add a
+// person to a group, and the People screen adds to its two fixed groups alone, so membership is
+// an identity the pool vouches for. The domain list never locks these accounts out: journeys and
+// the demo sign-in need them. The exemption is the group, never an address: a person who holds an
+// address on a seeded domain is held to the list like anyone else.
+const platformSeededGroup = "platform-seeded"
 
 // holdsSession reports whether the verified identity may use the API under the domain list. With
-// no list everyone may. With one, the token must carry an address (an access token carries none,
-// so it is refused: the API takes the ID token) on a listed domain, or a platform-seeded one. It
-// reads the token's own address every time, so a person who changes their address, an invitee and
-// a person who registered with the pool directly are all held to it.
+// no list everyone may. With one, the token must carry an address the pool has verified (an access
+// token carries none, so it is refused: the API takes the ID token) on a listed domain, or belong
+// to the platform-seeded group. It reads the token's own claims every time, so a person who
+// changes their address, an invitee and a person who registered with the pool directly are all
+// held to it.
 func (a *cognitoAuth) holdsSession(id identity.Identity) bool {
 	if len(a.signupDomains) == 0 {
 		return true
 	}
-	email := strings.ToLower(strings.TrimSpace(id.Email))
-	if at := strings.LastIndex(email, "@"); at >= 1 && slices.Contains(platformSeededDomains, email[at+1:]) {
+	if id.InGroup(platformSeededGroup) {
 		return true
 	}
-	return a.signupAllowed(email)
+	if !id.EmailVerified {
+		return false
+	}
+	return a.signupAllowed(strings.ToLower(strings.TrimSpace(id.Email)))
 }
 
 // newLocalIssuerAuth trusts the local issuer at issuer, and nothing else.

@@ -21,6 +21,13 @@ if grep -rn '{{albitor\.slot' "$work" >/dev/null; then
   exit 1
 fi
 
+# The helper stamps the kit release into its report (ownedscope/provenance.go): it must be this one.
+kit="$(jq -r .version "$plugin/.claude-plugin/plugin.json")"
+if ! grep -q "^const KitVersion = \"$kit\"\$" "$plugin/templates/api/internal/ownedscope/provenance.go"; then
+  echo "error: ownedscope KitVersion is not the plugin's version ($kit)" >&2
+  exit 1
+fi
+
 cd "$work"
 # The generated router must be gofmt-clean as composed, empty slots included: no formatting here.
 unformatted="$(gofmt -l .)"

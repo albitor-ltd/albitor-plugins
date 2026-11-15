@@ -22,8 +22,8 @@ which is what keeps one person's records from another.
 
 | File | What it does |
 | --- | --- |
-| `api/internal/identity/identity.go` | `identity.Owner(r)`, `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
-| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every `/api/` request without a verified token except `/api/health`, `/api/auth/*` and an unknown path; `IdentityRoutes` serves `GET /api/me` |
+| `api/internal/identity/identity.go` | `identity.Owner(r)` (returns `(owner, error)`), `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
+| `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every request, on any path, without a verified token, except `/api/health`, the exact sign-in routes in `publicRoutes` (`GET /api/auth/login` and `callback`, `POST /api/auth/sign-out`), `POST /events` only on a schedule or queue function (the adapter's `AWS_LWA_PASS_THROUGH_PATH` is `/events`; on the public HTTP function it needs a verified identity) and a path nothing serves (the JSON 404); nothing matches by prefix, so a route you add under `/api/auth/` or outside `/api/` is protected unless you name it in `publicRoutes`; `IdentityRoutes` serves `GET /api/me` |
 | `api/internal/shell/identity_token.go` | The RS256 check against the pool's JWKS: signature, `iss`, `token_use`, client, expiry. Standard library only |
 | `api/internal/shell/identity_hosted.go` | The environment, the ID-token gate and the `SIGNUP_DOMAINS` rule, refresh at the token endpoint, and the `__Host-` session cookies (HttpOnly, Secure, SameSite=Strict) |
 | `api/internal/shell/identity_test.go` | The gate, the token checks, the email and domain rule on every request and refresh, key rotation and the local issuer |
@@ -66,7 +66,7 @@ client may send `Authorization: Bearer <token>` instead.
 
 ## What the build writes
 
-- **Authorisation.** Take the owner from `identity.Owner(r)` and put it in the partition key. Never
+- **Authorisation.** Take the owner from `owner, err := identity.Owner(r)` (answer 401 on `err`: a deployed function with no identity never acts as an anonymous owner) and put it in the partition key. Never
   take the owner from a body or a query parameter. An app has one kind of signed-in account unless
   the plan declares roles: never invent roles or an admin group. A route that only some people may
   use gates on `id.InGroup(<the declared admin_group>)` after `identity.FromContext`, and that group

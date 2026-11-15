@@ -1,4 +1,8 @@
 locals {
+  # The reserved pool group of the platform's seeded accounts; the auth-cognito API names it too
+  # (platformSeededGroup), and var.groups refuses it.
+  seeded_group = "platform-seeded"
+
   admin_group = var.admin_group != "" ? var.admin_group : (length(var.groups) > 0 ? var.groups[0] : "")
 }
 
@@ -25,6 +29,11 @@ output "groups" {
 output "admin_group" {
   description = "The resolved admin group the seed puts the platform's demo and verifier accounts into: services.auth.admin_group, else the first group, else empty (an app with no groups has no roles)."
   value       = local.admin_group
+}
+
+output "seeded_group" {
+  description = "The reserved group of the platform's seeded accounts, which the auth-cognito API exempts from a signup_domains list. The deploy's seed script adds each fixture account to it."
+  value       = aws_cognito_user_group.seeded.name
 }
 
 output "user_admin_group" {

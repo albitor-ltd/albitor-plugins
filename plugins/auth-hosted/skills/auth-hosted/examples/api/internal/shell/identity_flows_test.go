@@ -572,9 +572,9 @@ func TestSignOutFormPostIsSameSiteOnlyAndRedirectsToTheLogoutURL(t *testing.T) {
 		t.Fatalf("revoke calls = %d, want one per accepted sign-out", len(f.callsTo("/oauth2/revoke")))
 	}
 
-	// A GET never signs anyone out.
-	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-out", "", nil); rec.Code != http.StatusNotFound {
-		t.Fatalf("GET /api/auth/sign-out = %d, want 404", rec.Code)
+	// A GET never signs anyone out: it is not the POST the gate lets by, so it needs a session.
+	if rec := authDo(t, h, http.MethodGet, "/api/auth/sign-out", "", nil); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("GET /api/auth/sign-out = %d, want 401", rec.Code)
 	}
 }
 
@@ -604,11 +604,11 @@ func TestThePostRoutesAreCSRFSafe(t *testing.T) {
 	if len(f.callsTo("/oauth2/revoke"))+len(f.callsTo("/#DeleteUser")) != 0 {
 		t.Error("a refused request still reached Cognito")
 	}
-	if rec := authDo(t, h, http.MethodPost, "/api/auth/login", "{}", nil); rec.Code != http.StatusNotFound {
-		t.Errorf("POST /api/auth/login = %d, want 404", rec.Code)
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/login", "{}", nil); rec.Code != http.StatusUnauthorized {
+		t.Errorf("POST /api/auth/login = %d, want 401", rec.Code)
 	}
-	if rec := authDo(t, h, http.MethodPost, "/api/auth/sign-in", `{"email":"a@b.c","password":"x"}`, nil); rec.Code != http.StatusNotFound {
-		t.Errorf("POST /api/auth/sign-in = %d, want 404: there is no password sign-in", rec.Code)
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/sign-in", `{"email":"a@b.c","password":"x"}`, nil); rec.Code != http.StatusUnauthorized {
+		t.Errorf("POST /api/auth/sign-in = %d, want 401: there is no password sign-in", rec.Code)
 	}
 }
 
@@ -806,7 +806,7 @@ func TestALocalRunHasNoHostedSignIn(t *testing.T) {
 		}
 	}
 	// A JSON sign-out (the button's fetch, the authz probe) is answered, not refused: 200, the
-	// cookies cleared, no logout_url. Account deletion needs a pool and stays 501.
+	// cookies cleared, no logout_url. Account deletion needs a signed-in person, so it is refused without a session.
 	for name, body := range map[string]string{"json": "{}", "empty": ""} {
 		rec := authDo(t, h, http.MethodPost, "/api/auth/sign-out", body, nil)
 		if rec.Code != http.StatusOK || authDecode(t, rec)["logout_url"] != nil {
@@ -816,8 +816,8 @@ func TestALocalRunHasNoHostedSignIn(t *testing.T) {
 			t.Errorf("local %s POST sign-out cleared no cookies", name)
 		}
 	}
-	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", "{}", nil); rec.Code != http.StatusNotImplemented {
-		t.Errorf("POST delete = %d, want 501", rec.Code)
+	if rec := authDo(t, h, http.MethodPost, "/api/auth/delete", "{}", nil); rec.Code != http.StatusUnauthorized {
+		t.Errorf("POST delete = %d, want 401", rec.Code)
 	}
 	// The Sign out button still works there: a same-site form post clears the cookies and goes to
 	// /sign-in, never to the 501 JSON; a cross-site one is refused.

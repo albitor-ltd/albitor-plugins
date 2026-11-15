@@ -48,7 +48,9 @@ When the manifest declares `services.auth.groups`, the same seed adds both accou
 `services.auth.admin_group` (default: the first group) and to no other group, and gives every
 declared group an account of its own (`<role>@albitor-role.invalid`, that group alone), so a spec
 signs in as one role through `auth.signInAs(role)`. The receipt's `seeded_roles` reports the roles
-seeded. Never ask a person to add accounts to groups.
+seeded. Never ask a person to add accounts to groups. Every fixture account is also added to the
+reserved `platform-seeded` group, which the API exempts from a `signup_domains` list; never name an
+app group that.
 The API function can read the app's own secrets: the stack grants its role `ssm:GetParameter` and
 `ssm:GetParameters` on `/albitor/apps/<segment>/secrets/*` (the same segment) and sets
 `ALBITOR_SECRETS_PARAMETER_PREFIX` to that prefix. Read secrets through it (see the `api-go` skill);
