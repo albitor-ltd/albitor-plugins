@@ -115,14 +115,16 @@ How to use one:
 
 ## The app's mark
 
-The app's logo is not yours to draw. The platform writes its files beside `look.json` and rewrites them on every compose:
-`web/static/brand/` holds `mark.svg` (the one the shell and the sign-in page draw), `favicon.svg`,
-`favicon.ico`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, their dark versions and
-`manifest.webmanifest`, and `src/app.html` links the icon, the touch icon and the manifest. The root
-layout passes `mark="/brand/mark.svg"` to `AppShell`, and `SignInPage` takes the same
-optional `mark`. The mark has an empty `alt` (the app's name is beside it) and is not rendered when
-its file is missing. **Do not redraw, recolour, replace or inline the mark**, and do not add a
-second logo to a page; the files are platform-owned and rewritten from the logo selected at each build, so never edit them (an edit is overwritten), and a logo change reaches the app on its next build.
+The app's logo is not yours to draw. The platform writes its files beside `look.json` and rewrites
+them on every compose: `web/static/brand/` holds `mark.svg` (the one the shell and the sign-in page
+draw), `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, their
+dark versions and `manifest.webmanifest`, and `src/app.html` links the icon, the touch icon and the
+manifest. The root layout passes `mark="/brand/mark.svg"` to `AppShell`, and `SignInPage` takes the
+same optional `mark`. The mark has an empty `alt` (the app's name is beside it) and is not rendered
+when its file is missing. **Do not redraw, recolour, replace or inline the mark**, and do not add a
+second logo to a page; the files are platform-owned and rewritten from the logo selected at each
+build, so never edit them (an edit is overwritten), and a logo change reaches the app on its next
+build.
 
 ## Theming
 

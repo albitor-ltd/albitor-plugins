@@ -36,7 +36,7 @@
 		nav: NavGroup[];
 		path: string;
 		title?: string;
-		/** URL of the app's mark (the seeded `/brand/mark.svg`). Decorative: the name sits beside it. */
+		/** URL of the app's mark (the platform-written `/brand/mark.svg`). Decorative: the name sits beside it. */
 		mark?: string;
 		footer?: Snippet;
 		account?: Snippet;
@@ -44,7 +44,7 @@
 	} = $props();
 
 	// The mark is decorative (the name is beside it) and hidden when its file is missing, so an app
-	// with no seeded brand files shows the name alone.
+	// with no platform-written brand files shows the name alone.
 	let markFailed = $state(false);
 
 	let theme: CarbonTheme = $state('white');

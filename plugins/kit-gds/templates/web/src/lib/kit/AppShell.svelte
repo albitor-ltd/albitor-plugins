@@ -5,7 +5,7 @@
      links (Sign out, settings); it renders in the service navigation's end slot, outside the list, and stays visible when the menu is collapsed.
      The header carries no Crown and no GOV.UK logotype (they are for services on GOV.UK only). It is
      text only unless the app has its own mark: `mark` is the optional URL of the buyer's logo, drawn
-     beside the name with an empty alt. A service on GOV.UK is seeded no brand files, so it stays text
+     beside the name with an empty alt. A service on GOV.UK is given no brand files, so it stays text
      only (the image is hidden when its file is missing). -->
 <script lang="ts">
 	import './govuk.scss';
@@ -25,14 +25,14 @@
 		nav: NavGroup[];
 		path: string;
 		title?: string;
-		/** URL of the app's mark (the seeded `/brand/mark.svg`), drawn beside the name. Decorative. */
+		/** URL of the app's mark (the platform-written `/brand/mark.svg`), drawn beside the name. Decorative. */
 		mark?: string;
 		footer?: Snippet;
 		account?: Snippet;
 		children: Snippet;
 	} = $props();
 
-	// Hidden when the file is missing: a service on GOV.UK is seeded no brand files, so it stays text only.
+	// Hidden when the file is missing: a service on GOV.UK is given no brand files, so it stays text only.
 	let markFailed = $state(false);
 
 	// GOV.UK Frontend's page template runs an inline script as the first thing in <body> that adds
