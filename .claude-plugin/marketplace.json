@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.9.0",
-        "sha": "1ac4cb54a7ecfde938bbe3dc348b8fc2b9274dc8"
+        "ref": "web-svelte/v0.10.0",
+        "sha": "2e1bba60fd83c238c19034eb4ce227bdccb47b2d"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.11.0",
-        "sha": "1ac4cb54a7ecfde938bbe3dc348b8fc2b9274dc8"
+        "ref": "kit-shadcn/v0.12.0",
+        "sha": "2e1bba60fd83c238c19034eb4ce227bdccb47b2d"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -371,8 +371,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-carbon",
-        "ref": "kit-carbon/v0.10.0",
-        "sha": "1ac4cb54a7ecfde938bbe3dc348b8fc2b9274dc8"
+        "ref": "kit-carbon/v0.11.0",
+        "sha": "2e1bba60fd83c238c19034eb4ce227bdccb47b2d"
       },
       "description": "The component-kit plugin for Svelte in the IBM Carbon style: the styled shell pieces (UI shell with side nav, forms, tables, dialogs, toasts, empty states) on carbon-components-svelte, in Carbon's white and Gray 100 themes, which pass WCAG 2.2 AA contrast. Carbon is not themeable by a visual-language plugin.",
       "category": "development",
@@ -391,8 +391,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-gds",
-        "ref": "kit-gds/v0.10.0",
-        "sha": "1ac4cb54a7ecfde938bbe3dc348b8fc2b9274dc8"
+        "ref": "kit-gds/v0.11.0",
+        "sha": "2e1bba60fd83c238c19034eb4ce227bdccb47b2d"
       },
       "description": "The component-kit plugin for Svelte in GOV.UK Design System style: the shell pieces (app shell with a text-only header and service navigation, button, form field, error summary, table, dialog) in GOV.UK Frontend v6 markup and classes, plus the GOV.UK design-system and accessibility skills (WCAG 2.2 AA, the public sector regulations, audit and statement material). No Crown and no GOV.UK logotype. Not themeable by a visual-language plugin.",
       "category": "development",
@@ -417,8 +417,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-business",
-        "ref": "look-business/v0.1.2",
-        "sha": "344a190546adc4ed234de598023791382845e610"
+        "ref": "look-business/v0.1.3",
+        "sha": "116afb7e2962b30100b0ea3c6c95093b4ee91ef5"
       },
       "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
       "category": "development",
@@ -440,8 +440,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-startup",
-        "ref": "look-startup/v0.1.2",
-        "sha": "344a190546adc4ed234de598023791382845e610"
+        "ref": "look-startup/v0.1.3",
+        "sha": "116afb7e2962b30100b0ea3c6c95093b4ee91ef5"
       },
       "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
       "category": "development",
@@ -463,8 +463,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-consumer",
-        "ref": "look-consumer/v0.1.3",
-        "sha": "4b784a2d18eaff55fedf3732111dcd64c0a2c42a"
+        "ref": "look-consumer/v0.1.4",
+        "sha": "116afb7e2962b30100b0ea3c6c95093b4ee91ef5"
       },
       "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page with white cards and a berry accent, a few things at a time.",
       "category": "development",
