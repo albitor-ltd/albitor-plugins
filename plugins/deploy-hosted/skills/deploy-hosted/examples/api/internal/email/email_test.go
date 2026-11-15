@@ -62,7 +62,7 @@ func TestSendShapesTheGatewayRequest(t *testing.T) {
 	}
 	vars, _ := f.body["Variables"].(map[string]any)
 	if f.body["TemplateId"] != "order-receipt" || f.body["To"] != "person@example.org" ||
-		f.body["IdempotencyKey"] != "order-1042-receipt" || vars["track"] != "https://shop.example.org/orders/1042" {
+		f.body["IdempotencyKey"] != eventKey("order-1042-receipt", "order-receipt", "person@example.org") || vars["track"] != "https://shop.example.org/orders/1042" {
 		t.Errorf("body = %v", f.body)
 	}
 	// Nothing the gateway refuses as an unknown field: no subject, body, sender or link host.
@@ -70,6 +70,40 @@ func TestSendShapesTheGatewayRequest(t *testing.T) {
 		if k != "TemplateId" && k != "To" && k != "Variables" && k != "IdempotencyKey" {
 			t.Errorf("unexpected field %q", k)
 		}
+	}
+}
+
+func TestEventKeyIsPerRecipientAndTemplate(t *testing.T) {
+	re := regexp.MustCompile(`^[A-Za-z0-9._:-]{8,64}$`)
+	f := &fake{answer: `{"Disposition":"sent"}`}
+	s := newSender(t, f)
+	send := func(tmpl, to, event string) string {
+		t.Helper()
+		vars := Vars{"week": Text("46")}
+		if tmpl == "order-receipt" {
+			vars = Vars{"order": Number("1"), "name": Text("Ana"), "track": Link("https://a.example.org", "/o")}
+		}
+		if _, err := s.Send(context.Background(), tmpl, to, vars, ForEvent(event)); err != nil {
+			t.Fatal(err)
+		}
+		k, _ := f.body["IdempotencyKey"].(string)
+		if !re.MatchString(k) {
+			t.Fatalf("key %q is not one the gateway accepts", k)
+		}
+		return k
+	}
+	base := send("weekly-digest", "a@example.org", "e")
+	if k := send("weekly-digest", "b@example.org", "e"); k == base {
+		t.Error("two recipients under one event share a key")
+	}
+	if k := send("order-receipt", "a@example.org", "e"); k == base {
+		t.Error("two templates under one event share a key")
+	}
+	if k := send("weekly-digest", "A@Example.ORG", "e"); k != base {
+		t.Error("the same inputs, address in another case, gave a different key")
+	}
+	if k := send("weekly-digest", "a@example.org", "other-event-with-a-very-long-name-"+strings.Repeat("x", 100)); k == base {
+		t.Error("a different event shares a key")
 	}
 }
 

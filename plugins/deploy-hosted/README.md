@@ -82,7 +82,8 @@ with the `email` example copied to `api/internal/email`:
 copies the `gateway` and `email` examples (and auth-hosted's identity package, which the
 Notifications API reads) in as an app would, then builds, vets and tests them with `-race` and
 fails if `go.mod` gains a dependency. The web example's tests (`client.test.ts`, `optin.test.ts`)
-run with the app's own `npm test`.
+run with the app's own `npm test`; this gate does not typecheck or run the web examples (they have
+no `package.json` here).
 
 `tests/compose/deploy_hosted_test.go` (run by `scripts/compose-check.sh`) runs the real
 deploy-target@1 conformance suite and workflow lint over the plugin, certifies it in a hosted

@@ -18,6 +18,7 @@ package email
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -45,7 +46,6 @@ const (
 var (
 	templatePattern = regexp.MustCompile(`^[a-z][a-z0-9-]{0,39}$`)
 	varNamePattern  = regexp.MustCompile(`^[a-z][a-z0-9_]{0,31}$`)
-	keyPattern      = regexp.MustCompile(`^[A-Za-z0-9._:-]{8,64}$`)
 	numberPattern   = regexp.MustCompile(`^[0-9]{1,18}(\.[0-9]{1,6})?$`)
 )
 
@@ -160,10 +160,11 @@ type Option func(*options)
 
 type options struct{ key string }
 
-// ForEvent names the business event the mail is for, such as "order-1042-receipt". A repeat
-// send for the same event, template, address and values returns the first answer and sends
-// nothing, so a handler that runs twice does not mail twice. Without it every send is its own
-// event, which is right for a mail that may legitimately repeat.
+// ForEvent names the business event the mail is for, such as "order-1042-receipt". The
+// idempotency key is derived from the event, the template and the address (case-insensitive), so
+// one event can mail several people or several templates, and a repeat send of the same one
+// returns the first answer and sends nothing: a handler that runs twice does not mail twice.
+// Without it every send is its own event, which is right for a mail that may legitimately repeat.
 func ForEvent(event string) Option { return func(o *options) { o.key = event } }
 
 // Send sends a declared template to one address. A refusal is an error; a send the gateway
@@ -194,8 +195,8 @@ func (s *Sender) Send(ctx context.Context, template, to string, vars Vars, opts 
 		if key, err = randomKey(); err != nil {
 			return Result{}, err
 		}
-	} else if !keyPattern.MatchString(key) {
-		return Result{}, errors.New("email: the event must match [A-Za-z0-9._:-]{8,64}")
+	} else {
+		key = eventKey(key, template, to)
 	}
 	req := struct {
 		TemplateID     string            `json:"TemplateId"`
@@ -284,6 +285,13 @@ func checkVars(vars Vars) (map[string]string, error) {
 		out[name] = v.value
 	}
 	return out, nil
+}
+
+// eventKey is a deterministic gateway idempotency key for one event, template and recipient: a
+// hex sha256 prefix, so it always matches [A-Za-z0-9._:-]{8,64} whatever the event text.
+func eventKey(event, template, to string) string {
+	h := sha256.Sum256([]byte(event + "\x00" + template + "\x00" + strings.ToLower(to)))
+	return hex.EncodeToString(h[:])[:40]
 }
 
 func randomKey() (string, error) {

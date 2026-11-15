@@ -60,7 +60,7 @@ res, err := mail.Send(ctx, "order-receipt", order.Email, email.Vars{
   field, and the gateway refuses one (`400 bad_request`). To change what a mail says, the owner
   edits the template in the app's email settings.
 - **`ForEvent` makes a handler safe to run twice.** The same event, template, address and values
-  returns the first answer and sends nothing. Name the business event (`order-1042-receipt`), not a
+  returns the first answer and sends nothing; the key is a hash of the event, template and address, so one event can mail several people or templates. Name the business event (`order-1042-receipt`), not a
   timestamp. Leave it off for a mail that may truly repeat; Send then uses a fresh key.
 - **Never put an address in a log, a URL or an error shown to a person.**
 
@@ -76,6 +76,7 @@ res, err := mail.Send(ctx, "order-receipt", order.Email, email.Vars{
 | `404 unknown_template` | Declared, but the platform holds no copy yet | `email.Classify` says skip: log once, carry on |
 | `403 not_declared` | The id is not in the manifest's `templates`: a build bug | Skip, and fix the manifest or the code. `Send` already refuses an id outside the list given to `email.New` |
 | `409 never_email`, `409 invite_window`, `429 daily_cap`, `403 tenant_paused`, `402` | This mail is not going out now | Skip. Do not retry and do not queue it for later: a loop spends the app's limits and can mail someone twice |
+| `409 idempotency_key_reused`, `409 idempotency_in_progress`, `409 idempotency_replay_unavailable` | The key was already used for a different request, the first send is still running, or its answer is no longer held | Skip and log. `ForEvent` hashes the event with the template and address, so a reused key means the same event was sent with different values: name the event for what it mails. Do not retry with another key, which could mail twice |
 | `400`, `5xx`, a network failure | A request shape bug or an outage | A fault: log the error text and correlation id, and answer an opaque 500 only if the mail was the point of the request |
 
 A mail is a side effect, not the request. Send it after the work it reports has succeeded, and a
