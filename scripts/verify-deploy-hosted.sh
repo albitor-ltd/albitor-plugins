@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Build, vet and test the deploy-hosted plugin's gateway client, a skill example, as an app would
-# use it: copied into api/internal/gateway over api-go's tree.
+# Build, vet and test the deploy-hosted plugin's gateway client and email examples, skill examples,
+# as an app would use them: copied into api/internal/gateway and api/internal/email over api-go's
+# tree.
 #
 # The real composer lives in albitor-ltd/albitor and is not importable here, so this lays api-go's
 # templates/api tree out, copies the example in (`cp -r` into api/internal/gateway, as the skill
@@ -22,6 +23,13 @@ if [[ -e "$plugin/templates/api" ]]; then
   exit 1
 fi
 cp -R "$example" "$work/internal/gateway"
+# The email example: the sender and preferences (internal/email) and the Notifications page's API
+# (internal/app/notifications.go), which reads the verified address from auth-hosted's identity.
+examples="$plugin/skills/deploy-hosted/examples/api/internal"
+[[ -d "$examples/email" && -f "$examples/app/notifications.go" ]] || { echo "error: the email example is missing under $examples" >&2; exit 1; }
+cp -R "$root/plugins/auth-hosted/templates/api/internal/identity" "$work/internal/identity"
+cp -R "$examples/email" "$work/internal/email"
+cp "$examples"/app/notifications.go "$examples"/app/notifications_test.go "$work/internal/app/"
 sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' \
   "$apigo/templates/api/internal/shell/router.go" >"$work/internal/shell/router.go"
 
@@ -41,4 +49,4 @@ fi
 
 go build ./...
 go vet ./...
-go test ./internal/gateway/ -count=1 -race
+go test ./internal/gateway/ ./internal/email/ ./internal/app/ -count=1 -race

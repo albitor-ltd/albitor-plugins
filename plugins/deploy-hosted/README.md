@@ -56,11 +56,34 @@ The `gateway-services` skill carries the build guidance: declare `services.calla
 gateway-backed features behind sign-in or per-end-user rate limits by default (ADR-0099 section 12,
 Denial of wallet), and treat `402` as "feature unavailable".
 
+## App-sent email (`email` example, `app-email` skill)
+
+albitor-ltd/albitor#5030, part of #4977, ADR-0108. An app that declares `services.callable: - service:
+email, templates: [ids]` sends the mail the owner confirmed in the Emails step through the gateway,
+with the `email` example copied to `api/internal/email`:
+
+- `Send(ctx, template, to, vars, ForEvent(...))` names a declared template and supplies exactly its
+  values, typed (`Text`, `Number`, `Link`) and length-limited as the gateway holds them. There is no
+  subject, body, sender or link-host field. A `suppressed` answer (opt-out, no consent, unconfirmed
+  template, non-member) is a `Result`, not an error; refusals are classified (`Classify`) to skip or
+  fault, and nothing is retried.
+- `Preferences` and `SetPreferences` wrap `GetEmailPreferences` and `SetEmailPreferences`; an opt-in
+  is sent as the person's own act (`ConsentSource: user_action`).
+- `app/notifications.go` is the Notifications page's API over those, for the signed-in person's
+  verified address only. The web side (`examples/web`) is `/settings/notifications` (a switch and a
+  reason per optional or consent email, optional on and consent off to start), the Settings page that
+  links to it and `OptInPrompt`, the first-sign-in opt-in for consent mail. The platform's build and
+  handover check fails an app that declares optional or consent templates without that route
+  reachable from Settings.
+
 ## Verification
 
 `scripts/verify-deploy-hosted.sh` (the `deploy-hosted` recipe of `just ci`) lays api-go's tree out,
-copies the `gateway` example in as an app would, then builds, vets and tests it with `-race` and
-fails if `go.mod` gains a dependency.
+copies the `gateway` and `email` examples (and auth-hosted's identity package, which the
+Notifications API reads) in as an app would, then builds, vets and tests them with `-race` and
+fails if `go.mod` gains a dependency. The web example's tests (`client.test.ts`, `optin.test.ts`)
+run with the app's own `npm test`; this gate does not typecheck or run the web examples (they have
+no `package.json` here).
 
 `tests/compose/deploy_hosted_test.go` (run by `scripts/compose-check.sh`) runs the real
 deploy-target@1 conformance suite and workflow lint over the plugin, certifies it in a hosted

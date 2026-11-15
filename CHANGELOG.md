@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- `deploy-hosted` `0.8.0` (albitor-ltd/albitor#5030, part of #4977; tag follows the merge). The
+  `app-email` skill and its examples: `api/internal/email` (`Send` of a declared template with
+  typed, length-limited values and `ForEvent` idempotency; `suppressed` is an answer, refusals are
+  classified and never retried; `Preferences` and `SetPreferences` over the gateway's
+  `GetEmailPreferences` and `SetEmailPreferences`), the Notifications page's API
+  (`api/internal/app/notifications.go`) and its web side (`/settings/notifications`, the Settings
+  page that links to it, and `OptInPrompt`, the first-sign-in opt-in for consent mail). Optional
+  mail starts on and consent mail off. The platform's build and handover check requires the route
+  and a link to it for an app that declares optional or consent templates. Inert until the matching
+  albitor PR lands and the foundation brief points at it.
+
 ### Changed
 
 - `web-svelte` `0.10.0`, `kit-shadcn` `0.12.0`, `kit-carbon` `0.11.0` and `kit-gds` `0.11.0`
