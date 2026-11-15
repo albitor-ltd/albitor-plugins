@@ -5,6 +5,7 @@
 // client behaviour.
 import { flushSync, mount, tick, unmount } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
+import ShellFixture from './__fixtures__/ShellFixture.svelte';
 import SignInHarness from './__fixtures__/SignInHarness.svelte';
 
 let app: (ReturnType<typeof mount> & { set(next: { error?: string; email?: string; busy?: boolean }): void }) | undefined;
@@ -35,6 +36,22 @@ const alertHasFocus = () => {
 	return !!a && (a.matches('[role="alert"]') || !!a.querySelector('[role="alert"]'));
 };
 const SAME = 'Email or password is incorrect';
+
+// AppShell's mark is a client event too (the image failing to load), so its test lives here.
+describe('AppShell mark', () => {
+	it('is removed when its file fails to load, and the name stays', async () => {
+		const shell = mount(ShellFixture, { target: document.body, props: { mark: '/brand/mark.svg' } });
+		flushSync();
+		await tick();
+		const img = document.querySelector('header img')!;
+		expect(img.getAttribute('alt')).toBe('');
+		img.dispatchEvent(new Event('error'));
+		flushSync();
+		expect(document.querySelector('header img')).toBeNull();
+		expect(document.querySelector('header')!.textContent).toContain('Example app');
+		unmount(shell);
+	});
+});
 
 describe('SignInPage mark', () => {
 	it('draws the app mark with an empty alt, above the one heading', async () => {

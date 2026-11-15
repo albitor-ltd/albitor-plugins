@@ -6,7 +6,6 @@
      group's own +layout.svelte. -->
 <script lang="ts">
 	import '../lib/app/app.css';
-	import { assets } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
@@ -25,7 +24,7 @@
 		nav={data.showNav ? navGroups : []}
 		path={page.url.pathname}
 		title="{{albitor.app_name}}"
-		mark="{assets}/brand/mark.svg"
+		mark="/brand/mark.svg"
 	>
 		<OfflineBanner />
 		{#if data.showNav}

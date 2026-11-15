@@ -7,9 +7,13 @@ whose root layout renders the kit's `AppShell`.
 
 ## What it provides
 
-- The app's mark (albitor-ltd/albitor#4945): `AppShell` and `SignInPage` take an optional `mark` (a URL;
-  web-svelte's layout passes `/brand/mark.svg`, which the platform seeds). It is drawn with an empty
-  `alt` beside the name (kit-gds: in the text-only header, and not at all when the file is missing, as on GOV.UK) and is not rendered when the file fails to load.
+- The app's mark (albitor-ltd/albitor#4945): `AppShell` and `SignInPage` take an optional `mark` (a
+  URL; web-svelte's layout passes `/brand/mark.svg`, which the platform seeds). It is drawn with an
+  empty `alt` beside the name in the text-only header, and is not rendered when the file fails to
+  load. The platform seeds it only for the buyer's own uploaded logo, off GOV.UK: a service on
+  GOV.UK, or one with no upload, is seeded no brand files and stays text only. Seeds are never
+  deleted, so an app that later moves onto GOV.UK keeps its old `web/static/brand/` files and
+  should delete them.
 - The component-kit@2 standard shell exports from `index.ts`: `AppShell` (now with an optional
   `footer` snippet), `Footer` (new: links and text in a `contentinfo` landmark, GOV.UK footer
   colours; not GOV.UK's footer component, so no Crown copyright, OGL line or crest) and `SignInPage`
