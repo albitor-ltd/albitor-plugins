@@ -3,7 +3,8 @@
      link first and one main landmark. `footer` is an optional snippet rendered after <main>,
      outside it, normally `<Footer>`. `account` is an optional snippet for the signed-in visitor's
      controls (Sign out, a link to their settings), shown at the right of the header on every
-     width. Below 48rem the nav collapses behind a Menu button (a disclosure, not a dialog). -->
+     width. `mark` is the optional URL of the app's logo, drawn beside the name with an empty alt
+     (web-svelte's layout passes `/brand/mark.svg`; do not redraw it). Below 48rem the nav collapses behind a Menu button (a disclosure, not a dialog). -->
 <script lang="ts">
 	import './tokens.css';
 	import type { Snippet } from 'svelte';
@@ -14,6 +15,7 @@
 		nav,
 		path,
 		title = 'App',
+		mark,
 		footer,
 		account,
 		children
@@ -21,10 +23,16 @@
 		nav: NavGroup[];
 		path: string;
 		title?: string;
+		/** URL of the app's mark (the seeded `/brand/mark.svg`). Decorative: the name sits beside it. */
+		mark?: string;
 		footer?: Snippet;
 		account?: Snippet;
 		children: Snippet;
 	} = $props();
+
+	// The mark is decorative (the name is beside it) and hidden when its file is missing, so an app
+	// with no seeded brand files shows the name alone.
+	let markFailed = $state(false);
 
 	// The phone menu. Closed on every navigation and on Escape, so the page is never left hidden
 	// behind it. Above 48rem the button is not shown and the nav is always visible.
@@ -60,7 +68,10 @@
 <a class="skip" href="#main">Skip to main content</a>
 <div class="frame">
 	<header onkeydown={closeOnEscape}>
-		<span class="brand">{title}</span>
+		<span class="brand">
+			{#if mark && !markFailed}<img class="mark" src={mark} alt="" onerror={() => (markFailed = true)} />{/if}
+			{title}
+		</span>
 		{#if hasNav}
 			<button
 				type="button"
@@ -126,8 +137,17 @@
 		border-bottom: 1px solid var(--border);
 	}
 	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
 		font-weight: 600;
 		font-size: var(--text-heading);
+	}
+	.mark {
+		height: 1.75rem;
+		width: auto;
+		max-width: 3rem;
+		object-fit: contain;
 	}
 	nav {
 		display: flex;

@@ -3,7 +3,7 @@
 <script lang="ts">
 	import { SignInPage } from '../index';
 
-	let { initial = {} }: { initial?: { email?: string } } = $props();
+	let { initial = {} }: { initial?: { email?: string; mark?: string } } = $props();
 	let view = $state<{ error?: string; email?: string; busy: boolean }>({ busy: false, email: initial.email });
 
 	/** Change the props the page is given, as the owning route would between attempts. */
@@ -12,4 +12,4 @@
 	}
 </script>
 
-<SignInPage email={view.email} error={view.error} busy={view.busy} onsubmit={() => {}} />
+<SignInPage mark={initial.mark} email={view.email} error={view.error} busy={view.busy} onsubmit={() => {}} />

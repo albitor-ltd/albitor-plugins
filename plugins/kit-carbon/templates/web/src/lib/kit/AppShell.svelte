@@ -28,6 +28,7 @@
 		nav,
 		path,
 		title = 'App',
+		mark,
 		footer,
 		account,
 		children
@@ -35,10 +36,16 @@
 		nav: NavGroup[];
 		path: string;
 		title?: string;
+		/** URL of the app's mark (the seeded `/brand/mark.svg`). Decorative: the name sits beside it. */
+		mark?: string;
 		footer?: Snippet;
 		account?: Snippet;
 		children: Snippet;
 	} = $props();
+
+	// The mark is decorative (the name is beside it) and hidden when its file is missing, so an app
+	// with no seeded brand files shows the name alone.
+	let markFailed = $state(false);
 
 	let theme: CarbonTheme = $state('white');
 	// Closed to start: Carbon's SideNav opens itself at and above its expansion breakpoint, and
@@ -82,6 +89,10 @@
 <Theme bind:theme />
 <Header platformName={title} aria-label={title} bind:isSideNavOpen={sideNavOpen}>
 	<svelte:fragment slot="skipToContent"><SkipToContent /></svelte:fragment>
+	<svelte:fragment slot="platform">
+		{#if mark && !markFailed}<img class="mark" src={mark} alt="" onerror={() => (markFailed = true)} />{/if}
+		{title}
+	</svelte:fragment>
 	{#if account}
 		<HeaderUtilities>{@render account()}</HeaderUtilities>
 	{/if}
@@ -114,6 +125,14 @@
 <Toaster />
 
 <style>
+	.mark {
+		height: 1.5rem;
+		width: auto;
+		max-width: 3rem;
+		object-fit: contain;
+		vertical-align: middle;
+		margin-inline-end: 0.5rem;
+	}
 	@media (min-width: 66rem) {
 		:global(.bx--side-nav.bx--side-nav--expanded) ~ .footer-offset {
 			margin-left: 16rem;

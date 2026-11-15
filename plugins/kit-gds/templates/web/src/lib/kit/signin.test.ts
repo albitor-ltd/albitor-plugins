@@ -15,8 +15,8 @@ afterEach(() => {
 	document.body.innerHTML = '';
 });
 
-async function show() {
-	app = mount(SignInHarness, { target: document.body }) as typeof app;
+async function show(initial: { mark?: string } = {}) {
+	app = mount(SignInHarness, { target: document.body, props: { initial } }) as typeof app;
 	flushSync();
 	await tick();
 }
@@ -35,6 +35,26 @@ const alertHasFocus = () => {
 	return !!a && (a.matches('[role="alert"]') || !!a.querySelector('[role="alert"]'));
 };
 const SAME = 'Email or password is incorrect';
+
+describe('SignInPage mark', () => {
+	it('draws the app mark with an empty alt, above the one heading', async () => {
+		await show({ mark: '/brand/mark.svg' });
+		const img = document.querySelector('img')!;
+		expect(img.getAttribute('src')).toBe('/brand/mark.svg');
+		expect(img.getAttribute('alt')).toBe('');
+		expect(document.querySelectorAll('h1')).toHaveLength(1);
+	});
+
+	it('draws no image without a mark, or once its file fails to load', async () => {
+		await show();
+		expect(document.querySelector('img')).toBeNull();
+		unmount(app!);
+		await show({ mark: '/brand/mark.svg' });
+		document.querySelector('img')!.dispatchEvent(new Event('error'));
+		flushSync();
+		expect(document.querySelector('img')).toBeNull();
+	});
+});
 
 describe('SignInPage errors', () => {
 	it('shows no alert and takes no focus before a failure', async () => {

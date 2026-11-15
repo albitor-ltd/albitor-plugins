@@ -3,7 +3,10 @@
      labelled nav and one main landmark. `footer` is an optional snippet rendered after <main>,
      outside it, normally `<Footer>`. `account` is an optional snippet for the signed-in visitor's
      links (Sign out, settings); it renders in the service navigation's end slot, outside the list, and stays visible when the menu is collapsed.
-     The header is TEXT ONLY: no Crown, no GOV.UK logotype (they are for services on GOV.UK only). -->
+     The header carries no Crown and no GOV.UK logotype (they are for services on GOV.UK only). It is
+     text only unless the app has its own mark: `mark` is the optional URL of the buyer's logo, drawn
+     beside the name with an empty alt. A service on GOV.UK is seeded no brand files, so it stays text
+     only (the image is hidden when its file is missing). -->
 <script lang="ts">
 	import './govuk.scss';
 	import { onDestroy, onMount } from 'svelte';
@@ -14,6 +17,7 @@
 		nav,
 		path,
 		title = 'App',
+		mark,
 		footer,
 		account,
 		children
@@ -21,10 +25,15 @@
 		nav: NavGroup[];
 		path: string;
 		title?: string;
+		/** URL of the app's mark (the seeded `/brand/mark.svg`), drawn beside the name. Decorative. */
+		mark?: string;
 		footer?: Snippet;
 		account?: Snippet;
 		children: Snippet;
 	} = $props();
+
+	// Hidden when the file is missing: a service on GOV.UK is seeded no brand files, so it stays text only.
+	let markFailed = $state(false);
 
 	// GOV.UK Frontend's page template runs an inline script as the first thing in <body> that adds
 	// `js-enabled` (and `govuk-frontend-supported` when the browser passes its feature check). This
@@ -98,7 +107,10 @@
 <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
 <header class="kit-header">
 	<div class="govuk-width-container">
-		<span class="kit-header__name">{title}</span>
+		<span class="kit-header__name">
+			{#if mark && !markFailed}<img class="kit-header__mark" src={mark} alt="" onerror={() => (markFailed = true)} />{/if}
+			{title}
+		</span>
 	</div>
 </header>
 <div
@@ -156,6 +168,14 @@
 		color: var(--kit-header-text, #fff);
 		border-bottom: 10px solid #0b0c0c;
 		padding: 15px 0 10px;
+	}
+	.kit-header__mark {
+		height: 1.75rem;
+		width: auto;
+		max-width: 3rem;
+		object-fit: contain;
+		vertical-align: middle;
+		margin-inline-end: 10px;
 	}
 	.kit-header__name {
 		font-family: arial, sans-serif;

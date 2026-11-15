@@ -15,6 +15,7 @@
 
 	let {
 		title = 'Sign in',
+		mark,
 		error,
 		busy = false,
 		resetHref,
@@ -23,6 +24,8 @@
 		onsubmit
 	}: {
 		title?: string;
+		/** URL of the app's mark (`/brand/mark.svg`), shown above the heading with an empty alt. */
+		mark?: string;
 		/** One plain sentence; never which of email or password was wrong. */
 		error?: string;
 		busy?: boolean;
@@ -36,6 +39,8 @@
 	// An initial value only: the person's typing wins, and a later prop change does not overwrite it.
 	let email = $state(untrack(() => initialEmail));
 	let password = $state('');
+	// Hidden when the file is missing, so an app with no seeded brand files shows no broken image.
+	let markFailed = $state(false);
 	let alertBox: HTMLElement | undefined = $state();
 
 	// The error stays in the page until the next attempt's result replaces it, and takes focus on
@@ -58,6 +63,7 @@
 </script>
 
 <div class="card">
+	{#if mark && !markFailed}<img class="mark" src={mark} alt="" onerror={() => (markFailed = true)} />{/if}
 	<h1>{title}</h1>
 	{#if error}
 		<p class="error" role="alert" tabindex="-1" bind:this={alertBox}>
@@ -87,6 +93,14 @@
 	.card {
 		max-width: 24rem;
 		margin: 2rem auto;
+	}
+	.mark {
+		display: block;
+		height: 3rem;
+		width: auto;
+		max-width: 6rem;
+		margin: 0 0 1rem;
+		object-fit: contain;
 	}
 	h1 {
 		margin: 0 0 1rem;
