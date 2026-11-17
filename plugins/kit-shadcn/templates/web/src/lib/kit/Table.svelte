@@ -78,7 +78,7 @@
 						{#if secondary.length > 0}
 							<td class="more">
 								<details>
-									<summary>Details<span class="sr-only"> for {row[columns[0].key] ?? ''}</span></summary>
+									<summary>Details<span class="sr-only">{' for '}{row[columns[0].key] ?? ''}</span></summary>
 									<dl>
 										{#each secondary as s (s.key)}
 											<dt>{s.label}</dt>

@@ -1,35 +1,29 @@
-<!-- One titled group inside SettingsPage. The section is
-     named by its heading, so a screen reader can jump between groups. -->
+<!-- One titled group inside SettingsPage: a Card named by its heading, so a screen reader can jump
+     between groups. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import Card from '../Card.svelte';
 
 	let {
 		title,
 		description,
 		children
 	}: { title: string; description?: string; children: Snippet } = $props();
-
-	const uid = $props.id();
 </script>
 
-<section aria-labelledby={`${uid}-title`}>
-	<h2 id={`${uid}-title`}>{title}</h2>
-	{#if description}<p class="description">{description}</p>{/if}
-	{@render children()}
-</section>
+<div class="section">
+	<Card {title}>
+		{#if description}<p class="description">{description}</p>{/if}
+		{@render children()}
+	</Card>
+</div>
 
 <style>
-	section {
-		margin-bottom: 2rem;
-		padding-bottom: 1rem;
-		border-bottom: 1px solid var(--border);
-	}
-	h2 {
-		margin: 0 0 0.25rem;
-		font-size: var(--text-heading);
+	.section {
+		margin-bottom: var(--space-6);
 	}
 	.description {
-		margin: 0 0 1rem;
+		margin: 0 0 var(--space-4);
 		color: var(--muted-foreground);
 	}
 </style>

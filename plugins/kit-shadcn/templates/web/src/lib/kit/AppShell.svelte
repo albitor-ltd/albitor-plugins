@@ -4,11 +4,19 @@
      outside it, normally `<Footer>`. `account` is an optional snippet for the signed-in visitor's
      controls (Sign out, a link to their settings), shown at the right of the header on every
      width. `mark` is the optional URL of the app's logo, drawn beside the name with an empty alt
-     (web-svelte's layout passes `/brand/mark.svg`; do not redraw it). Below 48rem the nav collapses behind a Menu button (a disclosure, not a dialog). -->
+     (web-svelte's layout passes `/brand/mark.svg`; do not redraw it).
+     The navigation is NavShell's. `layout` puts it in the header row (`top`, the default) or in a
+     column beside the page (`side`). `phoneNav` is the look's stance for a phone: `drawer` (the
+     default) collapses it behind a Menu button (a disclosure, not a dialog); `tabs` makes it a
+     bottom tab bar (NavShell.svelte has the 2 to 5, 4 plus More and 1 destination rules). `icons`
+     maps a destination's href to a Lucide icon. -->
 <script lang="ts">
 	import './tokens.css';
-	import type { Snippet } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
+	import Menu from '@lucide/svelte/icons/menu';
 	import type { NavGroup } from '../shell/types';
+	import Icon from './Icon.svelte';
+	import NavShell, { phoneMode, type PhoneNav } from './NavShell.svelte';
 	import Toaster from './Toaster.svelte';
 
 	let {
@@ -18,6 +26,9 @@
 		mark,
 		footer,
 		account,
+		layout = 'top',
+		phoneNav = 'drawer',
+		icons,
 		children
 	}: {
 		nav: NavGroup[];
@@ -27,6 +38,12 @@
 		mark?: string;
 		footer?: Snippet;
 		account?: Snippet;
+		/** Where the navigation sits on a wide screen. */
+		layout?: 'top' | 'side';
+		/** What the phone gets: the look's stance. */
+		phoneNav?: PhoneNav;
+		/** href to Lucide icon, drawn beside each destination. */
+		icons?: Record<string, Component<{ size?: number | string; class?: string }>>;
 		children: Snippet;
 	} = $props();
 
@@ -38,6 +55,7 @@
 	// behind it. Above 48rem the button is not shown and the nav is always visible.
 	let menuOpen = $state(false);
 	const hasNav = $derived(nav.some((g) => g.items.length > 0));
+	const phone = $derived(phoneMode(nav, phoneNav));
 	$effect(() => {
 		void path;
 		menuOpen = false;
@@ -50,29 +68,16 @@
 			menuButton?.focus();
 		}
 	}
-
-	function normal(p: string): string {
-		return p.length > 1 ? p.replace(/\/+$/, '') : p;
-	}
-
-	/** 'page' on the page itself, 'true' inside its section, undefined elsewhere. */
-	function current(href: string): 'page' | 'true' | undefined {
-		const here = normal(path);
-		const target = normal(href);
-		if (here === target) return 'page';
-		if (target !== '/' && here.startsWith(target + '/')) return 'true';
-		return undefined;
-	}
 </script>
 
 <a class="skip" href="#main">Skip to main content</a>
-<div class="frame">
+<div class="frame" data-phone={phone} data-layout={layout}>
 	<header onkeydown={closeOnEscape}>
 		<span class="brand">
 			{#if mark && !markFailed}<img class="mark" src={mark} alt="" onerror={() => (markFailed = true)} />{/if}
 			{title}
 		</span>
-		{#if hasNav}
+		{#if hasNav && phone === 'drawer'}
 			<button
 				type="button"
 				class="menu"
@@ -81,32 +86,26 @@
 				aria-controls="main-nav"
 				onclick={() => (menuOpen = !menuOpen)}
 			>
+				<Icon icon={Menu} size={18} />
 				Menu
 			</button>
 		{/if}
-		<nav
-			id="main-nav"
-			aria-label="Main"
-			class:open={menuOpen}
-		>
-			{#each nav as group (group.id ?? '')}
-				<ul>
-					{#each group.items as item (item.href)}
-						<li>
-							<a href={item.href} aria-current={current(item.href)}>{item.label}</a>
-						</li>
-					{/each}
-				</ul>
-			{/each}
-		</nav>
+		{#if layout === 'top'}
+			<NavShell {nav} {path} {phoneNav} {icons} open={menuOpen} />
+		{/if}
 		{#if account}<div class="account">{@render account()}</div>{/if}
 	</header>
-	<main id="main" tabindex="-1">
-		{@render children()}
-	</main>
+	<div class="body">
+		{#if layout === 'side'}
+			<aside><NavShell {nav} {path} {phoneNav} {icons} open={menuOpen} side /></aside>
+		{/if}
+		<main id="main" tabindex="-1">
+			{@render children()}
+		</main>
+	</div>
 	{@render footer?.()}
+	<Toaster />
 </div>
-<Toaster />
 
 <style>
 	.skip {
@@ -154,16 +153,13 @@
 		max-width: 3rem;
 		object-fit: contain;
 	}
-	nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1) var(--space-6);
-	}
 	.account {
 		margin-inline-start: auto;
 	}
 	.menu {
 		display: none;
+		align-items: center;
+		gap: var(--space-2);
 		min-height: 2.75rem;
 		padding: var(--space-2) var(--space-4);
 		font: inherit;
@@ -173,71 +169,54 @@
 		border-radius: var(--radius);
 		cursor: pointer;
 	}
-	/* Phone: one header row (name, account, Menu); the nav opens under it as one full-width
-	   list of 44px-tall links. Nothing wraps into a second row of tabs. */
+	.body {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+	/* Phone: one header row (name, account, Menu); a drawer's list opens under it. */
 	@media (width < 48rem) {
 		header {
 			gap: var(--space-2) var(--space-3);
 			padding: var(--space-2) var(--space-4);
 		}
 		.menu {
-			display: inline-block;
+			display: inline-flex;
 			margin-inline-start: auto;
 		}
 		.account {
 			margin-inline-start: 0;
 		}
-		nav {
-			display: none;
-			order: 1;
-			flex-basis: 100%;
-			flex-direction: column;
-			flex-wrap: nowrap;
-			gap: 0;
-		}
-		nav.open {
-			display: flex;
-		}
-		ul {
-			flex-direction: column;
-			flex-wrap: nowrap;
-			gap: 0;
-		}
-		nav a {
-			display: block;
-			min-height: 2.75rem;
-			box-sizing: border-box;
-			padding: var(--space-3);
-		}
 		main {
 			padding: var(--space-4);
 		}
+		/* Room under the page for the fixed tab bar and the home indicator. */
+		.frame[data-phone='tabs'] {
+			/* The bar's height follows the text size; the page and the toasts clear it. */
+			--tab-bar-height: max(
+				3.75rem,
+				calc(var(--text-small) * 1.5 + 1.25rem + var(--space-2) * 2 + var(--border-width) * 2)
+			);
+			--tab-bar-offset: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+			padding-block-end: var(--tab-bar-offset);
+		}
+		aside {
+			display: contents;
+		}
 	}
-	ul {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1);
-		margin: 0;
-		padding: 0;
-		list-style: none;
+	@media (width >= 48rem) {
+		.frame[data-layout='side'] .body {
+			display: grid;
+			grid-template-columns: 14rem minmax(0, 1fr);
+			align-items: start;
+		}
+		aside {
+			padding: var(--space-4) var(--space-3);
+			border-inline-end: var(--border-width) solid var(--border);
+			align-self: stretch;
+		}
 	}
-	nav a {
-		display: inline-block;
-		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius);
-		color: var(--header-ink);
-		text-decoration: none;
-		transition: background-color var(--motion-duration) var(--motion-ease);
-	}
-	nav a:hover {
-		background: var(--muted);
-	}
-	nav a[aria-current] {
-		font-weight: var(--heading-weight);
-		text-decoration: underline;
-		text-underline-offset: 0.25rem;
-	}
-	a:focus-visible,
+	.skip:focus-visible,
 	.menu:focus-visible,
 	main:focus-visible {
 		outline: var(--focus-width) solid var(--ring);

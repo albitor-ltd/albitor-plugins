@@ -65,8 +65,12 @@ and on Escape. From 48rem up the button is hidden and the nav sits in the header
 wraps into rows of tabs and no word is split across lines. Hand-building a second nav duplicates
 destinations: keep this one unless the app needs more.
 
-Only when the app needs more than a disclosure, pick one pattern and replace the shell's menu
-(edit `AppShell.svelte`; do not add a second nav beside it):
+**Choosing the phone pattern.** `AppShell`'s `phoneNav` prop does it, so structure follows the
+look and the markup stays the kit's: `phoneNav="tabs"` renders the bottom tab bar described below
+(2 to 5 destinations; 4 plus More for 6 or more; a single destination keeps the Menu button), and
+`phoneNav="drawer"` keeps the Menu button. Pass the look's stance (its "Phone navigation" section).
+The rules, for reference and for an app that needs something the shell lacks (edit `NavShell.svelte`;
+do not add a second nav beside it):
 
 - 2 to 5 top-level destinations people switch between often: a bottom tab bar.
 - More than 5, or infrequent or hierarchical navigation: a menu button that opens a drawer, or,
@@ -74,9 +78,10 @@ Only when the app needs more than a disclosure, pick one pattern and replace the
   as a list.
 - Never a tab bar and a menu button carrying the same destinations.
 
-The kit has no tab bar or drawer component; build them from the existing pieces and tokens.
+`NavShell` builds the tab bar and 4 plus More. The kit's drawer is the Menu disclosure; a modal
+drawer, if the app wants one, is built from the Bits UI primitives as below.
 
-**Tab bar.** A `<nav aria-label="Primary">` fixed to the bottom, `display: flex`, each tab a link
+**Tab bar.** A `<nav aria-label="Main">` (the one nav: `NavShell` moves it, it is not a second one) fixed to the bottom, `display: flex`, each tab a link
 with an icon and a visible text label (never icon-only). Put `aria-current="page"` on the current
 tab and style it from `[aria-current]` (as `AppShell` does, which also marks parent sections with
 `aria-current="true"`), using weight or an indicator bar plus `var(--primary)`, not colour alone.

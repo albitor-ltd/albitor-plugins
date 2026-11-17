@@ -8,12 +8,15 @@
          {#snippet actions()}<Button onclick={create}>New report</Button>{/snippet}
        </ListPage>
 
+     Filters are Fields, or a row of FilterChips. A first-run list says what the page is for and
+     offers the first action: pass `emptyTitle`, `emptyDescription`, `emptyIcon` and `emptyAction`.
+
      On a narrow container the table either scrolls sideways (`narrow="scroll"`, the default),
      stacks each row into a labelled card (`narrow="stacked"`) or keeps only the primary columns in
      the row (`narrow="priority"`, with `priority: 'secondary'` on the columns that can drop). See
      the SKILL.md for choosing. -->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 	import EmptyState from '../EmptyState.svelte';
 	import Table, { type Column, type Narrow } from '../Table.svelte';
 	import PageHeader from './PageHeader.svelte';
@@ -31,6 +34,7 @@
 		onretry,
 		emptyTitle = 'Nothing here yet',
 		emptyDescription,
+		emptyIcon,
 		actions,
 		filters,
 		emptyAction
@@ -49,6 +53,8 @@
 		emptyTitle?: string;
 		/** Say why it is empty and what to do next. */
 		emptyDescription?: string;
+		/** A Lucide icon drawn above the empty state's title. */
+		emptyIcon?: Component<{ size?: number | string; class?: string }>;
 		actions?: Snippet;
 		/** Search and filter controls, each a labelled Field. */
 		filters?: Snippet;
@@ -64,7 +70,7 @@
 {#if status !== 'ready'}
 	<StateNotice {status} {errorMessage} {onretry} loadingLabel={`Loading ${title.toLowerCase()}`} />
 {:else if rows.length === 0}
-	<EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />
+	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} action={emptyAction} />
 {:else}
 	<Table {caption} {columns} {rows} {narrow} />
 {/if}
@@ -73,7 +79,7 @@
 	.filters {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 1rem;
-		margin-bottom: 1rem;
+		gap: var(--space-4);
+		margin-bottom: var(--space-4);
 	}
 </style>

@@ -11,6 +11,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Button from '../Button.svelte';
+	import Card from '../Card.svelte';
 	import PageHeader from './PageHeader.svelte';
 
 	let {
@@ -63,11 +64,13 @@
 {/if}
 
 <form onsubmit={handle} novalidate>
-	{@render children()}
-	<div class="buttons">
-		<Button type="submit" disabled={busy}>{busy ? 'Saving…' : submitLabel}</Button>
-		{#if cancelHref}<a href={cancelHref}>Cancel</a>{/if}
-	</div>
+	<Card>
+		<div class="fields">{@render children()}</div>
+		<div class="buttons">
+			<Button type="submit" disabled={busy}>{busy ? 'Saving…' : submitLabel}</Button>
+			{#if cancelHref}<a href={cancelHref}>Cancel</a>{/if}
+		</div>
+	</Card>
 </form>
 
 <style>
@@ -76,9 +79,9 @@
 	}
 	.summary {
 		max-width: 40rem;
-		margin-bottom: 1.5rem;
-		padding: 1rem;
-		border: 2px solid var(--destructive);
+		margin-bottom: var(--space-6);
+		padding: var(--space-4);
+		border: calc(var(--border-width) * 2) solid var(--destructive);
 		border-radius: var(--radius);
 	}
 	.summary:focus-visible {
@@ -93,10 +96,15 @@
 		margin: 0;
 		padding-inline-start: 1.25rem;
 	}
+	.fields {
+		display: grid;
+		gap: var(--space-4);
+		margin-bottom: var(--space-6);
+	}
 	.buttons {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 	.buttons a {
 		color: var(--link);

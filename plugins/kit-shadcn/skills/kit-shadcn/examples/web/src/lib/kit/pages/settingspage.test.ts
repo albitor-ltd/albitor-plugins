@@ -48,7 +48,7 @@ describe('SettingsPage', () => {
 
 	it('names each group by its heading and has one save', () => {
 		const root = mount();
-		const sections = [...root.querySelectorAll('section[aria-labelledby]')];
+		const sections = [...root.querySelectorAll('[role="group"][aria-labelledby]')];
 		expect(sections).toHaveLength(2);
 		for (const s of sections) {
 			const heading = s.querySelector(`#${s.getAttribute('aria-labelledby')}`);

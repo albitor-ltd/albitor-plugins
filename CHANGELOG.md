@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.14.0` (albitor-ltd/albitor-plugins#257, stream albitor-ltd/albitor#5137; tag
+  follows the merge). The kit's vocabulary: `Card`, `Pill`, `Tabs`, `Avatar`, `Progress` (bar and
+  ring), `Skeleton`, `FilterChip`, `StatTile`, `Chart` (bar and sparkline as SVG with a text
+  equivalent) and `Icon`, over `@lucide/svelte` 1.66.0 (new dependency, imported per icon), all
+  reading the `--look-*`-backed tokens with no fixed colours. `NavShell` (rendered by `AppShell`;
+  new `layout`, `phoneNav` and `icons` props, defaults unchanged) renders one destinations list as
+  a header row or a sidebar, and on a phone a bottom tab bar for 2 to 5 destinations, 4 tabs plus
+  More for 6 or more, or the Menu button, by the look's stance. `EmptyState` takes an `icon`. The
+  `index.ts` contract grows additively. The page examples (`DashboardPage`, `ListPage`,
+  `DetailPage`, `FormPage`, `SettingsPage`, `StateNotice`, `PageHeader`) use the vocabulary and the
+  dashboard and list gain a first-run state; the skill, references and README follow. New
+  contrast pairs cover the fills, bars and arrows. The tab bar highlights a tab for a nested page
+  too, its height is a shared token that the page padding and the toasts clear, and a sparkline
+  draws its line only.
+
 - `kit-shadcn` `0.13.0`, `look-business` `0.1.4`, `look-consumer` `0.1.5` and `look-startup` `0.1.4`
   (albitor-ltd/albitor#5137, albitor-ltd/albitor-plugins#256; tags follow the merge). The kit reads
   the platform's `--look-*` layer: `tokens.css` imports `web/src/lib/look/look.css` (platform

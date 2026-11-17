@@ -1,8 +1,9 @@
 <!-- The loading and failed states of a page, shown where
-     the content will appear. Loading is a polite status; a failure is an alert with a retry,
-     because a toast is gone once dismissed. -->
+     the content will appear. Loading is a polite status with skeletons in the shape of the
+     content; a failure is an alert with a retry, because a toast is gone once dismissed. -->
 <script lang="ts">
 	import Button from '../Button.svelte';
+	import Skeleton from '../Skeleton.svelte';
 
 	let {
 		status,
@@ -19,7 +20,14 @@
 </script>
 
 {#if status === 'loading'}
-	<p role="status" class="notice loading">{loadingLabel}…</p>
+	<div class="notice" aria-busy="true">
+		<p role="status" class="loading">{loadingLabel}…</p>
+		<div class="skeletons">
+			<Skeleton height="1.25rem" width="40%" />
+			<Skeleton height="1rem" />
+			<Skeleton height="1rem" width="85%" />
+		</div>
+	</div>
 {:else}
 	<div role="alert" class="notice">
 		<p>{errorMessage}</p>
@@ -29,14 +37,17 @@
 
 <style>
 	.notice {
-		padding: 1rem;
-		border: 1px solid var(--border);
+		padding: var(--space-4);
+		background: var(--surface);
+		border: var(--border-width) solid var(--border);
 		border-radius: var(--radius);
+		box-shadow: var(--shadow);
 	}
 	.notice p {
-		margin: 0 0 0.75rem;
+		margin: 0 0 var(--space-3);
 	}
-	.loading {
-		margin: 0;
+	.skeletons {
+		display: grid;
+		gap: var(--space-2);
 	}
 </style>

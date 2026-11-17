@@ -8,12 +8,15 @@
 		title,
 		description,
 		back,
+		badge,
 		actions
 	}: {
 		title: string;
 		description?: string;
 		/** A link to the parent page, shown above the title: `{ href, label }`. */
 		back?: { href: string; label: string };
+		/** A Pill beside the title, for the record's status. */
+		badge?: Snippet;
 		actions?: Snippet;
 	} = $props();
 </script>
@@ -22,7 +25,10 @@
 	{#if back}<p class="back"><a href={back.href}>{back.label}</a></p>{/if}
 	<div class="row">
 		<div>
-			<h1>{title}</h1>
+			<div class="title">
+				<h1>{title}</h1>
+				{#if badge}{@render badge()}{/if}
+			</div>
 			{#if description}<p class="description">{description}</p>{/if}
 		</div>
 		{#if actions}<div class="actions">{@render actions()}</div>{/if}
@@ -31,25 +37,31 @@
 
 <style>
 	header {
-		margin-bottom: 1.5rem;
+		margin-bottom: var(--space-6);
+	}
+	.title {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3);
 	}
 	.row {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 	h1 {
 		margin: 0;
 		font-size: var(--text-title);
 	}
 	.description {
-		margin: 0.25rem 0 0;
+		margin: var(--space-1) 0 0;
 		color: var(--muted-foreground);
 	}
 	.back {
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
 	}
 	.back a {
 		color: var(--link);
@@ -57,6 +69,6 @@
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 </style>
