@@ -101,10 +101,21 @@ client may send `Authorization: Bearer <token>` instead.
   shapes what the browser shows; the API enforces access. An app whose every page is private sends a
   signed-out visitor straight to Cognito.
 
+## Unconfirmed people
+
+Someone who signed up but never entered the emailed code is unconfirmed. Managed login offers
+"Resend code" only on the confirm screen straight after sign-up; signing in while unconfirmed
+shows "User is not confirmed", and forgot-password fails. Recovery is to sign up again with the
+same address: a `terraform-aws-hosted-app` release that carries PR #40 has a PreSignUp trigger
+that replaces the unconfirmed user and sends a fresh code. The verification email states the code
+lifetime (24 hours; 1 hour for a password reset). The app adds no sign-up or confirm screen of
+its own.
+
 ## Rules
 
-- **Do not weaken the pool.** The pool is the deploy's, from `services.auth`: no Lambda trigger, no
-  auto-confirm. The floor gates refuse all of them.
+- **Do not weaken the pool.** The pool is the deploy's, from `services.auth`: the app adds no Lambda
+  trigger and no auto-confirm (the module's own PreSignUp trigger is the deploy's). The floor gates
+  refuse all of them.
 - **Do not hard-code a scope or a URL.** They come from `AUTH_LOGIN_URL` and `AUTH_LOGOUT_URL`.
 - **No user-pool admin action on the API's role.** Account deletion uses the person's own access token.
 - **Fail closed.** With the `AUTH_*` variables missing or malformed on anything that is not a local run,

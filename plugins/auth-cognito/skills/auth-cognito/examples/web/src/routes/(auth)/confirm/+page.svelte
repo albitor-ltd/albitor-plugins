@@ -1,7 +1,7 @@
 <!-- Keep the data-testid values. -->
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { confirm, resend } from '../../../lib/auth/client';
 	import { Button, Field } from '../../../lib/kit';
@@ -12,6 +12,7 @@
 	let notice = $state('');
 	let busy = $state(false);
 	let alreadyConfirmed = $state(false);
+	let resending = $state(false);
 	let alertBox: HTMLElement | undefined = $state();
 
 	// The button is disabled while busy, which drops focus to <body>; a failure takes it back, on the alert.
@@ -37,7 +38,9 @@
 	async function sendAgain() {
 		error = notice = '';
 		alreadyConfirmed = false;
+		resending = true;
 		const result = await resend(email);
+		resending = false;
 		if (result.ok) {
 			notice = `If an account with ${email} is waiting for confirmation, we've sent it a new code.`;
 		} else if (result.code === 'already_confirmed') {
@@ -52,9 +55,9 @@
 	// send another.
 	onMount(() => {
 		if (page.url.searchParams.get('resend') !== '1' || !email) return;
-		const url = new URL(window.location.href);
-		url.searchParams.delete('resend');
-		history.replaceState(history.state, '', url);
+		const params = new URLSearchParams(page.url.search);
+		params.delete('resend');
+		replaceState(`${page.url.pathname}?${params}`, page.state);
 		void sendAgain();
 	});
 </script>
@@ -95,7 +98,7 @@
 		<p role="status" data-testid="confirm-notice">{notice}</p>
 	{/if}
 	<Button type="submit" disabled={busy} data-testid="confirm-button">Confirm</Button>
-	<Button variant="secondary" onclick={sendAgain} data-testid="confirm-resend">Send a new code</Button>
+	<Button variant="secondary" onclick={sendAgain} disabled={resending} data-testid="confirm-resend">Send a new code</Button>
 </form>
 
 <p>

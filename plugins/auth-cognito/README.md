@@ -131,11 +131,11 @@ deploy seeds are permanent from the start and never meet this step.
 - **The public client should have `PreventUserExistenceErrors` enabled.** It stops sign-in and
   password reset telling an attacker which addresses have accounts: Cognito then answers
   `NotAuthorizedException`, not `UserNotFoundException` or `UserNotConfirmedException`, and a
-  resend for a confirmed or unknown address is a fake success. It does not cover sign-up: `SignUp`
-  answers `UsernameExistsException` ("User already exists") for an existing address, confirmed or
-  not, with the setting on (checked against a scratch pool), which this
-  plugin maps to 409 `exists`. The plugin cannot set the flag (it ships no Terraform), so the deploy
-  target's contract has to.
+  resend for a confirmed or unknown address is a fake success. It does not cover sign-up:
+  `SignUp` answers `UsernameExistsException` ("User already exists") for an existing address,
+  confirmed or not, with the setting on (checked against a scratch pool), which this plugin maps
+  to 409 `exists`. The plugin cannot set the flag (it ships no Terraform), so the deploy target's
+  contract has to.
 
 ## Known gaps
 

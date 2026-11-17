@@ -9,13 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 
 - `auth-cognito` `0.12.0` (albitor-ltd/albitor#5119; tag follows the merge). A person who signed up
-  but never entered the emailed code can always get a new one. Sign-in on an unconfirmed account and
-  sign-up on an existing one lead to `/confirm?email=...&resend=1`, which sends a new code once; an
-  confirm screen never claims a send for certain and always offers Sign in (a confirmed account is
-  indistinguishable from an unconfirmed one with `PreventUserExistenceErrors` on; 409
-  `already_confirmed` fires only with it off). The README no
-  longer implies `PreventUserExistenceErrors` hides the sign-up `exists` answer. Examples only: an
-  app copies the fix from the skill.
+  but never entered the emailed code can always get a new one. Sign-in on an unconfirmed account
+  and sign-up on an existing one lead to `/confirm?email=...&resend=1`, which sends a new code
+  once. The confirm screen never claims a send for certain and always offers Sign in, because a
+  confirmed account is indistinguishable from an unconfirmed one with `PreventUserExistenceErrors`
+  on; 409 `already_confirmed` fires only with it off. The README no longer implies
+  `PreventUserExistenceErrors` hides the sign-up `exists` answer. Examples only: an app copies the
+  fix from the skill.
+- `auth-hosted` `0.6.1` (albitor-ltd/albitor#5119; tag follows the merge). Docs only: a section on
+  unconfirmed people on the hosted lane (managed login offers "Resend code" only straight after
+  sign-up; recovery is to sign up again with the same address, which the module's PreSignUp trigger
+  turns into a fresh code), and a rule that the app adds no sign-up or confirm screen.
 - `deploy-hosted` `0.8.0` (albitor-ltd/albitor#5030, part of #4977; tag follows the merge). The
   `app-email` skill and its examples: `api/internal/email` (`Send` of a declared template with
   typed, length-limited values and `ForEvent` idempotency; `suppressed` is an answer, refusals are

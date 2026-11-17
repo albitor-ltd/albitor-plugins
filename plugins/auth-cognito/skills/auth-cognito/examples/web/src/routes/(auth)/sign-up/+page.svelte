@@ -75,13 +75,19 @@
 	{/if}
 	{#if exists}
 		<div role="alert" tabindex="-1" bind:this={alertBox} data-testid="sign-up-exists">
-			<p>An account with that email already exists.</p>
 			<p>
-				<a href="/confirm?email={encodeURIComponent(email)}&resend=1" data-testid="sign-up-confirm-link"
-					>Confirm your email</a
+				An account with that email already exists. If you never entered the code we emailed you,
+				confirm your email.
+			</p>
+			<p class="exists-actions">
+				<a
+					href="/confirm?email={encodeURIComponent(email)}&resend=1"
+					data-testid="sign-up-confirm-link">Confirm your email</a
 				>
-				if you have not entered the code we sent, or
-				<a href="/sign-in?email={encodeURIComponent(email)}" data-testid="sign-up-exists-sign-in-link">sign in</a>.
+				<a
+					href="/sign-in?email={encodeURIComponent(email)}"
+					data-testid="sign-up-exists-sign-in-link">Sign in</a
+				>
 			</p>
 		</div>
 	{/if}
@@ -92,3 +98,17 @@
 	Already have an account?
 	<a href="/sign-in" data-testid="sign-up-sign-in-link">Sign in</a>
 </p>
+
+<style>
+	.exists-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+	}
+	.exists-actions a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		padding: 0.5rem 0.75rem;
+	}
+</style>

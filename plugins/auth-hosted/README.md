@@ -189,6 +189,18 @@ returned: make it idempotent and keep an erasure job as the backstop.
 - **Account deletion needs the `aws.cognito.signin.user.admin` scope** on the client and in
   `AUTH_LOGIN_URL`.
 
+## Unconfirmed people
+
+Someone who signed up on managed login but never entered the emailed code is unconfirmed, and the
+app has no screen of its own to help them:
+
+- Managed login offers "Resend code" only on the confirm screen straight after sign-up.
+- Signing in while unconfirmed shows "User is not confirmed", and forgot-password fails.
+- Recovery is to sign up again with the same address. A `terraform-aws-hosted-app` release that
+  carries PR #40 has a PreSignUp trigger that replaces the unconfirmed user and sends a fresh code.
+- The verification email states the code lifetime (24 hours; 1 hour for a password reset).
+- The app must not add its own sign-up or confirm screens.
+
 ## Known gaps
 
 - Two tabs that start a sign-in at once share one set of transient cookies: the later tab's state
