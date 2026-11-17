@@ -48,6 +48,11 @@ if [[ -n "$(gofmt -l "$populated/router.go")" ]]; then
 fi
 rm -rf "$populated"
 
+# The seeded tree (not the supplier example below) must pass the lint a delivered app runs (the
+# platform's lint gate: bare `golangci-lint run ./...`, default linters). The vendored helper must pass it as it is, or a foundation run "fixes" it and moves the
+# source digest the platform checks (albitor-ltd/albitor#4447).
+golangci-lint run --allow-parallel-runners ./...
+
 # The supplier example, copied into the composed tree as the skill says, builds and passes too.
 cp -R "$plugin/skills/api-go/examples/api/internal/supplier" internal/supplier
 

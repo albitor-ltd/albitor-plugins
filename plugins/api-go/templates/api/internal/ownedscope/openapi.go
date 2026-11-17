@@ -303,7 +303,7 @@ func readContract(doc string) (Contract, error) {
 			add(o, group, create.Path)
 		}
 		for _, o := range deeper {
-			o.Operation.Entity, o.Operation.Collection = group, create.Path
+			o.Entity, o.Collection = group, create.Path
 			if k := o.MatchKey(); !seen["nested "+k] {
 				seen["nested "+k] = true
 				c.Nested = append(c.Nested, o.Operation)
@@ -313,7 +313,7 @@ func readContract(doc string) (Contract, error) {
 	for _, o := range ops {
 		if k := o.MatchKey(); o.Admin && !seen[k] {
 			seen[k] = true
-			o.Operation.Collection, o.Operation.Entity = "", o.entity
+			o.Collection, o.Entity = "", o.entity
 			c.Admin = append(c.Admin, o.Operation)
 		}
 	}

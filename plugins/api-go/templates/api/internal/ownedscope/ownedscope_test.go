@@ -473,7 +473,7 @@ func adminHandler(admins map[string]bool, leakStats bool) http.Handler {
 	base := newArmies(true).Routes()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/admin/", func(w http.ResponseWriter, r *http.Request) {
-		if !admins[r.Header.Get("X-Who")] && !(leakStats && r.URL.Path == "/api/admin/stats") {
+		if !admins[r.Header.Get("X-Who")] && (!leakStats || r.URL.Path != "/api/admin/stats") {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
