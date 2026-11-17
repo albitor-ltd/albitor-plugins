@@ -92,7 +92,7 @@ stays plain on purpose.
 | `SummaryList` | Facts as key and value; each row may have a Change link that names what it changes |
 | `SummaryCard` | A titled summary list for one of several like things (each applicant) |
 | `Tag` | The status of a thing, in words ("In progress"); default style only |
-| `NotificationBanner` | `important` (a region) or `success` (an alert that takes focus); never for form errors |
+| `NotificationBanner` | `important` (a region) or `success` (an alert that takes focus); one line as `heading`, longer as children; never for form errors |
 | `TaskList` | A long transaction's tasks, each with a status (Completed, In progress, Not started, Cannot start yet) |
 | `BackLink` | The first thing on every question page of a flow, to the real previous page |
 | `InsetText` | Text set apart, once or twice a page at most |
