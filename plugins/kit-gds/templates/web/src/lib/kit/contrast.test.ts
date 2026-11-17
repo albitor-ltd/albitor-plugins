@@ -100,6 +100,8 @@ const pairs: Array<[string, string, string, number]> = [
 		4.5
 	],
 	['secondary button text', text, ruleColour('.govuk-button--secondary', 'background-color'), 4.5],
+	['tag text', ruleColour('.govuk-tag', 'color'), ruleColour('.govuk-tag', 'background-color'), 4.5],
+	['success notification banner title', colour('inverse-text-colour'), colour('success-colour'), 4.5],
 	// The kit's text-only header, in AppShell.svelte: the header text on the brand colour. Whatever
 	// brand colour an app sets in govuk.scss, govuk.scss picks the header text to meet this.
 	['header text on the brand band', headerText, brand, 4.5],

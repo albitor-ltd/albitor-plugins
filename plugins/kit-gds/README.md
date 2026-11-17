@@ -24,6 +24,14 @@ whose root layout renders the kit's `AppShell`.
   `ErrorSummary` (GOV.UK error summary: focus on mount, each entry links to its field's id),
   `Table` and `Dialog`. GOV.UK has no modal, so `Dialog` is a GOV.UK-styled native `<dialog>`
   whose first focus is the Close button, never a destructive action you pass in.
+- More GOV.UK pieces (albitor-ltd/albitor#5137), exported from `index.ts` beside the contract
+  names, additively: `ServiceNavigation`, `SummaryList`, `SummaryCard`, `Tag`, `NotificationBanner`,
+  `TaskList`, `BackLink` and `InsetText`, in Frontend 6.4.0 markup and classes. No colour variants,
+  icons or art: `Tag` is the default style, so a status is always in words. Each has its own
+  `<name>.test.ts` (axe plus behaviour: current page, hidden text on Change links, focus and role of
+  the success banner, task statuses) and `__fixtures__/<Name>Fixture.svelte`; delete a piece, its
+  fixture and its test together. `govuk.scss` now compiles their styles, and the notification
+  banner's title takes the header's text colour so it keeps AA on an app's own brand colour.
 - `govuk.scss`: the Frontend styles those components wear, compiled from the pinned
   `govuk-frontend` package with `sass`. The service navigation is restated in that file rather than
   imported, because Frontend's stylesheet for it carries an Internet Explorer media-query hack that
@@ -48,10 +56,13 @@ whose root layout renders the kit's `AppShell`.
 - The page templates, worked examples in the `govuk-design-system` skill's
   `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`,
   `DetailPage`, `FormPage`, `DashboardPage`, `SettingsPage` (with `SettingsSection`) and
-  `SignInPage`, over `PageHeader` and `StateNotice`, in GOV.UK markup (back link, summary list,
+  `SignInPage`, and the task-list flow (`TaskListPage`, `QuestionPage`, `CheckAnswersPage` and
+  `ConfirmationPage`, with `flow.test.ts` and `FlowFixture.svelte`), over `PageHeader` and `StateNotice`, in GOV.UK markup (back link, summary list,
   error summary, notification banner). Each has its own `<name>.test.ts` and
   `__fixtures__/<Name>Fixture.svelte` that render it in every state and run axe over it
   (`PagesShowcase.svelte` is the shared frame, `pages.test.ts` covers the sign-in page).
+- `rubric.md` in the `govuk-design-system` skill: GOV.UK pattern checks (one thing per page, a Back
+  link on question pages, check answers, a Tag for status) for a visual review. Patterns only.
 - `preview-tokens.json`: GOV.UK Frontend 6.4.0's palette for the build preview.
 - The `govuk-frontend` dependency is pinned at 6.5.1; the markup and palette above follow 6.4.0, which 6.5.x leaves unchanged (it only adds trial components).
 

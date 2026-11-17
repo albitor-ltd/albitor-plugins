@@ -72,11 +72,52 @@ markup (back link, summary list, error summary, notification banner), so do not 
 | Create or edit one record | `FormPage` | Labelled fields, the focused error summary, a named submit, cancel, a busy guard |
 | An overview | `DashboardPage` | Labelled headline figures, sections below, loading and failed states |
 | Preferences, in groups | `SettingsPage` with `SettingsSection` | Named groups, one save, the same error summary |
+| A long transaction | `TaskListPage`, `QuestionPage`, `CheckAnswersPage`, `ConfirmationPage` | The task-list flow below: task list, one question per page, check answers, confirmation |
 | Sign in | `SignInPage` | Already in the repository: the GOV.UK error summary, then the fields |
 
 `PageHeader` (the one `<h1>`, a lead description, a back link, actions) and `StateNotice` (a polite
 loading status; a failure as a notification banner with the alert role and a retry) sit under every
 template; use them directly for a page that fits none of the above.
+
+## Components the kit seeds
+
+Reach for these before writing GOV.UK markup by hand. They are in `web/src/lib/kit/` and exported from
+its `index.ts` (`import { TaskList, Tag } from '$lib/kit'`), each in Frontend 6.4.0 markup and
+classes, each with its own test and fixture. They have no colour variants, icons or art: GOV.UK
+stays plain on purpose.
+
+| Component | Use it for |
+|---|---|
+| `ServiceNavigation` | A band of service name and links of your own (AppShell already renders one from the app's nav) |
+| `SummaryList` | Facts as key and value; each row may have a Change link that names what it changes |
+| `SummaryCard` | A titled summary list for one of several like things (each applicant) |
+| `Tag` | The status of a thing, in words ("In progress"); default style only |
+| `NotificationBanner` | `important` (a region) or `success` (an alert that takes focus); never for form errors |
+| `TaskList` | A long transaction's tasks, each with a status (Completed, In progress, Not started, Cannot start yet) |
+| `BackLink` | The first thing on every question page of a flow, to the real previous page |
+| `InsetText` | Text set apart, once or twice a page at most |
+
+Not seeded: the Panel (a green block), the Warning text (an icon) and the phase banner. Do not add
+colour or an icon to a tag or banner to make it stand out.
+
+## The task-list flow
+
+`examples/web/src/lib/kit/pages/` also holds a page-to-page flow, laid out like the page templates:
+`TaskListPage` (the start and return point; offers check answers only when every task is complete)
+-> `QuestionPage` (one thing per page: the question is the h1, a Back link above it, one primary
+button, the error summary on a failed submit) -> `CheckAnswersPage` (a summary list with a Change link
+per answer, then one named button) -> `ConfirmationPage` (the reference and what happens next, no Back
+link). Copy the four pages, `flow.test.ts` and `__fixtures__/FlowFixture.svelte` (plus the folder's
+shared `PagesShowcase.svelte` and `helpers.ts`), then edit them: add one `QuestionPage` route per
+question, and a task's `href` is its first question. They are pages, not a router: the routes, the
+state that carries answers between them, and the server-side validation are the app's.
+
+## Reviewing a page
+
+`rubric.md` beside this file is a short list of GOV.UK pattern checks (patterns only, not
+decoration) for a visual review of a built page: one thing per page, a Back link on question pages,
+check answers before sending, status as a Tag, and so on. Use it when reviewing screenshots or a
+rendered page, with `references/patterns.md` for the reasons.
 
 ## Related
 

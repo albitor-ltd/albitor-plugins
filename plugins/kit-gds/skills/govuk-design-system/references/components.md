@@ -58,6 +58,8 @@ The black GOV.UK-branded header (crown logo, "GOV.UK"). Use at the very top of e
 ### Service navigation — `govukServiceNavigation`
 Shows the service name and (optionally) navigation links beneath the GOV.UK header. Replaces the older pattern of putting the service name in the header. Has a JS mobile menu. Use it for navigation that applies across the whole service.
 
+In this kit: `AppShell` renders one from the app's nav; `ServiceNavigation` is a standalone band (`serviceName`, `items`, `path`) with no menu toggle.
+
 ### GOV.UK footer — `govukFooter`
 Standard footer. Includes the Open Government Licence statement and Crown copyright by default — keep these. Add your service's links (accessibility statement, cookies, privacy, terms). For services **on GOV.UK only**: off GOV.UK the OGL and Crown copyright do not apply — build your own footer using GDS layout and typography with your own brand and licensing.
 
@@ -69,6 +71,8 @@ Shows where the page sits in a hierarchy and lets users move up levels. Use on h
 
 ### Back link — `govukBackLink`
 A single "Back" link to the previous step. Use in linear journeys (question pages). Place it at the top of the page, above `<main>`. Make it go to the actual previous page, and ensure it still works without JS (point `href` at a real URL, don't rely on `history.back()` alone).
+
+In this kit: `BackLink` (`href`, optional `text`).
 
 ### Skip link — `govukSkipLink`
 "Skip to main content" link, first focusable element on the page. Its target (e.g. `id="main-content"`) must exist and be focusable. JS moves focus to the target on activation. Required for keyboard accessibility — include on every page.
@@ -121,17 +125,23 @@ Red inline message attached to a field. Add `govuk-form-group--error` to the gro
 ### Notification banner — `govukNotificationBanner`
 Important information or a success confirmation (`type: "success"` turns it green). Use sparingly. The success variant and important variant receive focus on load via JS. Don't use it for validation errors (use Error summary) — and don't overuse it or users will ignore it.
 
+In this kit: `NotificationBanner` (`type` important or success, optional `title`, `headingLevel`, children); the success banner takes focus when it mounts.
+
 ### Panel — `govukPanel`
 Large green confirmation panel, used on confirmation pages with a heading and (e.g.) a reference number. Put the most important info (reference number) in the `html`/body.
 
 ### Tag — `govukTag`
 Small coloured status label (e.g. "Completed", "In progress"). Colour variants exist (`govuk-tag--blue`, `--green`, `--grey`, `--red`, etc.) — choose by meaning and ensure the text alone conveys status (colour is not the only signal). Keep text short.
 
+In this kit: `Tag`, the default style only (no colour variants: keep the status in words).
+
 ### Warning text — `govukWarningText`
 Bold warning with a circled `!` icon and visually-hidden "Warning" text. Use for genuinely important consequences (e.g. legal/penalty), not general emphasis.
 
 ### Inset text — `govukInsetText`
 Indented block with a left border, to set apart content such as a quote, example, or supplementary note. Don't overuse; not for warnings (use Warning text).
+
+In this kit: `InsetText`.
 
 ## Disclosure and layout components
 
@@ -147,11 +157,15 @@ Switch between sections that are equivalent alternatives (e.g. different regions
 ### Summary list — `govukSummaryList`
 Key/value pairs, typically a "check your answers" summary. Each row can have an action ("Change") with visually-hidden text naming what it changes (e.g. "Change your name"). Use `govuk-summary-list--no-border` for a borderless variant. Can be grouped into cards with `govukSummaryList` card options.
 
+In this kit: `SummaryList` (`rows` of key, value and an optional `change` link with hidden text) and `SummaryCard` (a title, `headingLevel`, card `actions` and `rows`).
+
 ### Table — `govukTable`
 Tabular data with proper `<th scope>` row/column headers and an optional caption. Use real tables only for data, not layout. Right-align numeric columns with `govuk-table__cell--numeric` and use tabular figures.
 
 ### Task list — `govukTaskList`
 A list of tasks each with a status Tag (e.g. "Completed", "Cannot start yet"). Used for the "Complete multiple tasks" pattern. Each task title links to the task; status conveyed in text, not colour alone.
+
+In this kit: `TaskList` (`items` of title, optional `href` and `hint`, and a `status`); a flow built on it is in `examples/web/src/lib/kit/pages/` (see SKILL.md, "The task-list flow").
 
 ## Sensitive-content component
 
