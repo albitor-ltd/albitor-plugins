@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.10.0",
-        "sha": "66cde1a43b90bf8596b1b3fa54af36e43cf670d9"
+        "ref": "api-go/v0.10.1",
+        "sha": "4d449f8c4e1a9af8f398b581bd7b97d6dd09856c"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
