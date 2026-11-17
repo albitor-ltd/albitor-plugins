@@ -271,6 +271,8 @@
 			z-index: 5;
 			display: block;
 			padding-block-end: env(safe-area-inset-bottom, 0px);
+			min-block-size: var(--tab-bar-height, 3.75rem);
+			box-sizing: border-box;
 			background: var(--header);
 			border-top: var(--border-width) solid var(--border);
 		}
@@ -300,7 +302,7 @@
 			text-align: center;
 			text-decoration: none;
 		}
-		.tabs a[aria-current='page'],
+		.tabs a[aria-current],
 		.tabs .has-current {
 			color: var(--foreground);
 			font-weight: var(--heading-weight);

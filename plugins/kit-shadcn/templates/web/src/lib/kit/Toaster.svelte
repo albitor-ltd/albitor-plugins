@@ -35,7 +35,7 @@
 <style>
 	.toaster {
 		position: fixed;
-		inset-block-end: var(--space-4);
+		inset-block-end: calc(var(--space-4) + var(--tab-bar-offset, 0px));
 		inset-inline-end: var(--space-4);
 		display: flex;
 		flex-direction: column;

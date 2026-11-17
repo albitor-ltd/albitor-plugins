@@ -42,9 +42,8 @@
 		<title id="{id}-t">{title}</title>
 		{#if kind === 'sparkline'}
 			<polyline class="line" points={line} />
-			{#if data.length}<circle class="dot" cx={pad + (data.length - 1) * step} cy={y(data[data.length - 1].value)} r="3" />{/if}
 		{:else}
-			{#each data as d, i (d.label)}
+			{#each data as d, i (i)}
 				<rect
 					class="bar"
 					x={pad + i * slot + slot * 0.15}
@@ -57,13 +56,13 @@
 		{/if}
 	</svg>
 	{#if kind === 'bar' && !compact}
-		<div class="axis" aria-hidden="true">{#each data as d (d.label)}<span>{d.label}</span>{/each}</div>
+		<div class="axis" aria-hidden="true">{#each data as d, i (i)}<span>{d.label}</span>{/each}</div>
 	{/if}
 	<table class="sr">
 		<caption>{title}</caption>
 		<thead><tr><th scope="col">Label</th><th scope="col">Value</th></tr></thead>
 		<tbody>
-			{#each data as d (d.label)}<tr><th scope="row">{d.label}</th><td>{d.value}{unit}</td></tr>{/each}
+			{#each data as d, i (i)}<tr><th scope="row">{d.label}</th><td>{d.value}{unit}</td></tr>{/each}
 		</tbody>
 	</table>
 </figure>
@@ -91,9 +90,6 @@
 		stroke-linejoin: round;
 		stroke-linecap: round;
 		vector-effect: non-scaling-stroke;
-	}
-	.dot {
-		fill: var(--second);
 	}
 	.axis {
 		display: flex;

@@ -90,6 +90,21 @@ describe('the phone stance', () => {
 	});
 });
 
+describe('the tab bar highlight', () => {
+	it('marks a tab current for a nested page too, so the bar highlights it', async () => {
+		await show({ count: 4, phoneNav: 'tabs', path: '/p2/deep' });
+		const current = [...nav().querySelectorAll('a[aria-current]')];
+		expect(current).toHaveLength(1);
+		expect(current[0].getAttribute('aria-current')).toBe('true');
+		expect(current[0].textContent?.trim()).toBe('Page 2');
+	});
+
+	it('says the current page is in More for a nested page under a More destination', async () => {
+		await show({ count: 7, phoneNav: 'tabs', path: '/p6/deep' });
+		expect(more()!.textContent).toContain('(current page is in More)');
+	});
+});
+
 describe('More', () => {
 	it('is closed until pressed, then opens the rest as a list, and closes on Escape with focus back', async () => {
 		await show({ count: 7, phoneNav: 'tabs' });

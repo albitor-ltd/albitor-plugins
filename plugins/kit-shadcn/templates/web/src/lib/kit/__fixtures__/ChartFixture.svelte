@@ -17,4 +17,11 @@
 	<Chart title="Orders per day" data={days} unit=" orders" />
 	<Chart kind="sparkline" compact title="Signups, last 3 days" data={days} />
 	<Chart title="Nothing yet" data={[]} />
+	<Chart
+		title="Repeated labels"
+		data={[
+			{ label: 'Week', value: 1 },
+			{ label: 'Week', value: 2 }
+		]}
+	/>
 </AppShell>

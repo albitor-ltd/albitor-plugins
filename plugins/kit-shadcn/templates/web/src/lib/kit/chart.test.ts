@@ -34,19 +34,25 @@ describe('Chart', () => {
 	});
 
 	it('draws one bar per value, the tallest for the largest', () => {
-		const bars = [...mount().querySelectorAll('[data-kind="bar"] rect.bar')];
+		const bars = [...mount().querySelector('[data-kind="bar"]')!.querySelectorAll('rect.bar')];
 		expect(bars).toHaveLength(3);
 		const heights = bars.map((b) => Number(b.getAttribute('height')));
 		expect(heights[1]).toBeGreaterThan(heights[0]);
 		expect(heights[0]).toBeGreaterThan(heights[2]);
 	});
 
-	it('draws a sparkline as one line with its end marked, and no axis labels', () => {
+	it('draws a sparkline as one line, undistorted, and no axis labels', () => {
 		const spark = mount().querySelector('[data-kind="sparkline"]')!;
 		expect(spark.querySelectorAll('polyline')).toHaveLength(1);
-		expect(spark.querySelectorAll('circle')).toHaveLength(1);
+		expect(spark.querySelectorAll('circle')).toHaveLength(0);
 		expect(spark.querySelector('.axis')).toBeNull();
 		expect(spark.querySelectorAll('tbody tr')).toHaveLength(3);
+	});
+
+	it('accepts repeated labels', () => {
+		const root = mount();
+		
+		expect(root.querySelectorAll('[data-kind="bar"]')[2].querySelectorAll('rect')).toHaveLength(2);
 	});
 
 	it('renders no data without an error', () => {

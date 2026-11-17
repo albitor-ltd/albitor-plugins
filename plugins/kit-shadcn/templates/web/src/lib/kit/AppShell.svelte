@@ -104,8 +104,8 @@
 		</main>
 	</div>
 	{@render footer?.()}
+	<Toaster />
 </div>
-<Toaster />
 
 <style>
 	.skip {
@@ -192,7 +192,13 @@
 		}
 		/* Room under the page for the fixed tab bar and the home indicator. */
 		.frame[data-phone='tabs'] {
-			padding-block-end: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+			/* The bar's height follows the text size; the page and the toasts clear it. */
+			--tab-bar-height: max(
+				3.75rem,
+				calc(var(--text-small) * 1.5 + 1.25rem + var(--space-2) * 2 + var(--border-width) * 2)
+			);
+			--tab-bar-offset: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+			padding-block-end: var(--tab-bar-offset);
 		}
 		aside {
 			display: contents;

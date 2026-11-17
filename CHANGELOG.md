@@ -19,7 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   `index.ts` contract grows additively. The page examples (`DashboardPage`, `ListPage`,
   `DetailPage`, `FormPage`, `SettingsPage`, `StateNotice`, `PageHeader`) use the vocabulary and the
   dashboard and list gain a first-run state; the skill, references and README follow. New
-  contrast pairs cover the fills, bars and arrows.
+  contrast pairs cover the fills, bars and arrows. The tab bar highlights a tab for a nested page
+  too, its height is a shared token that the page padding and the toasts clear, and a sparkline
+  draws its line only.
 
 - `kit-shadcn` `0.13.0`, `look-business` `0.1.4`, `look-consumer` `0.1.5` and `look-startup` `0.1.4`
   (albitor-ltd/albitor#5137, albitor-ltd/albitor-plugins#256; tags follow the merge). The kit reads

@@ -83,7 +83,8 @@ look's tokens style it, and the structure is chosen by three props, never by edi
   the stance from the look skill's "Phone navigation" section (a look that leans to a tab bar says
   so) and pass it from the root layout. Pick one: a tab bar and a menu button never carry the same
   destinations.
-- `icons`: a map from a destination's `href` to a Lucide icon, drawn beside the label.
+- `icons`: a map from a destination's `href` to a Lucide icon, drawn beside the label. It is keyed
+  by href, so a renamed route drops its icon silently: update the map with the route.
 
 `aria-current="page"` is on the current link and never on More (the button says "(current page is in
 More)" in words), targets are 44px and the bar pads for the home indicator. `references/patterns.md`
