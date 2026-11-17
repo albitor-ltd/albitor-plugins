@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   and warning, shadow, the spacing scale and row and control height, border width, heading font,
   weight and tracking, figures, focus width and motion. `AppShell`, `Button`, `Field`, `Table`,
   `Dialog`, `EmptyState`, `Toaster`, `Footer` and `SignInPage` use them in place of fixed padding,
-  `1px` borders and no shadow. `look.test.ts` tests the mapping; `contrast.test.ts` resolves the
+  `1px` borders and no shadow; with no look every rendered value is the one it was before. `look.test.ts` tests the mapping; `contrast.test.ts` resolves the
   tokens and audits the new pairs in both schemes. The look skills' "Apply it" sections drop the
   hand-mapping and dual-selector instructions: `look.css` is never edited, app-only styles go in
   `app.css`.

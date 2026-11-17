@@ -10,12 +10,13 @@ change something the look does not set, declare the same property unlayered in
 |---|---|---|
 | `--background`, `--foreground` | `page`, `ink` | Page and body text |
 | `--surface` | `surface` | Cards, dialog, toasts and field backgrounds (the page colour with no look) |
-| `--muted`, `--muted-foreground` | `surface`, `ink-soft` | Panels, table headers, hover; secondary text and hints |
+| `--muted`, `--muted-foreground` | `surface` (so `--muted` and `--surface` share one look value), `ink-soft` | Panels, table headers, hover; secondary text and hints |
 | `--border` | `line` | Decorative hairlines (table rules, header rule). Not for a control edge |
 | `--input` | `control-line` | A control's edge (field, secondary button, dashed empty state). 3:1 on the background |
 | `--ring`, `--focus-width` | `focus`, `focus-width` | Focus outline colour (3:1 on the background and the primary fill) and thickness |
 | `--primary`, `--primary-foreground` | `accent`, `on-accent` | The main action fill and its text |
 | `--second`, `--second-subtle`, `--second-text`, `--on-second` | `second*`, `on-second` | The second colour: fill, chip background, text on page and chip, ink on the fill. With no second colour they equal the primary and muted |
+| `--success-edge` | `success` | The success toast's edge: the look's success colour, else `--link` |
 | `--destructive`, `--destructive-foreground` | `danger`, `on-danger` | Delete, errors, and the text on a destructive fill |
 | `--success`, `--on-success`, `--warning`, `--on-warning` | `success`, `warning`, `on-*` | Status fills (success toast edge) and their ink |
 | `--link` | `link`, else `accent-text` | Link text |
@@ -23,10 +24,10 @@ change something the look does not set, declare the same property unlayered in
 | `--radius`, `--border-width` | `radius`, `border-width` | Corner radius; border thickness (default `1px`) |
 | `--shadow`, `--shadow-overlay` | `shadow` | Raised surfaces (header, buttons, stacked rows); the dialog and toasts. `none` with no look |
 | `--font-sans`, `--text-small`, `--text-body`, `--text-heading`, `--text-title` | `font-body`, `text-*` | Type |
-| `--heading-font`, `--heading-weight`, `--heading-tracking` | `font-heading`, `weight-bold`, `tracking` | Headings, table captions, labels. The names avoid `--font-heading`, which the font plugins own |
+| `--heading-font`, `--heading-weight`, `--heading-tracking` | `font-heading`, `weight-bold`, `tracking` | Headings, table captions, labels (plain `h1` to `h4` read the `--look-*` properties directly, so they stay as the browser draws them without a look). The names avoid `--font-heading`, which the font plugins own |
 | `--figures` | `figures` | `font-variant-numeric` for body and tables |
 | `--space`, `--space-1`, `-2`, `-3`, `-4`, `-6`, `-8` | `space` | Density multiplier and the spacing steps (0.25, 0.5, 0.75, 1, 1.5, 2 rem times it) |
-| `--control-height`, `--row-height` | `min-target`, `space` | Button and field minimum height; table row height |
+| `--control-height`, `--row-height` | `min-target`, `space` | Button and field minimum height; table row height (natural height until the look sets a density) |
 | `--motion-duration`, `--motion-ease` | `motion-duration`, `motion-ease` | Transitions (`0s` with no look, and under reduced motion) |
 
 Pairs audited by `contrast.test.ts`, in light, dark by preference and dark by attribute:

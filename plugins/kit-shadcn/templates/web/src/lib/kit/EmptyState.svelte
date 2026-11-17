@@ -28,10 +28,7 @@
 	.empty :global(h3),
 	.empty :global(h4) {
 		margin: 0 0 var(--space-2);
-		font-family: var(--heading-font);
 		font-size: var(--text-heading);
-		font-weight: var(--heading-weight);
-		letter-spacing: var(--heading-tracking);
 	}
 	p {
 		margin: 0 0 var(--space-4);

@@ -113,6 +113,21 @@ describe('with a look', () => {
 		expect(token(light, '--motion-ease', look)).toBe('ease');
 	});
 
+	it('uses different values in dark when the look supplies them', () => {
+		const darkLook = { ...look, '--look-page': '#10101a', '--look-accent': '#c4b5fd' };
+		expect(token(light, '--background', darkLook)).toBe('#10101a');
+		expect(token(dark, '--primary', darkLook)).toBe('#c4b5fd');
+		// What the look leaves out keeps the scheme's own default.
+		expect(token(light, '--warning', darkLook)).toBe('#b45309');
+		expect(token(dark, '--warning', darkLook)).toBe('#fbbf24');
+	});
+
+	it('uses the old link colour for the success toast edge until the look sets success', () => {
+		expect(token(light, '--success-edge')).toBe('#1d4ed8');
+		expect(token(dark, '--success-edge')).toBe('#60a5fa');
+		expect(token(light, '--success-edge', look)).toBe('#16a34a');
+	});
+
 	it('takes the link from the look link, then the accent text, then the kit blue', () => {
 		expect(token(light, '--link')).toBe('#1d4ed8');
 		expect(token(light, '--link', { '--look-accent-text': '#5b21b6' })).toBe('#5b21b6');
@@ -123,7 +138,7 @@ describe('with a look', () => {
 
 	it('derives the spacing steps and the row height from the density multiplier', () => {
 		expect(light['--space-4']).toBe('calc(1rem * var(--space))');
-		expect(light['--row-height']).toBe('calc(2.75rem * var(--space))');
+		expect(light['--row-height']).toBe('calc(2.75rem * var(--look-space))');
 	});
 });
 

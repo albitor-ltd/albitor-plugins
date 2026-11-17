@@ -119,8 +119,8 @@
 	}
 	th,
 	td {
-		height: var(--row-height);
-		padding: var(--space-2) var(--space-3);
+		height: var(--row-height, auto);
+		padding: calc(0.625rem * var(--space)) var(--space-3);
 		text-align: start;
 		border-bottom: var(--border-width) solid var(--border);
 	}

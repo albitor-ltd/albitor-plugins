@@ -169,7 +169,7 @@
 		font: inherit;
 		color: var(--header-ink);
 		background: transparent;
-		border: var(--border-width) solid var(--input);
+		border: var(--border-width) solid var(--border);
 		border-radius: var(--radius);
 		cursor: pointer;
 	}

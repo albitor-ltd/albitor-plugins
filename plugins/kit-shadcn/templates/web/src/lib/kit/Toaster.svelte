@@ -58,7 +58,7 @@
 		box-shadow: var(--shadow-overlay);
 	}
 	p.success {
-		border-inline-start-color: var(--success);
+		border-inline-start-color: var(--success-edge);
 	}
 	p.error {
 		border-color: var(--destructive);

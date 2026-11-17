@@ -39,6 +39,7 @@
 		--destructive: var(--look-danger, #b91c1c);
 		--destructive-foreground: var(--look-on-danger, #ffffff);
 		--success: var(--look-success, #15803d);
+		--success-edge: var(--look-success, var(--link));
 		--on-success: var(--look-on-success, #ffffff);
 		--warning: var(--look-warning, #b45309);
 		--on-warning: var(--look-on-warning, #ffffff);
@@ -69,7 +70,8 @@
 		--space-6: calc(1.5rem * var(--space));
 		--space-8: calc(2rem * var(--space));
 		--control-height: var(--look-min-target, calc(2.5rem * var(--space)));
-		--row-height: calc(2.75rem * var(--space));
+		/* Invalid, so the row keeps its natural height, unless the look sets a density. */
+		--row-height: calc(2.75rem * var(--look-space));
 		/* Motion: the look's duration (zero under reduced motion) and easing. */
 		--motion-duration: var(--look-motion-duration, 0s);
 		--motion-ease: var(--look-motion-ease, ease);
@@ -125,13 +127,15 @@
 		font-variant-numeric: var(--figures);
 	}
 
+	/* Headings change only where the look sets them: bold, inherited family and no tracking
+	   otherwise, which is what the browser draws. */
 	h1,
 	h2,
 	h3,
 	h4 {
-		font-family: var(--heading-font);
-		font-weight: var(--heading-weight);
-		letter-spacing: var(--heading-tracking);
+		font-family: var(--look-font-heading, inherit);
+		font-weight: var(--look-weight-bold, bold);
+		letter-spacing: var(--look-tracking, normal);
 	}
 
 	a {

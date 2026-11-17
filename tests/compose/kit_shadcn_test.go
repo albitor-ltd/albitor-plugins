@@ -201,6 +201,8 @@ func TestKitShadcnFileModes(t *testing.T) {
 	// Every kit file is seeded once and app-owned; the token file and the contrast and axe tests stay managed only because the platform's kit certification still demands them.
 	for p, want := range map[string]string{
 		"web/src/lib/kit/tokens.css":                       "example",
+		"web/src/lib/kit/look.test.ts":                     "example",
+		"web/src/lib/look/look.css":                        "example",
 		"web/src/lib/kit/contrast.test.ts":                 "example",
 		"web/src/lib/kit/kit.test.ts":                      "example",
 		"web/src/lib/kit/dialog.test.ts":                   "example",
@@ -235,8 +237,9 @@ func kitShipsExactly(t *testing.T, kit string) {
 		}
 		// Every file sits under the kit directory except the Vitest config its tests need and the
 		// knip config that keeps its test fixtures out of the end-of-build prune (#4846).
-		if !strings.HasPrefix(f.Path, "web/src/lib/kit/") && f.Path != "web/vitest.config.ts" && f.Path != "web/knip.json" {
-			t.Errorf("%s: the kit writes only under web/src/lib/kit/ (and web/vitest.config.ts, web/knip.json)", f.Path)
+		// It also seeds the empty look.css its tokens.css imports; the platform overwrites it.
+		if !strings.HasPrefix(f.Path, "web/src/lib/kit/") && f.Path != "web/vitest.config.ts" && f.Path != "web/knip.json" && f.Path != "web/src/lib/look/look.css" {
+			t.Errorf("%s: the kit writes only under web/src/lib/kit/ (and web/vitest.config.ts, web/knip.json, web/src/lib/look/look.css)", f.Path)
 		}
 		declared["templates/"+f.Path] = true
 	}
@@ -301,7 +304,8 @@ func TestKitShadcnPreviewTokens(t *testing.T) {
 	root := string(css)[strings.Index(string(css), ":root {"):]
 	root = root[:strings.Index(root, "}")]
 	get := func(name string) string {
-		m := regexp.MustCompile(`--` + name + `:\s*(#[0-9a-fA-F]{6});`).FindStringSubmatch(root)
+		// A token is `#hex` or `var(--look-x, #hex)`: the kit's own value is the fallback.
+		m := regexp.MustCompile(`--` + name + `:\s*(?:var\(--look-[a-z-]+,\s*)?(#[0-9a-fA-F]{6})\)?;`).FindStringSubmatch(root)
 		if m == nil {
 			t.Fatalf("tokens.css lacks --%s", name)
 		}
