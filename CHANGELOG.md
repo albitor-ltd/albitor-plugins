@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-gds` `0.12.0` (albitor-ltd/albitor-plugins#259, stream albitor-ltd/albitor#5137; tag follows
+  the merge). Seeds the GOV.UK `ServiceNavigation`, `SummaryList`, `SummaryCard`, `Tag`,
+  `NotificationBanner`, `TaskList`, `BackLink` and `InsetText` as Svelte components (additive exports
+  from `index.ts`, each with a test and fixture; no colour variants, icons or art) and compiles their
+  styles in `govuk.scss`. The `govuk-design-system` skill gains a task-list flow example
+  (`TaskListPage`, `QuestionPage`, `CheckAnswersPage`, `ConfirmationPage`) and `rubric.md`, a list of
+  GOV.UK pattern checks for a visual review.
 - `auth-cognito` `0.12.0` (albitor-ltd/albitor#5119; tag follows the merge). A person who signed up
   but never entered the emailed code can always get a new one. Sign-in on an unconfirmed account
   and sign-up on an existing one lead to `/confirm?email=...&resend=1`, which sends a new code
