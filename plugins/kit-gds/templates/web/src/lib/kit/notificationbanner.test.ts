@@ -37,6 +37,14 @@ describe('NotificationBanner', () => {
 		expect(banner.querySelector('h2')?.textContent?.trim()).toBe('Success');
 	});
 
+	it('single-line content is set in the heading class and passes axe', async () => {
+		const banner = mount({ singleLine: true }).querySelector('.govuk-notification-banner')!;
+		const line = banner.querySelector('.govuk-notification-banner__content > p')!;
+		expect(line.classList.contains('govuk-notification-banner__heading')).toBe(true);
+		expect(line.textContent?.trim()).toBe('Your report was saved.');
+		expect(await audit(dom)).toEqual([]);
+	});
+
 	it('uses a given title, and sits above the h1', () => {
 		const root = mount({ title: 'Saved' });
 		const banner = root.querySelector('.govuk-notification-banner')!;
