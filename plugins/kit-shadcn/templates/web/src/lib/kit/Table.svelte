@@ -101,24 +101,28 @@
 		container-type: inline-size;
 	}
 	.scroll:focus-visible {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 	table {
 		width: 100%;
 		border-collapse: collapse;
+		font-variant-numeric: var(--figures);
 	}
 	caption {
-		padding: 0.5rem 0;
+		padding: var(--space-2) 0;
 		text-align: start;
-		font-weight: 600;
+		font-family: var(--heading-font);
+		font-weight: var(--heading-weight);
+		letter-spacing: var(--heading-tracking);
 		font-size: var(--text-heading);
 	}
 	th,
 	td {
-		padding: 0.625rem 0.75rem;
+		height: var(--row-height, auto);
+		padding: calc(0.625rem * var(--space)) var(--space-3);
 		text-align: start;
-		border-bottom: 1px solid var(--border);
+		border-bottom: var(--border-width) solid var(--border);
 	}
 	thead th {
 		background: var(--muted);
@@ -156,20 +160,23 @@
 			clip-path: inset(50%);
 		}
 		[data-narrow='stacked'] tbody tr {
-			border: 1px solid var(--border);
+			border: var(--border-width) solid var(--border);
 			border-radius: var(--radius, 0.5rem);
-			padding: 0.5rem 0.75rem;
-			margin-block-end: 0.5rem;
+			background: var(--surface);
+			box-shadow: var(--shadow);
+			padding: var(--space-2) var(--space-3);
+			margin-block-end: var(--space-2);
 		}
 		[data-narrow='stacked'] tbody th,
 		[data-narrow='stacked'] td {
 			border-bottom: 0;
-			padding: 0.125rem 0;
+			height: auto;
+			padding: calc(0.125rem * var(--space)) 0;
 		}
 		[data-narrow='stacked'] td {
 			display: flex;
 			justify-content: space-between;
-			gap: 0.75rem;
+			gap: var(--space-3);
 		}
 		[data-narrow='stacked'] td::before {
 			content: attr(data-label);
@@ -195,8 +202,8 @@
 		[data-narrow='priority'] .more dl {
 			display: grid;
 			grid-template-columns: auto 1fr;
-			gap: 0.125rem 0.75rem;
-			margin: 0.375rem 0 0;
+			gap: calc(0.125rem * var(--space)) var(--space-3);
+			margin: calc(0.375rem * var(--space)) 0 0;
 		}
 		[data-narrow='priority'] .more dd {
 			margin: 0;

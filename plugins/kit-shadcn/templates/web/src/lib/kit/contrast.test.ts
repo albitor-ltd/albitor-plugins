@@ -18,15 +18,36 @@ function block(marker: string): Record<string, string> {
 	const open = css.indexOf('{', start);
 	const close = css.indexOf('}', open);
 	const out: Record<string, string> = {};
-	for (const m of css.slice(open + 1, close).matchAll(/(--[a-z-]+)\s*:\s*([^;]+);/g)) {
+	for (const m of css.slice(open + 1, close).matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
 		out[m[1]] = m[2].trim();
 	}
 	return out;
 }
 
-const light = block(':root {');
-const dark = block(':root:not([data-theme="light"]) {');
-const darkForced = block(':root[data-theme="dark"] {');
+/** Resolve `var(--name, fallback)` against `scope` (the kit's own tokens) with no look present, so
+ * the audit covers the kit's defaults: a `--look-*` property that is absent takes its fallback. */
+function resolve(value: string, scope: Record<string, string>): string {
+	const m = /^var\((--[a-z0-9-]+)\s*(?:,\s*(.+))?\)$/s.exec(value.trim());
+	if (!m) return value.trim();
+	const [, name, fallback] = m;
+	if (name.startsWith('--look-')) return fallback === undefined ? '' : resolve(fallback, scope);
+	if (scope[name] !== undefined) return resolve(scope[name], scope);
+	return fallback === undefined ? '' : resolve(fallback, scope);
+}
+
+const lightRaw = block(':root {');
+const darkRaw = block(':root:not([data-theme="light"]) {');
+const darkForcedRaw = block(':root[data-theme="dark"] {');
+
+/** A scheme's tokens: the light block, with the dark block laid over it, every var() resolved. */
+function scheme(...layers: Array<Record<string, string>>): Record<string, string> {
+	const raw = Object.assign({}, ...layers) as Record<string, string>;
+	return Object.fromEntries(Object.keys(raw).map((k) => [k, resolve(raw[k], raw)]));
+}
+
+const light = scheme(lightRaw);
+const dark = scheme(lightRaw, darkRaw);
+const darkForced = scheme(lightRaw, darkForcedRaw);
 
 function channel(v: number): number {
 	const s = v / 255;
@@ -61,7 +82,24 @@ const pairs: Array<[string, string, number]> = [
 	// The focus outline is drawn 2px off the control (outline-offset), so it sits on the page
 	// background, not on the control's own fill.
 	['--ring', '--background', 3],
-	['--primary', '--background', 3]
+	['--primary', '--background', 3],
+	// Cards, the dialog, toasts and field backgrounds sit on the surface.
+	['--foreground', '--surface', 4.5],
+	['--muted-foreground', '--surface', 4.5],
+	['--input', '--surface', 3],
+	// The header band and its nav hover.
+	['--header-ink', '--header', 4.5],
+	['--header-ink', '--muted', 4.5],
+	// The second colour: fill with its ink, the chip with its text, and the text on the page.
+	['--on-second', '--second', 4.5],
+	['--second-text', '--second-subtle', 4.5],
+	['--second-text', '--background', 4.5],
+	['--second', '--background', 3],
+	// Success and warning: ink on the fill, and the fill against the page.
+	['--on-success', '--success', 4.5],
+	['--on-warning', '--warning', 4.5],
+	['--success', '--background', 3],
+	['--warning', '--background', 3]
 ];
 
 describe.each([
@@ -83,6 +121,7 @@ describe.each([
 });
 
 it('the two dark blocks agree', () => {
+	expect(darkForcedRaw).toEqual(darkRaw);
 	expect(darkForced).toEqual(dark);
 });
 

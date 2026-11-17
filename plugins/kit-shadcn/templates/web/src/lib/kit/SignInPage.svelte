@@ -92,30 +92,30 @@
 <style>
 	.card {
 		max-width: 24rem;
-		margin: 2rem auto;
+		margin: var(--space-8) auto;
 	}
 	.mark {
 		display: block;
 		height: 3rem;
 		width: auto;
 		max-width: 6rem;
-		margin: 0 0 1rem;
+		margin: 0 0 var(--space-4);
 		object-fit: contain;
 	}
 	h1 {
-		margin: 0 0 1rem;
+		margin: 0 0 var(--space-4);
 		font-size: var(--text-title);
 	}
 	.error {
-		margin: 0 0 1rem;
-		padding: 0.75rem 1rem;
-		border: 2px solid var(--destructive);
+		margin: 0 0 var(--space-4);
+		padding: var(--space-3) var(--space-4);
+		border: calc(var(--border-width) + 1px) solid var(--destructive);
 		border-radius: var(--radius);
 		color: var(--destructive);
 		font-weight: 600;
 	}
 	.error:focus-visible {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 	.sr {
@@ -129,8 +129,8 @@
 	.links {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-		margin-top: 1rem;
+		gap: var(--space-2);
+		margin-top: var(--space-4);
 	}
 	.links a {
 		color: var(--link);

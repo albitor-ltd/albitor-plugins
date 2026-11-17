@@ -15,13 +15,17 @@
 
 <style>
 	button {
-		min-height: 2.5rem;
-		padding: 0 1rem;
-		border: 1px solid transparent;
+		min-height: var(--control-height);
+		padding: 0 var(--space-4);
+		border: var(--border-width) solid transparent;
 		border-radius: var(--radius);
 		font: inherit;
 		font-weight: 500;
 		cursor: pointer;
+		box-shadow: var(--shadow);
+		transition:
+			background-color var(--motion-duration) var(--motion-ease),
+			color var(--motion-duration) var(--motion-ease);
 	}
 	.primary {
 		background: var(--primary);
@@ -45,7 +49,7 @@
 		background: var(--muted);
 	}
 	button:focus-visible {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 	button:disabled {

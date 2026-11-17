@@ -44,10 +44,12 @@
 === web/src/lib/kit/field.test.ts ===
 === web/src/lib/kit/index.ts ===
 === web/src/lib/kit/kit.test.ts ===
+=== web/src/lib/kit/look.test.ts ===
 === web/src/lib/kit/signin.test.ts ===
 === web/src/lib/kit/table.test.ts ===
 === web/src/lib/kit/toast.svelte.ts ===
 === web/src/lib/kit/tokens.css ===
+=== web/src/lib/look/look.css ===
 === web/src/lib/shell/AccountBar.svelte ===
 === web/src/lib/shell/OfflineBanner.svelte ===
 === web/src/lib/shell/ShellProviders.svelte ===

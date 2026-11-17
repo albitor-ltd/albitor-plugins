@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.13.0`, `look-business` `0.1.4`, `look-consumer` `0.1.5` and `look-startup` `0.1.4`
+  (albitor-ltd/albitor#5137, albitor-ltd/albitor-plugins#256; tags follow the merge). The kit reads
+  the platform's `--look-*` layer: `tokens.css` imports `web/src/lib/look/look.css` (platform
+  written, seeded empty so the import resolves for an app with no look) and maps each property onto
+  a kit token with the kit's value as the fallback. New tokens: surface, the second colour, success
+  and warning, shadow, the spacing scale and row and control height, border width, heading font,
+  weight and tracking, figures, focus width and motion. `AppShell`, `Button`, `Field`, `Table`,
+  `Dialog`, `EmptyState`, `Toaster`, `Footer` and `SignInPage` use them in place of fixed padding,
+  `1px` borders and no shadow; with no look every rendered value is the one it was before. `look.test.ts` tests the mapping; `contrast.test.ts` resolves the
+  tokens and audits the new pairs in both schemes. The look skills' "Apply it" sections drop the
+  hand-mapping and dual-selector instructions: `look.css` is never edited, app-only styles go in
+  `app.css`.
 - `kit-gds` `0.12.0` (albitor-ltd/albitor-plugins#259, stream albitor-ltd/albitor#5137; tag follows
   the merge). Seeds the GOV.UK `ServiceNavigation`, `SummaryList`, `SummaryCard`, `Tag`,
   `NotificationBanner`, `TaskList`, `BackLink` and `InsetText` as Svelte components (additive exports

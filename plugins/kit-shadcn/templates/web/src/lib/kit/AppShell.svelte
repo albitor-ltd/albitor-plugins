@@ -111,17 +111,17 @@
 <style>
 	.skip {
 		position: absolute;
-		left: 0.5rem;
+		left: var(--space-2);
 		top: -4rem;
-		padding: 0.5rem 1rem;
+		padding: var(--space-2) var(--space-4);
 		background: var(--background);
 		color: var(--foreground);
-		border: 2px solid var(--ring);
+		border: var(--focus-width) solid var(--ring);
 		border-radius: var(--radius);
 		z-index: 10;
 	}
 	.skip:focus {
-		top: 0.5rem;
+		top: var(--space-2);
 	}
 	.frame {
 		min-height: 100vh;
@@ -132,15 +132,20 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.5rem 2rem;
-		padding: 0.75rem 1.5rem;
-		border-bottom: 1px solid var(--border);
+		gap: var(--space-2) var(--space-8);
+		padding: var(--space-3) var(--space-6);
+		background: var(--header);
+		color: var(--header-ink);
+		border-bottom: var(--border-width) solid var(--border);
+		box-shadow: var(--shadow);
 	}
 	.brand {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-weight: 600;
+		gap: var(--space-2);
+		font-family: var(--heading-font);
+		font-weight: var(--heading-weight);
+		letter-spacing: var(--heading-tracking);
 		font-size: var(--text-heading);
 	}
 	.mark {
@@ -152,7 +157,7 @@
 	nav {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem 1.5rem;
+		gap: var(--space-1) var(--space-6);
 	}
 	.account {
 		margin-inline-start: auto;
@@ -160,11 +165,11 @@
 	.menu {
 		display: none;
 		min-height: 2.75rem;
-		padding: 0.5rem 1rem;
+		padding: var(--space-2) var(--space-4);
 		font: inherit;
-		color: var(--foreground);
+		color: var(--header-ink);
 		background: transparent;
-		border: 1px solid var(--border);
+		border: var(--border-width) solid var(--border);
 		border-radius: var(--radius);
 		cursor: pointer;
 	}
@@ -172,8 +177,8 @@
 	   list of 44px-tall links. Nothing wraps into a second row of tabs. */
 	@media (width < 48rem) {
 		header {
-			gap: 0.5rem 0.75rem;
-			padding: 0.5rem 1rem;
+			gap: var(--space-2) var(--space-3);
+			padding: var(--space-2) var(--space-4);
 		}
 		.menu {
 			display: inline-block;
@@ -202,44 +207,45 @@
 			display: block;
 			min-height: 2.75rem;
 			box-sizing: border-box;
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 		main {
-			padding: 1rem;
+			padding: var(--space-4);
 		}
 	}
 	ul {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem;
+		gap: var(--space-1);
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 	nav a {
 		display: inline-block;
-		padding: 0.5rem 0.75rem;
+		padding: var(--space-2) var(--space-3);
 		border-radius: var(--radius);
-		color: var(--foreground);
+		color: var(--header-ink);
 		text-decoration: none;
+		transition: background-color var(--motion-duration) var(--motion-ease);
 	}
 	nav a:hover {
 		background: var(--muted);
 	}
 	nav a[aria-current] {
-		font-weight: 600;
+		font-weight: var(--heading-weight);
 		text-decoration: underline;
 		text-underline-offset: 0.25rem;
 	}
 	a:focus-visible,
 	.menu:focus-visible,
 	main:focus-visible {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 	main {
 		flex: 1;
-		padding: 1.5rem;
+		padding: var(--space-6);
 		max-width: 72rem;
 		margin-inline: auto;
 		width: 100%;

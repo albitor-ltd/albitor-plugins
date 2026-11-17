@@ -19,19 +19,19 @@
 
 <style>
 	.empty {
-		padding: 2rem 1rem;
-		border: 1px dashed var(--input);
+		padding: var(--space-8) var(--space-4);
+		border: var(--border-width) dashed var(--input);
 		border-radius: var(--radius);
 		text-align: start;
 	}
 	.empty :global(h2),
 	.empty :global(h3),
 	.empty :global(h4) {
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
 		font-size: var(--text-heading);
 	}
 	p {
-		margin: 0 0 1rem;
+		margin: 0 0 var(--space-4);
 		color: var(--muted-foreground);
 	}
 </style>
