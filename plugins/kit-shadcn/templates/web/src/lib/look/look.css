@@ -1,0 +1,3 @@
+/* The platform writes this file on every build from the app's look, and overwrites it. Do not edit
+   it: put the app's own styles in ../app/app.css. It is empty when the app has no look, so the kit's
+   own defaults stand; the kit (../kit/tokens.css) maps the properties it holds onto its tokens. */

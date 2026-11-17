@@ -52,40 +52,43 @@
 		max-height: calc(100vh - 2rem);
 		overflow: auto;
 		box-sizing: border-box;
-		padding: 1.5rem;
-		background: var(--background);
+		padding: var(--space-6);
+		background: var(--surface);
 		color: var(--foreground);
-		border: 1px solid var(--input);
+		border: var(--border-width) solid var(--input);
 		border-radius: var(--radius);
+		box-shadow: var(--shadow-overlay);
 		z-index: 31;
 	}
 	:global(.kit-dialog-title) {
-		margin: 0 0 0.5rem;
+		margin: 0 0 var(--space-2);
+		font-family: var(--heading-font);
 		font-size: var(--text-heading);
-		font-weight: 600;
+		font-weight: var(--heading-weight);
+		letter-spacing: var(--heading-tracking);
 	}
 	:global(.kit-dialog-description) {
-		margin: 0 0 1rem;
+		margin: 0 0 var(--space-4);
 		color: var(--muted-foreground);
 	}
 	:global(.kit-dialog-actions) {
 		display: flex;
 		justify-content: flex-end;
-		gap: 0.5rem;
-		margin-top: 1.5rem;
+		gap: var(--space-2);
+		margin-top: var(--space-6);
 	}
 	:global(.kit-dialog-close) {
-		min-height: 2.5rem;
-		padding: 0 1rem;
-		background: var(--background);
+		min-height: var(--control-height);
+		padding: 0 var(--space-4);
+		background: var(--surface);
 		color: var(--foreground);
-		border: 1px solid var(--input);
+		border: var(--border-width) solid var(--input);
 		border-radius: var(--radius);
 		font: inherit;
 		cursor: pointer;
 	}
 	:global(.kit-dialog-close:focus-visible) {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 </style>

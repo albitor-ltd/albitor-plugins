@@ -17,7 +17,12 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
   (on [Bits UI](https://bits-ui.com)), `Toaster` and `toast`, `EmptyState`.
-- One token file, `tokens.css`: colour roles, radius and type, in light and dark. The `albitor-kit`
+- One token file, `tokens.css`: colour roles, radius, type, spacing, border width, shadow, heading type,
+  focus width and motion, in light and dark. It imports `web/src/lib/look/look.css`, which the platform
+  writes from the app's look (`--look-*` custom properties), and each token reads its property with
+  the kit's own value as the fallback. The kit seeds `look.css` empty (a missing import fails the
+  Vite build, and an app with no look has no file), and the platform overwrites it on every build;
+  `look.test.ts` checks the mapping and `contrast.test.ts` the kit's defaults. The `albitor-kit`
   cascade layer is the theming contract: every token is declared inside
   `@layer albitor-kit { :root { ... } }`, so an unlayered declaration of the same custom property
   (an app, or a visual-language plugin) wins. The kit states `"themeable": true` in `plugin.json`,

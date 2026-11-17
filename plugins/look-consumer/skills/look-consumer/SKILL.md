@@ -21,14 +21,13 @@ Mobile-first personal and lifestyle apps: habit, planning, family, wellness and 
 ## Apply it
 
 The composed app carries the look's token set as `web/src/lib/look/look.json` (seeded once, a copy
-of this plugin's `preview-tokens.json`). Map its values onto the kit's colour, radius and type tokens
-in one place (declare them unlayered in `web/src/lib/app/app.css`, which wins over the kit's
-`albitor-kit` layer); never hardcode a hex in a component. An unlayered declaration beats the kit's
-layered dark block too, so a token you override in the light selector (`:root`) silently stays light
-on the dark page. **Override tokens in both the light and dark selectors, or not at all.** Declare
-the dark values in `:root:not([data-theme="light"])` (inside `@media (prefers-color-scheme: dark)`)
-and in `:root[data-theme="dark"]`. Use the platform's derived `dark_*` tokens when it hands you
-them; otherwise use the dark accent below. The kit offers dark and the runner scans both themes.
+of this plugin's `preview-tokens.json`) and the platform writes `web/src/lib/look/look.css` from
+it on every build: the look's colours, radius, spacing, shadow, type and motion as `--look-*`
+custom properties, in light and dark. The kit reads them and maps them onto its own tokens, so the
+app already looks like this look. **Never edit `look.css`** (the platform overwrites it) and do not
+map tokens by hand or redeclare the kit's colour tokens in light and dark selectors. Styles the
+app needs beyond the look go in `web/src/lib/app/app.css`, over the kit's tokens; never hardcode a
+hex in a component. The kit offers dark and the runner scans both themes.
 
 ### Typography
 

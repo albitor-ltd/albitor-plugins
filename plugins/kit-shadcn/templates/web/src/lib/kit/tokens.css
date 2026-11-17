@@ -1,70 +1,120 @@
-/* Kit tokens: the colour roles, radius and type the kit's components read.
+/* Kit tokens: the colour roles, radius, type, spacing, shape, shadow and motion the kit's
+   components read.
 
    The `albitor-kit` cascade layer is this kit's theming contract.
    Every token is declared on the root element inside that layer, and an
-   unlayered rule beats a layered one whatever its specificity or order. To theme the app (a
-   theme does exactly this), redeclare the same custom properties unlayered, for
-   example in src/lib/app/app.css. Do not edit the components to change a colour. The tests read
-   the first root rule in this file, so keep this comment free of that selector and a brace.
+   unlayered rule beats a layered one whatever its specificity or order. To theme the app by hand,
+   redeclare the same custom properties unlayered, for example in src/lib/app/app.css. Do not edit
+   the components to change a colour. The tests read the first root rule in this file, so keep this
+   comment free of that selector and a brace.
+
+   The platform writes ../look/look.css from the app's look: `--look-*` custom properties, each
+   present only where the look sets it. Every token below reads its `--look-*` property and falls
+   back to the kit's own value, so an app with no look (or a look that leaves a property out) shows
+   the defaults. Never edit look.css and do not map a token by hand. The import below needs the
+   file to exist: the kit seeds an empty one, which the platform overwrites.
 
    Every foreground and background pair here is audited by contrast.test.ts, in both schemes:
    4.5:1 for text, 3:1 for the control border, the focus ring and the primary fill. If you
    override colours, keep that test passing. */
+@import '../look/look.css';
+
 @layer albitor-kit {
 	:root {
 		color-scheme: light dark;
-		--background: #ffffff;
-		--foreground: #09090b;
-		--muted: #f4f4f5;
-		--muted-foreground: #52525b;
-		--border: #e4e4e7;
-		--input: #737373;
-		--ring: #1d4ed8;
-		--primary: #18181b;
-		--primary-foreground: #fafafa;
-		--destructive: #b91c1c;
-		--destructive-foreground: #ffffff;
-		--link: #1d4ed8;
-		--radius: 0.5rem;
-		--font-sans: ui-sans-serif, system-ui, sans-serif;
-		--text-small: 0.875rem;
-		--text-body: 1rem;
-		--text-heading: 1.25rem;
-		--text-title: 1.875rem;
+		--background: var(--look-page, #ffffff);
+		--foreground: var(--look-ink, #09090b);
+		--surface: var(--look-surface, var(--background));
+		--muted: var(--look-surface, #f4f4f5);
+		--muted-foreground: var(--look-ink-soft, #52525b);
+		--border: var(--look-line, #e4e4e7);
+		--input: var(--look-control-line, #737373);
+		--ring: var(--look-focus, #1d4ed8);
+		--primary: var(--look-accent, #18181b);
+		--primary-foreground: var(--look-on-accent, #fafafa);
+		--second: var(--look-second, var(--primary));
+		--second-subtle: var(--look-second-subtle, var(--muted));
+		--second-text: var(--look-second-text, var(--link));
+		--on-second: var(--look-on-second, var(--primary-foreground));
+		--destructive: var(--look-danger, #b91c1c);
+		--destructive-foreground: var(--look-on-danger, #ffffff);
+		--success: var(--look-success, #15803d);
+		--on-success: var(--look-on-success, #ffffff);
+		--warning: var(--look-warning, #b45309);
+		--on-warning: var(--look-on-warning, #ffffff);
+		--link: var(--look-link, var(--look-accent-text, #1d4ed8));
+		--header: var(--look-header, var(--background));
+		--header-ink: var(--look-header-ink, var(--foreground));
+		--radius: var(--look-radius, 0.5rem);
+		--border-width: var(--look-border-width, 1px);
+		--focus-width: var(--look-focus-width, 2px);
+		--shadow: var(--look-shadow, none);
+		--shadow-overlay: var(--shadow);
+		--font-sans: var(--look-font-body, ui-sans-serif, system-ui, sans-serif);
+		--heading-font: var(--look-font-heading, var(--font-sans));
+		--heading-weight: var(--look-weight-bold, 600);
+		--heading-tracking: var(--look-tracking, normal);
+		--figures: var(--look-figures, normal);
+		--text-small: var(--look-text-small, 0.875rem);
+		--text-body: var(--look-text-body, 1rem);
+		--text-heading: var(--look-text-heading, 1.25rem);
+		--text-title: var(--look-text-title, 1.875rem);
+		/* Spacing: --space is the look's density multiplier (compact 0.875, comfortable 1,
+		   spacious 1.25). Every step scales with it. */
+		--space: var(--look-space, 1);
+		--space-1: calc(0.25rem * var(--space));
+		--space-2: calc(0.5rem * var(--space));
+		--space-3: calc(0.75rem * var(--space));
+		--space-4: calc(1rem * var(--space));
+		--space-6: calc(1.5rem * var(--space));
+		--space-8: calc(2rem * var(--space));
+		--control-height: var(--look-min-target, calc(2.5rem * var(--space)));
+		--row-height: calc(2.75rem * var(--space));
+		/* Motion: the look's duration (zero under reduced motion) and easing. */
+		--motion-duration: var(--look-motion-duration, 0s);
+		--motion-ease: var(--look-motion-ease, ease);
 	}
 
 	/* Dark by the visitor's preference, unless the page says data-theme="light". */
 	@media (prefers-color-scheme: dark) {
 		:root:not([data-theme="light"]) {
-			--background: #09090b;
-			--foreground: #fafafa;
-			--muted: #18181b;
-			--muted-foreground: #a1a1aa;
-			--border: #27272a;
-			--input: #71717a;
-			--ring: #60a5fa;
-			--primary: #fafafa;
-			--primary-foreground: #18181b;
-			--destructive: #f87171;
-			--destructive-foreground: #09090b;
-			--link: #60a5fa;
+			--background: var(--look-page, #09090b);
+			--foreground: var(--look-ink, #fafafa);
+			--muted: var(--look-surface, #18181b);
+			--muted-foreground: var(--look-ink-soft, #a1a1aa);
+			--border: var(--look-line, #27272a);
+			--input: var(--look-control-line, #71717a);
+			--ring: var(--look-focus, #60a5fa);
+			--primary: var(--look-accent, #fafafa);
+			--primary-foreground: var(--look-on-accent, #18181b);
+			--destructive: var(--look-danger, #f87171);
+			--destructive-foreground: var(--look-on-danger, #09090b);
+			--success: var(--look-success, #4ade80);
+			--on-success: var(--look-on-success, #09090b);
+			--warning: var(--look-warning, #fbbf24);
+			--on-warning: var(--look-on-warning, #09090b);
+			--link: var(--look-link, var(--look-accent-text, #60a5fa));
 		}
 	}
 
 	/* Dark by choice: data-theme="dark" wins over the preference. Keep in step with the block above. */
 	:root[data-theme="dark"] {
-		--background: #09090b;
-		--foreground: #fafafa;
-		--muted: #18181b;
-		--muted-foreground: #a1a1aa;
-		--border: #27272a;
-		--input: #71717a;
-		--ring: #60a5fa;
-		--primary: #fafafa;
-		--primary-foreground: #18181b;
-		--destructive: #f87171;
-		--destructive-foreground: #09090b;
-		--link: #60a5fa;
+		--background: var(--look-page, #09090b);
+		--foreground: var(--look-ink, #fafafa);
+		--muted: var(--look-surface, #18181b);
+		--muted-foreground: var(--look-ink-soft, #a1a1aa);
+		--border: var(--look-line, #27272a);
+		--input: var(--look-control-line, #71717a);
+		--ring: var(--look-focus, #60a5fa);
+		--primary: var(--look-accent, #fafafa);
+		--primary-foreground: var(--look-on-accent, #18181b);
+		--destructive: var(--look-danger, #f87171);
+		--destructive-foreground: var(--look-on-danger, #09090b);
+		--success: var(--look-success, #4ade80);
+		--on-success: var(--look-on-success, #09090b);
+		--warning: var(--look-warning, #fbbf24);
+		--on-warning: var(--look-on-warning, #09090b);
+		--link: var(--look-link, var(--look-accent-text, #60a5fa));
 	}
 
 	body {
@@ -72,6 +122,16 @@
 		color: var(--foreground);
 		font-family: var(--font-sans);
 		font-size: var(--text-body);
+		font-variant-numeric: var(--figures);
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-family: var(--heading-font);
+		font-weight: var(--heading-weight);
+		letter-spacing: var(--heading-tracking);
 	}
 
 	a {

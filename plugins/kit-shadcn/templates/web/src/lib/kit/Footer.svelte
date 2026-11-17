@@ -35,16 +35,16 @@
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: space-between;
-		gap: 0.5rem 2rem;
-		padding: 1rem 1.5rem;
-		border-top: 1px solid var(--border);
+		gap: var(--space-2) var(--space-8);
+		padding: var(--space-4) var(--space-6);
+		border-top: var(--border-width) solid var(--border);
 		color: var(--muted-foreground);
 		font-size: var(--text-small);
 	}
 	ul {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem 1.5rem;
+		gap: var(--space-1) var(--space-6);
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -53,7 +53,7 @@
 		color: var(--link);
 	}
 	a:focus-visible {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 </style>

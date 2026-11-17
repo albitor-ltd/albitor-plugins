@@ -35,11 +35,11 @@
 <style>
 	.toaster {
 		position: fixed;
-		inset-block-end: 1rem;
-		inset-inline-end: 1rem;
+		inset-block-end: var(--space-4);
+		inset-inline-end: var(--space-4);
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		max-width: min(24rem, calc(100vw - 2rem));
 		z-index: 20;
 	}
@@ -47,33 +47,34 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
-		margin: 0 0 0.5rem;
-		padding: 0.75rem 1rem;
-		background: var(--background);
+		gap: var(--space-4);
+		margin: 0 0 var(--space-2);
+		padding: var(--space-3) var(--space-4);
+		background: var(--surface);
 		color: var(--foreground);
-		border: 1px solid var(--input);
+		border: var(--border-width) solid var(--input);
 		border-inline-start-width: 6px;
 		border-radius: var(--radius);
+		box-shadow: var(--shadow-overlay);
 	}
 	p.success {
-		border-inline-start-color: var(--link);
+		border-inline-start-color: var(--success);
 	}
 	p.error {
 		border-color: var(--destructive);
 	}
 	button {
 		min-height: 2rem;
-		padding: 0 0.75rem;
+		padding: 0 var(--space-3);
 		background: transparent;
 		color: inherit;
-		border: 1px solid var(--input);
+		border: var(--border-width) solid var(--input);
 		border-radius: var(--radius);
 		font: inherit;
 		cursor: pointer;
 	}
 	button:focus-visible {
-		outline: 2px solid var(--ring);
+		outline: var(--focus-width) solid var(--ring);
 		outline-offset: 2px;
 	}
 	.sr {

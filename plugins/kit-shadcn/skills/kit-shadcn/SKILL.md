@@ -129,9 +129,16 @@ build.
 ## Theming
 
 Everything reads the custom properties in `tokens.css`, declared in the `albitor-kit` cascade layer so
-any unlayered declaration wins. To theme the app, declare the same properties in
-`web/src/lib/app/app.css`; leave `tokens.css` as the defaults and the
-components alone for a colour change. Dark mode follows the visitor's preference unless the page sets `data-theme="light"`,
+any unlayered declaration wins. `tokens.css` imports `web/src/lib/look/look.css`, which the platform
+writes from the app's look on every build as `--look-*` custom properties; each kit token reads its
+`--look-*` property and keeps the kit value as the fallback. So the look reaches the app with no
+mapping from you: **never edit `look.css`** (it is overwritten; the kit seeds it empty so the import
+resolves when the app has no look) and do not remap tokens by hand. Put the app's own styles in
+`web/src/lib/app/app.css`, over the kit's tokens, and leave `tokens.css` and the components alone for a
+colour, spacing or shape change. Components use the tokens for spacing (`--space-*`, scaled by the
+look's density), row and control height, border width, shadow, heading type, focus width and
+motion; use them in your own CSS rather than a rem padding, a `1px` border or a fixed shadow. Dark
+mode follows the visitor's preference unless the page sets `data-theme="light"`,
 and `data-theme="dark"` forces it.
 
 If you override colours, keep `contrast.test.ts` passing. It computes WCAG 2.2 AA ratios (4.5:1 for
