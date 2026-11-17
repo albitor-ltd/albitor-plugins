@@ -23,6 +23,16 @@ A person can sign in and reach a protected route. How they get an account is
   `AUTH_ADMIN_GROUP` and the user-admin group.
 - **`open`** (self sign-up). A first-time visitor registers, confirms their email, signs in. The
   People endpoints answer 404 and nothing in the pool changes from before.
+  **An unconfirmed person is never stuck, and never deleted.** Someone who signed up but never
+  entered the emailed code can always get a new one: sign-in answering `not_confirmed` and sign-up
+  answering `exists` both lead to `/confirm?email=<email>&resend=1`, which sends a new code once on
+  arrival (and drops the parameter so a reload does not resend). With `PreventUserExistenceErrors`
+  on (required), a confirmed account looks the same as an unconfirmed one: resend is a fake success
+  and `confirm` answers `invalid_code`. So the screen never claims a send for certain ("If an account
+  with <email> is waiting for confirmation, we've sent it a new code") and always shows "Already
+  confirmed? Sign in". `resend` and `confirm` answer 409 `already_confirmed` only when the flag is
+  off. `expired_code` tells the person to send a new code, and a rate limit (429 `rate_limited`)
+  leaves the button usable. Keep this when you alter the screens.
 
 Both modes have **Change password** (`POST /api/auth/change-password`, any signed-in person) and
 the public `GET /api/auth/config` (`{"sign_up": "open" | "invite_only"}`, from the `AUTH_SIGN_UP`

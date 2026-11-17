@@ -285,6 +285,16 @@ func (a *cognitoAuth) respondNewPassword(ctx context.Context, email, password, s
 // writeCognitoError turns Cognito's answer into one the screens can act on.
 // The code is stable; the message is safe to show.
 func (a *cognitoAuth) writeCognitoError(w http.ResponseWriter, r *http.Request, logger *slog.Logger, action string, e *cognitoError) {
+	// Asking to confirm, or for a new code, an account that is already confirmed answers
+	// already_confirmed, so the screen can say so. This only fires when the pool's client has
+	// PreventUserExistenceErrors OFF (Cognito then says InvalidParameterException "already
+	// confirmed" on resend and NotAuthorizedException "Current status is CONFIRMED" on confirm).
+	// With it on (the supported setup) resend is a fake success and confirm answers
+	// CodeMismatchException, so a confirmed person looks the same as an unconfirmed one.
+	if (action == "resend" || action == "confirm") && alreadyConfirmed(e) {
+		writeAuthError(w, http.StatusConflict, "already_confirmed", "this email is already confirmed: sign in")
+		return
+	}
 	switch e.kind {
 	case "NotAuthorizedException", "UserNotFoundException":
 		if action == "change-password" {
@@ -341,4 +351,16 @@ func passwordMessage(msg string) string {
 
 func writeAuthError(w http.ResponseWriter, status int, code, msg string) {
 	apikit.WriteJSON(w, status, map[string]string{"error": msg, "code": code})
+}
+
+// alreadyConfirmed reports whether Cognito refused because the account is already confirmed.
+func alreadyConfirmed(e *cognitoError) bool {
+	if e.kind != "InvalidParameterException" && e.kind != "NotAuthorizedException" {
+		return false
+	}
+	m := strings.ToLower(e.message)
+	if e.kind == "InvalidParameterException" {
+		return strings.Contains(m, "already confirmed")
+	}
+	return strings.Contains(m, "current status is confirmed")
 }

@@ -68,6 +68,87 @@ base.describe("signed out", () => {
   });
 });
 
+base.describe("an unconfirmed account can always get a new code", () => {
+  base.use({ storageState: EMPTY_STORAGE_STATE });
+
+  const answer = (page: Page, path: string, status: number, body?: object) =>
+    page.route(`**/api/auth/${path}`, (route) =>
+      route.fulfill(
+        body
+          ? { status, contentType: "application/json", body: JSON.stringify(body) }
+          : { status },
+      ),
+    );
+
+  base("sign-up on an existing account offers to confirm, which sends a new code once", async ({ page, request }) => {
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    let resends = 0;
+    await answer(page, "sign-up", 409, { code: "exists", error: "an account with that email already exists" });
+    await page.route("**/api/auth/resend", (route) => {
+      resends += 1;
+      return route.fulfill({ status: 204 });
+    });
+    await page.goto("/sign-up");
+    await page.getByLabel(/^Email/).fill("a@example.test");
+    await page.getByLabel(/^Password/).fill("not-a-real-password");
+    await page.getByRole("button", { name: /^Create account/ }).click();
+    await expect(page.getByTestId("sign-up-exists")).toContainText("An account with that email already exists.");
+    await expectNoA11yViolations(page);
+
+    await page.getByTestId("sign-up-confirm-link").click();
+    await expect(page.getByTestId("confirm-notice")).toHaveText("If an account with a@example.test is waiting for confirmation, we've sent it a new code.");
+    // The parameter is dropped, so a reload does not send another.
+    await expect(page).toHaveURL(/\/confirm\?email=a%40example\.test$/);
+    expect(resends).toBe(1);
+    await page.reload();
+    await expect(page.getByTestId("confirm-form")).toBeVisible();
+    expect(resends).toBe(1);
+  });
+
+  base("sign-in on an unconfirmed account lands on confirm with a new code sent", async ({ page, request }) => {
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    await answer(page, "sign-in", 403, { code: "not_confirmed", error: "confirm your email address first" });
+    await answer(page, "resend", 204);
+    await page.goto("/sign-in");
+    await page.getByLabel(/^Email/).fill("a@example.test");
+    await page.getByLabel(/^Password/).fill("not-a-real-password");
+    await page.getByRole("button", { name: /^Sign in/ }).click();
+    await expect(page).toHaveURL(/\/confirm\?email=a%40example\.test/);
+    await expect(page.getByTestId("confirm-notice")).toHaveText("If an account with a@example.test is waiting for confirmation, we've sent it a new code.");
+    await expectNoA11yViolations(page);
+  });
+
+  base("the confirm screen always offers sign-in, and says so when the pool reports a confirmed account", async ({ page, request }) => {
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    await answer(page, "resend", 409, { code: "already_confirmed", error: "this email is already confirmed: sign in" });
+    await page.goto("/confirm?email=a%40example.test&resend=1");
+    await expect(page.getByTestId("confirm-sign-in-link")).toHaveAttribute("href", "/sign-in?email=a%40example.test");
+    await expect(page.getByTestId("confirm-already")).toContainText("This email is already confirmed.");
+    await expect(page.getByTestId("confirm-already").getByRole("link", { name: "Sign in" })).toBeVisible();
+  });
+
+  base("an expired code or a rate limit leaves the send-again button usable", async ({ page, request }) => {
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    await answer(page, "confirm", 400, { code: "expired_code", error: "that code has expired: ask for a new one" });
+    await answer(page, "resend", 429, { code: "rate_limited", error: "too many attempts: wait a while and try again" });
+    await page.goto("/confirm?email=a%40example.test");
+    await page.getByLabel(/^Code/).fill("123456");
+    await page.getByRole("button", { name: /^Confirm/ }).click();
+    await expect(page.getByTestId("confirm-error")).toContainText("ask for a new one");
+    await page.getByTestId("confirm-resend").click();
+    await expect(page.getByTestId("confirm-error")).toContainText("wait a while");
+    await expect(page.getByTestId("confirm-resend")).toBeEnabled();
+  });
+});
+
 base.describe("an invite-only app", () => {
   base.use({ storageState: EMPTY_STORAGE_STATE });
 

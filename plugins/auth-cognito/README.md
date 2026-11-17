@@ -128,16 +128,22 @@ deploy seeds are permanent from the start and never meet this step.
   answers 503 on every route but `/api/health` until a deploy plugin supplies `AUTH_USER_POOL_ID`
   and `AUTH_CLIENT_ID` (with `AWS_REGION`). That is deliberate, and it is how the app looks until a
   `deploy-target` plugin fills it.
-- **The public client must have `PreventUserExistenceErrors` enabled.** Without it Cognito answers
-  `UsernameExistsException` and `UserNotConfirmedException`, which this plugin maps to 409 `exists`
-  and 403 `not_confirmed`, and an attacker can tell which email addresses have accounts. The plugin
-  cannot set it (it ships no Terraform), so the deploy target's contract has to.
+- **The public client should have `PreventUserExistenceErrors` enabled.** It stops sign-in and
+  password reset telling an attacker which addresses have accounts: Cognito then answers
+  `NotAuthorizedException`, not `UserNotFoundException` or `UserNotConfirmedException`, and a
+  resend for a confirmed or unknown address is a fake success. It does not cover sign-up: `SignUp`
+  answers `UsernameExistsException` ("User already exists") for an existing address, confirmed or
+  not, with the setting on (checked against a scratch pool), which this
+  plugin maps to 409 `exists`. The plugin cannot set the flag (it ships no Terraform), so the deploy
+  target's contract has to.
 
 ## Known gaps
 
 - The page frame (`AppShell`, and its optional `footer`) is web-svelte's root layout, not this
   plugin's; the screens add no footer of their own.
-- Sign-up and sign-in leak account existence until `PreventUserExistenceErrors` is set (above).
+- Sign-up always reveals that an address has an account (409 `exists`), because the sign-up screen
+  offers that person a new confirmation code; sign-in leaks existence until `PreventUserExistenceErrors`
+  is set (above).
 - No MFA, no social sign-in. The one challenge handled is `NEW_PASSWORD_REQUIRED` (below); any other
   answers 409 `challenge_unsupported`.
 - Logic ships as files seeded once into the app (and examples copied from the skill), not a

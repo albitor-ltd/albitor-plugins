@@ -121,6 +121,39 @@ func TestSignUpConfirmAndResetReachThePool(t *testing.T) {
 	}
 }
 
+// A sign-up that meets an existing account answers exists. already_confirmed only fires when the
+// pool's client has PreventUserExistenceErrors off; with it on, a confirmed user's confirm answers
+// CodeMismatchException (invalid_code) and resend succeeds, so that case is asserted too. An
+// expired code says to ask for a new one, and a rate limit is the retryable 429.
+func TestConfirmationRefusalsAreActionable(t *testing.T) {
+	f, srv := newFakeCognito(t)
+	h := gateFor(f, srv)
+	refuse := func(kind, message string) func(map[string]any) (int, any) {
+		return func(map[string]any) (int, any) {
+			return http.StatusBadRequest, map[string]string{"__type": kind, "message": message}
+		}
+	}
+	for _, c := range []struct {
+		op, path, kind, message string
+		status                  int
+		code                    string
+	}{
+		{"SignUp", "sign-up", "UsernameExistsException", "User already exists", http.StatusConflict, "exists"},
+		{"ResendConfirmationCode", "resend", "InvalidParameterException", "User is already confirmed.", http.StatusConflict, "already_confirmed"},
+		{"ConfirmSignUp", "confirm", "NotAuthorizedException", "User cannot be confirmed. Current status is CONFIRMED", http.StatusConflict, "already_confirmed"},
+		{"ResendConfirmationCode", "resend", "InvalidParameterException", "something else", http.StatusBadRequest, "invalid_input"},
+		{"ResendConfirmationCode", "resend", "LimitExceededException", "Attempt limit exceeded", http.StatusTooManyRequests, "rate_limited"},
+		{"ConfirmSignUp", "confirm", "CodeMismatchException", "Invalid verification code provided, please try again.", http.StatusBadRequest, "invalid_code"},
+		{"ConfirmSignUp", "confirm", "ExpiredCodeException", "Invalid code provided, please request a code again.", http.StatusBadRequest, "expired_code"},
+	} {
+		f.answer(c.op, refuse(c.kind, c.message))
+		rec := authDo(t, h, http.MethodPost, "/api/auth/"+c.path, `{"email":"a@example.invalid","code":"123456","password":"Long-enough-1"}`, nil)
+		if got := authDecode(t, rec)["code"]; rec.Code != c.status || got != c.code {
+			t.Fatalf("%s %s = %d %v, want %d %s", c.path, c.kind, rec.Code, got, c.status, c.code)
+		}
+	}
+}
+
 // An allow-list refuses a sign-up from another domain with a clear message and never reaches the
 // pool; sign-in and the people already in the pool are untouched, and an unset list is open.
 func TestSignUpDomainAllowList(t *testing.T) {
