@@ -57,6 +57,16 @@ describe('states', () => {
 		expect(root.querySelector('[data-kit="empty-state"]')?.textContent).toContain('Create the first report');
 		expect(root.querySelector('[data-kit="empty-state"] button')?.textContent?.trim()).toBe('New report');
 	});
+
+	it('gives the first-run list an icon, hidden from assistive technology', () => {
+		const root = mount({ rows: [] });
+		expect(root.querySelector('[data-kit="empty-state"] svg')?.getAttribute('aria-hidden')).toBe('true');
+	});
+
+	it('shows skeletons while loading', () => {
+		const root = mount({ status: 'loading' });
+		expect(root.querySelectorAll('[data-kit="skeleton"]').length).toBeGreaterThan(0);
+	});
 });
 
 describe('ListPage', () => {

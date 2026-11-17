@@ -48,6 +48,11 @@ describe('DetailPage', () => {
 		expect(root.querySelector('main a[href="/reports"]')?.textContent).toBe('All reports');
 	});
 
+	it('shows the status as a pill beside the title, in words', () => {
+		const pill = mount().querySelector('h1 + [data-kit="pill"]');
+		expect(pill?.textContent?.trim()).toBe('Published');
+	});
+
 	it('says "Not set" for an empty value rather than leaving a blank', () => {
 		const root = mount();
 		expect(root.querySelectorAll('dd')[2]?.textContent).toBe('Not set');

@@ -2,6 +2,7 @@
      DetailPage.svelte and detailpage.test.ts. Not routed; nothing links here. -->
 <script lang="ts">
 	import Button from '../../Button.svelte';
+	import Pill from '../../Pill.svelte';
 	import Table from '../../Table.svelte';
 	import DetailPage from '../DetailPage.svelte';
 	import PagesShowcase from './PagesShowcase.svelte';
@@ -22,6 +23,7 @@
 		{status}
 		onretry={noop}
 	>
+		{#snippet badge()}<Pill tone="success">Published</Pill>{/snippet}
 		{#snippet actions()}<Button variant="destructive" onclick={noop}>Delete</Button>{/snippet}
 		<h2>Revisions</h2>
 		<Table caption="Revisions" columns={[{ key: 'when', label: 'When' }]} rows={[{ when: 'Today' }]} />

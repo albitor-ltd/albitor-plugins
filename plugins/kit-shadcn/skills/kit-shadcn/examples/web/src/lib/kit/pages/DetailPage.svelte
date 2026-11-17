@@ -9,6 +9,7 @@
        </DetailPage> -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import Card from '../Card.svelte';
 	import PageHeader from './PageHeader.svelte';
 	import StateNotice from './StateNotice.svelte';
 
@@ -20,6 +21,7 @@
 		status = 'ready',
 		errorMessage,
 		onretry,
+		badge,
 		actions,
 		children
 	}: {
@@ -31,25 +33,29 @@
 		status?: 'loading' | 'error' | 'ready';
 		errorMessage?: string;
 		onretry?: () => void;
+		/** A Pill beside the title, for the record's status. */
+		badge?: Snippet;
 		actions?: Snippet;
 		/** Related sections: give each its own `<h2>`. */
 		children?: Snippet;
 	} = $props();
 </script>
 
-<PageHeader {title} {description} {back} {actions} />
+<PageHeader {title} {description} {back} {badge} {actions} />
 
 {#if status !== 'ready'}
 	<StateNotice {status} {errorMessage} {onretry} loadingLabel="Loading details" />
 {:else}
-	<dl>
-		{#each fields as field (field.label)}
-			<div>
-				<dt>{field.label}</dt>
-				<dd>{field.value === '' ? 'Not set' : field.value}</dd>
-			</div>
-		{/each}
-	</dl>
+	<Card>
+		<dl>
+			{#each fields as field (field.label)}
+				<div>
+					<dt>{field.label}</dt>
+					<dd>{field.value === '' ? 'Not set' : field.value}</dd>
+				</div>
+			{/each}
+		</dl>
+	</Card>
 	{#if children}<div class="related">{@render children()}</div>{/if}
 {/if}
 
@@ -57,8 +63,8 @@
 	dl {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-		gap: 1rem 1.5rem;
-		margin: 0 0 2rem;
+		gap: var(--space-4) var(--space-6);
+		margin: 0;
 	}
 	dt {
 		color: var(--muted-foreground);
@@ -68,6 +74,9 @@
 		margin: 0.125rem 0 0;
 		font-weight: 600;
 		overflow-wrap: anywhere;
+	}
+	.related {
+		margin-top: var(--space-6);
 	}
 	.related :global(h2) {
 		font-size: var(--text-heading);

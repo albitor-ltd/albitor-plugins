@@ -1,6 +1,6 @@
 ---
 name: kit-shadcn
-description: How to build pages from the kit-shadcn component kit on a SvelteKit app composed from web-svelte (shadcn-style components on Bits UI, one token set), the design system the app's UI is built and reviewed against. Use when a build adds or changes a page, form, table, dialog, toast or empty state under web/src, themes the app, or touches web/src/lib/kit.
+description: How to build pages from the kit-shadcn component kit on a SvelteKit app composed from web-svelte (shadcn-style components on Bits UI, one token set), the design system the app's UI is built and reviewed against. Use when a build adds or changes a page, form, table, dialog, toast, empty state, card, status pill, tabs, chart, stat tile, icon or the navigation under web/src, themes the app, or touches web/src/lib/kit.
 metadata:
   capability: design-system
 ---
@@ -17,6 +17,8 @@ Import from the barrel with a relative path (SvelteKit 3 has no `$lib` alias her
 
 ```ts
 import { Button, Field, Table, Dialog, EmptyState, toast } from '../../lib/kit';
+import { Card, Pill, StatTile, Tabs, Icon } from '../../lib/kit';
+import House from '@lucide/svelte/icons/house';
 ```
 
 ## Rules
@@ -27,7 +29,10 @@ import { Button, Field, Table, Dialog, EmptyState, toast } from '../../lib/kit';
    (`references/tokens.md`). A hardcoded colour breaks dark mode and the contrast audit.
 3. **Label every control.** `Field` ties the label, hint and error to the control; never use a
    placeholder as the label.
-4. **Name every icon-only control** with visible text or an `aria-label`.
+4. **Name every icon-only control** with visible text or an `aria-label`. Icons are Lucide
+   (`@lucide/svelte`), imported one by one from `@lucide/svelte/icons/<name>` (never the barrel) and
+   drawn through `Icon`, which hides a decorative icon from assistive technology. Status is a `Pill`
+   (a glyph and a word), never colour alone.
 5. **A dialog always has a title and a description.** `Dialog` requires both props.
 6. **Values are text.** `Table` cells, toast messages and nav labels render as text. Never feed user
    input to `{@html}`.
@@ -46,7 +51,16 @@ together; `web/knip.json` keeps the fixture folders out of the end-of-build prun
 | A form field | `<Field label hint error bind:value />`; `multiline` for a textarea; `type` for the input type |
 | An action | `<Button variant="primary" \| "secondary" \| "destructive" \| "ghost">`; `type="submit"` in a form |
 | Tabular data | `<Table caption columns rows />`; an empty `rows` shows an `EmptyState` |
-| Nothing to show | `<EmptyState title description>` with an `action` snippet saying what to do next |
+| Nothing to show | `<EmptyState title description icon>` with an `action` snippet saying what to do next; with `icon` it is the first-run screen |
+| Group related content | `<Card title level>` (a surface with its own heading; `tone="second"` for a quiet highlight) |
+| A status or count | `<Pill tone="success" \| "warning" \| "danger" \| "info" \| "neutral">`: always a glyph and a word |
+| Views of one thing | `<Tabs label tabs bind:value>` with a `panel(value)` snippet (Bits UI Tabs); links between pages stay in the nav |
+| A person or team | `<Avatar name src size>`: the photo, or initials, named for the person |
+| How far along | `<Progress label value max variant="bar" \| "ring" showValue>` |
+| Loading, in the content's shape | `<Skeleton width height circle>` inside an `aria-busy` region that says it is loading |
+| A headline figure | `<StatTile label value icon delta meter spark>`: label and value read as a pair; the change is in words |
+| A small chart | `<Chart title data kind="bar" \| "sparkline">`: SVG in the tokens plus a table of the same values for assistive technology |
+| A filter that is on or off | `<FilterChip bind:pressed>`: a toggle button with `aria-pressed` and a check when on |
 | A confirmation or small task | `<Dialog bind:open title description>` with an `actions` snippet |
 | Feedback after an action | `toast.push({ message, tone })` (`tone`: `info`, `success`, `error`) |
 
@@ -54,8 +68,26 @@ together; `web/knip.json` keeps the fixture folders out of the end-of-build prun
 a timer and each can be dismissed.
 
 Patterns (`references/patterns.md`) cover forms with validation, destructive confirmation, empty
-and error states, and navigation on a phone (the shell's Menu button, and when a bottom tab bar or drawer
-replaces it; overflow, focus and ARIA).
+and error states, and navigation on a phone (the shell's Menu button, the tab bar and 4 plus More,
+and the drawer; overflow, focus and ARIA).
+
+### Navigation: structure and style are separate
+
+`AppShell` takes the one destinations list (the merged `nav`) and renders it through `NavShell`; the
+look's tokens style it, and the structure is chosen by three props, never by editing the shell:
+
+- `layout`: `top` (the default, links in the header row) or `side` (a column beside the page, from 48rem).
+- `phoneNav`: the look's stance for a phone. `drawer` (the default) is the Menu button. `tabs` is a
+  fixed bottom tab bar for 2 to 5 destinations, or 4 tabs plus a More button that opens the rest as
+  a list for 6 or more. One destination is not worth a bar, so `tabs` falls back to `drawer`. Read
+  the stance from the look skill's "Phone navigation" section (a look that leans to a tab bar says
+  so) and pass it from the root layout. Pick one: a tab bar and a menu button never carry the same
+  destinations.
+- `icons`: a map from a destination's `href` to a Lucide icon, drawn beside the label.
+
+`aria-current="page"` is on the current link and never on More (the button says "(current page is in
+More)" in words), targets are 44px and the bar pads for the home indicator. `references/patterns.md`
+has the rules behind it.
 
 ## Page templates
 
@@ -72,11 +104,11 @@ never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and
 
 | The page is | Start from | It gives you |
 |---|---|---|
-| A collection of records | `ListPage` | Header with actions, a filter group, `Table`, `EmptyState` with a next step, loading and failed states |
-| One record | `DetailPage` | Back link, actions, facts as a description list, related sections, loading and failed states |
-| Create or edit one record | `FormPage` | Labelled fields, a focused error summary, a named submit, cancel, a busy guard |
-| An overview | `DashboardPage` | Labelled headline figures, sections below, loading and failed states |
-| Preferences, in groups | `SettingsPage` with `SettingsSection` | Named groups, one save, the same error summary |
+| A collection of records | `ListPage` | Header with actions, a filter group (Fields or `FilterChip`s), `Table`, a first-run `EmptyState` with an icon and a next step (`emptyIcon`), loading skeletons and failed state |
+| One record | `DetailPage` | Back link, a status `Pill` beside the title (`badge`), actions, the facts in a `Card` as a description list, related sections, loading and failed states |
+| Create or edit one record | `FormPage` | Labelled fields in a `Card`, a focused error summary, a named submit, cancel, a busy guard |
+| An overview | `DashboardPage` | `StatTile` figures (icon, change in words, meter or sparkline), sections below (put each in a `Card`), loading skeletons, failed state, and a first-run state (`firstRun`) |
+| Preferences, in groups | `SettingsPage` with `SettingsSection` | Each group a `Card` named by its heading, one save, the same error summary |
 | Sign in | `SignInPage` | Email and password with the right `autocomplete`, one alert for the failure; presentation only |
 
 ### Tables on a phone
@@ -96,8 +128,8 @@ viewport). Choose by how much vertical space the list can spend:
 
 Both modes are in `__fixtures__/ListPageFixture.svelte` and audited in `listpage.test.ts`. Values stay text.
 
-`PageHeader` (the one `<h1>`, a description, a back link, actions) and `StateNotice` (loading
-`status`, failure `alert` with a retry) are the skeleton under every template; use them directly for
+`PageHeader` (the one `<h1>`, a description, a back link, a status `badge`, actions) and `StateNotice` (loading
+`status` with skeletons, failure `alert` with a retry) are the skeleton under every template; use them directly for
 a page that fits none of the above, such as a wizard step or an import report.
 
 How to use one:
@@ -159,6 +191,10 @@ in `references/accessibility-statement.md`. The wider WCAG 2.2 AA audit content 
 | `Table` | A caption, `scope` on every header, a keyboard-focusable scroll region; `narrow` modes keep the header row available to assistive technology |
 | `Dialog` | Named by its title, described by its description, focus trapped and returned (Bits UI) |
 | `Toaster` | Always-present `status` (polite) and `alert` (assertive, for errors) regions |
+| `NavShell` | One labelled `nav`; `aria-current="page"` on the link, never on More; 44px targets; More says when the current page is in it |
+| `Pill`, `StatTile`, `FilterChip` | Status as a glyph and a word; a figure read with its label and its change in words; a toggle with `aria-pressed` and a check |
+| `Tabs`, `Avatar`, `Progress` | Bits UI: arrow keys, panel tied to tab; named image; named `progressbar` with its value |
+| `Chart`, `Skeleton`, `Icon` | An image with a text table of the same values; hidden from assistive technology; hidden unless given a label |
 
 ## Design principles
 

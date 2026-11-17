@@ -70,9 +70,9 @@
 	}
 	.summary {
 		max-width: 40rem;
-		margin-bottom: 1.5rem;
-		padding: 1rem;
-		border: 2px solid var(--destructive);
+		margin-bottom: var(--space-6);
+		padding: var(--space-4);
+		border: calc(var(--border-width) * 2) solid var(--destructive);
 		border-radius: var(--radius);
 	}
 	.summary:focus-visible {

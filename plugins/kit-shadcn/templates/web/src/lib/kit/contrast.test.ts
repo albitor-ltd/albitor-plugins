@@ -99,7 +99,15 @@ const pairs: Array<[string, string, number]> = [
 	['--on-success', '--success', 4.5],
 	['--on-warning', '--warning', 4.5],
 	['--success', '--background', 3],
-	['--warning', '--background', 3]
+	['--warning', '--background', 3],
+	// Progress and charts: the fill is a graphic, so 3:1 against its track and its surface; the
+	// sparkline's end dot is the second colour on the surface.
+	['--primary', '--muted', 3],
+	['--primary', '--surface', 3],
+	['--second', '--surface', 3],
+	// Stat tile: the delta arrows on the surface.
+	['--success', '--surface', 3],
+	['--destructive', '--surface', 4.5]
 ];
 
 describe.each([

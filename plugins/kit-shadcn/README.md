@@ -17,6 +17,22 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
 - The styled shell pieces in the shadcn style: `AppShell` (skip link, labelled nav, current page,
   one `main`), `Button`, `Field` (label, hint and error tied to the control), `Table`, `Dialog`
   (on [Bits UI](https://bits-ui.com)), `Toaster` and `toast`, `EmptyState`.
+- The vocabulary (albitor-ltd/albitor#5137, F2), seeded beside them and exported from `index.ts`
+  (additive): `Card`, `Pill` (a glyph and a word per tone), `Tabs`, `Avatar` and `Progress` (bar
+  and ring) on Bits UI, `Skeleton`, `FilterChip`, `StatTile` (icon, a change in words, a meter or a
+  sparkline), `Chart` (bar and sparkline as SVG in the tokens, with a visually hidden table of the
+  same values) and `Icon`, which draws a [Lucide](https://lucide.dev) icon (`@lucide/svelte`, ISC;
+  imported per icon, `aria-hidden` unless labelled). Each reads only the tokens, so a look
+  restyles all of them, and each has a fixture and test (`card.test.ts`, `pill.test.ts` and so on:
+  axe, plus the behaviour that makes it accessible).
+- `NavShell`, which `AppShell` renders: one destinations list (the merged `nav`) becomes a row in
+  the header or, with `layout="side"`, a column from 48rem. On a phone `phoneNav` (the look's
+  stance) picks the Menu button (`drawer`, the default) or a bottom tab bar (`tabs`): 2 to 5
+  destinations are tabs, 6 or more are 4 tabs and a More button that opens the rest, one
+  destination keeps the Menu button. `icons` maps an href to a Lucide icon. `aria-current` is
+  never on More, targets are 44px and the bar pads for the home indicator. Structure and style are
+  separate axes: the same `nav` works under every look, and `navshell.test.ts` checks the
+  structure rules.
 - One token file, `tokens.css`: colour roles, radius, type, spacing, border width, shadow, heading type,
   focus width and motion, in light and dark. It imports `web/src/lib/look/look.css`, which the platform
   writes from the app's look (`--look-*` custom properties), and each token reads its property with
@@ -39,8 +55,9 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture (it lists a piece the app does not use; delete that piece, its fixture and its test together).
 - The page templates, worked examples in the skill's `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
-  `StateNotice`. Each is a whole page body built from the kit pieces, with loading, failed and
-  empty states, one `<h1>`, and form errors in a focused summary. Each has its own
+  `StateNotice`. Each is a whole page body built from the kit pieces (`StatTile`, `Card`, `Pill`,
+  `FilterChip`, skeletons), with loading, failed and empty states (the dashboard and the list have
+  a first-run state with an icon), one `<h1>`, and form errors in a focused summary. Each has its own
   `<name>.test.ts` and `__fixtures__/<Name>Fixture.svelte` that render it in every state and run axe
   over it (`PagesShowcase.svelte` is the shared frame, `pages.test.ts` covers the sign-in page)
   (WCAG 2.2 AA), plus behaviour checks. They are the "start from a template" half of the kit
@@ -67,7 +84,7 @@ client build.
 
 ## Known gaps
 
-- **Dependencies.** The composer records `bits-ui` (and `axe-core`, `jsdom`, `@types/jsdom`,
+- **Dependencies.** The composer records `bits-ui` and `@lucide/svelte` (and `axe-core`, `jsdom`, `@types/jsdom`,
   `@internationalized/date` for the tests) but does not write them into the app-owned
   `web/package.json`. `scripts/compose-check.sh` installs the declared set before it builds; an
   app composed by the platform needs them added until the composer does it.
