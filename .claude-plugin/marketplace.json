@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.12.0",
-        "sha": "2e1bba60fd83c238c19034eb4ce227bdccb47b2d"
+        "ref": "kit-shadcn/v0.13.0",
+        "sha": "d335abe8b807e676c6a9e0716ea9e785554b72c2"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -417,8 +417,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-business",
-        "ref": "look-business/v0.1.3",
-        "sha": "116afb7e2962b30100b0ea3c6c95093b4ee91ef5"
+        "ref": "look-business/v0.1.4",
+        "sha": "d335abe8b807e676c6a9e0716ea9e785554b72c2"
       },
       "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
       "category": "development",
@@ -440,8 +440,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-startup",
-        "ref": "look-startup/v0.1.3",
-        "sha": "116afb7e2962b30100b0ea3c6c95093b4ee91ef5"
+        "ref": "look-startup/v0.1.4",
+        "sha": "d335abe8b807e676c6a9e0716ea9e785554b72c2"
       },
       "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
       "category": "development",
@@ -463,8 +463,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-consumer",
-        "ref": "look-consumer/v0.1.4",
-        "sha": "116afb7e2962b30100b0ea3c6c95093b4ee91ef5"
+        "ref": "look-consumer/v0.1.5",
+        "sha": "d335abe8b807e676c6a9e0716ea9e785554b72c2"
       },
       "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page with white cards and a berry accent, a few things at a time.",
       "category": "development",
