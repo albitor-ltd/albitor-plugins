@@ -10,6 +10,7 @@
 	let password = $state('');
 	let error = $state('');
 	let busy = $state(false);
+	let exists = $state(false);
 	let alertBox: HTMLElement | undefined = $state();
 
 	// The button is disabled while busy, which drops focus to <body>; a failure takes it back, on the alert.
@@ -22,10 +23,18 @@
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		error = '';
+		exists = false;
 		busy = true;
 		const result = await signUp(email, password);
 		busy = false;
 		if (!result.ok) {
+			// An account that never had its code entered can always get a new one.
+			if (result.code === 'exists') {
+				exists = true;
+				await tick();
+				alertBox?.focus();
+				return;
+			}
 			void fail(result.message);
 			return;
 		}
@@ -64,6 +73,24 @@
 	{#if error}
 		<p role="alert" tabindex="-1" bind:this={alertBox} data-testid="sign-up-error">{error}</p>
 	{/if}
+	{#if exists}
+		<div role="alert" tabindex="-1" bind:this={alertBox} data-testid="sign-up-exists">
+			<p>
+				An account with that email already exists. If you never entered the code we emailed you,
+				confirm your email.
+			</p>
+			<p class="exists-actions">
+				<a
+					href="/confirm?email={encodeURIComponent(email)}&resend=1"
+					data-testid="sign-up-confirm-link">Confirm your email</a
+				>
+				<a
+					href="/sign-in?email={encodeURIComponent(email)}"
+					data-testid="sign-up-exists-sign-in-link">Sign in</a
+				>
+			</p>
+		</div>
+	{/if}
 	<Button type="submit" disabled={busy} data-testid="sign-up-button">Create account</Button>
 </form>
 
@@ -71,3 +98,17 @@
 	Already have an account?
 	<a href="/sign-in" data-testid="sign-up-sign-in-link">Sign in</a>
 </p>
+
+<style>
+	.exists-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+	}
+	.exists-actions a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		padding: 0.5rem 0.75rem;
+	}
+</style>

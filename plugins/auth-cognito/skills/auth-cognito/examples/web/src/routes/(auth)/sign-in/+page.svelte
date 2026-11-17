@@ -61,7 +61,7 @@
 			return;
 		}
 		if (result.code === 'not_confirmed') {
-			await goto(`/confirm?email=${encodeURIComponent(email)}`);
+			await goto(`/confirm?email=${encodeURIComponent(email)}&resend=1`);
 			return;
 		}
 		void fail(result.message);

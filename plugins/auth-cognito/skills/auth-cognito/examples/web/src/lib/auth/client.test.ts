@@ -63,6 +63,17 @@ describe('the sign-in calls', () => {
 		expect(await confirm('a@example.test', '1')).toEqual({ ok: true });
 	});
 
+	it('carry the codes the confirm screen offers a way on from', async () => {
+		stubFetch(() => json(409, { error: 'an account with that email already exists', code: 'exists' }));
+		expect(await signUp('a@example.test', 'pw')).toMatchObject({ ok: false, code: 'exists' });
+		stubFetch(() => json(409, { error: 'this email is already confirmed: sign in', code: 'already_confirmed' }));
+		expect(await resend('a@example.test')).toMatchObject({ ok: false, code: 'already_confirmed' });
+		stubFetch(() => json(429, { error: 'too many attempts: wait a while and try again', code: 'rate_limited' }));
+		expect(await resend('a@example.test')).toMatchObject({ ok: false, code: 'rate_limited' });
+		stubFetch(() => json(400, { error: 'that code has expired: ask for a new one', code: 'expired_code' }));
+		expect(await confirm('a@example.test', '1')).toMatchObject({ ok: false, code: 'expired_code' });
+	});
+
 	it('answer a refusal as a result carrying the API code, and do not throw', async () => {
 		stubFetch(() =>
 			json(401, { error: 'incorrect email or password', code: 'invalid_credentials' })
