@@ -56,6 +56,7 @@ Help users self-assess eligibility before they start, using question pages. Rout
 For long applications made of several independent tasks. Use the Task list pattern: a list of tasks each with a status Tag ("Completed", "In progress", "Not started", "Cannot start yet"), a count of completed tasks, and a return point users can come back to.
 - Do: let users do tasks in any sensible order and save progress; show statuses in text (not colour only).
 - Don't: use it for short linear journeys (use sequential question pages instead).
+- **In this kit:** the `TaskListPage` -> `QuestionPage` -> `CheckAnswersPage` -> `ConfirmationPage` flow in `examples/web/src/lib/kit/pages/`; the `rubric.md` beside SKILL.md checks it.
 - **Live status without a manual refresh:** where a status changes asynchronously (a task moving to "Completed", a submitted request moving to "Processed"), reflect it on its own — as a progressive enhancement, poll or refetch so the status Tag updates in place rather than leaving the user to re-load the page to find out. Keep the page correct on a normal reload so no-JS users still see the current status, and announce the change (`aria-live` / 4.1.3).
 
 ### Confirm an email address

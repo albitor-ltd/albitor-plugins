@@ -30,14 +30,20 @@ $govuk-brand-colour: #1d70b8;
 @use 'govuk-frontend/dist/govuk/core';
 @use 'govuk-frontend/dist/govuk/objects';
 @use 'govuk-frontend/dist/govuk/utilities';
+@use 'govuk-frontend/dist/govuk/components/back-link';
 @use 'govuk-frontend/dist/govuk/components/button';
 @use 'govuk-frontend/dist/govuk/components/error-message';
 @use 'govuk-frontend/dist/govuk/components/error-summary';
 @use 'govuk-frontend/dist/govuk/components/hint';
+@use 'govuk-frontend/dist/govuk/components/inset-text';
 @use 'govuk-frontend/dist/govuk/components/input';
 @use 'govuk-frontend/dist/govuk/components/label';
+@use 'govuk-frontend/dist/govuk/components/notification-banner';
 @use 'govuk-frontend/dist/govuk/components/skip-link';
+@use 'govuk-frontend/dist/govuk/components/summary-list';
 @use 'govuk-frontend/dist/govuk/components/table';
+@use 'govuk-frontend/dist/govuk/components/tag';
+@use 'govuk-frontend/dist/govuk/components/task-list';
 @use 'govuk-frontend/dist/govuk/components/textarea';
 
 // The header's text colour: white, or near-black where white would not reach 4.5:1 (WCAG 2.2 AA)
@@ -62,6 +68,13 @@ $govuk-brand-colour: #1d70b8;
 }
 :root {
 	--kit-header-text: #{-header-text($govuk-brand-colour)};
+}
+
+// The notification banner's title sits on the brand colour, as the header does: use the header's
+// text colour, so it keeps 4.5:1 on whatever brand colour an app sets. The success banner is
+// Frontend's own green and keeps its own text.
+.govuk-notification-banner:not(.govuk-notification-banner--success) {
+	--_govuk-notification-banner-title-text-colour: var(--kit-header-text);
 }
 
 // The service navigation, as GOV.UK Frontend 6.4.0 styles it (the markup and class names are
@@ -218,6 +231,14 @@ $-tablet: 40.0625em;
 			0 -2px $-focus,
 			0 4px $-focus-text;
 		text-decoration: none;
+	}
+}
+.govuk-service-navigation__service-name {
+	margin-right: 30px;
+	padding: 10px 0;
+	font-weight: 700;
+	@media (min-width: $-tablet) {
+		padding: 15px 0;
 	}
 }
 .govuk-service-navigation__active-fallback {
