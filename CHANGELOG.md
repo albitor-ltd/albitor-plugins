@@ -21,6 +21,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `api-go` `0.10.1` (albitor-ltd/albitor#4447 item 1; tag follows the merge). The `ownedscope`
+  helper passes the lint an app runs (`golangci-lint run ./...`, default linters), so a foundation
+  run no longer edits the vendored helper to satisfy it: two `QF1008` selectors in `openapi.go` and
+  one `QF1001` in its test are fixed, which changes the helper's source digest.
+  `scripts/verify-api-go.sh` now runs that lint over the composed tree and fails on a finding.
 - `web-svelte` `0.10.0`, `kit-shadcn` `0.12.0`, `kit-carbon` `0.11.0` and `kit-gds` `0.11.0`
   (albitor-ltd/albitor#4945; tags follow the merge). The app's logo reaches the app. `AppShell` and
   `SignInPage` take an optional `mark` (a URL), drawn beside the name or above the heading with an
