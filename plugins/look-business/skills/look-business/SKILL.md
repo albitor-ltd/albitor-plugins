@@ -9,8 +9,7 @@ capability: visual-language
 Dense, exact and quiet. Navy neutrals, a single blue accent, 2px corners, compact rows, tabular figures, no shadows.
 
 A look is a pure style layer over the app's chosen component kit and markup. It changes tokens
-(type, colour, radius, density, elevation), never the structure or the accessibility behaviour of a
-component. The platform paints the preview from `preview-tokens.json` at this plugin's root and
+(type, colour, radius, density, elevation), never the accessibility behaviour of a component. The platform paints the preview from `preview-tokens.json` at this plugin's root and
 derives the full light and dark scheme from it; the build must use those derived tokens, not
 re-invent them.
 
@@ -28,6 +27,8 @@ app already looks like this look. **Never edit `look.css`** (the platform overwr
 map tokens by hand or redeclare the kit's colour tokens in light and dark selectors. Styles the
 app needs beyond the look go in `web/src/lib/app/app.css`, over the kit's tokens; never hardcode a
 hex in a component. The kit offers dark and the runner scans both themes.
+
+This look suggests the **Technical** font look (`default_font_look` in the manifest) when the person has not picked one; their pick and any policy lock outrank it. The look also supplies page examples (below) and a `rubric.md` for the visual check.
 
 ### Typography
 
@@ -56,11 +57,26 @@ The authored light palette: text `#0b1b33`, secondary text `#44546a`, border
 `#f8fafc`, accent `#0b4f9e` with `#ffffff` on it. The accent is a default:
 the app's own brand colour replaces it and the platform recalculates the dependent shades.
 
+## Signature
+
+What makes an app in this look recognisable. These are positive recipes; build them in, and review a built page against `rubric.md`.
+
+- **Second colour:** carries selection and emphasis in the data, never an action: the tint on a selected row and the bulk bar, the current item in the nav, `Card tone="second"`. The blue accent stays on primary actions, links and the selected state.
+- **Icons:** Lucide through the kit's `Icon`, small (14 to 16px), one beside every nav destination; row and cell content stays text.
+- **Shell:** a compact sidebar on a wide screen (`layout="side"`) and the Menu button and drawer on a phone, which keeps the table-first screen uncluttered.
+- **Summary strip:** headline figures are one bordered strip of exact values with a note under each, in tabular figures. Not large decorated tiles.
+- **Lists:** one dense table with saved views and a search field above it, numbers right-aligned, and a bulk bar that appears when rows are selected (a count and the actions that apply). A selected row is a tint plus a 2px left bar.
+- **Art:** the ruled-page `EmptyArt`, small, on a first-run page only; in a dense table the plain sentence is the empty state.
+- **Motion:** none beyond state changes. A short fade for a dialog or a toast and a visible focus ring; nothing moves for decoration.
+
+The signature is style, not structure: the kit's page templates and the app's own layout are unchanged, and a look never changes accessibility behaviour. Structure (`layout`, `phoneNav`) and style (the tokens) are separate axes: another look can use the same shell props.
+
 ## Empty-state art
 
-A small illustration can lift a first-run empty list. It is optional and the app's own code: copy
-`examples/web/src/lib/look/EmptyArt.svelte` from this skill to `web/src/lib/look/EmptyArt.svelte`
-and edit it. It is never seeded.
+The look's art is seeded as `web/src/lib/look/EmptyArt.svelte`: a starting point, then the app's
+own, so edit it freely. It is drawn in the app's tokens, so it follows the primary, second and
+surface colours and dark mode with no second asset. Use it for first-run states; the end-of-build
+prune removes it if nothing imports it.
 
 - **Use it** on a first-run empty list or page (nothing created yet), above the plain sentence that
   says why it is empty and the one action that fixes it. The sentence and the action do the work;
@@ -70,8 +86,8 @@ and edit it. It is never seeded.
   view, or in a GDS or Carbon app, whose kit has its own conventions and no illustration.
 - **Build it** as an inline SVG Svelte component of simple geometric shapes: no lettering, no
   photographic or detailed drawing, `aria-hidden="true"` and `focusable="false"`, no `<title>`.
-  Fill and stroke only with the app's colour tokens (`var(--primary)`, `var(--muted)`,
-  `var(--border)` on the shadcn kit; the app's own names otherwise), never a hex, so it follows the
+  Fill and stroke only with the app's colour tokens (`var(--primary)`, `var(--second)`,
+  `var(--muted)`, `var(--border)` on the shadcn kit; the app's own names otherwise), never a hex, so it follows the
   light and dark pages with no second asset. Use opacity for tints, not new colours. It never
   carries the only cue for anything.
 - **Look-specific:** shapes are rectilinear and quiet: a ruled page, a table or a form outline with
@@ -100,6 +116,41 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 - Never hide a control: every desktop nav destination stays reachable on phone. Test at 390px.
 - Tab and nav targets stay at least 44px, overriding the look's 28px density minimum. Keep the bar
   compact, with a 1px `border` top line and no shadow.
+
+### Wire it
+
+The stance is two props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
+
+1. Pass `phoneNav` to `AppShell` from the stance above: `"tabs"` where it leans to a tab bar,
+   `"drawer"` where it leans to the Menu button. This look leans towards the Menu button and drawer, so pass `phoneNav="drawer"` (the kit's default, so it is the same as leaving it out; pass it anyway so the stance is on the page). Pass `layout="side"` for the sidebar. Structure and style stay
+   separate: the props choose the structure, the look's tokens style it.
+2. Build an `icons` map from the app's own nav, `href` to Lucide component, and pass it too. Import
+   each icon on its own from `@lucide/svelte/icons/<name>` (never the barrel), give every
+   destination one, and update the map when a route is added, renamed or removed (a missing entry
+   shows the label alone).
+
+`examples/web/src/routes/+layout.svelte` beside this skill shows the whole layout wired this way.
+Keep the app's own providers, title and mark; add only `layout`, `phoneNav` and `icons`.
+
+## Page examples
+
+Styled examples of every kit page template are in `examples/web/src/lib/look/pages/`, laid out by
+repository path: Overview (summary strip, a table and an ageing card), Invoices (list with saved views, search, row selection and a bulk bar), Invoice (detail with a status, lines and a confirm dialog), NewInvoice (form), Preferences (settings), FirstRun and Setup (a step flow with a numbered list of steps). `pages.test.ts` renders each page (loading, failed and
+empty states included) and runs axe, one `h1` and heading-order checks over it.
+
+They are worked examples, not seeded files. Copy the ones the app needs, with `pages.test.ts`
+trimmed to match, to `web/src/lib/look/pages/`, then edit them: replace the sample data and copy,
+fetch in `+page.ts` or the page, and pass `status`. They import the kit's page templates
+(`DashboardPage`, `ListPage`, `DetailPage`, `FormPage`, `SettingsPage`, `PageHeader`,
+`StateNotice`), which come from the `kit-shadcn` skill's examples, so copy those first. Once
+copied they are the app's code and never reference this skill. Do not rebuild a page from scratch
+when one of these fits.
+
+## Reviewing a page
+
+`rubric.md` beside this file is a short checklist for a visual review of a built page against this
+look (the heading font loaded, the page colour from `look.css`, the second colour in the data,
+icons in the nav, a designed first-run state, density). Use it on screenshots or a rendered page.
 
 ## Dark mode
 

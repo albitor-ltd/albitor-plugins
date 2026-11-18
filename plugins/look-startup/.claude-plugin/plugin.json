@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "look-startup",
   "displayName": "Look: Startup",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "kind": "socket",
   "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
   "author": {
@@ -31,7 +31,15 @@
       {
         "path": "web/src/lib/look/look.json",
         "mode": "example"
+      },
+      {
+        "path": "web/src/lib/look/EmptyArt.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
       }
     ]
-  }
+  },
+  "default_font_look": "font-geometric"
 }
