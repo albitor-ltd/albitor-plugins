@@ -79,9 +79,10 @@ cursor back; a server that hangs for ever pauses the queue without counting atte
 ## Dependency pins
 
 `contributes.dependencies.npm` and the seeded `web/package.json` are exact pins, at least 14 days
-old. `@sveltejs/kit` 3.0.1 (2026-10-06) and `@sveltejs/adapter-static` 4.0.0 (2026-10-01) are the
-exception: no older release of their major exists. Transitives in the seeded lockfile are not
-subject to the rule (current practice).
+old. `@sveltejs/kit` 3.1.1 (2026-10-29) and `@sveltejs/adapter-static` 4.0.1 (2026-10-29) are the
+oldest releases that clear their published advisories. Transitives in the seeded lockfile are not
+subject to the rule (current practice). `picomatch` carries a high advisory with no fixed release
+yet, so `npm audit` still reports it through vite, vitest and svelte-check.
 
 ## The lockfile is the app's
 
