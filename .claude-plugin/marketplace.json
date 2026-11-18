@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.10.0",
-        "sha": "2e1bba60fd83c238c19034eb4ce227bdccb47b2d"
+        "ref": "web-svelte/v0.10.1",
+        "sha": "76f6646a3e6c1e26477fc088c6221dc880fe01da"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
