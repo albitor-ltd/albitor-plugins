@@ -27,7 +27,7 @@
 
 	const uid = $props.id();
 	const success = $derived(type === 'success');
-	const heading = $derived(`h${headingLevel}`);
+	const headingTag = $derived(`h${headingLevel}`);
 	let el: HTMLDivElement | null = $state(null);
 
 	onMount(() => {
@@ -46,7 +46,7 @@
 	bind:this={el}
 >
 	<div class="govuk-notification-banner__header">
-		<svelte:element this={heading} class="govuk-notification-banner__title" id={`${uid}-title`}>
+		<svelte:element this={headingTag} class="govuk-notification-banner__title" id={`${uid}-title`}>
 			{title ?? (success ? 'Success' : 'Important')}
 		</svelte:element>
 	</div>
