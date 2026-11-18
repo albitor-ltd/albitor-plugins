@@ -1,8 +1,8 @@
-<!-- Empty-state art for a first-run empty list: a starting point, then yours. Decorative only:
-     the sentence and the action beside it do the work, so it carries no text and no meaning.
-     Colour comes from the app's tokens, never a hex, so it follows light and dark. The three
-     --art-* lines are the only place that names the kit's tokens: point them at the app's own
-     (this uses the shadcn kit's --primary, --muted and --border). -->
+<!-- Empty-state art for a first-run screen: a starting point, then yours. Decorative only: the
+     sentence and the action beside it do the work, so it carries no text and no meaning. Colour
+     comes from the app's tokens, never a hex, so it follows light and dark and the app's own
+     colours. The --art-* lines are the only place that names the tokens (the shadcn kit's
+     --primary, --second, --muted and --border): point them at the app's own if they differ. -->
 <script lang="ts">
 	let { size = 160 }: { size?: number } = $props();
 </script>
@@ -26,7 +26,8 @@
 <style>
 	.art {
 		--art-accent: var(--primary);
-		--art-soft: var(--muted);
+		--art-second: var(--second);
+		--art-soft: var(--surface);
 		--art-line: var(--border);
 		display: block;
 		margin-inline: auto;
@@ -45,7 +46,7 @@
 		opacity: 0.85;
 	}
 	.spark {
-		fill: var(--art-accent);
-		opacity: 0.35;
+		fill: var(--art-second);
+		opacity: 0.5;
 	}
 </style>
