@@ -83,6 +83,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- `web-svelte` `0.10.1` (albitor-ltd/albitor#5214; tag follows the merge). Pins `@sveltejs/kit`
+  3.1.1 and `@sveltejs/adapter-static` 4.0.1 (was 3.0.1 and 4.0.0) to clear their advisories, and
+  refreshes the seeded lockfile. `picomatch` has no fixed release yet, so `npm audit` still reports
+  it high.
 - `api-go` `0.10.1` (albitor-ltd/albitor#4447 item 1; tag follows the merge). The `ownedscope`
   helper passes the lint an app runs (`golangci-lint run ./...`, default linters), so a foundation
   run no longer edits the vendored helper to satisfy it: two `QF1008` selectors in `openapi.go` and

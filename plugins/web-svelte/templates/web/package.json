@@ -12,9 +12,9 @@
     "local": "vite build && node scripts/local-serve.mjs"
   },
   "devDependencies": {
-    "@sveltejs/adapter-static": "4.0.0",
+    "@sveltejs/adapter-static": "4.0.1",
     "@types/node": "24.19.2",
-    "@sveltejs/kit": "3.0.1",
+    "@sveltejs/kit": "3.1.1",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "svelte": "5.57.2",
     "svelte-check": "4.7.6",
