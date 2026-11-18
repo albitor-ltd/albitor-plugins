@@ -81,6 +81,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   and a link to it for an app that declares optional or consent templates. Inert until the matching
   albitor PR lands and the foundation brief points at it.
 
+### Fixed
+
+- `kit-gds` `0.12.2` (albitor-ltd/albitor#5137; tag follows the merge). `NotificationBanner`
+  declared `heading` twice (the single-line prop from `0.12.1` and the derived element tag), which
+  failed `svelte-check` and so every compose that included the kit; the tag is now `headingTag`.
+  Behaviour is unchanged.
+
 ### Changed
 
 - `web-svelte` `0.10.1` (albitor-ltd/albitor#5214; tag follows the merge). Pins `@sveltejs/kit`
