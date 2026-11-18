@@ -23,8 +23,9 @@ Beside the skill:
   test that runs axe over each.
 - `rubric.md`: a short checklist for the visual check of a built page.
 
-The manifest names this look's default font look, Geometric (`font-geometric`), in `default_font_look`: a suggestion when the
-person has not picked one, outranked by their pick and by any policy lock.
+The manifest names this look's default font look, Geometric (`font-geometric`), in
+`default_font_look`: a suggestion when the person has not picked one, outranked by their pick and by
+any policy lock.
 Validate the tokens with `scripts/validate-preview-tokens.sh` from the repository root.
 
 Notes. `-apple-system` is deliberately omitted from the font stacks: the platform's bare-family check refuses it (`system-ui` covers the same face). A look only applies to a component kit that is `themeable: true`.

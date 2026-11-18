@@ -31,8 +31,9 @@ whose root layout renders the kit's `AppShell`.
   `<name>.test.ts` (axe plus behaviour: current page, hidden text on Change links, focus and role of
   the success banner, task statuses) and `__fixtures__/<Name>Fixture.svelte`; delete a piece, its
   fixture and its test together. `NotificationBanner` takes single-line content as `heading` (the
-  `govuk-notification-banner__heading` class, per Frontend guidance); longer content is children. `govuk.scss` now compiles their styles, and the notification
-  banner's title takes the header's text colour so it keeps AA on an app's own brand colour.
+  `govuk-notification-banner__heading` class, per Frontend guidance); longer content is children.
+  `govuk.scss` now compiles their styles, and the notification banner's title takes the header's
+  text colour so it keeps AA on an app's own brand colour.
 - `govuk.scss`: the Frontend styles those components wear, compiled from the pinned
   `govuk-frontend` package with `sass`. The service navigation is restated in that file rather than
   imported, because Frontend's stylesheet for it carries an Internet Explorer media-query hack that

@@ -51,7 +51,6 @@ describe('Chart', () => {
 
 	it('accepts repeated labels', () => {
 		const root = mount();
-		
 		expect(root.querySelectorAll('[data-kind="bar"]')[2].querySelectorAll('rect')).toHaveLength(2);
 	});
 
