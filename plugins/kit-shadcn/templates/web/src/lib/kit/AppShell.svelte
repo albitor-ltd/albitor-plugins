@@ -193,6 +193,7 @@
 		/* Room under the page for the fixed tab bar and the home indicator. */
 		.frame[data-phone='tabs'] {
 			/* The bar's height follows the text size; the page and the toasts clear it. */
+			/* 1.25rem is the tab icon plus the gap between it and its label. */
 			--tab-bar-height: max(
 				3.75rem,
 				calc(var(--text-small) * 1.5 + 1.25rem + var(--space-2) * 2 + var(--border-width) * 2)

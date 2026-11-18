@@ -28,7 +28,9 @@ map tokens by hand or redeclare the kit's colour tokens in light and dark select
 app needs beyond the look go in `web/src/lib/app/app.css`, over the kit's tokens; never hardcode a
 hex in a component. The kit offers dark and the runner scans both themes.
 
-This look suggests the **Technical** font look (`default_font_look` in the manifest) when the person has not picked one; their pick and any policy lock outrank it. The look also supplies page examples (below) and a `rubric.md` for the visual check.
+This look suggests the **Technical** font look (`default_font_look` in the manifest) when the person
+has not picked one; their pick and any policy lock outrank it.
+The look also supplies page examples (below) and a `rubric.md` for the visual check.
 
 ### Typography
 
@@ -122,8 +124,10 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 The stance is two props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
 
 1. Pass `phoneNav` to `AppShell` from the stance above: `"tabs"` where it leans to a tab bar,
-   `"drawer"` where it leans to the Menu button. This look leans towards the Menu button and drawer, so pass `phoneNav="drawer"` (the kit's default, so it is the same as leaving it out; pass it anyway so the stance is on the page). Pass `layout="side"` for the sidebar. Structure and style stay
-   separate: the props choose the structure, the look's tokens style it.
+   `"drawer"` where it leans to the Menu button. This look leans towards the Menu button and drawer,
+   so pass `phoneNav="drawer"` (the kit's default, so it is the same as leaving it out; pass it
+   anyway so the stance is on the page). Pass `layout="side"` for the sidebar. Structure and style
+   stay separate: the props choose the structure, the look's tokens style it.
 2. Build an `icons` map from the app's own nav, `href` to Lucide component, and pass it too. Import
    each icon on its own from `@lucide/svelte/icons/<name>` (never the barrel), give every
    destination one, and update the map when a route is added, renamed or removed (a missing entry
