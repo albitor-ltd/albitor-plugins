@@ -4,13 +4,27 @@ Crisp and quiet. Near-achromatic neutrals, one teal accent, 10px corners, hairli
 
 A `visual-language@1` plugin: a look pack. It ships `preview-tokens.json` (the token set the
 platform paints the preview and derives the light and dark scheme from) and one skill,
-`look-startup`, telling builders how to apply the look to any web app. It contributes one seeded file,
-`web/src/lib/look/look.json` (a copy of the tokens for the build to read), and composes over any
-themeable component kit.
+`look-startup`, telling builders how to apply the look to any web app. It contributes two seeded files,
+`web/src/lib/look/look.json` (a copy of the tokens for the build to read) and
+`web/src/lib/look/EmptyArt.svelte` (the look's art for first-run states, drawn in the app's tokens),
+and composes over any themeable component kit.
 
 **Suits.** SaaS products and developer tools: dashboards, workspaces, settings and onboarding for people who use the product daily and judge it on speed and clarity. Avoid for dense back-office tables (use Business) or mobile-first lifestyle apps (use Consumer).
 
-See `skills/look-startup/SKILL.md` for typography, density, shape, elevation, colour and dark-mode guidance.
+See `skills/look-startup/SKILL.md` for typography, density, shape, elevation, colour, the look's signature,
+phone navigation and dark-mode guidance.
+
+Beside the skill:
+
+- `examples/web/src/routes/+layout.svelte`: the root layout wired with the look's `layout`, `phoneNav`
+  and `icons` props for `AppShell` (structure and style stay separate axes).
+- `examples/web/src/lib/look/pages/`: styled examples of each kit page template (overview, list,
+  detail, form, settings, first run, step flow) written against the kit-shadcn components, with a
+  test that runs axe over each.
+- `rubric.md`: a short checklist for the visual check of a built page.
+
+The manifest names this look's default font look, Geometric (`font-geometric`), in `default_font_look`: a suggestion when the
+person has not picked one, outranked by their pick and by any policy lock.
 Validate the tokens with `scripts/validate-preview-tokens.sh` from the repository root.
 
 Notes. `-apple-system` is deliberately omitted from the font stacks: the platform's bare-family check refuses it (`system-ui` covers the same face). A look only applies to a component kit that is `themeable: true`.

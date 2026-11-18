@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `look-business` `0.2.0`, `look-consumer` `0.2.0` and `look-startup` `0.2.0`
+  (albitor-ltd/albitor-plugins#258, stream albitor-ltd/albitor#5137; tags follow the merge). Each
+  look gains a positive "Signature" section (where the second colour goes, icons, shell, art and
+  motion; Startup layered tiles with meters and sparklines, Business a summary strip with saved
+  views and a bulk bar, Consumer a header band and a focus card), styled examples of every kit page
+  template (overview, list, detail, form, settings, first run, step flow) written against the
+  kit-shadcn 0.14.0 components with an axe test, and a `rubric.md` for the visual check
+  (art phrased as the look's art used for first-run states). `EmptyArt.svelte` is now seeded
+  (`web/src/lib/look/`, recoloured by the primary and second tokens). The manifests carry
+  `default_font_look` (Startup `font-geometric`, Business `font-technical`, Consumer
+  `font-friendly`). The "Phone navigation" stance is now actionable: a "Wire it" section tells the
+  builder to pass `phoneNav` from the stance and an `icons` map built from the app's nav
+  (`@lucide/svelte/icons/*`) in the root `+layout.svelte`, and a styled `+layout.svelte` example
+  shows it, closing the gap where delivered apps always got the drawer. "Never changes the
+  structure or the accessibility behaviour" becomes "never changes the accessibility behaviour"
+  (albitor-ltd/albitor#5145).
 - `kit-shadcn` `0.14.0` (albitor-ltd/albitor-plugins#257, stream albitor-ltd/albitor#5137; tag
   follows the merge). The kit's vocabulary: `Card`, `Pill`, `Tabs`, `Avatar`, `Progress` (bar and
   ring), `Skeleton`, `FilterChip`, `StatTile`, `Chart` (bar and sparkline as SVG with a text

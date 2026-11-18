@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "look-consumer",
   "displayName": "Look: Consumer",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "kind": "socket",
   "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page with white cards and a berry accent, a few things at a time.",
   "author": {
@@ -31,7 +31,15 @@
       {
         "path": "web/src/lib/look/look.json",
         "mode": "example"
+      },
+      {
+        "path": "web/src/lib/look/EmptyArt.svelte",
+        "mode": "example",
+        "when": {
+          "web-framework": "web-svelte"
+        }
       }
     ]
-  }
+  },
+  "default_font_look": "font-friendly"
 }
