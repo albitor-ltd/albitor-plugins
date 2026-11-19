@@ -1,6 +1,16 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { isSafeRedirect, runGuards } from '../shell/guard';
-import { PUBLIC_PATHS, canShowNav, SELF_SERVICE_PATHS, isPublicPath, nextPath, requireSession, signInPath } from './guard';
+import {
+	AUTH_PAGES,
+	PUBLIC_PATHS,
+	SELF_SERVICE_PATHS,
+	canShowNav,
+	isPublicPath,
+	isSignedIn,
+	nextPath,
+	requireSession,
+	signInPath
+} from './guard';
 
 const session = vi.hoisted(() => ({ getSession: vi.fn() }));
 vi.mock('./session', () => session);
@@ -28,7 +38,7 @@ describe('requireSession', () => {
 		expect(await requireSession({ url: at('/reports') })).toBeUndefined();
 	});
 
-	it.each(PUBLIC_PATHS)('lets anyone reach %s, without asking the API', async (path) => {
+	it.each(AUTH_PAGES)('lets anyone reach %s, without asking the API', async (path) => {
 		expect(await requireSession({ url: at(path) })).toBeUndefined();
 		expect(session.getSession).not.toHaveBeenCalled();
 	});
@@ -63,7 +73,7 @@ describe('canShowNav', () => {
 		await expect(canShowNav(at('/reports'))).resolves.toBe(false);
 	});
 
-	it.each(PUBLIC_PATHS)('does not ask the API about %s', async (path) => {
+	it.each(AUTH_PAGES)('does not ask the API about %s', async (path) => {
 		expect(await canShowNav(at(path))).toBe(false);
 		expect(session.getSession).not.toHaveBeenCalled();
 	});
@@ -128,5 +138,56 @@ describe('nextPath', () => {
 		'/sign-up?x=1'
 	])('falls back to / for %s', (next) => {
 		expect(nextPath(next)).toBe('/');
+	});
+});
+
+describe('declared public pages (browse posture)', () => {
+	// The foundation node adds the manifest's web entries to PUBLIC_PATHS; the test does the same.
+	const declared = ['/listings', '/listings/*'];
+	beforeEach(() => {
+		(PUBLIC_PATHS as string[]).push(...declared);
+	});
+	afterEach(() => {
+		(PUBLIC_PATHS as string[]).splice(-declared.length, declared.length);
+	});
+
+	it('matches an exact entry, and a /* entry only below its prefix', () => {
+		expect(isPublicPath('/listings')).toBe(true);
+		expect(isPublicPath('/listings/42')).toBe(true);
+		expect(isPublicPath('/listings/42/photos')).toBe(true);
+		expect(isPublicPath('/listings/')).toBe(false);
+		expect(isPublicPath('/listingsx')).toBe(false);
+		expect(isPublicPath('/saved')).toBe(false);
+		expect(isPublicPath('/other/listings/1')).toBe(false);
+	});
+
+	it('lets a signed-out visitor open them without asking the API, and still guards the rest', async () => {
+		expect(await requireSession({ url: at('/listings/42') })).toBeUndefined();
+		expect(session.getSession).not.toHaveBeenCalled();
+		session.getSession.mockResolvedValue(null);
+		expect(await requireSession({ url: at('/saved?x=1') })).toBe('/sign-in?next=%2Fsaved%3Fx%3D1');
+	});
+
+	it('shows the nav signed out on a public page, and signed in everywhere', async () => {
+		session.getSession.mockResolvedValue(null);
+		expect(await canShowNav(at('/listings/42'))).toBe(true);
+		expect(await isSignedIn(at('/listings/42'))).toBe(false);
+		expect(await canShowNav(at('/saved'))).toBe(false);
+		expect(await canShowNav(at('/sign-in'))).toBe(false);
+		session.getSession.mockResolvedValue({ sub: 'u1' });
+		expect(await canShowNav(at('/listings/42'))).toBe(true);
+		expect(await isSignedIn(at('/listings/42'))).toBe(true);
+		expect(await isSignedIn(at('/sign-in'))).toBe(false);
+	});
+
+	it('hides the nav, without throwing, when the session check fails', async () => {
+		session.getSession.mockRejectedValue(new Error('API down'));
+		await expect(canShowNav(at('/listings/42'))).resolves.toBe(false);
+		await expect(isSignedIn(at('/listings/42'))).resolves.toBe(false);
+	});
+
+	it('returns a person to a public page they signed in from, but never to an auth page', () => {
+		expect(nextPath('/listings/42?q=a')).toBe('/listings/42?q=a');
+		expect(nextPath('/sign-in')).toBe('/');
 	});
 });

@@ -70,6 +70,8 @@ type signIn struct {
 	auth      *hostedAuth
 	anonymous bool
 	err       error
+	// public is the browse posture: the API routes open with no sign-in (identity_public.go).
+	public publicPolicy
 }
 
 // signInFromEnv decides where identity comes from:
@@ -98,7 +100,7 @@ func signInFromEnv(getenv func(string) string) signIn {
 		if err != nil {
 			return signIn{err: err}
 		}
-		return signIn{auth: newHostedAuth(cfg)}
+		return signIn{auth: newHostedAuth(cfg), public: cfg.Public}
 	}
 	if strings.TrimSpace(getenv(envLambdaName)) != "" {
 		return signIn{err: fmt.Errorf("a deployed function has no user pool: %s and the other AUTH_* variables are not set", envIssuer)}
@@ -121,6 +123,7 @@ type hostedConfig struct {
 	LoginURL      string
 	LogoutURL     string
 	SignupDomains []string
+	Public        publicPolicy
 }
 
 var domainEntry = regexp.MustCompile(`^(\*\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$`)
@@ -148,12 +151,13 @@ func hostedConfigFromEnv(getenv func(string) string) (hostedConfig, error) {
 	if !apikit.IsSafeToken(cfg.ClientID, 128) {
 		return hostedConfig{}, fmt.Errorf("%s is not well formed", envClientID)
 	}
-	// "public" is accepted so a deploy that sets it still starts, and is treated exactly as "private":
-	// every route needs a person. Per-route public endpoints are a later feature; a deployed function
-	// never acts for the anonymous owner.
-	if cfg.Posture != "private" && cfg.Posture != "public" {
-		return hostedConfig{}, fmt.Errorf("%s must be private or public", envPosture)
+	// "public" opens only the routes AUTH_PUBLIC_ROUTES names (identity_public.go); everything else
+	// stays default-deny, and a deployed function never acts for the anonymous owner.
+	public, err := parsePublicPolicy(cfg.Posture, getenv(envPublicRoutes), getenv(envPublicBodyMax))
+	if err != nil {
+		return hostedConfig{}, err
 	}
+	cfg.Public = public
 	if _, err := httpsURL(envIssuer, cfg.Issuer); err != nil {
 		return hostedConfig{}, err
 	}

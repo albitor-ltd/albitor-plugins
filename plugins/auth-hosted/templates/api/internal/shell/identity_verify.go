@@ -11,7 +11,8 @@ import (
 
 // THE API IDENTITY SEAM. It fills two slots of the generated router: IdentityVerify in
 // api.middleware and IdentityRoutes in api.routes. Every request needs a verified sign-in, on any
-// path, except /api/health and the public routes in publicRoutes.
+// path, except /api/health, the sign-in calls in publicRoutes and, in posture public, the routes
+// AUTH_PUBLIC_ROUTES lists (identity_public.go).
 //
 // The pieces:
 //   - identity_verify.go (this file): the middleware and GET /api/me.
@@ -151,6 +152,19 @@ func (g *identityGate) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		(g.nativeEvents && r.Method == http.MethodPost && r.URL.Path == eventsPath) {
 		g.next.ServeHTTP(w, r)
 		return
+	}
+
+	// A public route (AUTH_PUBLIC_ROUTES, posture public) takes identity as optional: with no
+	// credential the handler runs anonymous; a credential that is offered is checked like any
+	// other, so a bad or expired one is a 401 and never a quiet downgrade.
+	if g.setup.public.isPublic(r) {
+		if !g.setup.public.capPublicBody(w, r) {
+			return
+		}
+		if !hasCredential(r) {
+			g.next.ServeHTTP(w, r)
+			return
+		}
 	}
 
 	id, ok := g.setup.auth.authenticate(w, r, g.logger)

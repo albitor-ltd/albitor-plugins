@@ -44,8 +44,10 @@ const (
 	// envSignupDomains is services.auth.signup_domains: email domains, comma-separated, each
 	// `example.org` or `*.example.org`. Unset or empty means no limit.
 	envSignupDomains = "AUTH_SIGNUP_DOMAINS"
-	envLambdaName    = "AWS_LAMBDA_FUNCTION_NAME"
-	envLocalRun      = "ALBITOR_LOCAL"
+	// envPosture is services.auth.posture: "private" or "public". Unset means private.
+	envPosture    = "AUTH_POSTURE"
+	envLambdaName = "AWS_LAMBDA_FUNCTION_NAME"
+	envLocalRun   = "ALBITOR_LOCAL"
 )
 
 // The session cookies. Both HttpOnly, Secure and SameSite=Strict: no script
@@ -69,6 +71,8 @@ type signIn struct {
 	auth      *cognitoAuth
 	anonymous bool
 	err       error
+	// public is the browse posture: the API routes open with no sign-in (identity_public.go).
+	public publicPolicy
 }
 
 // signInFromEnv decides where identity comes from:
@@ -100,13 +104,17 @@ func signInFromEnv(getenv func(string) string) signIn {
 			return signIn{err: err}
 		}
 		cfg.SignupDomains = domains
+		public, err := parsePublicPolicy(getenv(envPosture), getenv(envPublicRoutes), getenv(envPublicBodyMax))
+		if err != nil {
+			return signIn{err: err}
+		}
 		if !cfg.valid() {
 			return signIn{err: fmt.Errorf("%s, %s and %s must all be set, and well formed", envUserPoolID, envClientID, envRegion)}
 		}
 		if cfg.SignUp != "" && cfg.SignUp != signUpOpen && cfg.SignUp != signUpInviteOnly {
 			return signIn{err: fmt.Errorf("%s must be %q or %q", envSignUp, signUpInviteOnly, signUpOpen)}
 		}
-		return signIn{auth: newCognitoAuth(cfg)}
+		return signIn{auth: newCognitoAuth(cfg), public: public}
 	}
 	if strings.TrimSpace(getenv(envLambdaName)) != "" {
 		return signIn{err: fmt.Errorf("a deployed function has no user pool: %s and %s are not set", envUserPoolID, envClientID)}

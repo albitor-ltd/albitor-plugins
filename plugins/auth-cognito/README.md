@@ -13,10 +13,11 @@ repository path, which the skill tells a coder to copy and alter.
 | Repository path in the app | Seeded | What |
 | --- | --- | --- |
 | `api/internal/identity/` | yes | `Identity`, `Owner(r)` (an owner and an error), `FromContext`: the one identity API handlers use |
-| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`, default-deny: only `/api/health` and the exact sign-in calls in `publicRoutes` pass with no session), `IdentityRoutes` (`api.routes`): `GET /api/me` |
+| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`, default-deny: only `/api/health`, the exact sign-in calls in `publicRoutes` and, in posture public, the routes in `AUTH_PUBLIC_ROUTES` pass with no session), `IdentityRoutes` (`api.routes`): `GET /api/me` |
 | `api/internal/shell/identity_token.go` | yes | RS256 check against the pool's JWKS, standard library only |
 | `api/internal/shell/identity_cognito.go` | yes | Pool from the environment, the session cookies, refresh |
-| `api/internal/shell/identity_test.go`, `identity_hardening_test.go` | yes | The gate and the token hardening tests |
+| `api/internal/shell/identity_public.go` | yes | The browse posture: `AUTH_POSTURE` (unset is private), `AUTH_PUBLIC_ROUTES`, `AUTH_PUBLIC_BODY_MAX`; the route matcher and the public-write body cap. A listed route takes identity as optional: a valid token is used, none is anonymous, a bad one is 401 |
+| `api/internal/shell/identity_test.go`, `identity_hardening_test.go`, `identity_public_test.go` | yes | The gate, the token hardening tests and the public-route tests |
 | `web/src/lib/auth/session.ts`, `guard.ts` and tests | yes | `getSession()` and the `requireSession` route guard |
 | `web/src/lib/shell/scope.d/auth-cognito.ts` | yes | Exports the name `web.route-guard` resolves to |
 | `web/tests/auth/provider.ts` | yes | The `auth@2` provider |
@@ -25,7 +26,7 @@ repository path, which the skill tells a coder to copy and alter.
 | `api/openapi.yaml` | example | api-go's contract plus `GET /api/me` and `/api/auth/*` |
 | `web/src/lib/auth/client.ts`, a self-service `guard.ts` | example | The sign-in client and a guard that redirects the self-service screens in an invite-only app |
 | `web/src/routes/(auth)/` | example | Sign-in, sign-up, confirm, reset, change-password, delete-account and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on any kit that provides it |
-| `web/src/routes/+layout.ts`, `web/src/lib/shell/AccountBar.svelte` | example | Hides the nav from a signed-out visitor; the Sign out POST form button (replaces the web-svelte shell's empty AccountBar) |
+| `web/src/routes/+layout.ts`, `web/src/lib/shell/AccountBar.svelte` | example | Hides the nav from a signed-out visitor except on a declared public page; the Sign out POST form button (Sign in / Sign up links signed out) (replaces the web-svelte shell's empty AccountBar) |
 | `web/tests/journeys/sign-in.spec.ts` | example | The sign-in journey: redirect, screens, local identity |
 
 It requires `api-runtime@1`, `web-framework@1` and `component-kit@2` (an exact major: a kit that provides only `component-kit@1` does not satisfy it), so an API-less profile uses `auth-none`. It

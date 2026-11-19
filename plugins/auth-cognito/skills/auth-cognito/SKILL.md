@@ -59,6 +59,7 @@ which is what keeps one person's records from another.
 | File | What it does |
 | --- | --- |
 | `api/internal/identity/identity.go` | `identity.Owner(r)` (returns `(owner, error)`), `identity.FromContext(ctx)`, `Identity{Sub, Email, Groups}` and `InGroup`. The one identity API a handler uses |
+| `api/internal/shell/identity_public.go`, `identity_public_test.go` | The browse posture: `AUTH_POSTURE` (unset is private), `AUTH_PUBLIC_ROUTES` and `AUTH_PUBLIC_BODY_MAX` parsed (a malformed one fails closed), the route matcher and the public-write body cap. The gate lets a listed route through with optional identity (below) |
 | `api/internal/shell/identity_verify.go` | `IdentityVerify` (the `api.middleware` entry) refuses every request, on any path, without a verified token, except `/api/health`, the exact sign-in calls in `publicRoutes` (`POST /api/auth/sign-in`, `sign-up`, `confirm`, `resend`, `forgot`, `reset`, `new-password`, `sign-out` and `GET /api/auth/config`) and a path nothing serves (the JSON 404); nothing matches by prefix, so a route you add under `/api/auth/` or outside `/api/` is protected unless you name it in `publicRoutes`; `IdentityRoutes` serves `GET /api/me` |
 | `api/internal/shell/identity_token.go` | The RS256 check against the pool's JWKS: signature, `iss`, `token_use`, client, expiry. Standard library only |
 | `api/internal/shell/identity_cognito.go` | Where the pool comes from (`signInFromEnv`), the session cookies, refresh, and the one call helper to Cognito |
@@ -87,7 +88,7 @@ foundation node writes the sign-in shell from them.
 | `examples/api/openapi.yaml` | The contract with `GET /api/me` and `/api/auth/*` added to the base, the People routes marked `x-admin-only: true`. Merge those paths into the app's `api/openapi.yaml` |
 | `examples/web/src/lib/auth/client.ts`, `client.test.ts` | `signIn`, `signUp`, `confirm`, `resend`, `forgot`, `reset`, `signOut`, `getSignUpMode`, `changePassword`, `deleteAccount` and the People calls. They return `{ ok: false, code, message }` rather than throw |
 | `examples/web/src/lib/auth/guard.ts`, `guard.test.ts` | A guard that also sends a visitor from `/sign-up`, `/confirm` and `/reset` to `/sign-in` in an invite-only app. Replaces the seeded guard when you adopt the self-service screens |
-| `examples/web/src/routes/+layout.ts`, `examples/web/src/lib/shell/AccountBar.svelte` | The root layout load that returns `showNav: false` to a signed-out visitor (so the shell hides the app's navigation), and the shell's `AccountBar` filled in with the Sign out POST form button. Copy both over the shell's own |
+| `examples/web/src/routes/+layout.ts`, `examples/web/src/lib/shell/AccountBar.svelte` | The root layout load that returns `showNav: false` to a signed-out visitor, except on a declared public page (browse posture), plus `signedIn`; and the shell's `AccountBar`, which holds the Sign out POST form button signed in and Sign in / Sign up links signed out. Copy both over the shell's own |
 | `examples/web/src/routes/(auth)/**` | Sign-in, sign-up, confirm, reset, change-password, delete-account and People screens, written against the `component-kit@2` exports (`SignInPage`, `Field`, `Button`), so they work on every kit that provides it |
 | `examples/web/tests/journeys/sign-in.spec.ts` | The sign-in journey: redirect, screens, local identity |
 
@@ -140,13 +141,64 @@ readable by page script. A script or test client may send `Authorization: Bearer
   there is only one user administrator.
 - **Public pages.** `PUBLIC_PATHS` in `guard.ts` lists the public paths (the sign-in, sign-up, confirm,
   reset, sign-out and offline paths are in it already). A page that must be public (a landing
-  page, say) means adding the path there: say why in the delivery record. The
+  page, say) means adding the path there and, in posture public, listing it in
+  `services.auth.public_routes` (see Browse posture below): say why in the delivery record. The
   guard only shapes what the browser shows; the API enforces access.
 - **Anything the brief adds** (MFA, social sign-in) is a change to `services.auth` in
   `albitor.yaml` and, where the API must change, an edit to the file that needs it. `sign_up` is `open` or
   `invite_only` (the plan sets it; do not hard-code it in the app); a challenge the screens do not handle answers `challenge_unsupported`. The
   invited person's temporary-password step (`new_password_required`, then `newPassword` in
   `client.ts`) is handled: keep the `new-password-*` test ids on the sign-in page.
+
+## Browse posture (public routes)
+
+With `services.auth.posture: public` and a non-empty `services.auth.public_routes` the app lets
+anyone browse and asks for an account only for more. The API reads `AUTH_POSTURE`,
+`AUTH_PUBLIC_ROUTES` (the entries exactly as written in `albitor.yaml`, joined by commas) and
+`AUTH_PUBLIC_BODY_MAX` (bytes). The platform compiles all three; the app never sets them. Nothing is
+public unless listed: everything else stays default-deny on the API and in the web guard.
+
+- **API.** A web entry (starts with `/`) is the guard's; the gate ignores it. An API entry is
+  `METHOD /api/path`, where `{param}` matches one segment and a trailing `/*` matches one or more
+  further segments. A public `GET` also answers `HEAD`. No token: the handler runs anonymous. A valid
+  token: verified and used, so a signed-in person sees their own saved items. A token that is present
+  but bad, expired or for another client answers 401, never a silent downgrade. A non-`GET` public
+  route refuses a body over `AUTH_PUBLIC_BODY_MAX` with 413 (a body of unknown length errors when read
+  past it). A malformed list, an unknown posture or a public posture with no list closes the whole API
+  (503), like the other variables.
+- **Handlers on a public route cope with no identity.** `identity.FromContext(r.Context())` answers
+  `ok == false` when anonymous; `identity.Owner(r)` returns `ErrNoIdentity` in a deployed function
+  and never a shared owner, so do not use it for the anonymous case. A public read returns the same
+  shared data to everyone and adds the person's own items only when `FromContext` finds one:
+
+  ```go
+  func listListings(w http.ResponseWriter, r *http.Request) {
+  	rows := store.Listings(r.Context())
+  	if id, ok := identity.FromContext(r.Context()); ok {
+  		saved = store.SavedBy(r.Context(), id.Sub) // personal extras only when signed in
+  	}
+  	// ...
+  }
+  ```
+
+- **Public write handlers validate every field they accept.** The platform caps the body and nothing
+  else: there is no rate limit and no bot check. Check types, lengths and allowed values, reject unknown
+  fields, take no owner from the body, and write only what the route is for. The probe sends an empty
+  body and expects a 4xx that is not 401, and an over-cap body and expects 413.
+- **Per-journey roles.** When the plan gives a journey a list of roles, gate that journey's screens and
+  its API routes on the groups with the app's one authorisation check, `id.InGroup(<group>)`, after
+  `identity.FromContext`; answer 403 to a signed-in person without the group and 401 to nobody. Never
+  invent a second check or a role the plan did not declare. A journey marked `account` needs only a
+  signed-in person; a `public` journey's routes go in `public_routes`.
+- **Web.** `PUBLIC_PATHS` in `web/src/lib/auth/guard.ts` is one literal array of strings: the auth pages
+  first, then the manifest's web entries (`/listings`, `/listings/*`), added by the foundation node.
+  The floor's manifest check reads that array and fails the tree when it disagrees with
+  `public_routes`, so do not build it from spreads or imports, and add nothing to it that the manifest
+  does not list. A `/*` entry matches below its prefix only (`/listings/*` is not `/listings`). On a
+  declared public page the root `+layout.ts` shows the nav signed out (`showNav`) and returns
+  `signedIn`; `AccountBar` then shows Sign in and Sign up, carrying the page as `next`. A private link
+  opened signed out goes to `/sign-in?next=...`, and sign-in returns to `next` only when it is a
+  same-origin path that is not an auth page (`nextPath`).
 
 ## Rules
 

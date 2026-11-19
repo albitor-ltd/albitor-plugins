@@ -160,3 +160,32 @@ func TestTheDomainListNeedsAVerifiedAddressAndExemptsSeededIdentitiesOnly(t *tes
 		}
 	}
 }
+
+func TestPostureAndPublicRoutesComeFromTheEnvironment(t *testing.T) {
+	pool := func(extra map[string]string) func(string) string {
+		env := map[string]string{"AUTH_USER_POOL_ID": "eu-west-2_abc", "AUTH_CLIENT_ID": "client", "AWS_REGION": "eu-west-2"}
+		for k, v := range extra {
+			env[k] = v
+		}
+		return identityTestEnv(env)
+	}
+	// Unset posture is private.
+	if s := signInFromEnv(pool(nil)); s.err != nil || s.public.public {
+		t.Fatalf("no posture = %+v, want private", s)
+	}
+	s := signInFromEnv(pool(map[string]string{envPosture: "public", envPublicRoutes: "/listings, GET /api/listings", envPublicBodyMax: "2048"}))
+	if s.err != nil || !s.public.public || s.public.bodyMax != 2048 || len(s.public.routes) != 1 {
+		t.Fatalf("public = %+v, want one API route and a 2048 byte cap", s)
+	}
+	// A malformed posture, list or cap closes the API.
+	for name, extra := range map[string]map[string]string{
+		"public with no list": {envPosture: "public"},
+		"an unknown posture":  {envPosture: "open"},
+		"a bad entry":         {envPosture: "public", envPublicRoutes: "GET /api/*"},
+		"a bad cap":           {envPosture: "public", envPublicRoutes: "GET /api/a", envPublicBodyMax: "-1"},
+	} {
+		if s := signInFromEnv(pool(extra)); s.err == nil || s.auth != nil {
+			t.Errorf("%s = %+v, want a failure", name, s)
+		}
+	}
+}
