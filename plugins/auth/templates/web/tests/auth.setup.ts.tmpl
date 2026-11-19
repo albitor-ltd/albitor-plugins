@@ -39,13 +39,18 @@ import {
 // tests teaches nothing. The same holds for an app that has a password but no
 // sign-in screen yet; see SIGN_IN_SCREEN_EXISTS below.
 //
-// A SPEC THAT NEEDS A SESSION SAYS SO, and then skips rather than fails when
-// the suite is running signed out:
+// A SPEC THAT NEEDS A SESSION SAYS SO, and then (outside a browse app) skips rather
+// than fails when the suite is running signed out:
 //
-//   import { hasDemoSession } from "./helpers/storage-state";
+//   import { requireSession } from "./helpers/storage-state";
 //   test.beforeEach(() => {
-//     test.skip(!hasDemoSession(), "no signed-in session: this app has no sign-in yet");
+//     requireSession(test, "no signed-in session: this app has no sign-in yet");
 //   });
+//
+// requireSession skips, except in a browse app (services.auth.posture: public), where an account
+// or role journey with no session FAILS: a skip there is a journey nobody walked. A PUBLIC journey
+// guards on nothing: it starts with test.use({ storageState: EMPTY_STORAGE_STATE }) and runs
+// signed out. Never guard an account spec in a browse app on hasDemoSession().
 //
 // It has to be a beforeEach (or the first line of the test), not a top-level
 // test.skip: the session file is written by this setup, which runs after every

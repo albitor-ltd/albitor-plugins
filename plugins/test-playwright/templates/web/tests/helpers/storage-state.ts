@@ -4,6 +4,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync } from "node:
 import { tmpdir, userInfo } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { declaresPublicPosture, noSessionOutcome } from "./hosted-signin.ts";
 
 // Where the suite's one signed-in session lives.
 //
@@ -99,4 +100,26 @@ export function hasDemoSession(): boolean {
 // A spec that needs a second person calls this from a beforeEach and skips on false.
 export function hasVerifierBSession(): boolean {
 	return sessionSaved(VERIFIER_B_STORAGE_STATE);
+}
+
+// Whether the app is a browse app (services.auth.posture: public in the repository's albitor.yaml).
+// Unreadable counts as not browse: the old skip, never a failure the app cannot act on.
+export function isBrowseApp(): boolean {
+	try {
+		return declaresPublicPosture(readFileSync(join(WEB_ROOT, "..", "albitor.yaml"), "utf8"));
+	} catch {
+		return false;
+	}
+}
+
+// The guard for an account or role spec, called from a beforeEach: `requireSession(test, why)`.
+// With a session it does nothing. Without one a browse app FAILS, because there a skipped account
+// journey is a journey nobody walked; any other app skips, as before. A public journey does not
+// call this: it opts out with test.use({ storageState: EMPTY_STORAGE_STATE }) and runs signed out.
+export function requireSession(t: { skip(condition: boolean, description: string): void }, why: string): void {
+	if (hasDemoSession()) return;
+	if (noSessionOutcome(isBrowseApp()) === "fail") {
+		throw new Error(`no signed-in session in a browse app, so this account journey cannot run: ${why}`);
+	}
+	t.skip(true, why);
 }

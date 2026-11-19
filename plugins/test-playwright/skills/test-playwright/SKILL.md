@@ -225,7 +225,11 @@ fails with no error to explain it.
   labelled "Password" and a button named "Sign in". A hosted sign-in (redirect to another host, Cognito managed login, branded from the app's look; the classic UI works too) is signed in there instead. An app
   with no sign-in (no password, no `services.auth`) runs signed out; one with a way in but no recognisable
   screen fails the setup. Specs that need a
-  session skip themselves with `test.skip(!hasDemoSession(), ...)` in a `beforeEach`.
+  session call `requireSession(test, why)` (`helpers/storage-state.ts`) in a `beforeEach`: it skips,
+  except in a browse app (`services.auth.posture: public`), where an account or role journey with no
+  session fails. A public journey guards on nothing and opts out with
+  `test.use({ storageState: EMPTY_STORAGE_STATE })`. Never guard an account spec in a browse app on
+  `hasDemoSession()`: the skip reads green and the journey never ran (ADR-0112 section 5).
 
 ## Cross-account specs ("refuses another account's ...")
 
