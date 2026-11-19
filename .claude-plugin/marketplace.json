@@ -107,8 +107,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth",
-        "ref": "auth/v0.7.1",
-        "sha": "042be202938b1cb6864de217da750a4d645e704e"
+        "ref": "auth/v0.7.2",
+        "sha": "9788f507ef1796279e03b84d9124198b90603934"
       },
       "description": "The default auth pack: end-user sign-up and sign-in for a delivered app, backed by an Amazon Cognito user pool. Ships templated files (pool and public client, the API's token check and GET /api/me, the sign-in, sign-up, confirm-code and reset screens) that the platform renders into a new BYOA app's first commit, and a skill for what each build still writes. Self-sign-up is on by default; email verification is required.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.7.0",
-        "sha": "d30a7243827f93b4f90419d896c76fb7ee52b0bb"
+        "ref": "test-playwright/v0.7.1",
+        "sha": "9788f507ef1796279e03b84d9124198b90603934"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.13.0",
-        "sha": "07f831e1ad15b13eb091ce506e9859727a8290c3"
+        "ref": "auth-cognito/v0.13.1",
+        "sha": "9788f507ef1796279e03b84d9124198b90603934"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me, and the web side keeps a provider-independent session and a route guard. The sign-in calls, the sign-in, sign-up, confirm, reset screens, a Sign out button and the People admin are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.7.0",
-        "sha": "07f831e1ad15b13eb091ce506e9859727a8290c3"
+        "ref": "auth-hosted/v0.7.1",
+        "sha": "9788f507ef1796279e03b84d9124198b90603934"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
