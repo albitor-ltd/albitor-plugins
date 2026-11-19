@@ -434,16 +434,21 @@ func TestAnExpiredSessionIsRefreshedAtTheTokenEndpoint(t *testing.T) {
 	}
 }
 
-func TestAPublicPostureOpensNothing(t *testing.T) {
-	// "public" is accepted from the deploy and treated exactly as "private" in 0.1.0: a deployed
-	// function never acts for the anonymous owner.
+func TestAPublicPostureOpensOnlyWhatItListsAndNeverTheAnonymousOwner(t *testing.T) {
+	// "public" needs its list: with none the API fails closed, it does not open or fall back.
 	env := wholeEnv()
 	env[envPosture] = "public"
 	env[envLambdaName] = "fn"
-	setup := signInFromEnv(getenvFrom(env))
-	if setup.err != nil || setup.auth == nil || setup.anonymous {
-		t.Fatalf("setup = %+v, want a configured pool and no anonymous mode", setup)
+	if setup := signInFromEnv(getenvFrom(env)); setup.err == nil {
+		t.Fatalf("public with no %s = %+v, want a failure", envPublicRoutes, setup)
 	}
+	env[envPublicRoutes] = "/listings, GET /api/items"
+	env[envPublicBodyMax] = "4096"
+	setup := signInFromEnv(getenvFrom(env))
+	if setup.err != nil || setup.auth == nil || setup.anonymous || !setup.public.public || setup.public.bodyMax != 4096 || len(setup.public.routes) != 1 {
+		t.Fatalf("setup = %+v, want a configured pool, one API route and no anonymous mode", setup)
+	}
+	// A private posture still opens nothing.
 	f := newFakeCognito(t)
 	h := composeIdentity(signIn{auth: f.auth()})
 	for _, tc := range []struct{ method, path string }{

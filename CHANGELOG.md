@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `deploy-byoa-aws` `0.11.0` (albitor-ltd/albitor#5261; tag follows the merge). The auth module takes
+  `posture` and `public_routes` and hands the function `AUTH_POSTURE` and, with routes,
+  `AUTH_PUBLIC_ROUTES` (as written, comma-joined) and `AUTH_PUBLIC_BODY_MAX` (`16384`); routes with
+  posture private are refused. The root's module sources move to `v0.11.0`. The browse posture's
+  public-write default cap in both auth plugins is now 16384 bytes, and public matching refuses an
+  encoded slash and `.`/`..` segments.
+- `auth-hosted` `0.7.0` and `auth-cognito` `0.13.0` (albitor-ltd/albitor#5261, stream
+  albitor-ltd/albitor#5233, ADR-0112; tags follow the merge). The browse posture: with
+  `AUTH_POSTURE=public` the API gate lets the routes in `AUTH_PUBLIC_ROUTES` (the manifest's
+  `public_routes` as written, joined by commas: web entries start with `/`, API entries are
+  `METHOD /api/path` with `{param}` and a trailing `/*`) through signed out. Identity is optional
+  there: a valid token is used, none is anonymous (no identity, never a fixed owner), a present but
+  invalid token is 401. A public non-`GET` body over `AUTH_PUBLIC_BODY_MAX` (16384 when unset) is 413.
+  A malformed list, an unknown posture or `public` with no list closes the API; everything unlisted
+  stays default-deny. New seeded `identity_public.go` and its test in both plugins. `auth-cognito`
+  now reads `AUTH_POSTURE` (unset is private); `auth-hosted` no longer treats `public` as `private`.
+  Web: `guard.ts` keeps its public paths as one literal `PUBLIC_PATHS` array (auth pages plus the
+  declared web entries, `/*` suffix allowed) that the floor reads; `+layout.ts` shows the nav signed
+  out on a declared public page and returns `signedIn`; `AccountBar` shows Sign in / Sign up signed
+  out; `nextPath` refuses only the auth pages. Both skills gain a "Browse posture" section (handlers
+  cope with no identity, public writes validate every field, per-journey roles with `InGroup`).
 - `look-business` `0.2.0`, `look-consumer` `0.2.0` and `look-startup` `0.2.0`
   (albitor-ltd/albitor-plugins#258, stream albitor-ltd/albitor#5137; tags follow the merge). Each
   look gains a positive "Signature" section (where the second colour goes, icons, shell, art and

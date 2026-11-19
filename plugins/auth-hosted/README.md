@@ -33,10 +33,11 @@ repository path, which the skill tells a coder to copy and alter.
 | Repository path in the app | Seeded | What |
 | --- | --- | --- |
 | `api/internal/identity/` | yes | `Identity`, `Owner(r)` (an owner and an error), `FromContext`: the one identity API handlers use (the same as `auth-cognito`'s) |
-| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`, default-deny: only `/api/health` and the exact sign-in routes in `publicRoutes` pass with no session, plus `POST /events` on a function the platform runs for a schedule or queue, where `AWS_LWA_PASS_THROUGH_PATH` is `/events`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
+| `api/internal/shell/identity_verify.go` | yes | `IdentityVerify` (`api.middleware`, default-deny: only `/api/health`, the exact sign-in routes in `publicRoutes` and, in posture public, the routes in `AUTH_PUBLIC_ROUTES` pass with no session, plus `POST /events` on a function the platform runs for a schedule or queue, where `AWS_LWA_PASS_THROUGH_PATH` is `/events`), `IdentityRoutes` (`api.routes`): `GET /api/me` |
 | `api/internal/shell/identity_token.go` | yes | RS256 check against the pool's JWKS, standard library only |
 | `api/internal/shell/identity_hosted.go` | yes | The environment, the ID-token gate, refresh, the sign-up domain rule, the cookies |
-| `api/internal/shell/identity_test.go` | yes | The gate, token and domain-rule hardening tests |
+| `api/internal/shell/identity_public.go` | yes | The browse posture: the public-route list, its matcher and the public-write body cap. A listed route takes identity as optional: a valid token is used, none is anonymous, a bad one is 401 |
+| `api/internal/shell/identity_test.go`, `identity_public_test.go` | yes | The gate, token and domain-rule hardening tests, and the public-route tests |
 | `web/src/lib/auth/session.ts`, `guard.ts` and tests | yes | `getSession()` and the `requireSession` route guard |
 | `web/src/lib/shell/scope.d/auth-hosted.ts` | yes | Exports the name `web.route-guard` resolves to |
 | `web/tests/auth/provider.ts` | yes | The `auth@2` provider |
@@ -65,7 +66,9 @@ All of these come from the auth module's `environment` output; **if any is missi
 | `AUTH_ISSUER` | the `iss` every token must carry; its host is where `DeleteUser` is called |
 | `AUTH_CLIENT_ID` | the `aud` of an ID token (`client_id` of an access token); the public client |
 | `AUTH_JWKS_URL` | the pool's signing keys |
-| `AUTH_POSTURE` | `private` or `public`; both are accepted and, in 0.1.0, both mean private: every route needs a person. Per-route public endpoints are a later feature. A deployed function never acts for the anonymous owner |
+| `AUTH_POSTURE` | `private` or `public`. `public` opens only the routes in `AUTH_PUBLIC_ROUTES`; everything else stays default-deny. A deployed function never acts for the anonymous owner |
+| `AUTH_PUBLIC_ROUTES` | with `public`: `services.auth.public_routes` as written, joined by commas. Web entries start with `/` and are the web guard's; API entries are `METHOD /api/path` (`{param}` is one segment, a trailing `/*` is one or more). Required and non-empty with `public`, refused with `private`; a malformed entry closes the API |
+| `AUTH_PUBLIC_BODY_MAX` | with `public`: the byte cap on a public non-`GET` body (413 over it); 16384 when unset |
 | `AUTH_LOGIN_URL` | the authorize request, less `state` and the PKCE parameters, which the API appends. Its `scope` and `redirect_uri` are used as written: the scope is the deploy's to grant. The token and revoke endpoints are the scheme and host of this URL plus `/oauth2/token` and `/oauth2/revoke` |
 | `AUTH_LOGOUT_URL` | Cognito's sign-out page, which returns to the site |
 | `SIGNUP_DOMAINS` | optional: email domains allowed to sign in (below). A malformed entry also closes the API |

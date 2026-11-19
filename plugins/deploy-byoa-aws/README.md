@@ -86,9 +86,11 @@ a composed root cannot `init` before it exists).
   nothing is auto-verified and account recovery is admin-only (an in-place pool update, never a
   replacement). The deploy seeds the platform accounts and the owner, and the owner adds everyone
   else from the app's People screen (below), so the pool is never one nobody can sign in to. `open`
-  lets anyone register and confirm by email, exactly as before. `posture` is enforced by the app
-  and changes nothing in the infrastructure. The function
-  is handed `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AUTH_SIGN_UP` (the mode), `AUTH_SIGNUP_DOMAINS` (`services.auth.signup_domains`, comma-joined, empty means no limit) and `AUTH_ADMIN_GROUP`
+  lets anyone register and confirm by email, exactly as before. `posture` and `public_routes` change nothing in the pool; they are handed to the function (below).
+  The function
+  is handed `AUTH_USER_POOL_ID`, `AUTH_CLIENT_ID`, `AUTH_SIGN_UP` (the mode), `AUTH_SIGNUP_DOMAINS` (`services.auth.signup_domains`, comma-joined, empty means no limit) and `AUTH_ADMIN_GROUP`,
+  `AUTH_POSTURE` and, with `posture: public`, `AUTH_PUBLIC_ROUTES` (`services.auth.public_routes` as
+  written, comma-joined) and `AUTH_PUBLIC_BODY_MAX` (`16384`, bytes)
   (Lambda supplies `AWS_REGION`) and the root
   outputs both ids as `auth_user_pool_id` and `auth_client_id`. Mail goes through Cognito's default
   sender, which has a daily cap. Only `provider: cognito` is accepted; the module refuses the rest.
