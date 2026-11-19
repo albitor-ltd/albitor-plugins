@@ -222,8 +222,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-byoa-aws",
-        "ref": "deploy-byoa-aws/v0.10.0",
-        "sha": "66cde1a43b90bf8596b1b3fa54af36e43cf670d9"
+        "ref": "deploy-byoa-aws/v0.11.0",
+        "sha": "07f831e1ad15b13eb091ce506e9859727a8290c3"
       },
       "description": "The deploy-target plugin for a customer's own AWS account: Terraform rendered from albitor.yaml (CloudFront and S3 for the site, API Gateway and a Lambda for the API, DynamoDB tables, alarms, optional DNS) from versioned modules, the CI and deploy workflows, the stale state-lock guard, the preview's demo and verifier accounts, the owner's invite workflow and a managed destroy workflow with a destroy receipt.",
       "category": "development",
@@ -306,8 +306,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-cognito",
-        "ref": "auth-cognito/v0.12.0",
-        "sha": "7bd6b95ca22c794bf87826e56166b3e94426627a"
+        "ref": "auth-cognito/v0.13.0",
+        "sha": "07f831e1ad15b13eb091ce506e9859727a8290c3"
       },
       "description": "The auth plugin for the default profile: Amazon Cognito sign-up and sign-in. The API verifies tokens and serves GET /api/me, and the web side keeps a provider-independent session and a route guard. The sign-in calls, the sign-in, sign-up, confirm, reset screens, a Sign out button and the People admin are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.6.1",
-        "sha": "7bd6b95ca22c794bf87826e56166b3e94426627a"
+        "ref": "auth-hosted/v0.7.0",
+        "sha": "07f831e1ad15b13eb091ce506e9859727a8290c3"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
