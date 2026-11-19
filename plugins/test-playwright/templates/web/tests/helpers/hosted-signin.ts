@@ -194,3 +194,20 @@ export function signInRequired(evidence: {
 }): boolean {
 	return evidence.hasPassword || evidence.signInScreenFlag || evidence.sourceNamesScreen || evidence.declaresAuth;
 }
+
+/**
+ * Whether an albitor.yaml declares the browse posture: a `posture: public` line (quoted values
+ * included). `posture` is a key of `services.auth` alone, so a line scan stands in for a parse.
+ */
+export function declaresPublicPosture(yaml: string): boolean {
+	return /^\s*"?posture"?\s*:\s*["']?public["']?\s*(#.*)?$/m.test(yaml);
+}
+
+/**
+ * What a spec that needs a signed-in session does when the suite has none.
+ * A browse app fails it: a skip would read as green on an account or role journey that never ran.
+ * Any other app skips, as it always did.
+ */
+export function noSessionOutcome(browse: boolean): "fail" | "skip" {
+	return browse ? "fail" : "skip";
+}

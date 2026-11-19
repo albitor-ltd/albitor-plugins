@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `auth-hosted` `0.7.1`, `auth-cognito` `0.13.1`, `test-playwright` `0.7.1` and `auth` `0.7.2`
+  (albitor-ltd/albitor#5277, stream albitor-ltd/albitor#5233, ADR-0112 section 5; tags follow the
+  merge). A browse app (`posture: public`) fails, never skips, an account or role journey spec with no
+  session: `requireSession(test, why)` in `helpers/storage-state.ts` replaces the
+  `test.skip(!hasDemoSession(), ...)` guard (other apps still skip), a public journey opts out with
+  `test.use({ storageState: EMPTY_STORAGE_STATE })`, and both auth skills say not to guard account specs on
+  `hasDemoSession()`.
 - `deploy-byoa-aws` `0.11.0` (albitor-ltd/albitor#5261; tag follows the merge). The auth module takes
   `posture` and `public_routes` and hands the function `AUTH_POSTURE` and, with routes,
   `AUTH_PUBLIC_ROUTES` (as written, comma-joined) and `AUTH_PUBLIC_BODY_MAX` (`16384`); routes with

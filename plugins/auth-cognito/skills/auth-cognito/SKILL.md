@@ -200,6 +200,12 @@ public unless listed: everything else stays default-deny on the API and in the w
   opened signed out goes to `/sign-in?next=...`, and sign-in returns to `next` only when it is a
   same-origin path that is not an auth page (`nextPath`).
 
+- **Account specs in a browse app fail, never skip.** With `posture: public` an account or role journey
+  guards on `requireSession(test, why)` (`web/tests/helpers/storage-state.ts`), which fails the spec when the
+  suite has no session; do not guard it on `hasDemoSession()`, whose skip reads green. A public journey guards
+  on nothing: it starts with `test.use({ storageState: EMPTY_STORAGE_STATE })` and runs signed out.
+
+
 ## Rules
 
 - **Do not weaken the pool.** The pool is the deploy target's, from `services.auth`: no Lambda

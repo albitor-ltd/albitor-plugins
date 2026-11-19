@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
 	appHostCookieNames,
+	declaresPublicPosture,
 	declaresServicesAuth,
 	hasAppHostCookie,
 	hasNewAppHostCookie,
@@ -10,6 +11,7 @@ import {
 	isAuthPlumbing,
 	isForeignHost,
 	isSignInRoute,
+	noSessionOutcome,
 	signInRequired,
 	withoutQuery,
 } from "../helpers/hosted-signin.ts";
@@ -165,5 +167,18 @@ describe("signInRequired", () => {
 		for (const k of Object.keys(none)) {
 			assert.equal(signInRequired({ ...none, [k]: true }), true, k);
 		}
+	});
+});
+
+describe("browse apps fail, not skip, an account spec with no session", () => {
+	it("reads the browse posture from albitor.yaml", () => {
+		assert.equal(declaresPublicPosture("services:\n  auth:\n    provider: cognito\n    posture: public\n"), true);
+		assert.equal(declaresPublicPosture("services:\n  auth:\n    posture: 'public' # browse\n"), true);
+		assert.equal(declaresPublicPosture("services:\n  auth:\n    posture: private\n"), false);
+		assert.equal(declaresPublicPosture("name: x\n"), false);
+	});
+	it("fails in a browse app and skips elsewhere", () => {
+		assert.equal(noSessionOutcome(true), "fail");
+		assert.equal(noSessionOutcome(false), "skip");
 	});
 });
