@@ -176,6 +176,12 @@ describe("browse apps fail, not skip, an account spec with no session", () => {
 		assert.equal(declaresPublicPosture("services:\n  auth:\n    posture: 'public' # browse\n"), true);
 		assert.equal(declaresPublicPosture("services:\n  auth:\n    posture: private\n"), false);
 		assert.equal(declaresPublicPosture("name: x\n"), false);
+		assert.equal(declaresPublicPosture("services:\n  auth: {posture: public}\n"), true);
+		assert.equal(declaresPublicPosture("services: {auth: {provider: cognito, posture: public}}\n"), true);
+		assert.equal(declaresPublicPosture('services:\n  auth: {\n    "posture": "public",\n  }\n'), true);
+		assert.equal(declaresPublicPosture("services:\r\n  auth:\r\n    posture: public\r\n"), true);
+		assert.equal(declaresPublicPosture("services: {auth: {posture: private}}\n"), false);
+		assert.equal(declaresPublicPosture("a: {posture: publicly}\n"), false);
 	});
 	it("fails in a browse app and skips elsewhere", () => {
 		assert.equal(noSessionOutcome(true), "fail");

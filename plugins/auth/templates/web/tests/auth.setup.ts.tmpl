@@ -39,8 +39,8 @@ import {
 // tests teaches nothing. The same holds for an app that has a password but no
 // sign-in screen yet; see SIGN_IN_SCREEN_EXISTS below.
 //
-// A SPEC THAT NEEDS A SESSION SAYS SO, and then skips rather than fails when
-// the suite is running signed out:
+// A SPEC THAT NEEDS A SESSION SAYS SO, and then (outside a browse app) skips rather
+// than fails when the suite is running signed out:
 //
 //   import { requireSession } from "./helpers/storage-state";
 //   test.beforeEach(() => {

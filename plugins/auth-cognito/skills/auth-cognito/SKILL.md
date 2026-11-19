@@ -205,7 +205,6 @@ public unless listed: everything else stays default-deny on the API and in the w
   suite has no session; do not guard it on `hasDemoSession()`, whose skip reads green. A public journey guards
   on nothing: it starts with `test.use({ storageState: EMPTY_STORAGE_STATE })` and runs signed out.
 
-
 ## Rules
 
 - **Do not weaken the pool.** The pool is the deploy target's, from `services.auth`: no Lambda

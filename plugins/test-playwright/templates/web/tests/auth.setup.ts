@@ -60,8 +60,8 @@ import {
 // Cognito managed login (the classic UI too), which is signed in there and returns to the app through its callback.
 // The setup tells them apart by whether the page is on the app's host.
 //
-// A SPEC THAT NEEDS A SESSION SAYS SO, and then skips rather than fails when
-// the suite is running signed out:
+// A SPEC THAT NEEDS A SESSION SAYS SO, and then (outside a browse app) skips rather
+// than fails when the suite is running signed out:
 //
 //   import { requireSession } from "./helpers/storage-state";
 //   test.beforeEach(() => {

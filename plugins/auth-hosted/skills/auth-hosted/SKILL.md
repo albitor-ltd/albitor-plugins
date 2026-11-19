@@ -158,7 +158,6 @@ public unless listed: everything else stays default-deny on the API and in the w
   suite has no session; do not guard it on `hasDemoSession()`, whose skip reads green. A public journey guards
   on nothing: it starts with `test.use({ storageState: EMPTY_STORAGE_STATE })` and runs signed out.
 
-
 ## Unconfirmed people
 
 Someone who signed up but never entered the emailed code is unconfirmed. Managed login offers

@@ -196,11 +196,11 @@ export function signInRequired(evidence: {
 }
 
 /**
- * Whether an albitor.yaml declares the browse posture: a `posture: public` line (quoted values
- * included). `posture` is a key of `services.auth` alone, so a line scan stands in for a parse.
+ * Whether an albitor.yaml declares the browse posture: a `posture: public` line or flow entry
+ * (`{posture: public}`, quoted keys and values, a trailing comma, CRLF). `posture` is a key of `services.auth` alone, so a line scan stands in for a parse.
  */
 export function declaresPublicPosture(yaml: string): boolean {
-	return /^\s*"?posture"?\s*:\s*["']?public["']?\s*(#.*)?$/m.test(yaml);
+	return /(^|[\s{,])["']?posture["']?\s*:\s*["']?public["']?\s*(,|}|#.*)?\r?$|(^|[\s{,])["']?posture["']?\s*:\s*["']?public["']?\s*[,}]/m.test(yaml);
 }
 
 /**
