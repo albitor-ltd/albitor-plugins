@@ -360,3 +360,43 @@ run "an_app_group_cannot_take_the_seeded_group_name" {
   }
   expect_failures = [var.groups]
 }
+
+run "posture_is_handed_to_the_function_and_private_opens_nothing" {
+  command = plan
+  assert {
+    condition     = output.env.AUTH_POSTURE == "private" && !contains(keys(output.env), "AUTH_PUBLIC_ROUTES") && !contains(keys(output.env), "AUTH_PUBLIC_BODY_MAX")
+    error_message = "the default is private, with no public routes and no body cap in the environment"
+  }
+}
+
+run "public_routes_are_handed_to_the_function_comma_joined_with_a_body_cap" {
+  command = plan
+  variables {
+    posture       = "public"
+    public_routes = ["/listings", "/listings/*", "GET /api/listings/{id}", "POST /api/enquiries"]
+  }
+  assert {
+    condition     = output.env.AUTH_POSTURE == "public" && output.env.AUTH_PUBLIC_ROUTES == "/listings,/listings/*,GET /api/listings/{id},POST /api/enquiries"
+    error_message = "the entries reach the function exactly as written, comma-joined"
+  }
+  assert {
+    condition     = output.env.AUTH_PUBLIC_BODY_MAX == "16384"
+    error_message = "a public write body is capped at 16384 bytes whenever routes are set"
+  }
+}
+
+run "private_posture_refuses_routes" {
+  command = plan
+  variables {
+    public_routes = ["/listings"]
+  }
+  expect_failures = [var.public_routes]
+}
+
+run "an_unknown_posture_is_refused" {
+  command = plan
+  variables {
+    posture = "open"
+  }
+  expect_failures = [var.posture]
+}

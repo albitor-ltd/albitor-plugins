@@ -1,0 +1,24 @@
+version: albitor/v1
+build:
+  static:
+    command: cd web && npm install && npm run build
+    output: web/build
+  api:
+    command: cd api && go build -o dist/api .
+    output: api/dist
+site:
+  spa: true
+http:
+  runtime: go
+  handler: api
+services:
+  auth:
+    provider: cognito
+    posture: public
+    sign_up: open
+    public_routes: [/listings, "/listings/*", "GET /api/listings/{id}", "POST /api/enquiries"]
+    groups: [admin, reviewer]
+    admin_group: reviewer
+  tables:
+    - name: data
+      partition_key: {name: pk, type: string}

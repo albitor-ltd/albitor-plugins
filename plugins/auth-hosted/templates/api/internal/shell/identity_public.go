@@ -27,7 +27,7 @@ const (
 	envPublicBodyMax   = "AUTH_PUBLIC_BODY_MAX"
 	postureDefault     = "private"
 	posturePublic      = "public"
-	defaultPublicBody  = 1 << 20
+	defaultPublicBody  = 16384
 	maxPublicRoutes    = 50
 	maxPublicRouteSize = 200
 )
@@ -52,7 +52,7 @@ var publicMethods = map[string]bool{
 }
 
 // parsePublicPolicy reads the three variables. Unset posture means private. Public needs a
-// non-empty list; private takes none. Any malformed entry is an error.
+// non-empty list; private takes none. The body cap defaults to 16384 bytes, the platform's own. Any malformed entry is an error.
 func parsePublicPolicy(posture, rawRoutes, rawBodyMax string) (publicPolicy, error) {
 	posture = strings.TrimSpace(posture)
 	if posture == "" {
@@ -160,6 +160,10 @@ func (p publicPolicy) isPublic(r *http.Request) bool {
 	if method == http.MethodHead {
 		method = http.MethodGet
 	}
+	// An encoded slash is a path the router and this matcher could read differently: never public.
+	if strings.Contains(strings.ToUpper(r.URL.RawPath), "%2F") {
+		return false
+	}
 	rest, ok := strings.CutPrefix(r.URL.Path, "/api/")
 	if !ok || rest == "" {
 		return false
@@ -181,8 +185,9 @@ func (route publicRoute) matches(got []string) bool {
 	} else if len(got) != len(route.segments) {
 		return false
 	}
+	// No empty, "." or ".." segment anywhere, so a wildcard's tail cannot climb out of its prefix.
 	for _, seg := range got {
-		if seg == "" {
+		if seg == "" || seg == "." || seg == ".." {
 			return false
 		}
 	}
@@ -211,7 +216,9 @@ func (p publicPolicy) capPublicBody(w http.ResponseWriter, r *http.Request) bool
 }
 
 // hasCredential reports whether the request offers a token at all: an Authorization header or a
-// session cookie with a value. Whether it is any good is authenticate's question.
+// session cookie with a value. Whether it is any good is authenticate's question. The refresh
+// cookie alone does not count: it is only ever used to renew a session that was presented, so a
+// visitor holding just a refresh cookie is anonymous on a public route, as on a private one it is 401.
 func hasCredential(r *http.Request) bool {
 	if r.Header.Get("Authorization") != "" {
 		return true

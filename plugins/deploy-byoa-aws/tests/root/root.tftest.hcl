@@ -264,6 +264,30 @@ run "no_signup_domains_means_no_limit" {
   }
 }
 
+run "public_routes_reach_the_function" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth-public.yaml"
+  }
+
+  assert {
+    condition     = module.auth[0].env.AUTH_POSTURE == "public" && module.auth[0].env.AUTH_PUBLIC_ROUTES == "/listings,/listings/*,GET /api/listings/{id},POST /api/enquiries" && module.auth[0].env.AUTH_PUBLIC_BODY_MAX == "16384"
+    error_message = "services.auth.posture and public_routes reach the function as AUTH_POSTURE, AUTH_PUBLIC_ROUTES and AUTH_PUBLIC_BODY_MAX"
+  }
+}
+
+run "a_private_app_gets_a_private_posture_and_no_routes" {
+  command = plan
+  variables {
+    manifest_path = "fixtures/auth.yaml"
+  }
+
+  assert {
+    condition     = module.auth[0].env.AUTH_POSTURE == "private" && !contains(keys(module.auth[0].env), "AUTH_PUBLIC_ROUTES")
+    error_message = "private is the default and sends no route list"
+  }
+}
+
 run "no_auth_means_no_user_administration" {
   command = plan
   variables {

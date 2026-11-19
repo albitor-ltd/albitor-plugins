@@ -73,6 +73,11 @@ func TestPublicRoutesAreOpenSignedOutAndEverythingElseStaysClosed(t *testing.T) 
 		{http.MethodPost, "/api/enquiries", http.StatusOK},
 		{http.MethodGet, "/api/docs/a", http.StatusOK},
 		{http.MethodGet, "/api/docs/a/b", http.StatusOK},
+		// An encoded slash, or a dot segment in a wildcard's tail, is never public.
+		{http.MethodGet, "/api/docs/a%2Fb", http.StatusUnauthorized},
+		{http.MethodGet, "/api/docs/a%2fb", http.StatusUnauthorized},
+		{http.MethodGet, "/api/docs/../admin/stats", http.StatusUnauthorized},
+		{http.MethodGet, "/api/docs/./a", http.StatusUnauthorized},
 		// Not listed: the method, the shape, a sibling, a private route.
 		{http.MethodPost, "/api/listings", http.StatusUnauthorized},
 		{http.MethodDelete, "/api/listings/abc", http.StatusUnauthorized},
@@ -184,5 +189,12 @@ func TestPrivatePostureOpensNothing(t *testing.T) {
 		if rec := authDo(t, h, http.MethodGet, path, "", nil); rec.Code != http.StatusUnauthorized {
 			t.Errorf("private, signed out, GET %s = %d, want 401", path, rec.Code)
 		}
+	}
+}
+
+func TestTheBodyCapDefaultsTo16384(t *testing.T) {
+	p, err := parsePublicPolicy("public", "POST /api/a", "")
+	if err != nil || p.bodyMax != 16384 {
+		t.Fatalf("default cap = %d, %v, want 16384", p.bodyMax, err)
 	}
 }

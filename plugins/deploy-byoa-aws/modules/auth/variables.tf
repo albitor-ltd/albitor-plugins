@@ -111,6 +111,36 @@ variable "user_admin_group" {
   }
 }
 
+variable "posture" {
+  description = "services.auth.posture. public opens only the routes in public_routes (the auth-cognito API reads it as AUTH_POSTURE); private opens nothing. It changes nothing in the pool."
+  type        = string
+  default     = "private"
+
+  validation {
+    condition     = contains(["private", "public"], var.posture)
+    error_message = "posture must be private or public."
+  }
+}
+
+variable "public_routes" {
+  description = "services.auth.public_routes, as written in albitor.yaml: web paths (/listings, /listings/*) and API patterns (GET /api/listings/{id}). Refused with private; the manifest validator requires it with public."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for r in var.public_routes : !can(regex("[,\\n]", r)) && trimspace(r) != ""])
+    error_message = "each public_routes entry must be non-empty and hold no comma or newline."
+  }
+  validation {
+    condition     = length(var.public_routes) <= 50
+    error_message = "public_routes holds at most 50 entries."
+  }
+  validation {
+    condition     = length(var.public_routes) == 0 || var.posture == "public"
+    error_message = "public_routes is refused with posture private. (The manifest validator requires it with public; the app also fails closed on a public posture with no list.)"
+  }
+}
+
 variable "deletion_protection" {
   description = "Refuse to delete the pool (and every account in it). Lift it deliberately to remove the pool."
   type        = bool

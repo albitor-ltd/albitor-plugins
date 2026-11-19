@@ -1,8 +1,9 @@
 # The user pool behind services.auth, shaped for the auth-cognito plugin's API: it signs people in
 # with the email address as the username (USER_PASSWORD_AUTH from a public client, so the browser
 # never calls Cognito), verifies the ID and access tokens against the pool's JWKS, and reads
-# cognito:groups. The posture (private or public) is enforced by the app's own routes and changes
-# nothing here, so it is not an input.
+# cognito:groups. The posture (private or public) and the declared public routes change nothing in
+# the pool: they are handed to the function as AUTH_POSTURE, AUTH_PUBLIC_ROUTES and
+# AUTH_PUBLIC_BODY_MAX (see the env output), and the app's own gate enforces them.
 resource "aws_cognito_user_pool" "this" {
   # Derived from the app's prefix; the manifest never names an AWS resource.
   name = "${var.name_prefix}-users"

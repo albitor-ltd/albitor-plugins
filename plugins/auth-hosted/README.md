@@ -68,7 +68,7 @@ All of these come from the auth module's `environment` output; **if any is missi
 | `AUTH_JWKS_URL` | the pool's signing keys |
 | `AUTH_POSTURE` | `private` or `public`. `public` opens only the routes in `AUTH_PUBLIC_ROUTES`; everything else stays default-deny. A deployed function never acts for the anonymous owner |
 | `AUTH_PUBLIC_ROUTES` | with `public`: `services.auth.public_routes` as written, joined by commas. Web entries start with `/` and are the web guard's; API entries are `METHOD /api/path` (`{param}` is one segment, a trailing `/*` is one or more). Required and non-empty with `public`, refused with `private`; a malformed entry closes the API |
-| `AUTH_PUBLIC_BODY_MAX` | with `public`: the byte cap on a public non-`GET` body (413 over it); 1 MiB when unset |
+| `AUTH_PUBLIC_BODY_MAX` | with `public`: the byte cap on a public non-`GET` body (413 over it); 16384 when unset |
 | `AUTH_LOGIN_URL` | the authorize request, less `state` and the PKCE parameters, which the API appends. Its `scope` and `redirect_uri` are used as written: the scope is the deploy's to grant. The token and revoke endpoints are the scheme and host of this URL plus `/oauth2/token` and `/oauth2/revoke` |
 | `AUTH_LOGOUT_URL` | Cognito's sign-out page, which returns to the site |
 | `SIGNUP_DOMAINS` | optional: email domains allowed to sign in (below). A malformed entry also closes the API |
