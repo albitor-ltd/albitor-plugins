@@ -1,6 +1,7 @@
 // Starting point (test-playwright).
 import { randomUUID } from "node:crypto";
 import type { APIRequestContext } from "@playwright/test";
+import { displayName } from "./display-name.ts";
 
 // The hosted function runs at most 10 calls at once; over it the API answers 503 (a throttled call
 // never ran the function, so the POST is safe to repeat). 429 is the API's rate limit, same rule.
@@ -53,7 +54,18 @@ export class FixtureScope {
 		return Math.min(maxDelayMs, Math.max(jittered, hinted));
 	}
 
+	// A short, realistic display name for a record the app will draw ("Claim Amber Court 4821"). Pass a
+	// label that reads well on screen ("Annual review", not "claim-test"). Two scopes with the same
+	// label collide about 1 time in 14 million, not never: use uniqueKey where the API enforces
+	// uniqueness.
 	uniqueName(prefix = "fixture"): string {
+		this.sequence += 1;
+		return displayName(this.namespace, this.sequence, prefix);
+	}
+
+	// The long form, unique to the scope for certain (a UUID in it), for a value that is never drawn:
+	// a slug, an email local part, a code. Never use it as a display name; it shows in screenshots.
+	uniqueKey(prefix = "fixture"): string {
 		this.sequence += 1;
 		const suffix = `-${this.namespace}-${this.sequence}`;
 		const safePrefix = (prefix || "fixture").slice(0, Math.max(1, 80 - suffix.length));

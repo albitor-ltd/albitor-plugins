@@ -33,7 +33,10 @@ It comes from the starter's `web/tests` harness and the harness fixes made while
   email.
 - **Fixtures and seed helpers** (`helpers/seed.ts`, `helpers/fixture-scope.ts`): records created
   through the app's own API and deleted again, exactly those and no others. `createMany` seeds with
-  4 in flight and `create` retries a 429 or 503 with bounded jittered backoff.
+  4 in flight and `create` retries a 429 or 503 with bounded jittered backoff. `uniqueName` makes a
+  short, realistic display name ("Annual review Amber Court 4821", never a UUID: seeded names render in
+  the app's screens and screenshots); `uniqueKey` is the long, certain form for a value that is never
+  drawn (a slug, an email local part). Cleanup is by id, so names never decide isolation.
 - **Preview seeding** (`helpers/preview-seed.ts`): seed a deployed preview once through the app's real
   API, keyed by the preview URL, and reuse it across walks. Never a test-only route in the app.
 - **An axe audit** (`helpers/a11y.ts`, `a11y.spec.ts`): WCAG 2.2 A and AA, with reasoned waivers.

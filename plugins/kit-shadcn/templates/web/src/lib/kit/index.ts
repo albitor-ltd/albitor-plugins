@@ -5,6 +5,8 @@
 // them (Card, Pill, Tabs, Avatar, Progress, Skeleton, FilterChip, StatTile, Chart, Icon and
 // NavShell) is this kit's own and grows additively.
 export { default as AppShell } from './AppShell.svelte';
+export { default as AccountArea } from './AccountArea.svelte';
+export type { SaveStatus } from './AccountArea.svelte';
 export { default as Button } from './Button.svelte';
 export { default as Dialog } from './Dialog.svelte';
 export { default as EmptyState } from './EmptyState.svelte';

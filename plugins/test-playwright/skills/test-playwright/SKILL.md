@@ -25,7 +25,7 @@ import { expect, test } from "../helpers/seed";
 
 test("browse the claims", async ({ page, fixtureScope }) => {
   const claim = await fixtureScope.create<{ id: string }>("/api/claims", {
-    title: fixtureScope.uniqueName("claim"),
+    title: fixtureScope.uniqueName("Annual review"),
   });
   await journeyStep(page, "open the claims queue", async () => {
     await page.goto("/claims");
@@ -95,7 +95,9 @@ walked as the demo identity. Five facts, each the cause of a spec revised or a b
 - **The demo account is shared and persistent**, across every spec and every walk of the preview.
   Its lists already hold other records. Never assert an absolute count, "the list is empty" or "the
   only item": read a baseline first and assert the change from it, and find the test's own record by
-  its `fixtureScope.uniqueName`. `expectChangeFromBaseline(read, act, delta)` in
+  its `fixtureScope.uniqueName` (a short display name such as "Annual review Amber Court 4821"; use
+  `uniqueKey` for a never-drawn value that must be unique, and never put a UUID in a name the app
+  shows). `expectChangeFromBaseline(read, act, delta)` in
   `helpers/baseline.ts` does the read, the action and the wait. It accepts a change of at least
   `delta` (other records can arrive on a shared account); pass `{ exact: true }` only when nothing
   else can write. Take the baseline after the sync pull, as above.
@@ -252,7 +254,7 @@ import { expect, test } from "../helpers/seed";
 test("refuses another account's claim", async ({ request, fixtureScope, appAuthHeaders }) => {
   const other = await secondIdentityHeaders(request); // skips when there is no second identity
   const claim = await fixtureScope.create<{ id: string }>("/api/claims", {
-    title: fixtureScope.uniqueName("claim"),
+    title: fixtureScope.uniqueName("Annual review"),
   });
   // The creator still reads it; the second account is refused (404 or 403, whichever the API gives).
   expect((await request.get(`/api/claims/${claim.id}`, { headers: appAuthHeaders })).status()).toBe(200);

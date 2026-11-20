@@ -90,6 +90,32 @@ look's tokens style it, and the structure is chosen by three props, never by edi
 More)" in words), targets are 44px and the bar pads for the home indicator. `references/patterns.md`
 has the rules behind it.
 
+### The account area: Sign out, theme and save status have one home
+
+`AppShell`'s `account` snippet is the header's right-hand end, on desktop and on a phone. Account,
+theme and save controls live there and nowhere else: not in a page body, a footer, a settings card
+standing in for them or a floating corner. `AccountArea` is the designed content for it:
+
+```svelte
+<script lang="ts">
+	import { AccountArea, AppShell } from '$lib/kit';
+	// the app's own session, theme and save state
+</script>
+
+{#snippet account()}
+	<AccountArea name={user.name} {theme} onthemechange={setTheme} {saveStatus} onsignout={signOut} />
+{/snippet}
+
+<AppShell {nav} {path} {account} title="Example app">{@render children()}</AppShell>
+```
+
+Each control draws only when its prop is given, so an app with no theme switch or no autosave shows
+neither. `saveStatus` (`idle`, `saving`, `saved`, `error`) is a polite live region and always says
+its state in words. The controls are 44px targets; below 48rem the labels and the name collapse to
+icons (the accessible names stay) so the header stays one row beside the Menu button. A tab-bar
+phone has no Menu button and the account area sits beside the title instead (as the `phoneNav`
+setting decides). `accountarea.test.ts` checks it.
+
 ## Page templates
 
 Start every new page from the template that matches it. The templates are worked examples, not

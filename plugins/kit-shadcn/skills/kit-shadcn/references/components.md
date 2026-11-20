@@ -9,6 +9,7 @@ https://www.shadcn-svelte.com/docs/components for the shadcn-svelte designs to c
 | Component | Props | Notes |
 |---|---|---|
 | `AppShell` | `nav: NavGroup[]`, `path: string`, `title?`, `mark?`, `footer?`, `account?`, `layout?` (`top`, `side`), `phoneNav?` (`drawer`, `tabs`), `icons?` (`{ [href]: LucideIcon }`), `children` | Rendered by web-svelte's root layout. Skip link, header, the nav (`NavShell`), one `main`, the `Toaster` |
+| `AccountArea` | `name?`, `theme?` + `onthemechange?`, `saveStatus?` (`idle`, `saving`, `saved`, `error`), `onsignout?` | Goes in `AppShell`'s `account` snippet, the one designed place for Sign out, the theme switch and the save status (desktop and phone; 44px targets, labels collapse to icons on a phone). Never put these in a page body, footer or floating corner |
 | `NavShell` | `nav`, `path`, `open?`, `phoneNav?`, `side?`, `icons?` | Rendered by `AppShell`; do not render a second. Desktop: a row or, with `side`, a column. Phone: `drawer` (Menu button), or `tabs`: a bottom bar for 2 to 5 destinations, 4 tabs plus More for 6 or more, and the drawer for one |
 | `Button` | `variant?` (`primary`, `secondary`, `destructive`, `ghost`), any `<button>` attribute | `type` defaults to `button`, so it never submits a form by accident |
 | `Field` | `label`, `value` (bindable), `hint?`, `error?`, `multiline?`, `rows?`, any `<input>` attribute | Generates its own id; `error` sets `aria-invalid` |
