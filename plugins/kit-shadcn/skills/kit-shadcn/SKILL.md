@@ -86,6 +86,24 @@ look's tokens style it, and the structure is chosen by three props, never by edi
 - `icons`: a map from a destination's `href` to a Lucide icon, drawn beside the label. It is keyed
   by href, so a renamed route drops its icon silently: update the map with the route.
 
+The app's structure pick owns the shell; the look only styles it. The build is given the shell in
+plain words ("the kit's navigation component's layout and phone navigation"), and they bind to these
+props:
+
+| Structure `nav_model` | Words the build is given | `layout` | `phoneNav` |
+|---|---|---|---|
+| `top` | top bar, phone menu | `top` | `drawer` |
+| `side` | sidebar, phone tabs | `side` | `tabs` |
+| `tabs` | top bar, phone tabs | `top` | `tabs` |
+| `hub` | hub of tiles | none: pass `nav={[]}` | none |
+| `none` | no shell | none: pass `nav={[]}` | none |
+
+`hub` and `none` have no bar: the pick's first screen is the hub of tiles (or the single page) and
+`AppShell` renders only its skip link, header, `main` landmark and toaster around it. For a hub, the
+tiles link to each destination and every other page keeps a visible link back to the hub, so no
+destination is hidden on a phone. A look's "Phone navigation" stance is only the fallback when the
+structure gives no shell words; it never overrides them.
+
 `aria-current="page"` is on the current link and never on More (the button says "(current page is in
 More)" in words), targets are 44px and the bar pads for the home indicator. `references/patterns.md`
 has the rules behind it.

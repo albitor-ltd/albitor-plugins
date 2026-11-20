@@ -15,7 +15,10 @@ re-invent them.
 
 ## Suits
 
-SaaS products and developer tools: dashboards, workspaces, settings and onboarding for people who use the product daily and judge it on speed and clarity. Avoid for dense back-office tables (use Business) or mobile-first lifestyle apps (use Consumer).
+Apps with a modern product feel: SaaS and developer tools, workspaces, planners, trackers,
+directories, catalogues, tools for clubs and teams, and onboarding, for people who use the app often
+and judge it on speed and clarity. Works with any shell and first screen the app picks. Avoid for
+dense back-office tables (use Business) or mobile-first lifestyle apps (use Consumer).
 
 ## Apply it
 
@@ -65,9 +68,20 @@ What makes an app in this look recognisable. These are positive recipes; build t
 
 - **Second colour:** carries the data and quiet highlights, never an action: a meter fill, a sparkline, the icon chip on a stat tile, the tinted current item in the nav, `Card tone="second"` and the `info` Pill. The teal accent stays on actions, marks and links.
 - **Icons:** Lucide through the kit's `Icon`, one beside every nav destination and one on each stat tile; 16px in buttons, 18px in the nav. Icons name things, they never carry the only cue.
-- **Shell:** a sidebar on a wide screen (`layout="side"`) and a bottom tab bar on a phone.
-- **Tiles:** layered stat tiles (hairline plus a soft shadow) with an icon, a change in words, and a meter for a share or a sparkline for a trend. Never a bare number in a box.
-- **Header:** the page title with one primary action beside it; everything else in the page is secondary.
+- **Navigation styling:** the look styles whatever shell the structure picks; it never picks one.
+  Side: a hairline-edged column with the tinted current item in the second colour, 18px icons.
+  Top: a bar with a 1px bottom hairline and the current link tinted the same way. Tabs: a hairline
+  top
+  border, the teal accent on the current tab. Hub: each tile is a layered card (hairline plus a soft
+  shadow) with an icon chip in the second colour. None: no chrome, the page title and its one
+  primary
+  action only.
+- **Figures:** wherever a figure appears (a stat, a hub tile, a card), it is layered (hairline plus
+  a
+  soft shadow) with an icon, a change in words, and a meter for a share or a sparkline for a trend.
+  Never a bare number in a box.
+- **Page header:** the page title with one primary action beside it; everything else in the page is
+  secondary.
 - **Art:** the layered-cards `EmptyArt` on a first-run page, with the second colour as a thin trace.
 - **Motion:** subtle. Short ease on hover, focus, press and meter fills only; none for decoration, and none under reduced motion.
 
@@ -98,8 +112,8 @@ prune removes it if nothing imports it.
 
 ## Phone navigation
 
-Stance: lean towards a bottom tab bar when the product has 2 to 5 core destinations, and a
-menu button and drawer when it has more.
+Stance (the fallback when the structure gives no phone navigation): lean towards a bottom tab bar
+when the product has 2 to 5 core destinations, and a menu button and drawer when it has more.
 
 Rule (shared with the kit): 2 to 5 frequent top-level destinations use a bottom tab bar; more than
 5 use a menu button and drawer, or, where this look prefers a tab bar, 4 tabs plus a "More" tab that
@@ -120,13 +134,13 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 
 ### Wire it
 
-The stance is two props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
+The shell is props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
 
-1. Pass `phoneNav` to `AppShell` from the stance above: `"tabs"` where it leans to a tab bar,
-   `"drawer"` where it leans to the Menu button. This look leans towards a tab bar, so pass
-   `phoneNav="tabs"`; see the kit-shadcn SKILL for how `NavShell` handles many destinations. Pass
-   `layout="side"` for the sidebar. Structure and style stay separate: the props choose the
-   structure, the look's tokens style it.
+1. Pass `layout` and `phoneNav` to `AppShell` from the structure's shell directive (the app's pick
+   owns the shell; see the kit-shadcn SKILL "Navigation: structure and style are separate" for how
+   each directive maps to these props, and for `hub` and no shell). Where the build was given no
+   directive, fall back to this look's stance above: `phoneNav="tabs"` and `layout="side"`. Never
+   choose the shell from the look.
 2. Build an `icons` map from the app's own nav, `href` to Lucide component, and pass it too. Import
    each icon on its own from `@lucide/svelte/icons/<name>` (never the barrel), give every
    destination one, and update the map when a route is added, renamed or removed (a missing entry

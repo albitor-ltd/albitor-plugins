@@ -1,4 +1,6 @@
-<!-- The root layout with this look's shell wiring: a sidebar, a tab bar on a phone and an icon for
+<!-- The `layout` and `phoneNav` values are this look's fallback: the app's structure pick sets them
+     when it names a shell (see the kit-shadcn SKILL).
+     The root layout with this look's shell wiring: a sidebar, a tab bar on a phone and an icon for
      each destination. It is web-svelte's layout plus three props on AppShell (`layout`, `phoneNav`
      and `icons`): keep the layout the app already has (its providers, its title and mark) and add
      only those. Structure (layout, phoneNav) and style (the look's tokens) are separate: change

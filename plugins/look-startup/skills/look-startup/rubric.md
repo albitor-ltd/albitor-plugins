@@ -12,17 +12,16 @@ finding with the file to fix. The reasons are in `SKILL.md`.
 - The teal accent is on actions, marks and links only; it is not a large fill.
 - The second colour is visible in the data (a meter, a sparkline, a highlight card, a tinted
   current item in the nav), not only in the nav.
-- The navigation has an icon beside each destination, and the sidebar is the structure on a wide
-  screen.
-- On a phone the navigation is a bottom tab bar with icons, and every destination is reachable.
+- Where the app has navigation, it has an icon beside each destination and the look's tinted
+  current item, whatever shell the app picked; on a phone every destination is reachable.
 - Surfaces are layered: a 1px hairline and a soft shadow on raised cards, no heavy outline, no
   glow, no offset shadow.
 - Density is comfortable: generous space between groups, rows that are airy rather than packed.
 
 ## An overview or a list
 
-- Headline figures are tiles with an icon and a change in words, with a meter or a sparkline where
-  a trend or a share exists, not bare number boxes.
+- Headline figures, wherever they appear, carry an icon and a change in words, with a meter or a
+  sparkline where a trend or a share exists, not bare number boxes.
 - The page has one primary action, in the header beside the title.
 - A status is a pill with a glyph and a word, never colour alone.
 
