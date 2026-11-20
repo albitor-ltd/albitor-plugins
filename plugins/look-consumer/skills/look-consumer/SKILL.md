@@ -15,7 +15,9 @@ re-invent them.
 
 ## Suits
 
-Mobile-first personal and lifestyle apps: habit, planning, family, wellness and hobby tools used in short sessions on a phone, where warmth and ease beat density. Avoid for data-heavy admin and multi-column tables.
+Friendly, phone-first apps: personal, family, community, wellness, hobby, learning and booking tools
+used in short sessions, where warmth and ease beat density. Works with any shell and first screen
+the app picks. Avoid for data-heavy admin and multi-column tables.
 
 ## Apply it
 
@@ -65,9 +67,16 @@ What makes an app in this look recognisable. These are positive recipes; build t
 
 - **Second colour:** carries small highlights and the data, never the main action: the eyebrow above a focus card, the icon chip on a figure tile, the scattered dots in the art. The berry accent marks the main action and links.
 - **Icons:** Lucide through the kit's `Icon`, large (20px) in the nav and on buttons, one beside every nav destination and one on each figure tile.
-- **Shell:** the destinations in the header row on a wide screen (`layout="top"`) and a bottom tab bar on a phone, with fully rounded current tabs and the main action floating above the bar.
-- **Header band:** the home screen opens with a band tinted from the accent, a friendly heading and the look's art, sized down on a phone.
-- **Focus card:** one card for the one thing to do next, with a progress ring and a single large action, ahead of the figures. Not a grid of equal boxes.
+- **Navigation styling:** the look styles whatever shell the structure picks; it never picks one.
+  Top: the destinations in a rounded header row, fully rounded current pill. Side: a roomy column
+  with rounded current pills and 48px rows. Tabs: a bottom bar with fully rounded current tabs, the
+  main action floating above it. Hub: large soft tiles (24px corners) each with an icon chip. None:
+  no chrome, a friendly heading and the one large action.
+- **Figures and focus:** wherever a figure or a next step appears it is a friendly tile with an
+  icon, and the one thing to do next is one card with a progress ring and a single large action,
+  not a grid of equal boxes.
+- **Header band:** where a screen opens with a heading, it may use a band tinted from the accent,
+  a friendly heading and the look's art, sized down on a phone.
 - **Art:** the round, soft `EmptyArt` in the header band and on every first-run page.
 - **Motion:** playful but short. A soft lift on press and a smooth ring or bar fill, about 200ms; nothing loops, and none under reduced motion.
 
@@ -99,8 +108,8 @@ prune removes it if nothing imports it.
 
 ## Phone navigation
 
-Stance: lean strongly towards a bottom tab bar; this look is mobile-first and the thumb
-reaches the bottom.
+Stance (the fallback when the structure gives no phone navigation): lean strongly towards a bottom
+tab bar; this look is mobile-first and the thumb reaches the bottom.
 
 Rule (shared with the kit): 2 to 5 frequent top-level destinations use a bottom tab bar; more than
 5 use a menu button and drawer, or, where this look prefers a tab bar, 4 tabs plus a "More" tab that
@@ -122,13 +131,13 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 
 ### Wire it
 
-The stance is two props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
+The shell is props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
 
-1. Pass `phoneNav` to `AppShell` from the stance above: `"tabs"` where it leans to a tab bar,
-   `"drawer"` where it leans to the Menu button. This look leans strongly towards a bottom tab bar,
-   so pass `phoneNav="tabs"`; see the kit-shadcn SKILL for how `NavShell` handles many destinations.
-   Pass `layout="top"` for the header row. Structure and style stay separate: the props choose the
-   structure, the look's tokens style it.
+1. Pass `layout` and `phoneNav` to `AppShell` from the structure's shell directive (the app's pick
+   owns the shell; see the kit-shadcn SKILL "Navigation: structure and style are separate" for how
+   each directive maps to these props, and for `hub` and no shell). Where the build was given no
+   directive, fall back to this look's stance above: `phoneNav="tabs"` and `layout="top"`. Never
+   choose the shell from the look.
 2. Build an `icons` map from the app's own nav, `href` to Lucide component, and pass it too. Import
    each icon on its own from `@lucide/svelte/icons/<name>` (never the barrel), give every
    destination one, and update the map when a route is added, renamed or removed (a missing entry

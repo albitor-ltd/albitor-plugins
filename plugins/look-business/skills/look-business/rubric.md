@@ -12,8 +12,8 @@ finding with the file to fix. The reasons are in `SKILL.md`.
 - The blue accent is on primary actions, links and the selected state only, never a large fill.
 - The second colour is visible in the data (a selected-row tint, a bulk bar, a highlighted
   figure), not only in the nav.
-- The navigation has an icon beside each destination, and the compact sidebar is the structure on a
-  wide screen.
+- Where the app has navigation, it has an icon beside each destination and the compact styling
+  (tint plus a 2px bar on the current item), whatever shell the app picked.
 - Corners are 2px and there is no elevation: regions are separated by a 1px line or a step to the
   surface colour.
 - Density is compact: rows and controls at the look's small target height, with columns added
@@ -27,7 +27,8 @@ finding with the file to fix. The reasons are in `SKILL.md`.
   selected.
 - A selected row is a tint plus a 2px left bar, and the checkbox says it too.
 - A status is a pill with a glyph and a word, never colour alone.
-- A summary of headline figures is one bordered strip of exact values, not large decorated tiles.
+- A summary of headline figures, wherever it appears, is one bordered strip of exact values, not
+  large decorated tiles.
 
 ## First run and empty states
 

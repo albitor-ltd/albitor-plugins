@@ -15,7 +15,10 @@ re-invent them.
 
 ## Suits
 
-Enterprise and line-of-business apps: admin consoles, finance, back office and operations tools used by staff for long sessions, where comparing exact numbers across many rows matters more than first impressions. Avoid for mobile-first consumer or marketing surfaces.
+Apps where exact figures and long sessions matter: admin consoles, finance, back office, operations,
+registers, logs, rotas, bookings, inventories and case-work tools, wherever people compare exact
+values across many rows. Works with any shell and first screen the app picks. Avoid for mobile-first
+consumer or marketing surfaces.
 
 ## Apply it
 
@@ -65,8 +68,14 @@ What makes an app in this look recognisable. These are positive recipes; build t
 
 - **Second colour:** carries selection and emphasis in the data, never an action: the tint on a selected row and the bulk bar, the current item in the nav, `Card tone="second"`. The blue accent stays on primary actions, links and the selected state.
 - **Icons:** Lucide through the kit's `Icon`, small (14 to 16px), one beside every nav destination; row and cell content stays text.
-- **Shell:** a compact sidebar on a wide screen (`layout="side"`) and the Menu button and drawer on a phone, which keeps the table-first screen uncluttered.
-- **Summary strip:** headline figures are one bordered strip of exact values with a note under each, in tabular figures. Not large decorated tiles.
+- **Navigation styling:** the look styles whatever shell the structure picks; it never picks one.
+  Side: a compact column, 28px rows, the selected item a tint plus a 2px left bar. Top: a compact
+  bar separated by a 1px line, the current link a tint plus a 2px bottom bar. Tabs: a 1px top line,
+  compact labels, the current tab a tint plus a 2px top bar. Hub: plain bordered tiles of exact
+  values, no decoration. None: no chrome, the table or form starts at the top. No shadow in any of
+  them.
+- **Figures:** headline figures wherever they appear are one bordered strip of exact values with a
+  note under each, in tabular figures. Not large decorated tiles.
 - **Lists:** one dense table with saved views and a search field above it, numbers right-aligned, and a bulk bar that appears when rows are selected (a count and the actions that apply). A selected row is a tint plus a 2px left bar.
 - **Art:** the ruled-page `EmptyArt`, small, on a first-run page only; in a dense table the plain sentence is the empty state.
 - **Motion:** none beyond state changes. A short fade for a dialog or a toast and a visible focus ring; nothing moves for decoration.
@@ -98,8 +107,8 @@ prune removes it if nothing imports it.
 
 ## Phone navigation
 
-Stance: lean towards a top bar with a menu button and drawer, which keeps the dense,
-table-first screen uncluttered.
+Stance (the fallback when the structure gives no phone navigation): lean towards a menu button and
+drawer, which keeps the dense, table-first screen uncluttered.
 
 Rule (shared with the kit): 2 to 5 frequent top-level destinations use a bottom tab bar; more than
 5 use a menu button and drawer, or, where this look prefers a tab bar, 4 tabs plus a "More" tab that
@@ -121,13 +130,13 @@ destinations. This is a preference, not a mandate. Follow the kit's guidance on 
 
 ### Wire it
 
-The stance is two props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
+The shell is props, not prose to remember. In the root `web/src/routes/+layout.svelte`:
 
-1. Pass `phoneNav` to `AppShell` from the stance above: `"tabs"` where it leans to a tab bar,
-   `"drawer"` where it leans to the Menu button. This look leans towards the Menu button and drawer,
-   so pass `phoneNav="drawer"` (the kit's default, so it is the same as leaving it out; pass it
-   anyway so the stance is on the page). Pass `layout="side"` for the sidebar. Structure and style
-   stay separate: the props choose the structure, the look's tokens style it.
+1. Pass `layout` and `phoneNav` to `AppShell` from the structure's shell directive (the app's pick
+   owns the shell; see the kit-shadcn SKILL "Navigation: structure and style are separate" for how
+   each directive maps to these props, and for `hub` and no shell). Where the build was given no
+   directive, fall back to this look's stance above: `phoneNav="drawer"` and `layout="side"`. Never
+   choose the shell from the look.
 2. Build an `icons` map from the app's own nav, `href` to Lucide component, and pass it too. Import
    each icon on its own from `@lucide/svelte/icons/<name>` (never the barrel), give every
    destination one, and update the map when a route is added, renamed or removed (a missing entry

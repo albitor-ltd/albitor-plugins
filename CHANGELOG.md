@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `look-startup`, `look-business` and `look-consumer` `0.3.0`, `kit-shadcn` `0.15.1`
+  (albitor-ltd/albitor-plugins#282, stream albitor-ltd/albitor#5294; tags follow the merge). The
+  looks style any shell: the app's structure pick owns the shell and first screen, so the Shell,
+  Tiles, Header band and Focus card recipes leave each look's Signature and rubric. In their place
+  each look has "Navigation styling" per shell kind (side, top, tabs, hub, none) and a shell-agnostic
+  figures recipe; "Suits" lines no longer name dashboards, admin or habit apps; "Wire it" takes
+  `layout` and `phoneNav` from the structure, with the look's stance as the fallback. The kit-shadcn
+  SKILL maps the structure's shell words (top bar, sidebar, phone menu or tabs, hub, none) onto
+  `AppShell`'s `layout`, `phoneNav` and an empty `nav`.
 - `kit-shadcn` `0.15.0` and `test-playwright` `0.7.2` (albitor-ltd/albitor#5290, stream
   albitor-ltd/albitor#5294; tags follow the merge). `kit-shadcn` adds `AccountArea`, the designed
   content for `AppShell`'s `account` snippet: Sign out, a theme switch and a save status (a live
