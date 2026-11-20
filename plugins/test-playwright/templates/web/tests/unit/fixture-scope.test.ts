@@ -114,9 +114,25 @@ describe("FixtureScope", () => {
 		const a = new FixtureScope(fake().request);
 		const first = a.uniqueName("Annual review");
 		assert.notEqual(first, a.uniqueName("Annual review"));
-		assert.match(first, /^Annual review [A-Z][a-z]+ [A-Z][a-z]+ \d+$/);
+		assert.match(first, /^Annual review [A-Z][a-z]+ [A-Z][a-z]+ \d{4}$/);
 		assert.doesNotMatch(first, /[0-9a-f]{8}-[0-9a-f]{4}/);
 		assert.ok(a.uniqueName("p".repeat(200)).length <= 80);
+	});
+
+	it("makes the same label unique across many scopes", () => {
+		// Deterministic namespaces (xorshift) so a 1-in-millions draw cannot flake the suite.
+		let x = 0x9e3779b9;
+		const hex = () => {
+			x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
+			return x.toString(16).padStart(8, "0");
+		};
+		const names = new Set<string>();
+		for (let i = 0; i < 2000; i += 1) {
+			const scope = new FixtureScope(fake().request);
+			Object.assign(scope, { namespace: `${hex()}-${hex().slice(0, 4)}-${hex().slice(0, 4)}-${hex().slice(0, 4)}-${hex()}${hex().slice(0, 4)}` });
+			names.add(scope.uniqueName("Annual review"));
+		}
+		assert.equal(names.size, 2000);
 	});
 
 	it("makes keys unique to the scope, certainly, and within 80 characters", () => {

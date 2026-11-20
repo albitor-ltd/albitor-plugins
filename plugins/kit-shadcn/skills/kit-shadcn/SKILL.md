@@ -113,7 +113,8 @@ Each control draws only when its prop is given, so an app with no theme switch o
 neither. `saveStatus` (`idle`, `saving`, `saved`, `error`) is a polite live region and always says
 its state in words. The controls are 44px targets; below 48rem the labels and the name collapse to
 icons (the accessible names stay) so the header stays one row beside the Menu button. A tab-bar
-phone has no Menu button and the account area keeps the same place. `accountarea.test.ts` checks it.
+phone has no Menu button and the account area sits beside the title instead (as the `phoneNav`
+setting decides). `accountarea.test.ts` checks it.
 
 ## Page templates
 

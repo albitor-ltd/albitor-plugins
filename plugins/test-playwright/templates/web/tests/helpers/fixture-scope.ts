@@ -54,9 +54,10 @@ export class FixtureScope {
 		return Math.min(maxDelayMs, Math.max(jittered, hinted));
 	}
 
-	// A short, realistic display name for a record the app will draw ("Claim Amber Court 3"). Pass a
-	// label that reads well on screen ("Annual review", not "claim-test"). Unique to this scope with
-	// high probability, not certainly: use uniqueKey where the API enforces uniqueness.
+	// A short, realistic display name for a record the app will draw ("Claim Amber Court 4821"). Pass a
+	// label that reads well on screen ("Annual review", not "claim-test"). Two scopes with the same
+	// label collide about 1 time in 14 million, not never: use uniqueKey where the API enforces
+	// uniqueness.
 	uniqueName(prefix = "fixture"): string {
 		this.sequence += 1;
 		return displayName(this.namespace, this.sequence, prefix);

@@ -28,12 +28,12 @@ import { test as base } from "./journey";
 let seedCounter = 0;
 const runNamespace = randomUUID();
 
-// A short, realistic display name unique to this run, worker and call with high probability
-// ("Claim Amber Court 3"), because it shows in the app's screens and screenshots. Pass a label that
+// A short, realistic display name unique to this run, worker and call with high probability, about
+// 1 in 14 million of a repeat ("Claim Amber Court 4821"), because it shows in the app's screens and screenshots. Pass a label that
 // reads well on screen. `uniqueKey` is the long, certain form for values that are never drawn.
 export function uniqueTitle(testInfo: TestInfo, prefix = "seeded"): string {
 	seedCounter += 1;
-	return displayName(`${runNamespace}${testInfo.workerIndex.toString(16).padStart(4, "0")}`, seedCounter, prefix);
+	return displayName(runNamespace, seedCounter, prefix);
 }
 
 // A value unique to this test, worker and call for certain, for something never drawn (a slug, an

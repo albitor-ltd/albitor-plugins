@@ -95,7 +95,7 @@ walked as the demo identity. Five facts, each the cause of a spec revised or a b
 - **The demo account is shared and persistent**, across every spec and every walk of the preview.
   Its lists already hold other records. Never assert an absolute count, "the list is empty" or "the
   only item": read a baseline first and assert the change from it, and find the test's own record by
-  its `fixtureScope.uniqueName` (a short display name such as "Annual review Amber Court 3"; use
+  its `fixtureScope.uniqueName` (a short display name such as "Annual review Amber Court 4821"; use
   `uniqueKey` for a never-drawn value that must be unique, and never put a UUID in a name the app
   shows). `expectChangeFromBaseline(read, act, delta)` in
   `helpers/baseline.ts` does the read, the action and the wait. It accepts a change of at least
