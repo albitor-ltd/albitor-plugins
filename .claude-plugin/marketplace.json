@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.7.1",
-        "sha": "9788f507ef1796279e03b84d9124198b90603934"
+        "ref": "test-playwright/v0.7.2",
+        "sha": "88e312b37fc44f125ae699480b566ccd7e63bdbc"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.14.0",
-        "sha": "1db40b64c02cd8117cefda4231110a628a18729c"
+        "ref": "kit-shadcn/v0.15.1",
+        "sha": "6029247a4c91af98b44003772dc62f2c0efafc5d"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -417,8 +417,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-business",
-        "ref": "look-business/v0.2.0",
-        "sha": "45ed316c9cd2bbfa7903575324362c656fcb326b"
+        "ref": "look-business/v0.3.0",
+        "sha": "6029247a4c91af98b44003772dc62f2c0efafc5d"
       },
       "description": "Dense, exact and quiet: for enterprise and line-of-business web apps (admin, finance, operations) where staff live in tables all day. Navy neutrals, 2px corners, no elevation, compact rows and tabular figures.",
       "category": "development",
@@ -440,8 +440,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-startup",
-        "ref": "look-startup/v0.2.0",
-        "sha": "45ed316c9cd2bbfa7903575324362c656fcb326b"
+        "ref": "look-startup/v0.3.0",
+        "sha": "6029247a4c91af98b44003772dc62f2c0efafc5d"
       },
       "description": "Crisp, quiet and fast: for SaaS and developer-tool products. One confident teal accent on near-neutral surfaces, generous whitespace, a strong type hierarchy with tight display tracking, hairlines and a soft layered shadow.",
       "category": "development",
@@ -463,8 +463,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/look-consumer",
-        "ref": "look-consumer/v0.2.0",
-        "sha": "45ed316c9cd2bbfa7903575324362c656fcb326b"
+        "ref": "look-consumer/v0.3.0",
+        "sha": "6029247a4c91af98b44003772dc62f2c0efafc5d"
       },
       "description": "Friendly, warm and playful: for mobile-first personal and lifestyle web apps. Big thumb-sized targets, rounded type, 24px corners, a warm white page with white cards and a berry accent, a few things at a time.",
       "category": "development",
