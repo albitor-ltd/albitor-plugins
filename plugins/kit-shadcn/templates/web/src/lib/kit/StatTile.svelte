@@ -66,7 +66,7 @@
 		justify-content: space-between;
 		gap: var(--space-2);
 		color: var(--muted-foreground);
-		font-family: var(--font-label);
+		font-family: var(--kit-font-label);
 		font-size: var(--text-small);
 		line-height: var(--leading-small);
 	}
@@ -83,7 +83,7 @@
 	.value {
 		margin-top: var(--space-1);
 		/* The heading step, never the title: a figure sits under the page's h1. */
-		font-family: var(--font-data);
+		font-family: var(--kit-font-data);
 		font-size: var(--h2-size);
 		line-height: var(--h2-leading);
 		font-weight: var(--heading-weight);

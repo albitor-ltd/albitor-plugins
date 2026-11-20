@@ -170,10 +170,10 @@ describe('type scale', () => {
 	});
 
 	it('reads the look data and label faces, falling back to the body face', () => {
-		expect(token(light, '--font-data')).toBe(token(light, '--font-sans'));
-		expect(token(light, '--font-label')).toBe(token(light, '--font-sans'));
-		expect(token(light, '--font-data', { '--look-font-data': 'Mono' })).toBe('Mono');
-		expect(token(light, '--font-label', { '--look-font-label': 'Caps' })).toBe('Caps');
+		expect(token(light, '--kit-font-data')).toBe(token(light, '--font-sans'));
+		expect(token(light, '--kit-font-label')).toBe(token(light, '--font-sans'));
+		expect(token(light, '--kit-font-data', { '--look-font-data': 'Mono' })).toBe('Mono');
+		expect(token(light, '--kit-font-label', { '--look-font-label': 'Caps' })).toBe('Caps');
 	});
 
 	it('has no shadow on the dark page unless a look sets one (the platform writes none)', () => {

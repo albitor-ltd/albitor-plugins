@@ -107,7 +107,7 @@
 	table {
 		width: 100%;
 		border-collapse: collapse;
-		font-family: var(--font-data);
+		font-family: var(--kit-font-data);
 		font-variant-numeric: var(--figures);
 	}
 	caption {
@@ -127,7 +127,7 @@
 		border-bottom: var(--border-width) solid var(--border);
 	}
 	thead th {
-		font-family: var(--font-label);
+		font-family: var(--kit-font-label);
 		background: var(--muted);
 		border-bottom-color: var(--input);
 	}
@@ -184,7 +184,7 @@
 		[data-narrow='stacked'] td::before {
 			content: attr(data-label);
 			flex: none;
-			font-family: var(--font-label);
+			font-family: var(--kit-font-label);
 			color: var(--muted-foreground);
 		}
 		/* Priority columns: secondary columns leave the row; the disclosure carries them. */

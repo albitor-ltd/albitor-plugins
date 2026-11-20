@@ -30,7 +30,7 @@
 
 	let heading: HTMLElement | undefined = $state();
 
-	$effect(() => heading?.focus());
+	$effect(() => heading?.focus({ preventScroll: true }));
 </script>
 
 <div class="done">

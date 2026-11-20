@@ -13,8 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   merge). A six-step type scale (`--text-micro`, `-small`, `-body`, `-lead`, `-heading`, `-title`)
   with a line-height per step (`--leading-*`) and heading-level tokens (`--h1-size` to `--h6-size`,
   `--h1-leading` to `--h6-leading`), read from the platform's `look.css` and with kit fallbacks;
-  plain `h1` to `h6` and `body` use them. Tables and stat tiles read `--font-data` and
-  `--font-label`; a stat value sits at the heading step, below the page's h1. Each `Button`
+  plain `h1` to `h6` and `body` use them. Tables and stat tiles read `--kit-font-data`
+  and `--kit-font-label` (from `--look-font-data` and `--look-font-label`; the kit names differ
+  from the `--font-data` a font plugin binds, which would make a cycle); a stat value sits at the heading step, below the page's h1. Each `Button`
   variant owns its elevation and a ghost has none; `Button`, `FilterChip` and tab triggers keep a
   44px hit area where a look draws 28px or 36px targets (`--hit-inset`). The dark page has no
   shadows (the platform writes `--look-shadow: none`). `EmptyState` loses its dashed box and takes

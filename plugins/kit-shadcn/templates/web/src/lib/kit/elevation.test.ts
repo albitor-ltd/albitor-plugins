@@ -29,16 +29,16 @@ describe('Button elevation', () => {
 
 describe('data and label faces', () => {
 	it('puts the table in the data face and its header and stacked labels in the label face', () => {
-		expect(rule('Table.svelte', 'table')).toContain('font-family: var(--font-data)');
-		expect(rule('Table.svelte', 'thead th')).toContain('font-family: var(--font-label)');
+		expect(rule('Table.svelte', 'table')).toContain('font-family: var(--kit-font-data)');
+		expect(rule('Table.svelte', 'thead th')).toContain('font-family: var(--kit-font-label)');
 	});
 
 	it('sets a stat value in the data face at the heading step, never the title', () => {
 		const value = rule('StatTile.svelte', '.value');
-		expect(value).toContain('font-family: var(--font-data)');
+		expect(value).toContain('font-family: var(--kit-font-data)');
 		expect(value).toContain('font-size: var(--h2-size)');
 		expect(value).not.toContain('--text-title');
-		expect(rule('StatTile.svelte', 'dt')).toContain('font-family: var(--font-label)');
+		expect(rule('StatTile.svelte', 'dt')).toContain('font-family: var(--kit-font-label)');
 	});
 });
 

@@ -86,8 +86,8 @@
 		--h6-leading: var(--look-h6-leading, var(--leading-small));
 		/* Data and label faces: tables and figures read the first, labels and captions the
 		   second. Each falls back to the body face. */
-		--font-data: var(--look-font-data, var(--font-sans));
-		--font-label: var(--look-font-label, var(--font-sans));
+		--kit-font-data: var(--look-font-data, var(--font-sans));
+		--kit-font-label: var(--look-font-label, var(--font-sans));
 		/* Spacing: --space is the look's density multiplier (compact 0.875, comfortable 1,
 		   spacious 1.25). Every step scales with it. */
 		--space: var(--look-space, 1);
