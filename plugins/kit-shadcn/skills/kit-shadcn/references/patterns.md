@@ -58,7 +58,7 @@ there too, not only a toast: a toast is gone once dismissed.
 Every desktop nav destination stays reachable at phone width; never hide a control.
 
 **What `AppShell` does.** Below 48rem the header is one compact row: the app name, the `account`
-snippet (Sign out, settings) and a "Menu" button. The button is a disclosure
+snippet (`AccountArea`: Sign out, theme switch, save status) and a "Menu" button. The button is a disclosure
 (`aria-expanded`, `aria-controls="main-nav"`): it opens the one `<nav aria-label="Main">` under the
 row as a single full-width list of 44px-tall links, and the nav closes again on every navigation
 and on Escape. From 48rem up the button is hidden and the nav sits in the header row. The nav never

@@ -110,12 +110,21 @@ describe("FixtureScope", () => {
 		await scope.cleanup();
 	});
 
-	it("makes names unique to the scope and within 80 characters", () => {
+	it("makes display names that differ per call, are short and carry no UUID", () => {
+		const a = new FixtureScope(fake().request);
+		const first = a.uniqueName("Annual review");
+		assert.notEqual(first, a.uniqueName("Annual review"));
+		assert.match(first, /^Annual review [A-Z][a-z]+ [A-Z][a-z]+ \d+$/);
+		assert.doesNotMatch(first, /[0-9a-f]{8}-[0-9a-f]{4}/);
+		assert.ok(a.uniqueName("p".repeat(200)).length <= 80);
+	});
+
+	it("makes keys unique to the scope, certainly, and within 80 characters", () => {
 		const a = new FixtureScope(fake().request);
 		const b = new FixtureScope(fake().request);
-		assert.notEqual(a.uniqueName("x"), a.uniqueName("x"));
-		assert.notEqual(a.uniqueName("x"), b.uniqueName("x"));
-		assert.ok(a.uniqueName("p".repeat(200)).length <= 80);
+		assert.notEqual(a.uniqueKey("x"), a.uniqueKey("x"));
+		assert.notEqual(a.uniqueKey("x"), b.uniqueKey("x"));
+		assert.ok(a.uniqueKey("p".repeat(200)).length <= 80);
 	});
 
 	it("surfaces a created record it cannot own instead of dropping it", async () => {

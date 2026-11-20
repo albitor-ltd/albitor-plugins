@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.15.0` and `test-playwright` `0.7.2` (albitor-ltd/albitor#5290, stream
+  albitor-ltd/albitor#5294; tags follow the merge). `kit-shadcn` adds `AccountArea`, the designed
+  content for `AppShell`'s `account` snippet: Sign out, a theme switch and a save status (a live
+  region that says its state in words) in one place on desktop and phone, 44px targets, labels
+  collapsing to icons below 48rem; the kit skill says account, theme and save controls live there
+  and nowhere else. `test-playwright`'s `fixtureScope.uniqueName` (and `uniqueTitle` in `seed.ts`)
+  now makes a short realistic display name ("Annual review Amber Court 3") instead of one with a
+  UUID, because seeded names render in delivered apps' walks and screenshots; `uniqueKey` keeps the
+  long, certain form for values that are never drawn. Cleanup stays by id.
 - `auth-hosted` `0.7.1`, `auth-cognito` `0.13.1`, `test-playwright` `0.7.1` and `auth` `0.7.2`
   (albitor-ltd/albitor#5277, stream albitor-ltd/albitor#5233, ADR-0112 section 5; tags follow the
   merge). A browse app (`posture: public`) fails, never skips, an account or role journey spec with no

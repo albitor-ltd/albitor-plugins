@@ -25,6 +25,10 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   imported per icon, `aria-hidden` unless labelled). Each reads only the tokens, so a look
   restyles all of them, and each has a fixture and test (`card.test.ts`, `pill.test.ts` and so on:
   axe, plus the behaviour that makes it accessible).
+- `AccountArea` (albitor-ltd/albitor#5290): the designed content for `AppShell`'s `account` snippet,
+  the one place for Sign out, a theme switch and a save status (a live region that says its state
+  in words), on desktop and phone. Each control draws only when its prop is given; targets are
+  44px and labels collapse to icons below 48rem. `accountarea.test.ts` runs axe over it.
 - `NavShell`, which `AppShell` renders: one destinations list (the merged `nav`) becomes a row in
   the header or, with `layout="side"`, a column from 48rem. On a phone `phoneNav` (the look's
   stance) picks the Menu button (`drawer`, the default) or a bottom tab bar (`tabs`): 2 to 5

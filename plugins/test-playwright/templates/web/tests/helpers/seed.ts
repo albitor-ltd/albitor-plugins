@@ -1,6 +1,7 @@
 // Starting point (test-playwright).
 import { randomUUID } from "node:crypto";
 import type { TestInfo } from "@playwright/test";
+import { displayName } from "./display-name.ts";
 import { FixtureScope } from "./fixture-scope";
 import { test as base } from "./journey";
 
@@ -14,7 +15,7 @@ import { test as base } from "./journey";
 //
 //   test("lists my claim", async ({ page, fixtureScope }) => {
 //     const claim = await fixtureScope.create<{ id: string }>("/api/claims", {
-//       title: fixtureScope.uniqueName("claim"),
+//       title: fixtureScope.uniqueName("Annual review"),
 //     });
 //     ...
 //   });
@@ -27,9 +28,17 @@ import { test as base } from "./journey";
 let seedCounter = 0;
 const runNamespace = randomUUID();
 
-// A title unique to this test, this worker and this call, so parallel workers and reruns never
-// collide on the same string.
+// A short, realistic display name unique to this run, worker and call with high probability
+// ("Claim Amber Court 3"), because it shows in the app's screens and screenshots. Pass a label that
+// reads well on screen. `uniqueKey` is the long, certain form for values that are never drawn.
 export function uniqueTitle(testInfo: TestInfo, prefix = "seeded"): string {
+	seedCounter += 1;
+	return displayName(`${runNamespace}${testInfo.workerIndex.toString(16).padStart(4, "0")}`, seedCounter, prefix);
+}
+
+// A value unique to this test, worker and call for certain, for something never drawn (a slug, an
+// email local part): the UUID is in it, so never use it as a display name.
+export function uniqueKey(testInfo: TestInfo, prefix = "seeded"): string {
 	seedCounter += 1;
 	const suffix = `-${runNamespace}-w${testInfo.workerIndex}-${seedCounter}`;
 	const label = `${prefix}-${testInfo.testId}`;

@@ -9,6 +9,7 @@ web/tests/helpers/auth-v2.ts
 web/tests/helpers/baseline.ts
 web/tests/helpers/browser-signin.ts
 web/tests/helpers/credentials.ts
+web/tests/helpers/display-name.ts
 web/tests/helpers/fixture-scope.ts
 web/tests/helpers/hosted-signin.ts
 web/tests/helpers/journey.ts
