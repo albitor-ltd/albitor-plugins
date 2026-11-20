@@ -51,7 +51,7 @@ together; `web/knip.json` keeps the fixture folders out of the end-of-build prun
 | A form field | `<Field label hint error bind:value />`; `multiline` for a textarea; `type` for the input type |
 | An action | `<Button variant="primary" \| "secondary" \| "destructive" \| "ghost">`; `type="submit"` in a form |
 | Tabular data | `<Table caption columns rows />`; an empty `rows` shows an `EmptyState` |
-| Nothing to show | `<EmptyState title description icon>` with an `action` snippet saying what to do next; with `icon` it is the first-run screen |
+| Nothing to show | `<EmptyState title description art>` with an `action` snippet saying what to do next; `art` is the look's `EmptyArt` (or pass `icon`) and makes it the first-run screen. The list, catalogue and collection pages take it as `emptyArt` |
 | Group related content | `<Card title level>` (a surface with its own heading; `tone="second"` for a quiet highlight) |
 | A status or count | `<Pill tone="success" \| "warning" \| "danger" \| "info" \| "neutral">`: always a glyph and a word |
 | Views of one thing | `<Tabs label tabs bind:value>` with a `panel(value)` snippet (Bits UI Tabs); links between pages stay in the nav |

@@ -107,6 +107,7 @@
 	table {
 		width: 100%;
 		border-collapse: collapse;
+		font-family: var(--kit-font-data);
 		font-variant-numeric: var(--figures);
 	}
 	caption {
@@ -115,7 +116,8 @@
 		font-family: var(--heading-font);
 		font-weight: var(--heading-weight);
 		letter-spacing: var(--heading-tracking);
-		font-size: var(--text-heading);
+		font-size: var(--h2-size);
+		line-height: var(--h2-leading);
 	}
 	th,
 	td {
@@ -125,6 +127,7 @@
 		border-bottom: var(--border-width) solid var(--border);
 	}
 	thead th {
+		font-family: var(--kit-font-label);
 		background: var(--muted);
 		border-bottom-color: var(--input);
 	}
@@ -181,6 +184,7 @@
 		[data-narrow='stacked'] td::before {
 			content: attr(data-label);
 			flex: none;
+			font-family: var(--kit-font-label);
 			color: var(--muted-foreground);
 		}
 		/* Priority columns: secondary columns leave the row; the disclosure carries them. */

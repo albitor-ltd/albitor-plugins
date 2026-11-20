@@ -12,6 +12,11 @@ function mount(): HTMLElement {
 	return dom.window.document.body;
 }
 
+function mountWithArt(): HTMLElement {
+	dom = serverDom(EmptyStateFixture, { art: true });
+	return dom.window.document.body;
+}
+
 afterEach(() => dom?.window.close());
 
 describe('EmptyState', () => {
@@ -24,5 +29,12 @@ describe('EmptyState', () => {
 		const root = mount();
 		const h = root.querySelector('[data-kit="empty-state"] h2, [data-kit="empty-state"] h3');
 		expect(h?.textContent).toContain('No reports yet');
+	});
+
+	it('draws the look art above the title, decorative, in place of the icon', () => {
+		const root = mountWithArt();
+		const art = root.querySelector('[data-kit="empty-state"] .art-slot svg');
+		expect(art?.getAttribute('aria-hidden')).toBe('true');
+		expect(root.querySelector('[data-kit="empty-state"] .art')).toBeNull();
 	});
 });

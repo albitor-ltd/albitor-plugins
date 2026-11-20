@@ -59,6 +59,12 @@ describe('CataloguePage', () => {
 		);
 	});
 
+	it('hides the filters in the first-run state, and keeps them once there is something to filter', () => {
+		expect(mount({ matches: 'none', total: 0 }).querySelector('[role="group"][aria-label="Search and filters"]')).toBeNull();
+		dom.window.close();
+		expect(mount({ matches: 'none' }).querySelector('[role="group"][aria-label="Search and filters"]')).not.toBeNull();
+	});
+
 	it('says what to do first when the whole collection is empty, with no clear button', () => {
 		const root = mount({ matches: 'none', total: 0 });
 		expect(root.querySelector('[data-kit="empty-state"]')?.textContent).toContain('Courses are added each term.');

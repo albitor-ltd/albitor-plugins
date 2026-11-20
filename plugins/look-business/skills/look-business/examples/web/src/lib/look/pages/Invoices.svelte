@@ -12,6 +12,7 @@
 	import Icon from '../../kit/Icon.svelte';
 	import Pill from '../../kit/Pill.svelte';
 	import EmptyState from '../../kit/EmptyState.svelte';
+	import EmptyArt from '../EmptyArt.svelte';
 	import PageHeader from '../../kit/pages/PageHeader.svelte';
 	import StateNotice from '../../kit/pages/StateNotice.svelte';
 
@@ -70,10 +71,13 @@
 	</div>
 {/if}
 
+{#snippet firstRunArt()}<EmptyArt size={96} />{/snippet}
+
 {#if status !== 'ready'}
 	<StateNotice {status} onretry={noop} loadingLabel="Loading invoices" />
 {:else if shown.length === 0}
 	<EmptyState
+		art={rows.length === 0 ? firstRunArt : undefined}
 		title={rows.length === 0 ? 'No invoices yet' : 'No invoices match'}
 		description={rows.length === 0
 			? 'Add the first invoice, or import a file of them.'

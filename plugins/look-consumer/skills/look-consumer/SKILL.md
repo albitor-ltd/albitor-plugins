@@ -36,8 +36,10 @@ The look also supplies page examples (below) and a `rubric.md` for the visual ch
 
 ### Typography
 
-- Rounded system stack (`ui-rounded`, SF Pro Rounded, Nunito and similar); heavy 800 headings for a friendly voice, with comfortable body text.
-- Scale is large: body 1.0625rem, secondary 0.9375rem, heading 1.5rem, page title 2.5rem. On narrow phones let the title clamp down so it never wraps beyond two lines.
+- Rounded system stack (`ui-rounded`, SF Pro Rounded, Nunito and similar); bold 700 headings for a friendly voice, with comfortable body text.
+- Scale is large but not shouting: body 1.0625rem, secondary 0.9375rem, heading 1.375rem, page title
+  2rem. Figures sit at the heading step, below the page title. On narrow phones let the title clamp
+  down so it never wraps beyond two lines.
 - Sentence-case, plain language, short labels; avoid all-caps.
 
 ### Density
@@ -47,7 +49,7 @@ The look also supplies page examples (below) and a `rubric.md` for the visual ch
 
 ### Shape and elevation
 
-- 24px radius on cards and sheets; controls are fully rounded within it; 2px borders; 3px focus ring.
+- 24px radius on cards and sheets; controls are fully rounded within it; 1px borders; 3px focus ring.
 - Elevation is raised: a lighter or warmer surface step with a soft shadow. Keep it friendly, not ornamental: no hard outlines, offset shadows, clashing colours or novelty typography.
 
 ### Colour
@@ -149,17 +151,21 @@ Keep the app's own providers, title and mark; add only `layout`, `phoneNav` and 
 ## Page examples
 
 Styled examples of every kit page template are in `examples/web/src/lib/look/pages/`, laid out by
-repository path: Overview (a tracker's home: header band, focus card with a progress ring, figure tiles and a floating action; use it only when the structure names a dashboard or a tracker-collection), Habits (list that stacks into cards on a phone), Habit (detail with a progress ring), NewHabit (form), Preferences (settings), FirstRun and Setup (one question at a time with big choices). `pages.test.ts` renders each page (loading, failed and
-empty states included) and runs axe, one `h1` and heading-order checks over it.
+repository path: Overview (a tracker's home: header band, focus card with a progress ring, figure
+tiles and a floating action; use it only when the structure names a dashboard or a
+tracker-collection), Habits (list that stacks into cards on a phone), Habit (detail with a progress
+ring), NewHabit (form), Preferences (settings), FirstRun and Setup (one question at a time with big
+choices). `pages.test.ts` renders each page (loading, failed and empty states included) and runs
+axe, one `h1` and heading-order checks over it.
 
 They are worked examples, not seeded files. Copy the ones the app needs, with `pages.test.ts`
 trimmed to match, to `web/src/lib/look/pages/`, then edit them: replace the sample data and copy,
 fetch in `+page.ts` or the page, and pass `status`. They import the kit's page templates
 (`DashboardPage`, `ListPage`, `DetailPage`, `FormPage`, `SettingsPage`, `HomePage`,
 `CataloguePage`, `ItemPage`, `ArticlePage`, `CollectionPage`, `HubPage`, `StepPage`, `PageHeader`,
-`StateNotice` and their small pieces), which come from the `kit-shadcn` skill's examples, so copy those first. Once
-copied they are the app's code and never reference this skill. Do not rebuild a page from scratch
-when one of these fits.
+`StateNotice` and their small pieces), which come from the `kit-shadcn` skill's examples, so copy
+those first. Once copied they are the app's code and never reference this skill. Do not rebuild a
+page from scratch when one of these fits.
 
 ### Non-CRUD example app
 

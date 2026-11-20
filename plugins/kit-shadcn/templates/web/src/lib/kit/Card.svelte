@@ -66,5 +66,6 @@
 	.head :global(h4) {
 		margin: 0;
 		font-size: var(--text-heading);
+		line-height: var(--leading-heading);
 	}
 </style>

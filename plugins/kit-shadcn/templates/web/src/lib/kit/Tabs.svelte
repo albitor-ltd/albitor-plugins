@@ -47,7 +47,15 @@
 		gap: var(--space-1);
 		border-bottom: var(--border-width) solid var(--border);
 	}
+	/* The hit area reaches 44px where the look draws a smaller tab. */
+	:global(.kit-tabs-trigger::after) {
+		content: '';
+		position: absolute;
+		inset-block: var(--hit-inset);
+		inset-inline: 0;
+	}
 	:global(.kit-tabs-trigger) {
+		position: relative;
 		min-height: var(--control-height);
 		padding: 0 var(--space-4);
 		font: inherit;

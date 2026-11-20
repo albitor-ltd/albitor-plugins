@@ -3,10 +3,10 @@
   "font_family": "\"Segoe UI\", \"Helvetica Neue\", Arial, system-ui, Roboto, sans-serif",
   "heading_weight": 600,
   "type_scale": {
-    "small": "0.75rem",
-    "body": "0.8125rem",
-    "heading": "0.9375rem",
-    "title": "1.125rem"
+    "small": "0.8125rem",
+    "body": "0.875rem",
+    "heading": "1.125rem",
+    "title": "1.5rem"
   },
   "radius": "2px",
   "border_width": "1px",
