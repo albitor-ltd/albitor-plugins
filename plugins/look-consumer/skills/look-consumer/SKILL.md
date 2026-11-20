@@ -149,16 +149,26 @@ Keep the app's own providers, title and mark; add only `layout`, `phoneNav` and 
 ## Page examples
 
 Styled examples of every kit page template are in `examples/web/src/lib/look/pages/`, laid out by
-repository path: Overview (header band, focus card with a progress ring, figure tiles and a floating action), Habits (list that stacks into cards on a phone), Habit (detail with a progress ring), NewHabit (form), Preferences (settings), FirstRun and Setup (one question at a time with big choices). `pages.test.ts` renders each page (loading, failed and
+repository path: Overview (a tracker's home: header band, focus card with a progress ring, figure tiles and a floating action; use it only when the structure names a dashboard or a tracker-collection), Habits (list that stacks into cards on a phone), Habit (detail with a progress ring), NewHabit (form), Preferences (settings), FirstRun and Setup (one question at a time with big choices). `pages.test.ts` renders each page (loading, failed and
 empty states included) and runs axe, one `h1` and heading-order checks over it.
 
 They are worked examples, not seeded files. Copy the ones the app needs, with `pages.test.ts`
 trimmed to match, to `web/src/lib/look/pages/`, then edit them: replace the sample data and copy,
 fetch in `+page.ts` or the page, and pass `status`. They import the kit's page templates
-(`DashboardPage`, `ListPage`, `DetailPage`, `FormPage`, `SettingsPage`, `PageHeader`,
-`StateNotice`), which come from the `kit-shadcn` skill's examples, so copy those first. Once
+(`DashboardPage`, `ListPage`, `DetailPage`, `FormPage`, `SettingsPage`, `HomePage`,
+`CataloguePage`, `ItemPage`, `ArticlePage`, `CollectionPage`, `HubPage`, `StepPage`, `PageHeader`,
+`StateNotice` and their small pieces), which come from the `kit-shadcn` skill's examples, so copy those first. Once
 copied they are the app's code and never reference this skill. Do not rebuild a page from scratch
 when one of these fits.
+
+### Non-CRUD example app
+
+For a **`catalogue-directory`** or **`booking`** structure (top bar, phone tabs: `layout="top"`,
+`phoneNav="tabs"`) start from the non-CRUD example app, in the same folder: Classes (search and
+filter soft cards, on the kit's `CataloguePage`), Class (the facts and a large "Book a place" card,
+on `ItemPage`) and Bookings (the person's own bookings as a grid with the look's `EmptyArt` on
+first run, on `CollectionPage`). `pages.test.ts` covers each state. Copy the kit's page templates
+first; no imagery is used.
 
 ## Reviewing a page
 

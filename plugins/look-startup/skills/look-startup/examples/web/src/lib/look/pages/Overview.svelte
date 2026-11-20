@@ -1,4 +1,6 @@
-<!-- The overview, in this look: layered tiles with an icon, a change in words, a meter or a
+<!-- The dashboard first screen, in this look. Use it only when the app's structure names a
+     dashboard (a summary of data that changes without the person's own input); for any other
+     structure start from the non-dashboard pages beside it (Home, Release, Trial). The overview: layered tiles with an icon, a change in words, a meter or a
      sparkline, then two cards of detail. A starting point, then yours: replace the figures and
      lists with the app's own, and pass its load `status`. Needs the kit's DashboardPage (copy it
      from the kit-shadcn skill). Before the app has any data, pass `firstRun`. -->

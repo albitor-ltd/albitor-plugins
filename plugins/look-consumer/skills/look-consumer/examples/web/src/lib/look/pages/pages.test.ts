@@ -5,6 +5,9 @@
 import type { Component } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import { audit, serverDom } from '../../kit/__fixtures__/dom';
+import Bookings from './Bookings.svelte';
+import Class from './Class.svelte';
+import Classes from './Classes.svelte';
 import FirstRun from './FirstRun.svelte';
 import Habit from './Habit.svelte';
 import Habits from './Habits.svelte';
@@ -29,7 +32,15 @@ const cases: Array<[name: string, page: Component<any>, props: Record<string, un
 	['settings', Preferences, {}],
 	['first run', FirstRun, {}],
 	['setup, question 1', Setup, { step: 1 }],
-	['setup, question 3', Setup, { step: 3 }]
+	['setup, question 3', Setup, { step: 3 }],
+	['classes (catalogue)', Classes, {}],
+	['classes, loading', Classes, { status: 'loading' }],
+	['classes, none yet', Classes, { classes: [] }],
+	['class (booking)', Class, {}],
+	['class, with errors', Class, { errors: [{ field: 'email', message: 'Enter an email address' }] }],
+	['class, booked', Class, { sent: true }],
+	['bookings', Bookings, {}],
+	['bookings, none yet', Bookings, { bookings: [] }]
 ];
 
 describe.each(cases)('%s', (_name, page, props) => {
@@ -46,5 +57,19 @@ describe.each(cases)('%s', (_name, page, props) => {
 		levels.forEach((level, i) => {
 			if (i > 0) expect(level - levels[i - 1]).toBeLessThanOrEqual(1);
 		});
+	});
+});
+
+describe('the catalogue and booking example app', () => {
+	it('puts the look\'s art on the empty bookings page, hidden from assistive technology', () => {
+		dom = serverDom(Bookings, { bookings: [] }, 'Example');
+		const art = dom.window.document.querySelector('.art svg');
+		expect(art?.getAttribute('aria-hidden')).toBe('true');
+		expect(dom.window.document.querySelector('[data-kit="empty-state"] button')?.textContent?.trim()).toBe('Find a class');
+	});
+
+	it('names the booking action on the button', () => {
+		dom = serverDom(Class, {}, 'Example');
+		expect(dom.window.document.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Book a place');
 	});
 });

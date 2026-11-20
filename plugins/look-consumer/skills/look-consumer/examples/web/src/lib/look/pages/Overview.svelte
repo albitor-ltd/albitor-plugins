@@ -1,4 +1,6 @@
-<!-- The home screen, in this look: a header band with the look's art, one focus card with a
+<!-- The dashboard first screen, in this look (a tracker's home). Use it only when the app's
+     structure names a dashboard or a tracker-collection; for any other structure start from the
+     non-dashboard pages beside it (Classes, Class, Bookings). The screen: a header band with the look's art, one focus card with a
      progress ring and the one thing to do next, then big friendly figure tiles and a short list.
      On a phone the main action floats above the tab bar, within thumb reach. A starting point,
      then yours: replace the copy, the figures and the list, and pass the load `status`. Built from

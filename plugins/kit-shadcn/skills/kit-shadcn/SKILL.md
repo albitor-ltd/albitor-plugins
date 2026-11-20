@@ -98,11 +98,14 @@ props:
 | `hub` | hub of tiles | none: pass `nav={[]}` | none |
 | `none` | no shell | none: pass `nav={[]}` | none |
 
-`hub` and `none` have no bar: the pick's first screen is the hub of tiles (or the single page) and
-`AppShell` renders only its skip link, header, `main` landmark and toaster around it. For a hub, the
-tiles link to each destination and every other page keeps a visible link back to the hub, so no
-destination is hidden on a phone. A look's "Phone navigation" stance is only the fallback when the
-structure gives no shell words; it never overrides them.
+`hub` and `none` have no bar: the pick's first screen is the hub of tiles (or the single page).
+With an empty `nav` (`nav={[]}`) `AppShell` renders no `<nav>` landmark, no Menu button and no
+sidebar, whatever `layout` and `phoneNav` say; it renders the skip link, the header (the app's name,
+mark and `account`), the `main` landmark, a `footer` if one is passed, and the toaster. For a hub,
+the tiles link to each destination and every other page keeps a visible link back to the hub
+(`BackToHub`, or `back` on `PageHeader`), so no destination is hidden on a phone. A look's "Phone
+navigation" stance is only the fallback when the structure gives no shell words; it never overrides
+them.
 
 `aria-current="page"` is on the current link and never on More (the button says "(current page is in
 More)" in words), targets are 44px and the bar pads for the home indicator. `references/patterns.md`
@@ -152,9 +155,40 @@ never reference this skill. The kit's own pieces (`Button`, `Field`, `Table` and
 | A collection of records | `ListPage` | Header with actions, a filter group (Fields or `FilterChip`s), `Table`, a first-run `EmptyState` with an icon and a next step (`emptyIcon`), loading skeletons and failed state |
 | One record | `DetailPage` | Back link, a status `Pill` beside the title (`badge`), actions, the facts in a `Card` as a description list, related sections, loading and failed states |
 | Create or edit one record | `FormPage` | Labelled fields in a `Card`, a focused error summary, a named submit, cancel, a busy guard |
-| An overview | `DashboardPage` | `StatTile` figures (icon, change in words, meter or sparkline), sections below (put each in a `Card`), loading skeletons, failed state, and a first-run state (`firstRun`) |
+| A summary of data that changes on its own (the `dashboard` first screen) | `DashboardPage` | `StatTile` figures (icon, change in words, meter or sparkline), sections below (put each in a `Card`), loading skeletons, failed state, and a first-run state (`firstRun`). Not the default first screen: use it only when the structure's first screen is a dashboard, else start from the structure's own row below |
 | Preferences, in groups | `SettingsPage` with `SettingsSection` | Each group a `Card` named by its heading, one save, the same error summary |
 | Sign in | `SignInPage` | Email and password with the right `autocomplete`, one alert for the failure; presentation only |
+| A public front page | `HomePage` | The one `<h1>` headline, a lead sentence, one primary action (and one quieter link), reasons in `Card`s with decorative icons, extra sections as children, a closing prompt. No imagery |
+| Search and browse a collection | `CataloguePage` | Search and `FilterChip` group, a polite "3 of 12 results", linked items (title, summary, fact line, status `Pill`), a no-match state with Clear, a first-run state, loading and failed states |
+| One item with a next step | `ItemPage` | Back link, status `Pill`, facts as a description list, an `about` section, and an enquiry or booking form `Card` with the error summary and a confirmation that replaces it once sent |
+| An article | `ArticlePage` | Back link, headline, standfirst, byline, date and reading time, the body at reading width (about 65 characters), a labelled related-reading `nav`, loading and failed states |
+| The person's own collection | `CollectionPage` | A one-line summary, a grid of linked items with a status `Pill`, an add action, a first-run state (`emptyIcon`, and the look's art through `emptyArt`), loading and failed states |
+| A hub of tiles | `HubPage` | Tiles to each destination with a line of status, a section below for what needs the person, loading and failed states; with `BackToHub` on every other page |
+| One step of a flow | `StepPage`, then `ConfirmationPage` | "Step 2 of 5", a named `Progress`, the question as the `<h1>`, Back and Continue, the error summary; `answers` makes "Check your answers" with a named Change link per answer; the confirmation states the result and a reference |
+
+### Which page the structure's first screen starts from
+
+The structure pick names an `archetype` from core's closed list, and it owns the first screen. Start
+from the matching row, then add the pages around it. The looks style these pages; they never choose
+them. `ActionLink`, `ErrorSummary` and `BackToHub` are small pieces the new templates use: copy
+them with the template that imports them.
+
+| `archetype` | First screen | Pages around it |
+|---|---|---|
+| `landing-led` | `HomePage` | `ArticlePage` for content pages, `StepPage` for the sign-up flow |
+| `editorial` | `CataloguePage` (the section index, with search) | `ArticlePage` |
+| `list-detail` | `ListPage` | `DetailPage`, `FormPage` |
+| `catalogue-directory` | `CataloguePage` | `ItemPage` |
+| `marketplace` | `CataloguePage` | `ItemPage` for buyers; `ListPage` and `FormPage` for sellers' listings |
+| `booking` | `CataloguePage` (services) | `ItemPage` (the booking action), `StepPage` and `ConfirmationPage`, `ListPage` for the staff calendar |
+| `wizard` | `StepPage` | more `StepPage`s, `ConfirmationPage` |
+| `portal` | `HubPage` (with `nav={[]}`) | `BackToHub` on every page, `StepPage`, `ListPage`, `SettingsPage` |
+| `community-feed` | none: build the feed from `Card`, `Avatar`, `Pill` and `Field` | `ArticlePage` for one post, `FormPage` to create |
+| `tracker-collection` | `CollectionPage` | `DetailPage`, `FormPage`, `DashboardPage` for stats (second) |
+| `internal-tool` | `ListPage` (the work queue) | `DetailPage`, `FormPage`, `SettingsPage`, `DashboardPage` for reports |
+| `dashboard` | `DashboardPage` | `DetailPage` for the drill-down |
+| `single-tool` | `FormPage` (one input, the result in a `Card`; `nav={[]}`) | none |
+| `other` | `PageHeader` and `StateNotice` | the nearest rows above |
 
 ### Tables on a phone
 
@@ -175,7 +209,7 @@ Both modes are in `__fixtures__/ListPageFixture.svelte` and audited in `listpage
 
 `PageHeader` (the one `<h1>`, a description, a back link, a status `badge`, actions) and `StateNotice` (loading
 `status` with skeletons, failure `alert` with a retry) are the skeleton under every template; use them directly for
-a page that fits none of the above, such as a wizard step or an import report.
+a page that fits none of the above, such as an import report.
 
 How to use one:
 
@@ -231,7 +265,7 @@ in `references/accessibility-statement.md`. The wider WCAG 2.2 AA audit content 
 
 | Piece | What the kit already does |
 |---|---|
-| `AppShell` | Skip link first, one `main` landmark, a labelled `nav`, `aria-current="page"` on the current link, visible focus |
+| `AppShell` | Skip link first, one `main` landmark, a labelled `nav` (none when there are no destinations), `aria-current="page"` on the current link, visible focus |
 | `Field` | `label for`, `aria-describedby` to the hint and error, `aria-invalid`, an "Error:" prefix a screen reader reads |
 | `Table` | A caption, `scope` on every header, a keyboard-focusable scroll region; `narrow` modes keep the header row available to assistive technology |
 | `Dialog` | Named by its title, described by its description, focus trapped and returned (Bits UI) |

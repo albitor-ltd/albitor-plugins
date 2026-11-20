@@ -9,7 +9,7 @@ platform paints the preview and derives the light and dark scheme from) and one 
 `web/src/lib/look/EmptyArt.svelte` (the look's art for first-run states, drawn in the app's tokens),
 and composes over any themeable component kit.
 
-**Suits.** Enterprise and line-of-business apps: admin consoles, finance, back office and operations tools used by staff for long sessions, where comparing exact numbers across many rows matters more than first impressions. Avoid for mobile-first consumer or marketing surfaces.
+**Suits.** Apps where exact figures and long sessions matter: admin consoles, finance, back office, operations, registers, logs, rotas, bookings, inventories and case-work tools, wherever people compare exact values across many rows. Works with any shell and first screen the app picks. Avoid for mobile-first consumer or marketing surfaces.
 
 See `skills/look-business/SKILL.md` for typography, density, shape, elevation, colour, the look's signature,
 phone navigation and dark-mode guidance.
@@ -20,7 +20,8 @@ Beside the skill:
   and `icons` props for `AppShell` (structure and style stay separate axes).
 - `examples/web/src/lib/look/pages/`: styled examples of each kit page template (overview, list,
   detail, form, settings, first run, step flow) written against the kit-shadcn components, with a
-  test that runs axe over each.
+  test that runs axe over each, and a non-CRUD example app
+  (Hub, Renew and Letters: a portal example app; albitor-ltd/albitor-plugins#283). The overview is the dashboard first screen only.
 - `rubric.md`: a short checklist for the visual check of a built page.
 
 The manifest names this look's default font look, Technical (`font-technical`), in

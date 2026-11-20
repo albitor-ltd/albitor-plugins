@@ -163,6 +163,22 @@ describe('layout and icons', () => {
 	});
 });
 
+describe('with no destinations', () => {
+	it.each([
+		['top', { count: 0, layout: 'top', phoneNav: 'tabs' }],
+		['side', { count: 0, layout: 'side', phoneNav: 'tabs' }],
+		['drawer', { count: 0 }]
+	])('renders no nav landmark, no Menu button and no sidebar (%s)', async (_name, props) => {
+		await show(props);
+		expect(document.querySelector('nav')).toBeNull();
+		expect(document.querySelector('aside')).toBeNull();
+		expect(menu()).toBeUndefined();
+		expect(document.querySelector('main#main')).not.toBeNull();
+		expect(document.querySelector('header')).not.toBeNull();
+		expect(await audit()).toEqual([]);
+	});
+});
+
 describe('accessibility', () => {
 	it.each([
 		['drawer', { count: 3 }],
