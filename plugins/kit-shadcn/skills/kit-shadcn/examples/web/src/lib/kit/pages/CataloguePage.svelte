@@ -2,8 +2,9 @@
      (a search Field and FilterChips, passed as a snippet), a polite result count, then the matches
      as a list of linked items. Filtering is the caller's: pass the items that match, and `total`
      (how many there are before filtering) so the count reads "3 of 12". No match says so and
-     offers to clear the filters; a collection with nothing in it yet is a first-run state.
-     Loading and failure show where the results will appear.
+     offers to clear the filters; a collection with nothing in it yet is a first-run state, which
+     hides the filters (there is nothing to filter). Loading and failure show where the results
+     will appear.
 
        <CataloguePage title="Courses" items={matches} total={all.length} {status} onretry={reload}
                       onclear={reset} emptyDescription="Courses are added each term.">
@@ -35,6 +36,7 @@
 		emptyTitle = 'Nothing here yet',
 		emptyDescription,
 		emptyIcon,
+		emptyArt,
 		filters
 	}: {
 		title: string;
@@ -61,6 +63,8 @@
 		emptyTitle?: string;
 		emptyDescription?: string;
 		emptyIcon?: Component<{ size?: number | string; class?: string }>;
+		/** The look's EmptyArt, for the first-run state. */
+		emptyArt?: Snippet;
 		/** A search Field and FilterChips. */
 		filters?: Snippet;
 	} = $props();
@@ -74,12 +78,12 @@
 
 <PageHeader {title} {description} />
 
-{#if filters}<div class="filters" role="group" aria-label="Search and filters">{@render filters()}</div>{/if}
+{#if filters && total !== 0}<div class="filters" role="group" aria-label="Search and filters">{@render filters()}</div>{/if}
 
 {#if status !== 'ready'}
 	<StateNotice {status} {errorMessage} {onretry} loadingLabel={`Loading ${title.toLowerCase()}`} />
 {:else if total === 0}
-	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} />
+	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} art={emptyArt} />
 {:else}
 	<p class="count" role="status">{count}</p>
 	{#if items.length === 0}

@@ -45,7 +45,7 @@
 	:global(.kit-avatar-sm) {
 		inline-size: 1.75rem;
 		block-size: 1.75rem;
-		font-size: 0.75rem;
+		font-size: var(--text-micro);
 	}
 	:global(.kit-avatar-lg) {
 		inline-size: 4rem;

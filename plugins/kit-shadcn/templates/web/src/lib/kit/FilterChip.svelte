@@ -17,7 +17,15 @@
 </button>
 
 <style>
+	/* The hit area reaches 44px where the look draws a smaller chip. */
+	.chip::after {
+		content: '';
+		position: absolute;
+		inset-block: var(--hit-inset);
+		inset-inline: 0;
+	}
 	.chip {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-1);
@@ -25,6 +33,7 @@
 		padding: 0 var(--space-3);
 		font: inherit;
 		font-size: var(--text-small);
+		line-height: var(--leading-small);
 		color: var(--foreground);
 		background: var(--background);
 		border: var(--border-width) solid var(--input);

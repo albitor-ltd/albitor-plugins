@@ -38,7 +38,9 @@ The look also supplies page examples (below) and a `rubric.md` for the visual ch
 ### Typography
 
 - System UI stack led by Segoe UI (`font_family` in `preview-tokens.json`); one family throughout, headings differ by size and weight 600 only.
-- Small type is deliberate: body 0.8125rem, secondary 0.75rem, section heading 0.9375rem, page title 1.125rem. Do not scale up to fill space; add columns instead.
+- Type is compact but readable: body 0.875rem, secondary 0.8125rem, section heading 1.125rem, page title
+  1.5rem (1.7 times the body, so the title reads as the page's h1). Do not scale up to fill space; add
+  columns instead. Figures in tables and stat tiles use the data face and sit at the heading step.
 - Turn on tabular figures (`font-variant-numeric: tabular-nums`) everywhere numbers are compared. Right-align numeric columns; align their headers the same way.
 
 ### Density
@@ -148,17 +150,21 @@ Keep the app's own providers, title and mark; add only `layout`, `phoneNav` and 
 ## Page examples
 
 Styled examples of every kit page template are in `examples/web/src/lib/look/pages/`, laid out by
-repository path: Overview (the dashboard first screen: a summary strip, a table and an ageing card; use it only when the structure names a dashboard or an internal tool), Invoices (list with saved views, search, row selection and a bulk bar), Invoice (detail with a status, lines and a confirm dialog), NewInvoice (form), Preferences (settings), FirstRun and Setup (a step flow with a numbered list of steps). `pages.test.ts` renders each page (loading, failed and
-empty states included) and runs axe, one `h1` and heading-order checks over it.
+repository path: Overview (the dashboard first screen: a summary strip, a table and an ageing card;
+use it only when the structure names a dashboard or an internal tool), Invoices (list with saved
+views, search, row selection and a bulk bar), Invoice (detail with a status, lines and a confirm
+dialog), NewInvoice (form), Preferences (settings), FirstRun and Setup (a step flow with a numbered
+list of steps). `pages.test.ts` renders each page (loading, failed and empty states included) and
+runs axe, one `h1` and heading-order checks over it.
 
 They are worked examples, not seeded files. Copy the ones the app needs, with `pages.test.ts`
 trimmed to match, to `web/src/lib/look/pages/`, then edit them: replace the sample data and copy,
 fetch in `+page.ts` or the page, and pass `status`. They import the kit's page templates
 (`DashboardPage`, `ListPage`, `DetailPage`, `FormPage`, `SettingsPage`, `HomePage`,
 `CataloguePage`, `ItemPage`, `ArticlePage`, `CollectionPage`, `HubPage`, `StepPage`, `PageHeader`,
-`StateNotice` and their small pieces), which come from the `kit-shadcn` skill's examples, so copy those first. Once
-copied they are the app's code and never reference this skill. Do not rebuild a page from scratch
-when one of these fits.
+`StateNotice` and their small pieces), which come from the `kit-shadcn` skill's examples, so copy
+those first. Once copied they are the app's code and never reference this skill. Do not rebuild a
+page from scratch when one of these fits.
 
 ### Non-CRUD example app
 

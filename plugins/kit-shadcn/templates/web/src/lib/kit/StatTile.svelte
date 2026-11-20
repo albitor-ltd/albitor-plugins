@@ -66,7 +66,9 @@
 		justify-content: space-between;
 		gap: var(--space-2);
 		color: var(--muted-foreground);
+		font-family: var(--font-label);
 		font-size: var(--text-small);
+		line-height: var(--leading-small);
 	}
 	.badge {
 		display: inline-flex;
@@ -80,8 +82,10 @@
 	}
 	.value {
 		margin-top: var(--space-1);
-		font-family: var(--heading-font);
-		font-size: var(--text-title);
+		/* The heading step, never the title: a figure sits under the page's h1. */
+		font-family: var(--font-data);
+		font-size: var(--h2-size);
+		line-height: var(--h2-leading);
 		font-weight: var(--heading-weight);
 		font-variant-numeric: tabular-nums;
 	}

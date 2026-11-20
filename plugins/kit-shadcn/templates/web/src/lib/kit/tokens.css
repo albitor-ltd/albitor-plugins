@@ -56,10 +56,38 @@
 		--heading-weight: var(--look-weight-bold, 600);
 		--heading-tracking: var(--look-tracking, normal);
 		--figures: var(--look-figures, normal);
+		/* Type scale, six steps: micro, small, body, lead, heading, title. The look sets small,
+		   body, heading and title; micro and lead are derived. Each step has a line-height. */
+		--text-micro: var(--look-text-micro, 0.75rem);
 		--text-small: var(--look-text-small, 0.875rem);
 		--text-body: var(--look-text-body, 1rem);
+		--text-lead: var(--look-text-lead, 1.125rem);
 		--text-heading: var(--look-text-heading, 1.25rem);
 		--text-title: var(--look-text-title, 1.875rem);
+		--leading-micro: var(--look-leading-micro, 1.4);
+		--leading-small: var(--look-leading-small, 1.4);
+		--leading-body: var(--look-leading-body, 1.5);
+		--leading-lead: var(--look-leading-lead, 1.4);
+		--leading-heading: var(--look-leading-heading, 1.3);
+		--leading-title: var(--look-leading-title, 1.2);
+		/* Heading levels: h1 is the title step, h2 the heading, h3 the lead, h4 the body, h5 and
+		   h6 the small step. A figure (a stat value) reads the heading step, so it sits under h1. */
+		--h1-size: var(--look-h1-size, var(--text-title));
+		--h1-leading: var(--look-h1-leading, var(--leading-title));
+		--h2-size: var(--look-h2-size, var(--text-heading));
+		--h2-leading: var(--look-h2-leading, var(--leading-heading));
+		--h3-size: var(--look-h3-size, var(--text-lead));
+		--h3-leading: var(--look-h3-leading, var(--leading-lead));
+		--h4-size: var(--look-h4-size, var(--text-body));
+		--h4-leading: var(--look-h4-leading, var(--leading-body));
+		--h5-size: var(--look-h5-size, var(--text-small));
+		--h5-leading: var(--look-h5-leading, var(--leading-small));
+		--h6-size: var(--look-h6-size, var(--text-small));
+		--h6-leading: var(--look-h6-leading, var(--leading-small));
+		/* Data and label faces: tables and figures read the first, labels and captions the
+		   second. Each falls back to the body face. */
+		--font-data: var(--look-font-data, var(--font-sans));
+		--font-label: var(--look-font-label, var(--font-sans));
 		/* Spacing: --space is the look's density multiplier (compact 0.875, comfortable 1,
 		   spacious 1.25). Every step scales with it. */
 		--space: var(--look-space, 1);
@@ -70,6 +98,9 @@
 		--space-6: calc(1.5rem * var(--space));
 		--space-8: calc(2rem * var(--space));
 		--control-height: var(--look-min-target, calc(2.5rem * var(--space)));
+		/* Where a look draws a control under 44px (28px, 36px), the hit area still reaches 44px:
+		   a control's ::after extends by this much above and below it. Zero at 44px and over. */
+		--hit-inset: min(0px, calc((var(--control-height) - 2.75rem) / 2));
 		/* Invalid, so the row keeps its natural height, unless the look sets a density. */
 		--row-height: calc(2.75rem * var(--look-space));
 		/* Motion: the look's duration (zero under reduced motion) and easing. */
@@ -124,18 +155,46 @@
 		color: var(--foreground);
 		font-family: var(--font-sans);
 		font-size: var(--text-body);
+		line-height: var(--leading-body);
 		font-variant-numeric: var(--figures);
 	}
 
-	/* Headings change only where the look sets them: bold, inherited family and no tracking
+	/* Headings take their size and line-height from the heading-level tokens; the family, weight
+	   and tracking change only where the look sets them: bold, inherited family and no tracking
 	   otherwise, which is what the browser draws. */
 	h1,
 	h2,
 	h3,
-	h4 {
+	h4,
+	h5,
+	h6 {
 		font-family: var(--look-font-heading, inherit);
 		font-weight: var(--look-weight-bold, bold);
 		letter-spacing: var(--look-tracking, normal);
+	}
+	h1 {
+		font-size: var(--h1-size);
+		line-height: var(--h1-leading);
+	}
+	h2 {
+		font-size: var(--h2-size);
+		line-height: var(--h2-leading);
+	}
+	h3 {
+		font-size: var(--h3-size);
+		line-height: var(--h3-leading);
+	}
+	h4 {
+		font-size: var(--h4-size);
+		line-height: var(--h4-leading);
+	}
+	h5 {
+		font-size: var(--h5-size);
+		line-height: var(--h5-leading);
+	}
+	h6 {
+		font-size: var(--h6-size);
+		line-height: var(--h6-leading);
 	}
 
 	a {

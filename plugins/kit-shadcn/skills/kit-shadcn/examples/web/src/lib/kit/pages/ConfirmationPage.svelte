@@ -1,7 +1,8 @@
 <!-- The page after a flow: it worked, here is the reference, here is what happens next. The headline
      states the result ("Application sent"), a reference the person can quote sits in a Card, and
      the next steps are a short list. It is a page, not a toast: a person who looks away still finds
-     it, and it has a link onward.
+     it, and it has a link onward. When it replaces a form in place, the h1 takes focus, so the
+     result is read first.
 
        <ConfirmationPage title="Application sent" reference="PRM-48213"
                          next={['We email you within 3 working days.']} action={{ href: '/', label: 'Back to your account' }} /> -->
@@ -26,10 +27,14 @@
 		/** The way onward. */
 		action: { href: string; label: string };
 	} = $props();
+
+	let heading: HTMLElement | undefined = $state();
+
+	$effect(() => heading?.focus());
 </script>
 
 <div class="done">
-	<h1><Icon icon={CircleCheck} size={28} /> {title}</h1>
+	<h1 tabindex="-1" bind:this={heading}><Icon icon={CircleCheck} size={28} /> {title}</h1>
 	{#if reference}
 		<Card tone="second">
 			<p class="ref"><span>{referenceLabel}</span> <strong>{reference}</strong></p>
@@ -56,7 +61,12 @@
 		align-items: center;
 		gap: var(--space-3);
 		margin: 0;
-		font-size: var(--text-title);
+		font-size: var(--h1-size);
+		line-height: var(--h1-leading);
+	}
+	h1:focus-visible {
+		outline: var(--focus-width) solid var(--ring);
+		outline-offset: 2px;
 	}
 	h2 {
 		margin: 0;

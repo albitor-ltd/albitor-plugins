@@ -142,6 +142,56 @@ describe('with a look', () => {
 	});
 });
 
+describe('type scale', () => {
+	const steps = ['micro', 'small', 'body', 'lead', 'heading', 'title'];
+
+	it('has six steps, each with a line-height, in the kit and in the look', () => {
+		for (const step of steps) {
+			expect(light[`--text-${step}`]).toMatch(new RegExp(`^var\\(--look-text-${step},`));
+			expect(light[`--leading-${step}`]).toMatch(new RegExp(`^var\\(--look-leading-${step},`));
+		}
+	});
+
+	it('falls back to a rising scale with no look', () => {
+		const sizes = steps.map((s) => parseFloat(token(light, `--text-${s}`)));
+		expect(sizes).toEqual([...sizes].sort((a, b) => a - b));
+		expect(new Set(sizes).size).toBe(6);
+	});
+
+	it('maps the heading levels onto the steps and takes the look values when set', () => {
+		expect(token(light, '--h1-size')).toBe(token(light, '--text-title'));
+		expect(token(light, '--h2-size')).toBe(token(light, '--text-heading'));
+		expect(token(light, '--h3-size')).toBe(token(light, '--text-lead'));
+		expect(token(light, '--h4-size')).toBe(token(light, '--text-body'));
+		expect(token(light, '--h6-size')).toBe(token(light, '--text-small'));
+		expect(token(light, '--h1-leading')).toBe(token(light, '--leading-title'));
+		expect(token(light, '--h1-size', { '--look-h1-size': '1.5rem' })).toBe('1.5rem');
+		expect(token(light, '--text-lead', { '--look-text-lead': '1rem' })).toBe('1rem');
+	});
+
+	it('reads the look data and label faces, falling back to the body face', () => {
+		expect(token(light, '--font-data')).toBe(token(light, '--font-sans'));
+		expect(token(light, '--font-label')).toBe(token(light, '--font-sans'));
+		expect(token(light, '--font-data', { '--look-font-data': 'Mono' })).toBe('Mono');
+		expect(token(light, '--font-label', { '--look-font-label': 'Caps' })).toBe('Caps');
+	});
+
+	it('has no shadow on the dark page unless a look sets one (the platform writes none)', () => {
+		expect(token(dark, '--shadow')).toBe('none');
+		expect(token(dark, '--shadow', { '--look-shadow': 'none' })).toBe('none');
+	});
+
+	it('styles every heading level from its token', () => {
+		for (let n = 1; n <= 6; n++) {
+			expect(css).toMatch(new RegExp(`h${n} \\{\\s*font-size: var\\(--h${n}-size\\);\\s*line-height: var\\(--h${n}-leading\\);`));
+		}
+	});
+
+	it('keeps a 44px hit area under a smaller target', () => {
+		expect(light['--hit-inset']).toBe('min(0px, calc((var(--control-height) - 2.75rem) / 2))');
+	});
+});
+
 it('imports the look file the platform writes, and the file exists so the build resolves it', () => {
 	expect(css).toMatch(/@import '\.\.\/look\/look\.css';/);
 	expect(existsSync(new URL('../look/look.css', import.meta.url))).toBe(true);

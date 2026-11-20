@@ -2,8 +2,9 @@
      them on a phone). A header with a link back to the catalogue, a status Pill, the facts as a
      description list, an `about` section for longer text, and the form Card. On a failed submit the
      summary takes focus; on success the form is replaced by a confirmation that says what happens
-     next, announced politely. The form's fields are the caller's: name, email, a date or a
-     message, each a labelled Field.
+     next, announced politely, and its heading takes focus so a keyboard or screen reader user is
+     not left on a control that is gone. The form's fields are the caller's: name, email, a date or
+     a message, each a labelled Field.
 
        <ItemPage title={course.name} back={{ href: '/courses', label: 'All courses' }}
                  fields={[{ label: 'Where', value: 'Hall 2' }]} {errors} {sent} onsubmit={send}
@@ -68,6 +69,18 @@
 		onsubmit: () => void | Promise<void>;
 	} = $props();
 
+	let confirmation: HTMLElement | undefined = $state();
+
+	// The submit button leaves with the form, so focus would drop to the body: move it to the
+	// confirmation heading (Card's title) when `sent` flips.
+	$effect(() => {
+		if (!sent || !confirmation) return;
+		const heading = confirmation.querySelector<HTMLElement>('h2, h3, h4');
+		if (!heading) return;
+		heading.tabIndex = -1;
+		heading.focus();
+	});
+
 	function handle(event: SubmitEvent) {
 		event.preventDefault();
 		if (!busy) void onsubmit();
@@ -95,9 +108,11 @@
 		</div>
 		<div class="action">
 			{#if sent}
-				<Card tone="second" title={sentTitle}>
-					<p role="status" class="sent">{sentMessage}</p>
-				</Card>
+				<div bind:this={confirmation}>
+					<Card tone="second" title={sentTitle}>
+						<p role="status" class="sent">{sentMessage}</p>
+					</Card>
+				</div>
 			{:else}
 				<ErrorSummary {errors} />
 				<Card title={enquiryTitle}>
@@ -151,5 +166,11 @@
 	}
 	.sent {
 		margin: 0;
+	}
+	.action :global(h2:focus-visible),
+	.action :global(h3:focus-visible),
+	.action :global(h4:focus-visible) {
+		outline: var(--focus-width) solid var(--ring);
+		outline-offset: 2px;
 	}
 </style>

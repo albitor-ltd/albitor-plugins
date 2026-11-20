@@ -10,13 +10,19 @@
 		status = 'ready',
 		errors = [],
 		busy = false,
-		sent = false
+		sent: initiallySent = false
 	}: {
 		status?: 'loading' | 'error' | 'ready';
 		errors?: Array<{ field?: string; message: string }>;
 		busy?: boolean;
 		sent?: boolean;
 	} = $props();
+
+	// Writable derived: a test flips it with send(), as a submit that succeeds does.
+	let sent = $derived(initiallySent);
+	export function send() {
+		sent = true;
+	}
 
 	let email = $state('');
 	let message = $state('');

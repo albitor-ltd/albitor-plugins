@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.17.0`, `look-startup`, `look-business` and `look-consumer` `0.5.0`
+  (Refs albitor-ltd/albitor#5293, stream albitor-ltd/albitor#5294 step 5; tags follow the
+  merge). A six-step type scale (`--text-micro`, `-small`, `-body`, `-lead`, `-heading`, `-title`)
+  with a line-height per step (`--leading-*`) and heading-level tokens (`--h1-size` to `--h6-size`,
+  `--h1-leading` to `--h6-leading`), read from the platform's `look.css` and with kit fallbacks;
+  plain `h1` to `h6` and `body` use them. Tables and stat tiles read `--font-data` and
+  `--font-label`; a stat value sits at the heading step, below the page's h1. Each `Button`
+  variant owns its elevation and a ghost has none; `Button`, `FilterChip` and tab triggers keep a
+  44px hit area where a look draws 28px or 36px targets (`--hit-inset`). The dark page has no
+  shadows (the platform writes `--look-shadow: none`). `EmptyState` loses its dashed box and takes
+  the look's `EmptyArt` through an `art` snippet (`emptyArt` on `ListPage`, `CataloguePage` and
+  `CollectionPage`). Look retunes: business lifts body to 0.875rem and the title to 1.5rem; consumer
+  moves to 1px borders, 700 headings and smaller figures (heading 1.375rem, title 2rem). From the
+  review of #287: `ItemPage` moves focus to the confirmation heading when sent, `ConfirmationPage`
+  takes focus on its h1, `CataloguePage` hides its filters in the first-run state, and the looks'
+  README and SKILL lines are re-wrapped at 100 characters. Colours are unchanged, so the AA
+  contrast audit holds in light and dark.
 - `kit-shadcn` `0.16.0`, `look-startup`, `look-business` and `look-consumer` `0.4.0`
   (albitor-ltd/albitor-plugins#283, stream albitor-ltd/albitor#5294; tags follow the merge). The
   structure pick owns the first screen, so the kit and the looks gain non-dashboard pages.

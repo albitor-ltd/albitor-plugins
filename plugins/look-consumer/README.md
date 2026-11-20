@@ -9,7 +9,9 @@ platform paints the preview and derives the light and dark scheme from) and one 
 `web/src/lib/look/EmptyArt.svelte` (the look's art for first-run states, drawn in the app's tokens),
 and composes over any themeable component kit.
 
-**Suits.** Friendly, phone-first apps: personal, family, community, wellness, hobby, learning and booking tools used in short sessions, where warmth and ease beat density. Works with any shell and first screen the app picks. Avoid for data-heavy admin and multi-column tables.
+**Suits.** Friendly, phone-first apps: personal, family, community, wellness, hobby, learning and
+booking tools used in short sessions, where warmth and ease beat density. Works with any shell and
+first screen the app picks. Avoid for data-heavy admin and multi-column tables.
 
 See `skills/look-consumer/SKILL.md` for typography, density, shape, elevation, colour, the look's signature,
 phone navigation and dark-mode guidance.
@@ -20,8 +22,9 @@ Beside the skill:
   and `icons` props for `AppShell` (structure and style stay separate axes).
 - `examples/web/src/lib/look/pages/`: styled examples of each kit page template (overview, list,
   detail, form, settings, first run, step flow) written against the kit-shadcn components, with a
-  test that runs axe over each, and a non-CRUD example app
-  (Classes, Class and Bookings: a catalogue and booking example app; albitor-ltd/albitor-plugins#283). The overview is the dashboard first screen only.
+  test that runs axe over each, and a non-CRUD example app (Classes, Class and Bookings: a catalogue
+  and booking example app; albitor-ltd/albitor-plugins#283). The overview is the dashboard first
+  screen only.
 - `rubric.md`: a short checklist for the visual check of a built page.
 
 The manifest names this look's default font look, Friendly (`font-friendly`), in
@@ -29,4 +32,6 @@ The manifest names this look's default font look, Friendly (`font-friendly`), in
 any policy lock.
 Validate the tokens with `scripts/validate-preview-tokens.sh` from the repository root.
 
-Notes. `-apple-system` is deliberately omitted from the font stacks: the platform's bare-family check refuses it (`system-ui` covers the same face). A look only applies to a component kit that is `themeable: true`.
+Notes. `-apple-system` is deliberately omitted from the font stacks: the platform's bare-family
+check refuses it (`system-ui` covers the same face). A look only applies to a component kit that is
+`themeable: true`.

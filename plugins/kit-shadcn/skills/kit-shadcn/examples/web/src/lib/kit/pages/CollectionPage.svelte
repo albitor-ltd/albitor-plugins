@@ -63,8 +63,7 @@
 {#if status !== 'ready'}
 	<StateNotice {status} {errorMessage} {onretry} loadingLabel={`Loading ${title.toLowerCase()}`} />
 {:else if items.length === 0}
-	{#if emptyArt}<div class="art">{@render emptyArt()}</div>{/if}
-	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} action={emptyAction} />
+	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} art={emptyArt} action={emptyAction} />
 {:else}
 	{#if summary}<p class="summary">{summary}</p>{/if}
 	<ul class="grid">
@@ -82,9 +81,6 @@
 	.summary {
 		margin: 0 0 var(--space-4);
 		color: var(--muted-foreground);
-	}
-	.art {
-		margin-bottom: var(--space-4);
 	}
 	.grid {
 		display: grid;

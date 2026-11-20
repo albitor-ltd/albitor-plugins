@@ -35,6 +35,7 @@
 		emptyTitle = 'Nothing here yet',
 		emptyDescription,
 		emptyIcon,
+		emptyArt,
 		actions,
 		filters,
 		emptyAction
@@ -55,6 +56,8 @@
 		emptyDescription?: string;
 		/** A Lucide icon drawn above the empty state's title. */
 		emptyIcon?: Component<{ size?: number | string; class?: string }>;
+		/** The look's EmptyArt, drawn above the empty-state title. */
+		emptyArt?: Snippet;
 		actions?: Snippet;
 		/** Search and filter controls, each a labelled Field. */
 		filters?: Snippet;
@@ -70,7 +73,7 @@
 {#if status !== 'ready'}
 	<StateNotice {status} {errorMessage} {onretry} loadingLabel={`Loading ${title.toLowerCase()}`} />
 {:else if rows.length === 0}
-	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} action={emptyAction} />
+	<EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} art={emptyArt} action={emptyAction} />
 {:else}
 	<Table {caption} {columns} {rows} {narrow} />
 {/if}

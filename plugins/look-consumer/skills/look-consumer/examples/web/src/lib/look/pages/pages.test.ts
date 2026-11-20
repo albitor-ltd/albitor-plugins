@@ -63,7 +63,7 @@ describe.each(cases)('%s', (_name, page, props) => {
 describe('the catalogue and booking example app', () => {
 	it('puts the look\'s art on the empty bookings page, hidden from assistive technology', () => {
 		dom = serverDom(Bookings, { bookings: [] }, 'Example');
-		const art = dom.window.document.querySelector('.art svg');
+		const art = dom.window.document.querySelector('[data-kit="empty-state"] svg');
 		expect(art?.getAttribute('aria-hidden')).toBe('true');
 		expect(dom.window.document.querySelector('[data-kit="empty-state"] button')?.textContent?.trim()).toBe('Find a class');
 	});

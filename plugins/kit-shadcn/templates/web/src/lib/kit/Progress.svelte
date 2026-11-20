@@ -98,7 +98,7 @@
 	}
 	.ring-value {
 		position: absolute;
-		font-size: 0.6875rem;
+		font-size: var(--text-micro);
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 	}
