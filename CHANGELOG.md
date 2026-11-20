@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.16.0`, `look-startup`, `look-business` and `look-consumer` `0.4.0`
+  (albitor-ltd/albitor-plugins#283, stream albitor-ltd/albitor#5294; tags follow the merge). The
+  structure pick owns the first screen, so the kit and the looks gain non-dashboard pages.
+  `kit-shadcn` adds page templates for a public home (`HomePage`), a searchable catalogue
+  (`CataloguePage`), an item with an enquiry or booking form (`ItemPage`), an article
+  (`ArticlePage`), the person's own collection as a grid (`CollectionPage`), a hub of tiles
+  (`HubPage`) with the `BackToHub` link every other page keeps, and a step flow (`StepPage` with
+  Check your answers, and `ConfirmationPage`), over `ActionLink` and `ErrorSummary`; each has a
+  fixture and a test that runs axe in every state. The kit SKILL maps each core structure
+  `archetype` (landing-led through single-tool, and other) to the template its first screen starts
+  from, and the `DashboardPage` row says it is for the `dashboard` first screen only. `AppShell`
+  now renders its `NavShell` only when `nav` has destinations, so `nav={[]}` (a hub, a single page)
+  emits no empty `<nav aria-label="Main">` landmark, no Menu button and no empty sidebar;
+  `navshell.test.ts` covers it, and the SKILL sentence about what the shell renders is corrected.
+  Each look adds one non-CRUD example app in its `examples/.../pages/`: startup a landing-led
+  product site (Home, Release, Trial), business a portal (Hub, Renew, Letters, each inner page
+  opening with `BackToHub`), consumer a catalogue and booking app (Classes, Class, Bookings). The
+  dashboard-first Overview examples are labelled as the dashboard first screen, and the looks'
+  README "Suits" lines match the broadened SKILL text. No imagery is used: the looks' `EmptyArt` and
+  typography only.
 - `look-startup`, `look-business` and `look-consumer` `0.3.0`, `kit-shadcn` `0.15.1`
   (albitor-ltd/albitor-plugins#282, stream albitor-ltd/albitor#5294; tags follow the merge). The
   looks style any shell: the app's structure pick owns the shell and first screen, so the Shell,

@@ -9,7 +9,9 @@
      column beside the page (`side`). `phoneNav` is the look's stance for a phone: `drawer` (the
      default) collapses it behind a Menu button (a disclosure, not a dialog); `tabs` makes it a
      bottom tab bar (NavShell.svelte has the 2 to 5, 4 plus More and 1 destination rules). `icons`
-     maps a destination's href to a Lucide icon. -->
+     maps a destination's href to a Lucide icon. With no destinations (`nav={[]}`: a hub of tiles or a
+     single page) the shell renders no nav landmark, no Menu button and no sidebar: the skip link,
+     the header, `main` and the toaster only. -->
 <script lang="ts">
 	import './tokens.css';
 	import type { Component, Snippet } from 'svelte';
@@ -90,13 +92,13 @@
 				Menu
 			</button>
 		{/if}
-		{#if layout === 'top'}
+		{#if hasNav && layout === 'top'}
 			<NavShell {nav} {path} {phoneNav} {icons} open={menuOpen} />
 		{/if}
 		{#if account}<div class="account">{@render account()}</div>{/if}
 	</header>
 	<div class="body">
-		{#if layout === 'side'}
+		{#if hasNav && layout === 'side'}
 			<aside><NavShell {nav} {path} {phoneNav} {icons} open={menuOpen} side /></aside>
 		{/if}
 		<main id="main" tabindex="-1">

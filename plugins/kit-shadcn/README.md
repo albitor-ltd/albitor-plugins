@@ -30,7 +30,8 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   in words), on desktop and phone. Each control draws only when its prop is given; targets are
   44px and labels collapse to icons below 48rem. `accountarea.test.ts` runs axe over it.
 - `NavShell`, which `AppShell` renders: one destinations list (the merged `nav`) becomes a row in
-  the header or, with `layout="side"`, a column from 48rem. On a phone `phoneNav` (the look's
+  the header or, with `layout="side"`, a column from 48rem; with no destinations (`nav={[]}`) the
+  shell renders no nav landmark, Menu button or sidebar. On a phone `phoneNav` (the look's
   stance) picks the Menu button (`drawer`, the default) or a bottom tab bar (`tabs`): 2 to 5
   destinations are tabs, 6 or more are 4 tabs and a More button that opens the rest, one
   destination keeps the Menu button. `icons` maps an href to a Lucide icon. `aria-current` is
@@ -59,7 +60,11 @@ rewrite of the React-oriented `shadcn` plugin as a Svelte-first kit. It composes
   end-of-build prune (web-svelte's `contributes.unusedCode`) never lists a fixture (it lists a piece the app does not use; delete that piece, its fixture and its test together).
 - The page templates, worked examples in the skill's `examples/web/src/lib/kit/pages/` (copied into the app on demand, not seeded): `ListPage`, `DetailPage`, `FormPage`,
   `DashboardPage`, `SettingsPage` (with `SettingsSection`) and `SignInPage`, over `PageHeader` and
-  `StateNotice`. Each is a whole page body built from the kit pieces (`StatTile`, `Card`, `Pill`,
+  `StateNotice`; and the non-dashboard set (albitor-ltd/albitor-plugins#283): `HomePage`,
+  `CataloguePage`, `ItemPage` (with an enquiry or booking form), `ArticlePage`, `CollectionPage`,
+  `HubPage` with `BackToHub`, and `StepPage` with `ConfirmationPage`, over `ActionLink` and
+  `ErrorSummary`. The skill maps each structure `archetype` to the template its first screen starts
+  from. Each is a whole page body built from the kit pieces (`StatTile`, `Card`, `Pill`,
   `FilterChip`, skeletons), with loading, failed and empty states (the dashboard and the list have
   a first-run state with an icon), one `<h1>`, and form errors in a focused summary. Each has its own
   `<name>.test.ts` and `__fixtures__/<Name>Fixture.svelte` that render it in every state and run axe

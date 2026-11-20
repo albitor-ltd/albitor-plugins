@@ -1,4 +1,7 @@
-<!-- The overview, in this look: a dense summary strip of exact figures in one bordered row (tabular
+<!-- The dashboard first screen, in this look. Use it only when the app's structure names a
+     dashboard or an internal tool (a summary of figures that change without the person's own
+     input); for any other structure start from the non-dashboard pages beside it (Hub, Renew,
+     Letters). The overview: a dense summary strip of exact figures in one bordered row (tabular
      figures, no shadow, the second colour on the one bar that carries data), then a table of what
      needs doing. A starting point, then yours: replace the figures and the table, and pass the
      load `status`. Built from PageHeader and StateNotice (copy the kit's page templates from the

@@ -2,12 +2,23 @@
 //   import { ListPage, FormPage } from '../../lib/kit/pages';
 // Start a new page from the template that matches it and edit it;
 // do not rebuild the header, the loading and error states or the error summary by hand.
+export { default as ActionLink } from './ActionLink.svelte';
+export { default as ArticlePage } from './ArticlePage.svelte';
+export { default as BackToHub } from './BackToHub.svelte';
+export { default as CataloguePage } from './CataloguePage.svelte';
+export { default as CollectionPage } from './CollectionPage.svelte';
+export { default as ConfirmationPage } from './ConfirmationPage.svelte';
 export { default as DashboardPage } from './DashboardPage.svelte';
 export { default as DetailPage } from './DetailPage.svelte';
+export { default as ErrorSummary } from './ErrorSummary.svelte';
 export { default as FormPage } from './FormPage.svelte';
+export { default as HomePage } from './HomePage.svelte';
+export { default as HubPage } from './HubPage.svelte';
+export { default as ItemPage } from './ItemPage.svelte';
 export { default as ListPage } from './ListPage.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as SettingsPage } from './SettingsPage.svelte';
 export { default as SettingsSection } from './SettingsSection.svelte';
 export { default as SignInPage } from '../SignInPage.svelte';
 export { default as StateNotice } from './StateNotice.svelte';
+export { default as StepPage } from './StepPage.svelte';

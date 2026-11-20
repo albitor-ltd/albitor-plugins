@@ -6,11 +6,14 @@ import type { Component } from 'svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import { audit, serverDom } from '../../kit/__fixtures__/dom';
 import FirstRun from './FirstRun.svelte';
+import Hub from './Hub.svelte';
 import Invoice from './Invoice.svelte';
 import Invoices from './Invoices.svelte';
+import Letters from './Letters.svelte';
 import NewInvoice from './NewInvoice.svelte';
 import Overview from './Overview.svelte';
 import Preferences from './Preferences.svelte';
+import Renew from './Renew.svelte';
 import Setup from './Setup.svelte';
 
 let dom: ReturnType<typeof serverDom>;
@@ -29,7 +32,15 @@ const cases: Array<[name: string, page: Component<any>, props: Record<string, un
 	['settings', Preferences, {}],
 	['first run', FirstRun, {}],
 	['setup, step 1', Setup, { step: 1 }],
-	['setup, step 3', Setup, { step: 3 }]
+	['setup, step 3', Setup, { step: 3 }],
+	['hub (portal)', Hub, {}],
+	['hub, loading', Hub, { status: 'loading' }],
+	['letters', Letters, {}],
+	['letters, none yet', Letters, { rows: [] }],
+	['renew, question', Renew, {}],
+	['renew, with errors', Renew, { errors: [{ field: 'registration', message: 'Enter the registration number' }] }],
+	['renew, check your answers', Renew, { phase: 'check' }],
+	['renew, confirmation', Renew, { phase: 'done' }]
 ];
 
 describe.each(cases)('%s', (_name, page, props) => {
@@ -46,5 +57,23 @@ describe.each(cases)('%s', (_name, page, props) => {
 		levels.forEach((level, i) => {
 			if (i > 0) expect(level - levels[i - 1]).toBeLessThanOrEqual(1);
 		});
+	});
+});
+
+describe('the portal example app', () => {
+	it('keeps a link back to the hub at the top of every inner page', () => {
+		for (const [page, props] of [[Letters, {}], [Renew, {}], [Renew, { phase: 'check' }], [Renew, { phase: 'done' }]] as const) {
+			dom = serverDom(page, props, 'Example');
+			const link = dom.window.document.querySelector('p.back a');
+			expect(link?.getAttribute('href')).toBe('/');
+			expect(link?.textContent?.trim()).toBe('Back to your permits');
+			dom.window.close();
+		}
+	});
+
+	it('links every destination from a tile on the hub', () => {
+		dom = serverDom(Hub, {}, 'Example');
+		const hrefs = [...dom.window.document.querySelectorAll('.tiles h3 a')].map((a) => a.getAttribute('href'));
+		expect(hrefs).toEqual(['/renew', '/payments', '/letters']);
 	});
 });
