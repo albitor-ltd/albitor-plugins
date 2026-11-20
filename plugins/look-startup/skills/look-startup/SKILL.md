@@ -71,15 +71,12 @@ What makes an app in this look recognisable. These are positive recipes; build t
 - **Navigation styling:** the look styles whatever shell the structure picks; it never picks one.
   Side: a hairline-edged column with the tinted current item in the second colour, 18px icons.
   Top: a bar with a 1px bottom hairline and the current link tinted the same way. Tabs: a hairline
-  top
-  border, the teal accent on the current tab. Hub: each tile is a layered card (hairline plus a soft
-  shadow) with an icon chip in the second colour. None: no chrome, the page title and its one
-  primary
-  action only.
-- **Figures:** wherever a figure appears (a stat, a hub tile, a card), it is layered (hairline plus
-  a
-  soft shadow) with an icon, a change in words, and a meter for a share or a sparkline for a trend.
-  Never a bare number in a box.
+  top border, the teal accent on the current tab. Hub: each tile is a layered card (hairline plus
+  a soft shadow) with an icon chip in the second colour. None: no chrome, the page title and its
+  one primary action only.
+- **Figures:** wherever a figure appears (a stat, a hub tile, a card), it is layered (hairline
+  plus a soft shadow) with an icon, a change in words, and a meter for a share or a sparkline for
+  a trend. Never a bare number in a box.
 - **Page header:** the page title with one primary action beside it; everything else in the page is
   secondary.
 - **Art:** the layered-cards `EmptyArt` on a first-run page, with the second colour as a thin trace.
