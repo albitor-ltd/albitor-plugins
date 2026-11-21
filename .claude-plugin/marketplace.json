@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.10.1",
-        "sha": "4d449f8c4e1a9af8f398b581bd7b97d6dd09856c"
+        "ref": "api-go/v0.11.0",
+        "sha": "7e39b386fea246a960e1288a16a011bf4023cd09"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -328,8 +328,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/auth-hosted",
-        "ref": "auth-hosted/v0.7.1",
-        "sha": "9788f507ef1796279e03b84d9124198b90603934"
+        "ref": "auth-hosted/v0.7.2",
+        "sha": "1b1f3f3919d6dae22dc6ef2a8bd852265cd805af"
       },
       "description": "The auth plugin for the hosted lane: sign-in on the app's Amazon Cognito hosted page by the authorization code flow with PKCE, no password field in the app. The API verifies the ID token, keeps the session in HttpOnly cookies and serves GET /api/me; the web side adds a route guard. The redirect, callback, sign-out and account-deletion routes and the sign-in, sign-out, account and refusal screens are worked examples in the skill to copy and alter. It declares services.auth.",
       "category": "development",
@@ -486,8 +486,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/object-s3",
-        "ref": "object-s3/v0.1.3",
-        "sha": "66cde1a43b90bf8596b1b3fa54af36e43cf670d9"
+        "ref": "object-s3/v0.1.4",
+        "sha": "7e39b386fea246a960e1288a16a011bf4023cd09"
       },
       "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download that bypass the API function and data store, owner-scoped keys authorised before signing, size and content-type limits, deleting files with their record, and platform retention. Go handlers over api-go and a web client for web-svelte.",
       "category": "development",
