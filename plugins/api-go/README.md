@@ -14,7 +14,8 @@ provides, requires and contributes, and the platform composer renders it into a 
 | `api/internal/apikit/**` | starting point | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
 | `api/internal/localauth/**` | starting point | The Go side of the local run contract: the in-process test issuer |
 | `api/internal/ownedscope/**` | starting point | The two-owner contract test's helper: drives every per-user route of `openapi.yaml` as two identities, writes the optional JSON report, stamps each row with its provenance and drives nested routes as advisory evidence |
-| `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)`, where product handlers are registered |
+| `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)` and the append-only `registrars` list, one line per feature; each feature registers from its own `<feature>_routes.go` |
+| `api/internal/app/apptest_test.go`, `routes_test.go` | example | The shared `serve` test helper (features do not edit it) and a mount check; each feature's tests go in its own `<feature>_test.go` |
 | `api/openapi.yaml` | example | The API contract. An auth plugin that serves `GET /api/me` carries a variant with that path as a skill example, which an app merges in |
 | `api/README.md`, `api/.gitignore` | example | Notes |
 

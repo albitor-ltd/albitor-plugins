@@ -22,7 +22,9 @@ them, and change them when the app needs it.
 - `internal/localauth/`: the local test issuer
 - `internal/ownedscope/`: the two-owner contract test's helper (see "The two-owner test"); an auth plugin
   seeds the test that uses it, `internal/identity/owned_data_scope_test.go`
-- `internal/app/routes.go`: where your handlers are registered
+- `internal/app/routes.go`: the `registrars` list, one append-only line per feature
+- `internal/app/apptest_test.go`, `routes_test.go`: the shared `serve` test helper and a mount check;
+  features do not edit them
 - `openapi.yaml`: the base contract (an auth plugin's skill carries the variant with `GET /api/me`)
 
 `internal/shell/router.go` was written once from the middleware and route groups composed at that
@@ -30,14 +32,25 @@ time; one added later does not rewire it, so add its middleware or routes by han
 
 ## Add an endpoint
 
-1. A handler in its own file in `api/internal/app/`.
-2. One line in `Routes` in `api/internal/app/routes.go`:
-   `r.HandleFunc("GET /api/widgets", listWidgets)` (Go 1.22 method-and-path patterns).
-3. The endpoint in `api/openapi.yaml`, in the same change. The web client is generated from it.
+Each feature owns its own files, so features built in parallel never edit the same lines (a shared
+file is what makes their rebases conflict). For a feature `widgets`:
 
-A worked example, `internal/app/widgets.go`. The handlers take no dependencies, so they register
-directly in `Routes(r *http.ServeMux)`; an app that needs a store opens it once and keeps it in a
-package variable or a struct that `Routes` builds:
+1. Handlers in `api/internal/app/widgets.go`.
+2. Registration in `api/internal/app/widgets_routes.go`: a `registerWidgets(r *http.ServeMux)` that
+   calls `r.HandleFunc("GET /api/widgets", listWidgets)` (Go 1.22 method-and-path patterns).
+3. Tests in `api/internal/app/widgets_test.go`, using the `serve` helper from `apptest_test.go`.
+4. One line, `registerWidgets,`, appended to `registrars` in `api/internal/app/routes.go`. This
+   is the only shared line a feature adds. Append it; never reorder, reflow or edit another
+   feature's line, and never add a feature's route to `Routes` itself.
+5. The endpoint in `api/openapi.yaml`, in the same change. The web client is generated from it.
+
+Do not put a second feature's handlers, routes or tests in a feature's file, and do not edit
+`apptest_test.go`: a helper a feature needs goes in that feature's own `_test.go` file. A rebase
+that conflicts on `registrars` keeps both lines.
+
+A worked example, `internal/app/widgets.go`. The handlers take no dependencies, so
+`registerWidgets` registers them directly; an app that needs a store opens it once and keeps it in a
+package variable or a struct that the feature's register function builds:
 
 ```go
 package app
@@ -74,11 +87,33 @@ func createWidget(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Register them in `Routes` (`GET /api/widgets`, `POST /api/widgets`), describe both in
-`openapi.yaml`, and test them with `httptest` against `shell.Handler`.
+```go
+// widgets_routes.go
+package app
 
-There is no `init()` registration. A handler missing from `Routes` is not served, and a pattern
-registered twice panics at start.
+import "net/http"
+
+func registerWidgets(r *http.ServeMux) {
+	r.HandleFunc("GET /api/widgets", listWidgets)
+	r.HandleFunc("POST /api/widgets", createWidget)
+}
+```
+
+```go
+// widgets_test.go
+func TestListWidgetsEmpty(t *testing.T) {
+	rec := serve(t, http.MethodGet, "/api/widgets", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status %d", rec.Code)
+	}
+}
+```
+
+Describe both endpoints in `openapi.yaml`. Test them with `serve` (it mounts every registrar on a
+plain mux), or with `httptest` against `shell.Handler` from outside the package.
+
+There is no `init()` registration. A feature missing from `registrars` is not served, and a pattern
+registered twice panics at start (`TestRoutesMountWithoutConflict` catches it).
 
 ## `POST /events`: schedules and queues
 
@@ -93,7 +128,8 @@ body says which trigger it is:
   `Records` list from the deploy probe).
 
 ```go
-r.HandleFunc("POST /events", handleEvents)
+// events_routes.go: its own register function, one more line in registrars
+func registerEvents(r *http.ServeMux) { r.HandleFunc("POST /events", handleEvents) }
 
 func handleEvents(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))

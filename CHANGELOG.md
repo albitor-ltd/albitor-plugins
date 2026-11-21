@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `api-go` `0.11.0` (Refs albitor-ltd/albitor#5300 item 5; tag follows the merge). Each feature gets
+  its own registration and test files, so parallel feature nodes stop editing the same lines (in
+  build d897a549 the shared `app_test.go` caused 5 of 8 rebases). `internal/app/routes.go` is an
+  append-only `registrars` list, one line per feature, and `Routes` only walks it; a feature
+  writes `<feature>.go`, `<feature>_routes.go` (`register<Feature>`) and `<feature>_test.go`. New
+  seeded `apptest_test.go` (the shared `serve` helper features do not edit) and `routes_test.go`.
+  SKILL, README and template README updated to match.
 - `kit-shadcn` `0.17.0`, `look-startup`, `look-business` and `look-consumer` `0.5.0`
   (Refs albitor-ltd/albitor#5293, stream albitor-ltd/albitor#5294 step 5; tags follow the
   merge). A six-step type scale (`--text-micro`, `-small`, `-body`, `-lead`, `-heading`, `-title`)

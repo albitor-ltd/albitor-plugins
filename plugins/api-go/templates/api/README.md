@@ -13,20 +13,25 @@ ALBITOR_LOCAL=1 PORT=8080 go run .
 |---|---|---|
 | `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Yours | The server skeleton |
 | `internal/shell/router.go` | Yours | Lists the middleware chain and any extra route groups |
-| `internal/app/routes.go` | Yours | Registers your handlers. Add a file per handler and one line here |
+| `internal/app/routes.go` | Yours | The `registrars` list: one append-only line per feature |
+| `internal/app/<feature>.go`, `<feature>_routes.go`, `<feature>_test.go` | Yours | One feature: its handlers, its `register<Feature>` function, its tests |
+| `internal/app/apptest_test.go` | Yours | The shared `serve` test helper. Features do not edit it |
 | `openapi.yaml` | Yours | The API contract. Add each endpoint in the same change as its handler |
 
 ## Adding an endpoint
 
-Write the handler in `internal/app/`, register it in `Routes`, describe it in `openapi.yaml`:
+Give each feature its own files in `internal/app/`: handlers in `widgets.go`, a
+`registerWidgets(r *http.ServeMux)` in `widgets_routes.go`, tests in `widgets_test.go`. Add one line
+`registerWidgets,` to `registrars` in `routes.go`, and describe the endpoints in `openapi.yaml`:
 
 ```go
-func Routes(r *http.ServeMux) {
+func registerWidgets(r *http.ServeMux) {
 	r.HandleFunc("GET /api/widgets", listWidgets)
 }
 ```
 
-There is no `init()` registration and no generator: a handler not listed in `Routes` is not served.
+There is no `init()` registration and no generator: a feature not listed in `registrars` is not
+served. Features edit no other shared file, so parallel features rebase by keeping both lines.
 Handlers reach data only through the app's store interface, never a
 client of their own, so they work in the local run as well as deployed.
 
@@ -34,7 +39,7 @@ client of their own, so they work in the local run as well as deployed.
 
 A `schedules` or `queues` entry in `albitor.yaml` runs this same binary. The platform delivers each
 fire as `POST /events`: `{"schedule": "<name>"}` for a schedule, SQS's `{"Records": [...]}` for a
-queue. Register that route in `Routes`, dispatch on the body, run the job before answering, and
+queue. Register that route from its own register function, dispatch on the body, run the job before answering, and
 answer 5xx if it failed: a 5xx fails the invocation and Lambda retries it, while any other status
 counts as success. An unknown name is a 400. The route is not reachable from the public API, but
 act only on a declared name anyway, and make every job idempotent: a schedule can fire twice and a

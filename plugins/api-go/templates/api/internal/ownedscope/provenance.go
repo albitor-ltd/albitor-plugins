@@ -32,7 +32,7 @@ const HelperName = "ownedscope"
 
 // KitVersion is the api-go release this source ships in. It is bumped with the plugin's version
 // (scripts/verify-api-go.sh checks the two agree).
-const KitVersion = "0.10.1"
+const KitVersion = "0.11.0"
 
 // sourceFiles are the files of this package that make the helper, in the order the digest reads
 // them. Test files and testdata are not part of it. The platform computes the same digest over the
