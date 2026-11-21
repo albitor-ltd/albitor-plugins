@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `auth-hosted` `0.7.2` (Refs albitor-ltd/albitor#5300 item 13; tag follows the merge). The sign-in
+  journey spec no longer stubs `/api/auth/login` on a deployed walk (`ALBITOR_JOURNEY_BASE_URL` or
+  `PLAYWRIGHT_API_ORIGIN`): it observes the request, and a new test asserts the browser lands on the
+  identity provider's hosted login page with a form (nothing typed). The stand-in stays for local
+  mock boots. The skill states the rule. No existing test title changed.
+
 - `kit-shadcn` `0.17.0`, `look-startup`, `look-business` and `look-consumer` `0.5.0`
   (Refs albitor-ltd/albitor#5293, stream albitor-ltd/albitor#5294 step 5; tags follow the
   merge). A six-step type scale (`--text-micro`, `-small`, `-body`, `-lead`, `-heading`, `-title`)
