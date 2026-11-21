@@ -61,8 +61,8 @@
 		--text-micro: var(--look-text-micro, 0.75rem);
 		--text-small: var(--look-text-small, 0.875rem);
 		--text-body: var(--look-text-body, 1rem);
-		--text-lead: var(--look-text-lead, 1.125rem);
-		--text-heading: var(--look-text-heading, 1.25rem);
+		--text-lead: var(--look-text-lead, 1.1875rem);
+		--text-heading: var(--look-text-heading, 1.375rem);
 		--text-title: var(--look-text-title, 1.875rem);
 		--leading-micro: var(--look-leading-micro, 1.4);
 		--leading-small: var(--look-leading-small, 1.4);

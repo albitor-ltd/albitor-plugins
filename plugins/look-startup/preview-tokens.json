@@ -6,7 +6,7 @@
   "type_scale": {
     "small": "0.8125rem",
     "body": "0.9375rem",
-    "heading": "1.125rem",
+    "heading": "1.3125rem",
     "title": "1.75rem"
   },
   "radius": "10px",
