@@ -192,6 +192,6 @@ for `identity.AnonymousOwner`.
 
 `web/tests/journeys/sign-in.spec.ts` (copied from the examples, yours to extend) proves a signed-out visitor is handed to
 the API's sign-in with where they were headed, a failed sign-in does not loop, the refusal and account
-screens render and pass axe, and the Sign out button signs out by fetch and then navigates to Cognito's logout (never a form post answered by a redirect to Cognito: the hosted CSP's `form-action 'self'` blocks it). It never types into Cognito:
+screens render and pass axe, and the Sign out button signs out by fetch and then navigates to Cognito's logout (never a form post answered by a redirect to Cognito: the hosted CSP's `form-action 'self'` blocks it). On a walk against a deployed preview (`ALBITOR_JOURNEY_BASE_URL` or `PLAYWRIGHT_API_ORIGIN` set) it never stubs the identity provider: `/api/auth/login` is observed, not answered, and one test asserts the browser lands on the provider's hosted login page with a form. A stand-in login page is for a local mock boot only. Any spec you add follows the same rule: a stub that stays on a deployed preview hides the real managed login (brand, form, a broken redirect) from every check. It never types into Cognito:
 the suite's `auth.setup.ts` signs in once. The universal `api-auth` floor still applies: declared
 non-public endpoints return `401` unauthenticated.

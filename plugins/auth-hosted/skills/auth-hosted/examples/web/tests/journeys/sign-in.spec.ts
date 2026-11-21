@@ -11,12 +11,26 @@
 import { expect, test as base } from "@playwright/test";
 import { expectNoA11yViolations } from "../helpers/a11y";
 import { test as journey } from "../helpers/journey";
+import { isForeignHost } from "../helpers/hosted-signin";
 import { EMPTY_STORAGE_STATE } from "../helpers/storage-state";
 
-// The browser is sent to the API, which sends it to Cognito: stand in for that first request so the
-// spec stays on the app, and report what it was asked for.
+// Whether this walk drives a DEPLOYED app (a preview, or this bundle against a deployed API): the
+// same test auth.setup.ts uses. There the identity provider is real and is NEVER stubbed: a stand-in
+// page would mean no check ever sees the Cognito managed login the app is delivered with. Only a
+// local mock boot, which has no user pool, gets the stand-in.
+const deployed = !!((process.env.PLAYWRIGHT_API_ORIGIN || "").trim() || (process.env.ALBITOR_JOURNEY_BASE_URL || "").trim());
+
+// The browser is sent to the API, which sends it to Cognito. Report what it was asked for. Locally,
+// stand in for that first request so the spec stays on the app; deployed, only watch it go by.
 async function captureLoginRequests(page: import("@playwright/test").Page): Promise<URL[]> {
   const seen: URL[] = [];
+  if (deployed) {
+    page.on("request", (req) => {
+      const u = new URL(req.url());
+      if (u.pathname === "/api/auth/login") seen.push(u);
+    });
+    return seen;
+  }
   await page.route("**/api/auth/login**", (route) => {
     seen.push(new URL(route.request().url()));
     return route.fulfill({ status: 200, contentType: "text/html", body: "<title>Hosted sign-in</title><p>stand-in</p>" });
@@ -37,6 +51,20 @@ base.describe("signed out", () => {
     await expect.poll(() => logins.length).toBeGreaterThan(0);
     expect(logins[0]!.pathname).toBe("/api/auth/login");
     expect(logins[0]!.searchParams.get("next")).toBe("/reports?tab=2");
+  });
+
+  base("on a deployed app, sign-in reaches the real hosted login page, with a form, and is never stubbed", async ({ page, request }) => {
+    base.skip(!deployed, "a local mock boot has no identity provider to reach");
+    const me = await request.get("/api/me").catch(() => undefined);
+    base.skip(!me || me.status() !== 401, "no API that refuses an anonymous visitor behind /api/me");
+
+    const appBase = (process.env.ALBITOR_JOURNEY_BASE_URL || "").trim() || String(base.info().project.use.baseURL ?? "");
+    await page.goto("/sign-in");
+    // The browser leaves the app for the provider's own host. Nothing is typed there: this spec
+    // holds no credentials, and auth.setup.ts is the one place that signs in.
+    await expect.poll(() => isForeignHost(appBase, page.url()), { timeout: 30_000 }).toBe(true);
+    await expect(page.locator("form").first()).toBeVisible();
+    await expect(page.locator("input[type=password]").first()).toBeVisible();
   });
 
   base("only a path on this site is remembered", async ({ page, request }) => {
