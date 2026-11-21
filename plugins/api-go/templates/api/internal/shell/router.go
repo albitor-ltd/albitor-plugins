@@ -1,6 +1,6 @@
 // The router: the middleware chain and the routes added beside the app's own, written once
-// when the app was composed. Add handlers in internal/app/routes.go; wire any later
-// middleware or route group by hand.
+// when the app was composed. Add handlers as a feature in internal/app (one line in registry.go); wire any
+// later middleware or route group by hand.
 
 package shell
 

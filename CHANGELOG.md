@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `object-s3` `0.1.4` (Refs albitor-ltd/albitor#5300 item 5; tag follows the merge). The SKILL wires
+  the file routes as a `registerFiles` registration plus one line appended to `registrars`, no
+  longer by editing `func Routes`.
+- `api-go` `0.11.0` (Refs albitor-ltd/albitor#5300 item 5; tag follows the merge). Each feature gets
+  its own registration and test files, so parallel feature nodes stop editing the same lines (in
+  build d897a549 the shared `app_test.go` caused 5 of 8 rebases). `internal/app/registry.go` is an
+  append-only `registrars` list, one line per feature and no code (so the rebase resolver unions
+  concurrent appends), and `Routes` in `routes.go` only walks it; a feature
+  writes `<feature>.go`, `<feature>_routes.go` (`register<Feature>`) and `<feature>_test.go`. New
+  seeded `apptest_test.go` (the shared `serve` helper features do not edit) and `routes_test.go`.
+  SKILL, README and template README updated to match.
 - `auth-hosted` `0.7.2` (Refs albitor-ltd/albitor#5300 item 13; tag follows the merge). The sign-in
   journey spec no longer stubs `/api/auth/login` on a deployed walk (`ALBITOR_JOURNEY_BASE_URL` or
   `PLAYWRIGHT_API_ORIGIN`): it observes the request, and a new test asserts the browser lands on the

@@ -67,11 +67,13 @@ use only the standard library, so `api/go.mod` gains no dependency.
 | `examples/api/internal/app/files.go`, `files_test.go` | The four routes under `/api/records/{record}/files`: start an upload, complete it, get a download URL (JSON, or a 302 with `?redirect=1`), delete one. And `DeleteRecordFiles`. Rename `records` to the app's own noun |
 | `examples/web/src/lib/files/upload.ts`, `upload.test.ts` | `uploadFile`, `downloadUrl`, `downloadLink`, `deleteFile`, `checkFile`. They return `{ ok: false, code, message }` rather than throw on a refusal |
 
-To wire them in: copy both Go directories, then in `internal/app/routes.go` build the store once and
-register the routes. In a local run also serve the fake bucket.
+To wire them in: copy both Go directories, then add one registration file and one list line. In
+`internal/app/files_routes.go` build the store once and register the routes (in a local run also
+serve the fake bucket), then append `registerFiles,` to `registrars` in `internal/app/registry.go`.
+Do not edit `func Routes`: it only walks `registrars`.
 
 ```go
-func Routes(r *http.ServeMux) {
+func registerFiles(r *http.ServeMux) {
 	store, err := objects.Open(os.Getenv, objects.Bucket)
 	if err != nil {
 		// Do not stop the app: its other routes work. The file routes answer 503
@@ -89,6 +91,11 @@ func Routes(r *http.ServeMux) {
 		r.Handle(objects.LocalPath, mem.Handler())
 	}
 }
+```
+
+```go
+// registry.go: one more line, appended
+	registerFiles,
 ```
 
 Add the four routes to `api/openapi.yaml` in the same change, and keep `/api/local-objects/` out of
