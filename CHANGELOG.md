@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.17.1`, `look-startup`, `look-business` and `look-consumer` `0.5.1`
+  (Refs albitor-ltd/albitor#5300 item 10; tags follow the merge). Heading levels now read as
+  steps: h1 to h4 differ by at least 1.15x in every look and in the kit defaults (startup was
+  18, 16.5 and 15px). The heading step moves up (kit 1.375rem with lead 1.1875rem, startup
+  1.3125rem, business 1.2rem, consumer 1.5rem); body and title are unchanged.
+  `scripts/check-type-scale.sh`, run by `just manifests`, refuses a look whose scale steps
+  by less, taking lead as the midpoint of body and heading as the platform derives it.
 - `kit-shadcn` `0.17.0`, `look-startup`, `look-business` and `look-consumer` `0.5.0`
   (Refs albitor-ltd/albitor#5293, stream albitor-ltd/albitor#5294 step 5; tags follow the
   merge). A six-step type scale (`--text-micro`, `-small`, `-body`, `-lead`, `-heading`, `-title`)

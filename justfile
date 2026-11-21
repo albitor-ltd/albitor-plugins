@@ -12,6 +12,7 @@ manifests:
     scripts/check-runner-playwright.sh
     scripts/check-openapi-variants.sh
     scripts/check-kit-fixtures.sh plugins
+    scripts/check-type-scale.sh
     scripts/test-catalogue-guards.sh
     scripts/validate-preview-tokens.sh
     scripts/test-preview-tokens.sh

@@ -38,7 +38,7 @@ The look also supplies page examples (below) and a `rubric.md` for the visual ch
 ### Typography
 
 - System UI stack led by Segoe UI (`font_family` in `preview-tokens.json`); one family throughout, headings differ by size and weight 600 only.
-- Type is compact but readable: body 0.875rem, secondary 0.8125rem, section heading 1.125rem, page
+- Type is compact but readable: body 0.875rem, secondary 0.8125rem, section heading 1.2rem, page
   title 1.5rem (1.7 times the body, so the title reads as the page's h1). Do not scale up to fill
   space; add columns instead. Figures in tables and stat tiles use the data face and sit at the
   heading step.

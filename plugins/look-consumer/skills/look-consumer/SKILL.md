@@ -37,7 +37,7 @@ The look also supplies page examples (below) and a `rubric.md` for the visual ch
 ### Typography
 
 - Rounded system stack (`ui-rounded`, SF Pro Rounded, Nunito and similar); bold 700 headings for a friendly voice, with comfortable body text.
-- Scale is large but not shouting: body 1.0625rem, secondary 0.9375rem, heading 1.375rem, page title
+- Scale is large but not shouting: body 1.0625rem, secondary 0.9375rem, heading 1.5rem, page title
   2rem. Figures sit at the heading step, below the page title. On narrow phones let the title clamp
   down so it never wraps beyond two lines.
 - Sentence-case, plain language, short labels; avoid all-caps.

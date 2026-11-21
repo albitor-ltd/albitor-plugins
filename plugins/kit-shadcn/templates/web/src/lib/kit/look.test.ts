@@ -158,6 +158,13 @@ describe('type scale', () => {
 		expect(new Set(sizes).size).toBe(6);
 	});
 
+	it('steps each heading level down by at least 1.15x with no look', () => {
+		const px = (name: string) => parseFloat(token(light, name));
+		const h = [1, 2, 3, 4].map((n) => px(`--h${n}-size`));
+		for (let i = 0; i < 3; i++) expect(h[i] / h[i + 1]).toBeGreaterThanOrEqual(1.15);
+		expect(px('--text-body')).toBe(1);
+	});
+
 	it('maps the heading levels onto the steps and takes the look values when set', () => {
 		expect(token(light, '--h1-size')).toBe(token(light, '--text-title'));
 		expect(token(light, '--h2-size')).toBe(token(light, '--text-heading'));

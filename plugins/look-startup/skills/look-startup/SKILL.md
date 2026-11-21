@@ -38,7 +38,7 @@ The look also supplies page examples (below) and a `rubric.md` for the visual ch
 ### Typography
 
 - Inter-led stack (Geist, SF Pro, Segoe UI as fallbacks) with a display stack for headings (`heading_font_family`); semibold 600 headings with -0.02em tracking.
-- Scale: body 0.9375rem, secondary 0.8125rem, heading 1.125rem, page title 1.75rem. Keep the title for landing and overview pages; working screens start at the heading size.
+- Scale: body 0.9375rem, secondary 0.8125rem, heading 1.3125rem, page title 1.75rem. Keep the title for landing and overview pages; working screens start at the heading size.
 - Hierarchy comes from size, weight and spacing. Put ids, branches, hashes and other machine strings in a monospace face.
 
 ### Density
