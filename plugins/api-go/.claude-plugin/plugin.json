@@ -33,6 +33,7 @@
       { "path": "api/internal/shell/shell_test.go", "mode": "example" },
       { "path": "api/internal/shell/router.go", "mode": "slot-template", "syntax": "go" },
       { "path": "api/internal/app/routes.go", "mode": "example" },
+      { "path": "api/internal/app/registry.go", "mode": "example" },
       { "path": "api/internal/app/apptest_test.go", "mode": "example" },
       { "path": "api/internal/app/routes_test.go", "mode": "example" },
       { "path": "api/openapi.yaml", "mode": "example" },

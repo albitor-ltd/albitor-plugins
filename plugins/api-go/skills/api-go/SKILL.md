@@ -22,7 +22,9 @@ them, and change them when the app needs it.
 - `internal/localauth/`: the local test issuer
 - `internal/ownedscope/`: the two-owner contract test's helper (see "The two-owner test"); an auth plugin
   seeds the test that uses it, `internal/identity/owned_data_scope_test.go`
-- `internal/app/routes.go`: the `registrars` list, one append-only line per feature
+- `internal/app/registry.go`: the `registrars` list, one append-only line per feature. It holds
+  nothing else (no code, no `func`), which is what lets a rebase union two features' lines
+- `internal/app/routes.go`: `Routes`, which only walks `registrars`; not edited per feature
 - `internal/app/apptest_test.go`, `routes_test.go`: the shared `serve` test helper and a mount check;
   features do not edit them
 - `openapi.yaml`: the base contract (an auth plugin's skill carries the variant with `GET /api/me`)
@@ -39,14 +41,17 @@ file is what makes their rebases conflict). For a feature `widgets`:
 2. Registration in `api/internal/app/widgets_routes.go`: a `registerWidgets(r *http.ServeMux)` that
    calls `r.HandleFunc("GET /api/widgets", listWidgets)` (Go 1.22 method-and-path patterns).
 3. Tests in `api/internal/app/widgets_test.go`, using the `serve` helper from `apptest_test.go`.
-4. One line, `registerWidgets,`, appended to `registrars` in `api/internal/app/routes.go`. This
+4. One line, `registerWidgets,`, appended to `registrars` in `api/internal/app/registry.go`. This
    is the only shared line a feature adds. Append it; never reorder, reflow or edit another
-   feature's line, and never add a feature's route to `Routes` itself.
+   feature's line, and never add a feature's route to `Routes` itself. Keep `registry.go` to the
+   list: adding a function or any other code to it stops the resolver unioning it.
 5. The endpoint in `api/openapi.yaml`, in the same change. The web client is generated from it.
 
 Do not put a second feature's handlers, routes or tests in a feature's file, and do not edit
-`apptest_test.go`: a helper a feature needs goes in that feature's own `_test.go` file. A rebase
-that conflicts on `registrars` keeps both lines.
+`apptest_test.go`: a helper a feature needs goes in that feature's own `_test.go` file. Albitor's
+mechanical rebase resolver unions two concurrent appends to `registry.go` (it takes a registry
+file named `registry.go` whose base has no `func` and whose change only adds `name,` lines), so
+they land without an agent; `routes.go` is not unioned and is left alone.
 
 A worked example, `internal/app/widgets.go`. The handlers take no dependencies, so
 `registerWidgets` registers them directly; an app that needs a store opens it once and keeps it in a

@@ -13,7 +13,8 @@ ALBITOR_LOCAL=1 PORT=8080 go run .
 |---|---|---|
 | `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Yours | The server skeleton |
 | `internal/shell/router.go` | Yours | Lists the middleware chain and any extra route groups |
-| `internal/app/routes.go` | Yours | The `registrars` list: one append-only line per feature |
+| `internal/app/registry.go` | Yours | The `registrars` list: one append-only line per feature, no code |
+| `internal/app/routes.go` | Yours | `Routes`, which walks `registrars`. Not edited per feature |
 | `internal/app/<feature>.go`, `<feature>_routes.go`, `<feature>_test.go` | Yours | One feature: its handlers, its `register<Feature>` function, its tests |
 | `internal/app/apptest_test.go` | Yours | The shared `serve` test helper. Features do not edit it |
 | `openapi.yaml` | Yours | The API contract. Add each endpoint in the same change as its handler |
@@ -22,7 +23,7 @@ ALBITOR_LOCAL=1 PORT=8080 go run .
 
 Give each feature its own files in `internal/app/`: handlers in `widgets.go`, a
 `registerWidgets(r *http.ServeMux)` in `widgets_routes.go`, tests in `widgets_test.go`. Add one line
-`registerWidgets,` to `registrars` in `routes.go`, and describe the endpoints in `openapi.yaml`:
+`registerWidgets,` to `registrars` in `registry.go`, and describe the endpoints in `openapi.yaml`:
 
 ```go
 func registerWidgets(r *http.ServeMux) {
@@ -31,7 +32,8 @@ func registerWidgets(r *http.ServeMux) {
 ```
 
 There is no `init()` registration and no generator: a feature not listed in `registrars` is not
-served. Features edit no other shared file, so parallel features rebase by keeping both lines.
+served. Features edit no other shared file, so parallel features rebase cleanly: the rebase resolver unions
+concurrent appends to `registry.go`, which is why it holds the list and no code.
 Handlers reach data only through the app's store interface, never a
 client of their own, so they work in the local run as well as deployed.
 
