@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.11.0",
-        "sha": "7e39b386fea246a960e1288a16a011bf4023cd09"
+        "ref": "api-go/v0.12.0",
+        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -244,8 +244,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/deploy-hosted",
-        "ref": "deploy-hosted/v0.8.0",
-        "sha": "43c90e91d614924a5f98bd6af842922a1d992d95"
+        "ref": "deploy-hosted/v0.8.1",
+        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
       },
       "description": "The deploy-target plugin for the hosted lane: no infrastructure in the repository, the platform compiles albitor.yaml and deploys it. Ships the managed CI workflow that checks the manifest and builds and tests the API and the web app.",
       "category": "development",
@@ -263,8 +263,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/data-dynamodb",
-        "ref": "data-dynamodb/v0.4.1",
-        "sha": "66cde1a43b90bf8596b1b3fa54af36e43cf670d9"
+        "ref": "data-dynamodb/v0.4.2",
+        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
       },
       "description": "The data-store plugin: a Store interface for the Go API over one DynamoDB table (string pk and sk, revisions, cursor paging), the in-memory fake for local runs and tests, the data-store@1 conformance suite, and the services.tables fragment. No Terraform: the deploy target realises the table.",
       "category": "development",
@@ -486,8 +486,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/object-s3",
-        "ref": "object-s3/v0.1.4",
-        "sha": "7e39b386fea246a960e1288a16a011bf4023cd09"
+        "ref": "object-s3/v0.1.5",
+        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
       },
       "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download that bypass the API function and data store, owner-scoped keys authorised before signing, size and content-type limits, deleting files with their record, and platform retention. Go handlers over api-go and a web client for web-svelte.",
       "category": "development",
@@ -507,8 +507,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-app-architecture",
-        "ref": "web-app-architecture/v0.2.1",
-        "sha": "dd147e2c8a1c90983eed51d850fd7bedf6223a93"
+        "ref": "web-app-architecture/v0.2.2",
+        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
       },
       "description": "Architecture patterns for the web_app archetype, delivered to the planner and the app-foundation node only: where file bytes live, how slow supplier work advances, the platform limits a design must fit, and how deployed walks get their data. An index with when to use, when to avoid and how to decide, and one file per pattern.",
       "category": "development",
