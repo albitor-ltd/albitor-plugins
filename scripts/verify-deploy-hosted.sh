@@ -24,12 +24,12 @@ if [[ -e "$plugin/templates/api" ]]; then
 fi
 cp -R "$example" "$work/internal/gateway"
 # The email example: the sender and preferences (internal/email) and the Notifications page's API
-# (internal/app/notifications.go), which reads the verified address from auth-hosted's identity.
+# (internal/notifications, a feature package), which reads the verified address from auth-hosted's identity.
 examples="$plugin/skills/deploy-hosted/examples/api/internal"
-[[ -d "$examples/email" && -f "$examples/app/notifications.go" ]] || { echo "error: the email example is missing under $examples" >&2; exit 1; }
+[[ -d "$examples/email" && -f "$examples/notifications/notifications.go" ]] || { echo "error: the email example is missing under $examples" >&2; exit 1; }
 cp -R "$root/plugins/auth-hosted/templates/api/internal/identity" "$work/internal/identity"
 cp -R "$examples/email" "$work/internal/email"
-cp "$examples"/app/notifications.go "$examples"/app/notifications_test.go "$work/internal/app/"
+cp -R "$examples/notifications" "$work/internal/notifications"
 sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' \
   "$apigo/templates/api/internal/shell/router.go" >"$work/internal/shell/router.go"
 
@@ -49,4 +49,4 @@ fi
 
 go build ./...
 go vet ./...
-go test ./internal/gateway/ ./internal/email/ ./internal/app/ -count=1 -race
+go test ./internal/gateway/ ./internal/email/ ./internal/notifications/ -count=1 -race

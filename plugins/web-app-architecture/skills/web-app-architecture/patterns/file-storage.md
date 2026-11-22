@@ -32,7 +32,7 @@ browser -> POST /api/uploads/<id>/complete           API checks the object exist
 browser -> GET  /api/files/<id>  -> {downloadPath}   short-lived presigned path, owner checked
 ```
 
-Retention means deleting the files with the record (the `object-s3` skill's `DeleteRecordFiles`),
+Retention means deleting the files with the record (the `object-s3` skill's `objects.DeleteRecord`),
 so no record outlives or orphans its object. The bucket's optional `expire_after_days` is only an
 age backstop for current objects, not the retention design.
 

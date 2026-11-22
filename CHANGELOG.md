@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `api-go` `0.12.0` (Refs albitor-ltd/albitor#5313 items 3 and 6; tag follows the merge). Each
+  feature is now its own Go package, `internal/<feature>` with an exported `Register`, so two
+  build nodes writing different features no longer share a package directory (albitor#4333 still
+  orders any two that do). `internal/app/registry.go` stays the one wiring point and stays free of
+  code: per feature, an `import "webapp/internal/<feature>"` line and a `<feature>.Register,` line
+  in `registrars`, both append-only. New seeded `internal/apptest` (`Serve`, `Do`, shared test
+  helpers that import nothing of the app, replacing `app/apptest_test.go`) and
+  `app/layout_test.go` (`TestFeaturesDoNotImportEachOther`: a feature imports no `app` and no
+  sibling feature; shared data goes through a shared domain or store package). New example feature
+  package `examples/api/internal/widgets/`. New seeded `internal/outbound`: `outbound.Client` for
+  any URL a request, record or config supplied (http/https only, optional host allow-list, dial-time
+  refusal of loopback, private, ULA, link-local including 169.254.169.254 and fd00:ec2::254,
+  unspecified and multicast addresses on the resolved IP, rechecked on every redirect, no
+  environment proxy), with tests; the SKILL rule is that such a fetch never uses a bare
+  `http.Client`. SKILL, README and template README updated. Breaking for apps built on 0.11.0 only
+  if they copy new features by the old `internal/app/<feature>_routes.go` recipe.
+- `object-s3` `0.1.5`, `deploy-hosted` `0.8.1`, `data-dynamodb` `0.4.2`, `web-app-architecture`
+  `0.2.2` (Refs albitor-ltd/albitor#5313 item 3; tags follow the merge). Examples and skills follow
+  api-go 0.12.0: object-s3's `files` and deploy-hosted's `notifications` examples are feature
+  packages (`internal/files`, `internal/notifications`) wired by a `Register` and one import and
+  list line in `registry.go`; `DeleteRecordFiles` is now `objects.DeleteRecord(ctx, store, owner,
+  record)` in the shared `objects` package, so a records feature deletes files without importing
+  the files feature. data-dynamodb names feature packages, not `internal/app`.
 - `object-s3` `0.1.4` (Refs albitor-ltd/albitor#5300 item 5; tag follows the merge). The SKILL wires
   the file routes as a `registerFiles` registration plus one line appended to `registrars`, no
   longer by editing `func Routes`.

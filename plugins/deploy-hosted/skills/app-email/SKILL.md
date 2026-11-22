@@ -20,7 +20,7 @@ otherwise):
 
 ```sh
 cp -r <skill dir>/examples/api/internal/email api/internal/email
-cp <skill dir>/examples/api/internal/app/notifications*.go api/internal/app/   # optional or consent mail only
+cp -r <skill dir>/examples/api/internal/notifications api/internal/notifications   # optional or consent mail only
 cp -r <skill dir>/examples/web/src/lib/notifications web/src/lib/notifications # same
 cp -r "<skill dir>/examples/web/src/routes/(app)/settings" "web/src/routes/(app)/settings"
 ```
@@ -28,6 +28,10 @@ cp -r "<skill dir>/examples/web/src/routes/(app)/settings" "web/src/routes/(app)
 The email example needs the gateway client (`api/internal/gateway`, see the `gateway-services`
 skill), and the Notifications API needs the `auth-hosted` identity package. Then edit the copies:
 they are the app's code from then on, tests included.
+`internal/notifications` is a feature package like any other (see the `api-go` skill): add a
+`Register(r *http.ServeMux)` there that builds `Notifications` and calls its `Routes`, then append
+`import "webapp/internal/notifications"` and `notifications.Register,` to
+`api/internal/app/registry.go`. It imports `email`, `gateway` and `identity`, never a sibling feature.
 
 ## Send a declared template
 
@@ -100,7 +104,7 @@ sends only what the person changed. It calls the app's `GET`/`PUT /api/notificat
 the gateway's `GetEmailPreferences` and `SetEmailPreferences` for the signed-in person's verified
 address.
 
-- **Write a `Label` for every template** (`name` and `reason`, in `api/internal/app` where
+- **Write a `Label` for every template** (`name` and `reason`, in `api/internal/notifications` where
   `Notifications` is constructed). The reason is the platform's reason sentence for that email, which
   the gateway does not return; copy it from the plan's email list. A template with no label still
   shows, with a generic reason, and is logged, so a missing label is visible and never a hidden

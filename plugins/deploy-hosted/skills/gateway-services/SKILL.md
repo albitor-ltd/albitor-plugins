@@ -11,7 +11,7 @@ A hosted app has no AWS AI-service permission and holds no supplier key. It call
 service gateway, which makes the call from Albitor's account, meters it and bills it in credits.
 The client is a worked example, `examples/api/internal/gateway/` beside the `deploy-hosted` skill
 (package `gateway`, standard library only), and nothing seeds it. The plugin owns no app code under
-`api/`; the build owns `api/internal/app/`.
+`api/`; the build owns the feature packages under `api/internal/` and `api/internal/app/registry.go`.
 
 ## Starting points
 

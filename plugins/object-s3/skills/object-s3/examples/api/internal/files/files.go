@@ -1,4 +1,4 @@
-package app
+package files
 
 import (
 	"encoding/json"
@@ -229,25 +229,6 @@ func (f *Files) remove(w http.ResponseWriter, r *http.Request) {
 	}
 	// Remove the file from the record's list in the same handler.
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// DeleteRecordFiles removes every file a record owns. The bucket is versioned:
-// each delete leaves a delete marker and the earlier versions stay in the bucket
-// until the platform's noncurrent-version expiry removes them, so "deleted" means
-// gone from the app, not instantly gone from storage. Call it from the
-// handler that deletes the record, before deleting the record itself: a
-// failure then leaves the record to retry from, where deleting the record
-// first would leave files nothing points at.
-func DeleteRecordFiles(r *http.Request, s objects.Store, record string) error {
-	owner, err := identity.Owner(r)
-	if err != nil {
-		return err
-	}
-	prefix, err := objects.Prefix(owner, objects.Segment(record))
-	if err != nil {
-		return err
-	}
-	return objects.DeleteUnder(r.Context(), s, prefix)
 }
 
 // cleanName is a person's file name made safe to keep and show: the base

@@ -1,16 +1,24 @@
 package app
 
-// registrars lists one registration per feature, one line each, in the order they mount. A
-// feature owns a file pair, <feature>.go (handlers) and <feature>_routes.go (its
-// register<Feature> registration); adding a feature adds exactly one line here and edits no
-// other shared file.
+// Features wire in here and nowhere else. A feature is its own Go package, internal/<feature>
+// (for example internal/widgets), with an exported Register(*http.ServeMux). Adding one appends
+// exactly two lines: an import line just below this comment, and the Register line in the list.
 //
-// Keep this file to the list: no declarations other than registrars, and no code of any kind,
-// because the platform's rebase resolver unions concurrent appends to a registry file only when
-// the file has none. Append a line; never reorder, reflow or edit another feature's line.
+//	import "webapp/internal/widgets"
+//
+//	widgets.Register,
+//
+// Write each import as its own one-line import statement (no block, no alias), so that two
+// features added at once only add lines. Keep this file to the imports and the list: no
+// declarations other than registrars, and no code of any kind, because the platform's rebase
+// resolver unions concurrent appends to a registry file only when it has none. Append; never
+// reorder, reflow or edit another feature's line.
 //
 // There is no init() registration and no generator; a feature that is not listed here is not
 // served.
+
+// one import line per feature, appended below
+
 var registrars = []registrar{
 	// one line per feature, appended below
 }

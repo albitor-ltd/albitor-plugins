@@ -48,7 +48,25 @@ if [[ -n "$(gofmt -l "$populated/router.go")" ]]; then
 fi
 rm -rf "$populated"
 
-# The seeded tree (not the supplier example below) must pass the lint a delivered app runs (the
+# The feature example (one Go package per feature) wired in as the skill says: an import line and a
+# Register line appended to registry.go. The result must build, mount and pass, and registry.go must
+# still hold no function line, which is what lets the platform's rebase resolver union two appends.
+if grep -nE '(^|[[:space:]])func[[:space:]]|=>' internal/app/registry.go; then
+  echo "error: internal/app/registry.go has code; it must be the imports and the registrars list only" >&2
+  exit 1
+fi
+cp -R "$plugin/skills/api-go/examples/api/internal/widgets" internal/widgets
+sed -i \
+  -e 's|^// one import line per feature, appended below$|&\nimport "webapp/internal/widgets"|' \
+  -e 's|^\t// one line per feature, appended below$|&\n\twidgets.Register,|' \
+  internal/app/registry.go
+grep -q '^import "webapp/internal/widgets"$' internal/app/registry.go || { echo "error: the registry import anchor moved" >&2; exit 1; }
+grep -q '^	widgets.Register,$' internal/app/registry.go || { echo "error: the registry list anchor moved" >&2; exit 1; }
+if [[ -n "$(gofmt -l .)" ]]; then
+  echo "error: not gofmt-clean with the widgets feature wired in" >&2
+  exit 1
+fi
+# The seeded tree with the feature example (not the supplier example below) must pass the lint a delivered app runs (the
 # platform's lint gate: bare `golangci-lint run ./...`, default linters). The vendored helper must pass it as it is, or a foundation run "fixes" it and moves the
 # source digest the platform checks (albitor-ltd/albitor#4447).
 golangci-lint run --allow-parallel-runners ./...
