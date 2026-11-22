@@ -1,6 +1,6 @@
 ---
 name: data-dynamodb
-description: Use when adding, changing or reviewing how the Go API of an app composed with the data-dynamodb plugin (data-store@1) stores records - a new record kind, a list endpoint over stored records, an update that must not lose a concurrent write, the table's keys, or running the API locally without AWS. The store under api/internal/store is already in the repository as a starting point; the build adds record kinds and handlers in api/internal/app and edits the store only when it must.
+description: Use when adding, changing or reviewing how the Go API of an app composed with the data-dynamodb plugin (data-store@1) stores records - a new record kind, a list endpoint over stored records, an update that must not lose a concurrent write, the table's keys, or running the API locally without AWS. The store under api/internal/store is already in the repository as a starting point; the build adds record kinds and handlers as feature packages under api/internal/ and edits the store only when it must.
 metadata:
   capability: data-store
 ---
@@ -9,7 +9,7 @@ metadata:
 
 Records live behind `store.Store` in `api/internal/store/` (package `webapp/internal/store`). It is
 seeded at compose and is the app's own from then on; record kinds and handlers go in
-`api/internal/app/`. Deployed it is one DynamoDB table,
+feature packages (`api/internal/<feature>`, see the api-go skill). Deployed it is one DynamoDB table,
 local it is process memory, and one conformance suite holds both to the same behaviour, so a
 handler that works in a local run works deployed.
 
@@ -39,7 +39,8 @@ read-modify-write without the revision.
 ## Add a record kind
 
 1. Define the Go type and `encoding/json` it into `Record.Data`. Keep that type in
-   `api/internal/app/`.
+   the feature's package (`api/internal/<feature>/`), or in a shared domain package when more than
+   one feature reads it: a feature never imports a sibling feature.
 2. For a per-user record, use the owner-scoped handle (next section). For anything else, choose the
    keys once, in one place, with `store.Key`: a partition, and an id for the sort key. Time-ordered
    ids make "newest first" a `Reverse` query.

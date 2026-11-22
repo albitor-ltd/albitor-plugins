@@ -1,4 +1,4 @@
-package app
+package files
 
 import (
 	"bytes"
@@ -199,8 +199,7 @@ func TestDeletingARecordDeletesItsFilesAndNoOthers(t *testing.T) {
 		_, up := startUpload(t, h, "alice", rid, 1, "image/png")
 		putBytes(h, up, "x")
 	}
-	req := as("alice", httptest.NewRequest(http.MethodDelete, "/api/records/r1", nil))
-	if err := DeleteRecordFiles(req, mem, "r1"); err != nil {
+	if err := objects.DeleteRecord(context.Background(), mem, "alice", "r1"); err != nil {
 		t.Fatal(err)
 	}
 	left, _ := mem.List(context.Background(), "")

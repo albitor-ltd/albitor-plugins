@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build, vet and test the object-s3 plugin's storage example as an app would use it: copied into
-# api/internal/objects and api/internal/app over api-go's tree, with auth-hosted's identity package
+# api/internal/objects and api/internal/files (a feature package) over api-go's tree, with auth-hosted's identity package
 # (the one identity API a handler uses).
 #
 # The real composer lives in albitor-ltd/albitor and is not importable here, so this lays api-go's
@@ -20,12 +20,12 @@ if [[ -e "$plugin/templates" ]]; then
   exit 1
 fi
 example="$plugin/skills/object-s3/examples/api/internal"
-[[ -d "$example/objects" && -d "$example/app" ]] || { echo "error: $example not found" >&2; exit 1; }
+[[ -d "$example/objects" && -d "$example/files" ]] || { echo "error: $example not found" >&2; exit 1; }
 
 cp -R "$apigo/templates/api/." "$work/"
 cp -R "$root/plugins/auth-hosted/templates/api/internal/identity" "$work/internal/identity"
 cp -R "$example/objects" "$work/internal/objects"
-cp "$example"/app/files.go "$example"/app/files_test.go "$work/internal/app/"
+cp -R "$example/files" "$work/internal/files"
 sed -E 's/\{\{albitor\.slot\.[a-z.-]+\}\}//g' \
   "$apigo/templates/api/internal/shell/router.go" >"$work/internal/shell/router.go"
 
@@ -45,4 +45,4 @@ fi
 
 go build ./...
 go vet ./...
-go test ./internal/objects/ ./internal/app/ -count=1 -race
+go test ./internal/objects/ ./internal/files/ -count=1 -race

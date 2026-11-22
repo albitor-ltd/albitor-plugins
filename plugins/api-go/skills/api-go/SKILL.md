@@ -1,6 +1,6 @@
 ---
 name: api-go
-description: Use when adding to or reviewing the Go API of an app composed with the api-go plugin (api-runtime@1) - a new endpoint, a list endpoint, a handler's errors and logging, the OpenAPI contract, or running the API locally. The server skeleton under api/ is already in the repository as a starting point; the build adds handlers in api/internal/app and edits the shell only when it must.
+description: Use when adding to or reviewing the Go API of an app composed with the api-go plugin (api-runtime@1) - a new endpoint, a list endpoint, a handler's errors and logging, the OpenAPI contract, or running the API locally. The server skeleton under api/ is already in the repository as a starting point; the build adds each feature as its own Go package under api/internal/ and edits the shell only when it must.
 metadata:
   capability: api-runtime
 ---
@@ -12,8 +12,8 @@ The API is `api/` in the repository: module `webapp`, stdlib only, `go build -o 
 
 ## Seeded files (the app's own)
 
-These are written once and are plain app code. Prefer adding handlers in `internal/app/` to editing
-them, and change them when the app needs it.
+These are written once and are plain app code. Prefer adding a feature package (`internal/<feature>`)
+to editing them, and change them when the app needs it.
 
 - `main.go`, `go.mod`, `README.md`
 - `internal/shell/` (`boot.go`, `shell.go`, `shell_test.go`, `router.go`): server, health route,
@@ -22,11 +22,16 @@ them, and change them when the app needs it.
 - `internal/localauth/`: the local test issuer
 - `internal/ownedscope/`: the two-owner contract test's helper (see "The two-owner test"); an auth plugin
   seeds the test that uses it, `internal/identity/owned_data_scope_test.go`
-- `internal/app/registry.go`: the `registrars` list, one append-only line per feature. It holds
-  nothing else (no code, no `func`), which is what lets a rebase union two features' lines
+- `internal/outbound/`: the guarded fetch for any URL the app did not write (see "Fetching a URL a
+  person or a config supplied")
+- `internal/app/registry.go`: the one wiring point. Per feature it gets an import line and a line
+  in the `registrars` list, both append-only. It holds nothing else (no code, no `func`), which is
+  what lets a text union merge two features' lines
 - `internal/app/routes.go`: `Routes`, which only walks `registrars`; not edited per feature
-- `internal/app/apptest_test.go`, `routes_test.go`: the shared `serve` test helper and a mount check;
-  features do not edit them
+- `internal/app/routes_test.go`, `layout_test.go`: a mount check, and the check that no feature
+  imports app or a sibling feature; features do not edit them
+- `internal/apptest/`: the shared HTTP test helper (`Serve`, `Do`) feature packages use; features
+  do not edit it
 - `openapi.yaml`: the base contract (an auth plugin's skill carries the variant with `GET /api/me`)
 
 `internal/shell/router.go` was written once from the middleware and route groups composed at that
@@ -34,31 +39,75 @@ time; one added later does not rewire it, so add its middleware or routes by han
 
 ## Add an endpoint
 
-Each feature owns its own files, so features built in parallel never edit the same lines (a shared
-file is what makes their rebases conflict). For a feature `widgets`:
+Each feature is its own Go package, `internal/<feature>`, so two build nodes writing different
+features never write the same package directory, and their rebases never touch the same lines. For
+a feature `widgets`, in the worked example `examples/api/internal/widgets/` (copy it, rename it):
 
-1. Handlers in `api/internal/app/widgets.go`.
-2. Registration in `api/internal/app/widgets_routes.go`: a `registerWidgets(r *http.ServeMux)` that
+1. Handlers in `api/internal/widgets/widgets.go` (`package widgets`).
+2. Registration in `api/internal/widgets/routes.go`: an exported `Register(r *http.ServeMux)` that
    calls `r.HandleFunc("GET /api/widgets", listWidgets)` (Go 1.22 method-and-path patterns).
-3. Tests in `api/internal/app/widgets_test.go`, using the `serve` helper from `apptest_test.go`.
-4. One line, `registerWidgets,`, appended to `registrars` in `api/internal/app/registry.go`. This
-   is the only shared line a feature adds. Append it; never reorder, reflow or edit another
-   feature's line, and never add a feature's route to `Routes` itself. Keep `registry.go` to the
-   list: adding a function or any other code to it stops the resolver unioning it.
+3. Tests in `api/internal/widgets/widgets_test.go`, using `apptest.Serve(t, Register, method, path,
+   body)` from `webapp/internal/apptest`.
+4. Two lines appended in `api/internal/app/registry.go`, the only shared lines a feature adds: an
+   `import "webapp/internal/widgets"` line under the "one import line per feature" comment, and
+   `widgets.Register,` in `registrars`. Write the import as its own one-line statement (no block,
+   no alias). Append; never reorder, reflow or edit another feature's line, and never add a
+   feature's route to `Routes` itself. Keep `registry.go` to the imports and the list: adding a
+   function or any other code to it stops the resolver unioning it.
 5. The endpoint in `api/openapi.yaml`, in the same change. The web client is generated from it.
 
-Do not put a second feature's handlers, routes or tests in a feature's file, and do not edit
-`apptest_test.go`: a helper a feature needs goes in that feature's own `_test.go` file. Albitor's
-mechanical rebase resolver unions two concurrent appends to `registry.go` (it takes a registry
-file named `registry.go` whose base has no `func` and whose change only adds `name,` lines), so
-they land without an agent; `routes.go` is not unioned and is left alone.
+```go
+// api/internal/app/registry.go after adding widgets
+// one import line per feature, appended below
+import "webapp/internal/widgets"
 
-A worked example, `internal/app/widgets.go`. The handlers take no dependencies, so
-`registerWidgets` registers them directly; an app that needs a store opens it once and keeps it in a
-package variable or a struct that the feature's register function builds:
+// ... the comment lines of the seeded file stay here, at least four of them, so the import and the
+// list below are never within three lines of each other (see the note under this block)
+
+var registrars = []registrar{
+	// one line per feature, appended below
+	widgets.Register,
+}
+```
+
+Keep at least four unchanged lines (the seeded comment lines) between the import lines and
+`var registrars`: a three-way merge treats changes closer than that as one hunk, and two features
+added at once would then tangle an import into the list. Never delete that comment block.
+
+A feature node declares its own `internal/<feature>/` files and the one-line `registry.go` addition
+(an import line and a `Register` line). Do not rely on the platform exempting the func-free registry
+from its same-directory ordering: write only what the feature needs.
+
+Do not put a second feature's handlers, routes or tests in a feature's package, and do not edit
+`internal/apptest`: a helper only one feature needs goes in that feature's own `_test.go` file.
+Albitor's mechanical rebase resolver takes a `registry.go` whose base has no `func` and whose
+change only adds import or `name,` lines, and merges two concurrent additions as a text union (the
+verify script tests that the result parses), so they land without an agent; `routes.go` is not unioned and is left alone.
+Albitor still orders any two nodes that write the same package directory, so a package per feature
+is what lets features be built in parallel.
+
+### One feature, one package, no sideways imports
+
+- **A feature imports only shared packages**: `apikit`, `identity`, `store`, `outbound`, a shared
+  domain package. Never `app` (it imports every feature, so that is an import cycle), and never a
+  sibling feature (`internal/orders` importing `internal/widgets` fails to compile the day
+  `widgets` imports `orders`, and ties two nodes' work together before then).
+- **A feature that needs another feature's data goes through a shared package.** Put the type and
+  its read or write functions in a package neither feature owns (`internal/catalogue`, or the
+  `store` with a typed accessor), and have both import it. Do the same for a helper two features
+  share. Do not copy the sibling's code to avoid the import.
+- **Shared test helpers live in `internal/apptest`**, which imports nothing of the app, so any
+  feature's tests can use it. A test that needs the whole app mounted belongs in `internal/app`
+  (`apptest.Serve(t, Routes, ...)`), not in a feature.
+- `TestFeaturesDoNotImportEachOther` (`internal/app/layout_test.go`) fails when a package
+  `registry.go` imports imports `app` or another such package. Fix the import; do not edit the test.
+
+A worked example, `internal/widgets/widgets.go`. The handlers take no dependencies, so `Register`
+registers them directly; an app that needs a store opens it once and keeps it in a package
+variable or a struct that `Register` builds:
 
 ```go
-package app
+package widgets
 
 import (
 	"encoding/json"
@@ -93,29 +142,29 @@ func createWidget(w http.ResponseWriter, r *http.Request) {
 ```
 
 ```go
-// widgets_routes.go
-package app
+// widgets/routes.go
+package widgets
 
 import "net/http"
 
-func registerWidgets(r *http.ServeMux) {
+func Register(r *http.ServeMux) {
 	r.HandleFunc("GET /api/widgets", listWidgets)
 	r.HandleFunc("POST /api/widgets", createWidget)
 }
 ```
 
 ```go
-// widgets_test.go
+// widgets/widgets_test.go
 func TestListWidgetsEmpty(t *testing.T) {
-	rec := serve(t, http.MethodGet, "/api/widgets", "")
+	rec := apptest.Serve(t, Register, http.MethodGet, "/api/widgets", "")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status %d", rec.Code)
 	}
 }
 ```
 
-Describe both endpoints in `openapi.yaml`. Test them with `serve` (it mounts every registrar on a
-plain mux), or with `httptest` against `shell.Handler` from outside the package.
+Describe both endpoints in `openapi.yaml`. Test them with `apptest.Serve` (it mounts one feature's
+`Register` on a plain mux), or with `httptest` against `shell.Handler` from outside the package.
 
 There is no `init()` registration. A feature missing from `registrars` is not served, and a pattern
 registered twice panics at start (`TestRoutesMountWithoutConflict` catches it).
@@ -133,8 +182,8 @@ body says which trigger it is:
   `Records` list from the deploy probe).
 
 ```go
-// events_routes.go: its own register function, one more line in registrars
-func registerEvents(r *http.ServeMux) { r.HandleFunc("POST /events", handleEvents) }
+// internal/events/routes.go: its own feature package, wired with events.Register in registrars
+func Register(r *http.ServeMux) { r.HandleFunc("POST /events", handleEvents) }
 
 func handleEvents(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
@@ -264,6 +313,8 @@ invocation: see the web-app-architecture `screen-data` pattern.
   duration); do not log request bodies or tokens.
 - **Take the owner of a record from the verified identity**, never from the body or the query. With
   the data-dynamodb plugin, `store.Owned(s, r)` does it for you (optional; scoping by hand is valid).
+- **Fetch a request-supplied or user-supplied URL only through `internal/outbound`**, never a bare
+  `http.Client` (see "Fetching a URL a person or a config supplied").
 - **Reach data only through the store interface** the data-store plugin provides, so the handler
   works in the local run as well as deployed.
 
@@ -373,6 +424,44 @@ config:
   - key: ANTHROPIC_API_KEY
     secret: true
 ```
+
+## Fetching a URL a person or a config supplied
+
+`internal/outbound/` is the one way to fetch a URL the app did not write itself: one from a request
+body or query, a stored record (a webhook, an avatar or feed URL), or a config value a person set.
+
+- **Any outbound fetch of a request-supplied or user-supplied URL must go through
+  `outbound.Client`.** Never fetch a client's URL with a bare `http.Client`, `http.Get` or
+  `http.DefaultClient`: a URL such as `http://169.254.169.254/latest/meta-data/` or
+  `http://localhost:8080/admin` makes the function fetch from inside its own network (server-side
+  request forgery), and the answer comes back to the caller.
+- It allows `http` and `https` only, with no credentials in the URL. At dial time it refuses
+  loopback, private (RFC 1918, IPv6 unique local), link-local (including the metadata addresses
+  `169.254.169.254` and `fd00:ec2::254`), unspecified, multicast and other reserved addresses. The
+  check is on the IP actually connected to, so a hostname that resolves to a private address is
+  refused, and every redirect is checked again (scheme, allow-list and address). It ignores
+  `HTTP_PROXY`, follows at most 5 redirects, times out at 10 seconds and caps the body at 5 MiB.
+- **Set `AllowHosts` whenever the hosts are known** (`"api.example.com"`, `"*.example.com"`); an
+  empty list means any public host.
+
+```go
+fetcher := outbound.New(outbound.Options{AllowHosts: []string{"*.example.com"}}) // build once
+resp, err := fetcher.Get(r.Context(), in.URL)
+switch {
+case errors.Is(err, outbound.ErrBlocked):
+	apikit.WriteError(w, http.StatusBadRequest, "that URL is not allowed") // never echo the detail
+	return
+case err != nil:
+	apikit.WriteFailure(w, r, slog.Default(), "fetch url", err) // an opaque 5xx
+	return
+}
+// resp.Status, resp.Header and resp.Body (at most MaxBody bytes) are the answer.
+```
+
+`fetcher.Check(url)` validates a URL without fetching (do it when a URL is saved, and fetch through
+the client later, which checks again). For a POST or a header use `fetcher.HTTPClient()`: it is the
+same guarded `*http.Client`. Do not edit the files under `internal/outbound/` to loosen a check; a
+URL that must reach a private address is not a URL from a request.
 
 ## Calling an external supplier from the API
 

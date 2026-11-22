@@ -14,9 +14,11 @@ provides, requires and contributes, and the platform composer renders it into a 
 | `api/internal/apikit/**` | starting point | JSON writers, the `Page` envelope, cursors, `ServeList`, correlation ids |
 | `api/internal/localauth/**` | starting point | The Go side of the local run contract: the in-process test issuer |
 | `api/internal/ownedscope/**` | starting point | The two-owner contract test's helper: drives every per-user route of `openapi.yaml` as two identities, writes the optional JSON report, stamps each row with its provenance and drives nested routes as advisory evidence |
-| `api/internal/app/registry.go` | example | The append-only `registrars` list, one line per feature, and nothing else (no code), so the rebase resolver unions concurrent appends; each feature registers from its own `<feature>_routes.go` |
+| `api/internal/outbound/**` | starting point | `outbound.Client`: the one way to fetch a URL a request, a record or a config supplied (http/https only, optional host allow-list, a dial-time refusal of loopback, private, link-local, metadata, unspecified and multicast addresses, re-checked on every redirect) |
+| `api/internal/apptest/**` | starting point | Shared HTTP test helper (`Serve`, `Do`) that feature packages use; imports nothing of the app, so no import cycle |
+| `api/internal/app/registry.go` | example | The one wiring point: an import line and a `registrars` line per feature, append-only, and nothing else (no code), so a union merge of two features added at once parses (tested) |
 | `api/internal/app/routes.go` | example | `Routes(*http.ServeMux)`, which walks `registrars` |
-| `api/internal/app/apptest_test.go`, `routes_test.go` | example | The shared `serve` test helper (features do not edit it) and a mount check; each feature's tests go in its own `<feature>_test.go` |
+| `api/internal/app/routes_test.go`, `layout_test.go` | example | A mount check, and the check that no feature imports `app` or a sibling feature |
 | `api/openapi.yaml` | example | The API contract. An auth plugin that serves `GET /api/me` carries a variant with that path as a skill example, which an app merges in |
 | `api/README.md`, `api/.gitignore` | example | Notes |
 
@@ -33,7 +35,8 @@ templates/api/...            files the composer copies; a contributed file at re
                              read from templates/P, with {{albitor.*}} tokens substituted
                              (router.go is a slot-template entry in plugin.json, its body with
                              {{albitor.slot.<name>}} placeholders, syntax go)
-skills/api-go/SKILL.md       how to add an endpoint on this shell
+skills/api-go/SKILL.md       how to add a feature package and an endpoint on this shell
+skills/api-go/examples/...   the widgets feature package and the supplier client, copied in
 ```
 
 `templates/api` is a Go module on its own, but not a complete one until the router is generated.

@@ -13,35 +13,47 @@ ALBITOR_LOCAL=1 PORT=8080 go run .
 |---|---|---|
 | `main.go`, `internal/shell/`, `internal/apikit/`, `internal/localauth/` | Yours | The server skeleton |
 | `internal/shell/router.go` | Yours | Lists the middleware chain and any extra route groups |
-| `internal/app/registry.go` | Yours | The `registrars` list: one append-only line per feature, no code |
+| `internal/outbound/` | Yours | The guarded fetch for any URL a request, record or config supplied. Never fetch such a URL with a bare `http.Client` |
+| `internal/apptest/` | Yours | The shared HTTP test helper feature packages use. Features do not edit it |
+| `internal/app/registry.go` | Yours | The wiring point: an import line and a `registrars` line per feature, append-only, no code |
 | `internal/app/routes.go` | Yours | `Routes`, which walks `registrars`. Not edited per feature |
-| `internal/app/<feature>.go`, `<feature>_routes.go`, `<feature>_test.go` | Yours | One feature: its handlers, its `register<Feature>` function, its tests |
-| `internal/app/apptest_test.go` | Yours | The shared `serve` test helper. Features do not edit it |
+| `internal/<feature>/` | Yours | One feature, its own Go package: its handlers, an exported `Register`, its tests |
 | `openapi.yaml` | Yours | The API contract. Add each endpoint in the same change as its handler |
 
 ## Adding an endpoint
 
-Give each feature its own files in `internal/app/`: handlers in `widgets.go`, a
-`registerWidgets(r *http.ServeMux)` in `widgets_routes.go`, tests in `widgets_test.go`. Add one line
-`registerWidgets,` to `registrars` in `registry.go`, and describe the endpoints in `openapi.yaml`:
+Give each feature its own package, `internal/widgets`: handlers in `widgets.go`, an exported
+`Register(r *http.ServeMux)` in `routes.go`, tests in `widgets_test.go` (using
+`apptest.Serve(t, Register, ...)`). Append `import "webapp/internal/widgets"` and `widgets.Register,`
+to `internal/app/registry.go`, and describe the endpoints in `openapi.yaml`:
 
 ```go
-func registerWidgets(r *http.ServeMux) {
+func Register(r *http.ServeMux) {
 	r.HandleFunc("GET /api/widgets", listWidgets)
 }
 ```
 
 There is no `init()` registration and no generator: a feature not listed in `registrars` is not
-served. Features edit no other shared file, so parallel features rebase cleanly: the rebase resolver unions
-concurrent appends to `registry.go`, which is why it holds the list and no code.
+served. Features edit no other shared file, and two features never share a package directory, so
+parallel features rebase cleanly: two features added at once merge as a text union in
+`registry.go` (tested), which is why it holds imports and the list and no code, with its comment
+lines kept as padding between the two. A feature imports shared packages only,
+never `app` and never a sibling feature (a feature that needs another's data goes through a shared
+domain or store package); `TestFeaturesDoNotImportEachOther` checks it.
 Handlers reach data only through the app's store interface, never a
 client of their own, so they work in the local run as well as deployed.
+
+## Fetching a URL from a request
+
+Fetch any URL a person or a config supplied through `internal/outbound` (`outbound.New(...).Get`),
+never a bare `http.Client`: it refuses non-http(s) schemes and loopback, private, link-local
+(cloud metadata) and other reserved addresses, on the resolved IP and on every redirect.
 
 ## Schedules and queues
 
 A `schedules` or `queues` entry in `albitor.yaml` runs this same binary. The platform delivers each
 fire as `POST /events`: `{"schedule": "<name>"}` for a schedule, SQS's `{"Records": [...]}` for a
-queue. Register that route from its own register function, dispatch on the body, run the job before answering, and
+queue. Register that route from its own feature package's `Register`, dispatch on the body, run the job before answering, and
 answer 5xx if it failed: a 5xx fails the invocation and Lambda retries it, while any other status
 counts as success. An unknown name is a 400. The route is not reachable from the public API, but
 act only on a declared name anyway, and make every job idempotent: a schedule can fire twice and a

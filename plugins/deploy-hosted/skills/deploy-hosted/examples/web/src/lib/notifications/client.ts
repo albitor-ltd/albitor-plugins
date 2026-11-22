@@ -1,5 +1,5 @@
 // The Notifications page's client: which optional and consent emails a person gets, and their
-// choices. The API (api/internal/app/notifications.go) forwards both to the gateway, which keeps
+// choices. The API (api/internal/notifications/notifications.go) forwards both to the gateway, which keeps
 // them; nothing is stored in the browser except OptInPrompt's "already asked" flag.
 //
 // Every call answers a result and never throws on a refusal, so the page shows what happened

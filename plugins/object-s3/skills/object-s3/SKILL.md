@@ -63,17 +63,21 @@ use only the standard library, so `api/go.mod` gains no dependency.
 
 | Example | What it is |
 | --- | --- |
-| `examples/api/internal/objects/` | The storage package. `Store` (presign put and get, head, list, delete), `S3` (SigV4 query signing by hand), `Memory` (the local run and test fake, which refuses a PUT that differs from what was signed, as S3 does), `Policy` (size and type), `Key`/`Prefix`/`NewID`, `DeleteUnder`, `Open` (reads `ALBITOR_BUCKET_*`, never falls back to memory when deployed) |
-| `examples/api/internal/app/files.go`, `files_test.go` | The four routes under `/api/records/{record}/files`: start an upload, complete it, get a download URL (JSON, or a 302 with `?redirect=1`), delete one. And `DeleteRecordFiles`. Rename `records` to the app's own noun |
+| `examples/api/internal/objects/` | The storage package, shared by every feature that touches files. `Store` (presign put and get, head, list, delete), `S3` (SigV4 query signing by hand), `Memory` (the local run and test fake, which refuses a PUT that differs from what was signed, as S3 does), `Policy` (size and type), `Key`/`Prefix`/`NewID`, `DeleteUnder`, `DeleteRecord`, `Open` (reads `ALBITOR_BUCKET_*`, never falls back to memory when deployed) |
+| `examples/api/internal/files/files.go`, `files_test.go` | The `files` feature package: the four routes under `/api/records/{record}/files` (start an upload, complete it, get a download URL (JSON, or a 302 with `?redirect=1`), delete one). Rename `records` to the app's own noun |
 | `examples/web/src/lib/files/upload.ts`, `upload.test.ts` | `uploadFile`, `downloadUrl`, `downloadLink`, `deleteFile`, `checkFile`. They return `{ ok: false, code, message }` rather than throw on a refusal |
 
-To wire them in: copy both Go directories, then add one registration file and one list line. In
-`internal/app/files_routes.go` build the store once and register the routes (in a local run also
-serve the fake bucket), then append `registerFiles,` to `registrars` in `internal/app/registry.go`.
-Do not edit `func Routes`: it only walks `registrars`.
+To wire them in: copy both Go directories (`objects` and `files`), then add one registration file and
+two lines. In `internal/files/routes.go` build the store once and register the routes (in a local
+run also serve the fake bucket), then append `import "webapp/internal/files"` and `files.Register,`
+to `internal/app/registry.go`. Do not edit `func Routes`: it only walks `registrars`. `files` is a
+feature package like any other (see the api-go skill): it imports `objects`, `identity` and `apikit`,
+never `app` or a sibling feature, so a records feature that must delete a record's files calls
+`objects.DeleteRecord`, not anything in `files`.
 
 ```go
-func registerFiles(r *http.ServeMux) {
+// internal/files/routes.go
+func Register(r *http.ServeMux) {
 	store, err := objects.Open(os.Getenv, objects.Bucket)
 	if err != nil {
 		// Do not stop the app: its other routes work. The file routes answer 503
@@ -84,7 +88,7 @@ func registerFiles(r *http.ServeMux) {
 	files := &Files{
 		Store:      store,
 		Policy:     objects.Policy{MaxSize: 10 << 20, Types: map[string]bool{"application/pdf": true, "image/png": true, "image/jpeg": true}},
-		OwnsRecord: ownsRecord, // reads the record from the data store; see below
+		OwnsRecord: ownsRecord, // reads the record from the data store (a shared store package, not a sibling feature); see below
 	}
 	files.Routes(r)
 	if mem, ok := store.(*objects.Memory); ok {
@@ -94,8 +98,12 @@ func registerFiles(r *http.ServeMux) {
 ```
 
 ```go
-// registry.go: one more line, appended
-	registerFiles,
+// internal/app/registry.go: an import line and a list line, appended
+import "webapp/internal/files"
+
+var registrars = []registrar{
+	files.Register,
+}
 ```
 
 Add the four routes to `api/openapi.yaml` in the same change, and keep `/api/local-objects/` out of
@@ -162,7 +170,7 @@ examples do not cover.
 
 A record that owns files must delete them when it is deleted; the bucket does not know about records.
 
-- In the delete handler call `DeleteRecordFiles(r, store, record)` **before** deleting the record. If
+- In the delete handler call `objects.DeleteRecord(r.Context(), store, owner, record)` (the owner from `identity.Owner(r)`) **before** deleting the record. If
   it fails, the record is still there and the person retries; deleting the record first would leave
   files nothing points at. A delete of a key that is not there succeeds, so a retry is safe.
 - Deleting one file: `DELETE /api/records/{record}/files/{file}`, and remove it from the record's list
@@ -186,7 +194,7 @@ dropped from the manifest (`force_destroy` is off). The platform's lifecycle:
   manifest is closed.
 
 `expire_after_days` is an age backstop, not the product's rule. Keep the app-side cleanup: records
-that end (deleted, or past their own `expires_at`) must delete their files with `DeleteRecordFiles`,
+that end (deleted, or past their own `expires_at`) must delete their files with `objects.DeleteRecord`,
 from the delete handler or a schedule (15 minutes or slower; see api-go's `POST /events`) in small
 idempotent batches, so a record and its files go together and no file outlives the record that
 explains it. Say in the product copy only what both rules guarantee.

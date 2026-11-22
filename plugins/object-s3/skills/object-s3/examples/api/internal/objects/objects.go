@@ -200,3 +200,19 @@ func DeleteUnder(ctx context.Context, s Store, prefix string) error {
 	}
 	return s.Delete(ctx, keys...)
 }
+
+// DeleteRecord removes every file a record owns, for the handler that deletes the record. It is
+// here, in the shared objects package, and not in the files feature, so the records feature calls
+// it without importing a sibling feature. The bucket is versioned: each delete leaves a delete
+// marker and the earlier versions stay in the bucket until the platform's noncurrent-version
+// expiry removes them, so "deleted" means gone from the app, not instantly gone from storage.
+// Call it before deleting the record itself: a failure then leaves the record to retry from,
+// where deleting the record first would leave files nothing points at. owner is the verified
+// identity's (identity.Owner), never a request field.
+func DeleteRecord(ctx context.Context, s Store, owner, record string) error {
+	prefix, err := Prefix(owner, Segment(record))
+	if err != nil {
+		return err
+	}
+	return DeleteUnder(ctx, s, prefix)
+}

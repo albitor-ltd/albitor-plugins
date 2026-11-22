@@ -14,7 +14,7 @@ and hands the function its name as `ALBITOR_BUCKET_UPLOADS`. No Terraform.
 | --- | --- |
 | `SKILL.md` | The rule (bytes never through the API or the data store), authorising before signing, limits, deleting with the record, retention, deployed limits |
 | `examples/api/internal/objects/` | `Store`, the S3 adapter with hand-written SigV4 query signing, the in-memory fake, `Policy`, key helpers |
-| `examples/api/internal/app/files.go`, `files_test.go` | Upload, complete, download and delete routes; `DeleteRecordFiles` |
+| `examples/api/internal/files/files.go`, `files_test.go` | The `files` feature package: upload, complete, download and delete routes. `objects.DeleteRecord` deletes a record's files |
 | `examples/web/src/lib/files/` | The browser side: upload by signed URL, download link, delete |
 
 The Go examples are standard library only, so `api/go.mod` gains no dependency. `scripts/verify-object-s3.sh`

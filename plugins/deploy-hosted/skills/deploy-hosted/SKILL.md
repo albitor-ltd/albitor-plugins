@@ -23,7 +23,7 @@ Worked examples sit in `examples/` beside this skill, laid out by repository pat
 | Example | Copy it when |
 | --- | --- |
 | `examples/api/internal/gateway/` | The app calls platform services or uses queues (`services.callable` or `queues` in `albitor.yaml`). `cp -r` the directory to `api/internal/gateway`, then edit; a client for the service gateway (`client.go`, SigV4, uploads) and the queues (`queue.go`, `queue_local.go`), and helpers for Transcribe transcripts, Translate byte chunking and PDF page counts (`transcript.go`, `chunk.go`, `pdfpages.go`), with their tests. Standard library only. See the `gateway-services` skill |
-| `examples/api/internal/email/`, `examples/api/internal/app/notifications*.go`, `examples/web/src/lib/notifications/`, `examples/web/src/routes/(app)/settings/` | The app sends mail of its own: `services.callable` has an `email` entry with `templates`. `internal/email` sends a declared template (`Send`) and reads and sets a person's choices; the rest is the Notifications page under Settings, which an app with optional or consent templates must have. Needs the gateway example. See the `app-email` skill |
+| `examples/api/internal/email/`, `examples/api/internal/notifications/`, `examples/web/src/lib/notifications/`, `examples/web/src/routes/(app)/settings/` | The app sends mail of its own: `services.callable` has an `email` entry with `templates`. `internal/email` sends a declared template (`Send`) and reads and sets a person's choices; the rest is the Notifications page under Settings, which an app with optional or consent templates must have. Needs the gateway example. See the `app-email` skill |
 
 An app with none of these takes none of it.
 

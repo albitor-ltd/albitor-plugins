@@ -12,19 +12,21 @@ type registrar func(*http.ServeMux)
 // after the health route and any route groups in router.go. It only walks registrars (registry.go),
 // so it is not edited when a feature is added.
 //
-// A feature's register function takes the mux and registers that feature's patterns:
+// A feature is its own package, internal/<feature>, with an exported Register that takes the mux
+// and registers that feature's patterns; registry.go imports it and lists it:
 //
-//	// widgets_routes.go
-//	func registerWidgets(r *http.ServeMux) {
+//	// internal/widgets/routes.go
+//	func Register(r *http.ServeMux) {
 //		r.HandleFunc("GET /api/widgets", listWidgets)
 //	}
 //
-// Import webapp/internal/apikit for apikit.WriteJSON, apikit.WriteError and
+// A feature imports shared packages (apikit, identity, a store), never this package and never a
+// sibling feature. Import webapp/internal/apikit for apikit.WriteJSON, apikit.WriteError and
 // apikit.ServeList in the handler file.
 //
 // An albitor.yaml schedule or queue runs this same binary: each fire arrives as
 // POST /events, with the body {"schedule": "<name>"} for a schedule and SQS's
-// {"Records": [...]} for a queue. Register that route in its own register function when the app
+// {"Records": [...]} for a queue. Register that route from its own feature package when the app
 // declares either, dispatch on the body, and run the job before answering. A 5xx fails the
 // invocation and Lambda retries it; any other status counts as success. Answer 400
 // for a name you do not know. Jobs must be idempotent. Never start a ticker of your

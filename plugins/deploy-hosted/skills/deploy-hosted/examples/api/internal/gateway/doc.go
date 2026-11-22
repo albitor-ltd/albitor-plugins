@@ -15,7 +15,7 @@
 // app's own structs, written to AWS's documented JSON field names.
 //
 // Declare what the app calls in albitor.yaml under services.callable, and use Client from
-// api/internal/app. Keep the signing as it is.
+// api/internal/<feature> packages. Keep the signing as it is.
 //
 // queue.go is the queue half: Send to the app's own SQS queues with the function role,
 // ParseEvent and WriteResult for the POST /events consumer, and an in-process queue under
