@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `test-playwright` `0.7.3` (Refs albitor-ltd/albitor#5382 item 2; tag follows the merge).
+  `localIssuerRunning` answers false without sending a request when `ALBITOR_JOURNEY_BASE_URL` is
+  set (a walk of a deployed app, where the local issuer path always 404s); local runs are
+  unchanged. New unit test `unit/local-auth.test.ts`.
 - `api-go` `0.12.0` (Refs albitor-ltd/albitor#5313 items 3 and 6; tag follows the merge). Each
   feature is now its own Go package, `internal/<feature>` with an exported `Register`, so two
   build nodes writing different features no longer share a package directory (albitor#4333 still

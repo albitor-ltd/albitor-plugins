@@ -36,6 +36,7 @@ web/tests/unit/baseline.test.ts
 web/tests/unit/config.test.ts
 web/tests/unit/fixture-scope.test.ts
 web/tests/unit/hosted-signin.test.ts
+web/tests/unit/local-auth.test.ts
 web/tests/unit/preview-seed.test.ts
 web/tests/unit/roles.test.ts
 web/tests/unit/screen-rules.test.ts
