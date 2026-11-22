@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.7.2",
-        "sha": "88e312b37fc44f125ae699480b566ccd7e63bdbc"
+        "ref": "test-playwright/v0.7.3",
+        "sha": "0028bcf9a99d5043496095ba2de2fbe583dc4b35"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
