@@ -1,8 +1,8 @@
 // Starting point (test-playwright).
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 import { test } from "@playwright/test";
-import { NO_SECOND_IDENTITY, resolveSecondIdentity } from "./second-identity";
-import { authFor } from "./screen-rules";
+import { NO_SECOND_IDENTITY, resolveSecondIdentity } from "./second-identity.ts";
+import { authFor } from "./screen-rules.ts";
 
 // SIGN IN AS A NAMED TEST IDENTITY, IN A LOCAL RUN ONLY.
 //
@@ -39,8 +39,11 @@ export type LocalTokens = {
   groups: string[];
 };
 
-// Whether the API under test is running the local issuer.
+// Whether the API under test is running the local issuer. A walk against a deployed app sets
+// ALBITOR_JOURNEY_BASE_URL, and there the identities path always 404s, so it answers false
+// without sending the request (the journey fixture asks on every test).
 export async function localIssuerRunning(request: APIRequestContext): Promise<boolean> {
+  if (process.env.ALBITOR_JOURNEY_BASE_URL) return false;
   try {
     const res = await request.get(`${LOCAL_AUTH_PATH}/identities`);
     // A single-page app answers every unknown path 200 with its HTML shell; only the issuer
