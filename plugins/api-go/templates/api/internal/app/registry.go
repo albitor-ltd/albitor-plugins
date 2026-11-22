@@ -19,6 +19,11 @@ package app
 
 // one import line per feature, appended below
 
+// registrars is the list of every feature's Register, mounted in this order by Routes
+// (routes.go). Each feature appends one line inside the braces and nothing else.
+// The comment lines here are padding as much as prose: a rebase merges two changes into one
+// when fewer than four unchanged lines separate them, and that would tangle an import line
+// with the list below. Keep these lines where they are.
 var registrars = []registrar{
 	// one line per feature, appended below
 }

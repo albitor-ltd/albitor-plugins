@@ -35,8 +35,9 @@ func Register(r *http.ServeMux) {
 
 There is no `init()` registration and no generator: a feature not listed in `registrars` is not
 served. Features edit no other shared file, and two features never share a package directory, so
-parallel features rebase cleanly: the rebase resolver unions concurrent appends to `registry.go`,
-which is why it holds imports and the list and no code. A feature imports shared packages only,
+parallel features rebase cleanly: two features added at once merge as a text union in
+`registry.go` (tested), which is why it holds imports and the list and no code, with its comment
+lines kept as padding between the two. A feature imports shared packages only,
 never `app` and never a sibling feature (a feature that needs another's data goes through a shared
 domain or store package); `TestFeaturesDoNotImportEachOther` checks it.
 Handlers reach data only through the app's store interface, never a

@@ -26,7 +26,7 @@ to editing them, and change them when the app needs it.
   person or a config supplied")
 - `internal/app/registry.go`: the one wiring point. Per feature it gets an import line and a line
   in the `registrars` list, both append-only. It holds nothing else (no code, no `func`), which is
-  what lets a rebase union two features' lines
+  what lets a text union merge two features' lines
 - `internal/app/routes.go`: `Routes`, which only walks `registrars`; not edited per feature
 - `internal/app/routes_test.go`, `layout_test.go`: a mount check, and the check that no feature
   imports app or a sibling feature; features do not edit them
@@ -58,18 +58,31 @@ a feature `widgets`, in the worked example `examples/api/internal/widgets/` (cop
 
 ```go
 // api/internal/app/registry.go after adding widgets
+// one import line per feature, appended below
 import "webapp/internal/widgets"
 
+// ... the comment lines of the seeded file stay here, at least four of them, so the import and the
+// list below are never within three lines of each other (see the note under this block)
+
 var registrars = []registrar{
+	// one line per feature, appended below
 	widgets.Register,
 }
 ```
 
+Keep at least four unchanged lines (the seeded comment lines) between the import lines and
+`var registrars`: a three-way merge treats changes closer than that as one hunk, and two features
+added at once would then tangle an import into the list. Never delete that comment block.
+
+A feature node declares its own `internal/<feature>/` files and the one-line `registry.go` addition
+(an import line and a `Register` line). Do not rely on the platform exempting the func-free registry
+from its same-directory ordering: write only what the feature needs.
+
 Do not put a second feature's handlers, routes or tests in a feature's package, and do not edit
 `internal/apptest`: a helper only one feature needs goes in that feature's own `_test.go` file.
-Albitor's mechanical rebase resolver unions two concurrent appends to `registry.go` (it takes a
-registry file named `registry.go` whose base has no `func` and whose change only adds import or
-`name,` lines), so they land without an agent; `routes.go` is not unioned and is left alone.
+Albitor's mechanical rebase resolver takes a `registry.go` whose base has no `func` and whose
+change only adds import or `name,` lines, and merges two concurrent additions as a text union (the
+verify script tests that the result parses), so they land without an agent; `routes.go` is not unioned and is left alone.
 Albitor still orders any two nodes that write the same package directory, so a package per feature
 is what lets features be built in parallel.
 
