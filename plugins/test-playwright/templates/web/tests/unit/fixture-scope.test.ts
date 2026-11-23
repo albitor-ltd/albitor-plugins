@@ -159,7 +159,7 @@ describe("FixtureScope", () => {
 		}
 	});
 
-	describe("retry under the hosted concurrency cap", () => {
+	describe("retry under the hosted stage throttle", () => {
 		const posts = (calls: Call[]) => calls.filter((c) => c.method === "POST").length;
 
 		for (const status of [503, 429]) {

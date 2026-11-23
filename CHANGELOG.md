@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `api-go` `0.12.1`, `object-s3` `0.2.1`, `test-playwright` `0.7.5`, `web-app-architecture`
+  `0.2.4`, `web-svelte` `0.10.2` (Refs albitor-ltd/albitor#5386 item 6; tags follow the merge).
+  Wording only, no behaviour change: hosted functions no longer reserve concurrency, so every
+  "10 calls at once" / "reserved concurrency 10" rationale now says the per-app limit is the API
+  stage throttle (50 requests a second, burst 100) with compute shared per cell, and that a burst
+  still costs one invocation each. The client in-flight caps (4) and retries stay, as 429s and
+  bursts still apply at the stage.
 - `object-s3` `0.2.0`, `web-app-architecture` `0.2.3`, `test-playwright` `0.7.4`, `kit-shadcn`
   `0.17.3` (Refs albitor-ltd/albitor#5385; tags follow the merge). A file shown in a list no longer
   costs one Lambda call per image. object-s3: `Files.Views(ctx, owner, record, details)` returns

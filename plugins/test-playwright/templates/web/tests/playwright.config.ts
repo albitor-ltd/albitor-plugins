@@ -74,7 +74,7 @@ export default defineConfig({
 	retries: isCI ? 1 : 0,
 	// `workers` is deliberately NOT set here. The automated walk of a deployed preview passes
 	// `--workers=1` itself and that flag wins, so the count is decided once, by the walk. A hosted
-	// app's function runs at most 10 calls at once (limits.md): if you run this suite yourself
+	// app's API stage takes 50 requests a second, burst 100, and compute is shared per cell (limits.md): if you run this suite yourself
 	// against a deployed app, pass a small `--workers` (1 or 2) and seed with `fixtureScope.createMany`.
 	timeout: 30_000,
 	expect: { timeout: 5_000 },

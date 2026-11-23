@@ -1,7 +1,8 @@
 // Starting point (test-playwright). The walk's own request budget against a deployed app.
 //
-// A hosted app's function runs at most 10 calls at once and its stage takes 50 requests a second;
-// over either the edge answers 429 or 503 without running the function. A browser page fires its
+// A hosted app's API stage takes 50 requests a second (burst 100) and compute is shared per cell,
+// so a burst still costs one invocation each; over the stage limit the edge answers 429 (or 503)
+// without running the function. A browser page fires its
 // calls in parallel, and a walk runs a journey after another against the same function, so an
 // unlucky moment fails a step the app would have passed a second later. This file makes the walk
 // behave like a well-mannered client: at most `IN_FLIGHT` of the page's own API reads at once,

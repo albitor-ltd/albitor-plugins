@@ -54,7 +54,7 @@ Read `patterns/screen-data.md`.
 - **Avoid when** the screen shows one record with nothing related.
 - **How to decide** Count the requests the screen makes at the largest list it shows. More than
   one means the list embeds what rows render, or a screen-shaped endpoint aggregates in the
-  handler. The hosted API runs 10 requests at once (see `limits`).
+  handler. The hosted API's per-app limit is the stage rate, 50 a second with a burst of 100 (see `limits`).
 
 ## seeding-for-deployed-walks
 

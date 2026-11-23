@@ -24,7 +24,7 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 | Textract asynchronous | 500 MB and 3,000 pages for PDF and TIFF; 10 MB for images | [Textract limits][tx] | `slow-supplier-work.md` |
 | Hosted gateway service-call body | 5,500,000 bytes inline, larger by upload handle | `gateway-services` skill | `file-storage.md` |
 | Hosted gateway daily credits | a per-app daily cap, owned by the platform; the number is not a design input | `gateway-services` skill | treat a refusal as "unavailable" (below) |
-| Hosted HTTP function concurrency | 10 reserved; over it the HTTP API answers 503 `Service Unavailable` | hosted deploy module | `screen-data.md`: one call per screen; retry GET on 429 or 503; test seeding: `fixtureScope.createMany` (4 in flight) and a retrying `create`, never an unbounded `Promise.all` |
+| Hosted HTTP function concurrency | no reservation: the per-app limit is the API stage rate below, and compute is shared per cell; a burst still costs one invocation each, and a platform throttle can answer 503 `Service Unavailable` | hosted deploy module | `screen-data.md`: one call per screen; retry GET on 429 or 503; test seeding: `fixtureScope.createMany` (4 in flight) and a retrying `create`, never an unbounded `Promise.all` |
 | Hosted HTTP function size | 1024 MB memory, 30 s timeout | hosted deploy module | `slow-supplier-work.md` |
 | An `<img>`, `<video>` or `<audio>` pointing at `/api/` | one Lambda invocation per element, all at once, outside the client's in-flight cap | browser behaviour on the hosted function limit above | `screen-data.md`: file and image URLs travel in the screen's response |
 | Hosted API request rate | 50 requests per second steady, burst 100; over it 429, and the request never reaches the function | hosted deploy module | `screen-data.md`: fewer, larger reads |
@@ -53,16 +53,16 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
   attributes): project only what the query needs, and every extra index is a multiple on write
   cost. The index write cost is documented in the DynamoDB guide on global secondary indexes; read
   it before adding more than one.
-- **Concurrency and rate.** The hosted function runs at most 10 requests at once and the API takes
-  50 a second. A page that fires 14 detail reads at load overflows the first and answers 503 to
-  the overflow, and it passes a walk whose fixtures hold three records. Count a screen's calls at
+- **Concurrency and rate.** The hosted function reserves no concurrency: the per-app limit is the API stage
+  (50 requests a second, burst 100) and compute is shared per cell. A page that fires 14 detail
+  reads at load is a burst, costs 14 invocations and risks a 429 or 503 on the overflow, and it passes a walk whose fixtures hold three records. Count a screen's calls at
   the largest list the UI shows, not at fixture size: the answer is one call per screen
   (`screen-data.md`), with a client that retries a GET on 429 or 503 and caps requests in flight
   as the second line.
-- **Seeding fixtures.** A journey that seeds bulk data is a client of the same 10-call budget.
+- **Seeding fixtures.** A journey that seeds bulk data is a client of the same stage budget (50 requests a second, burst 100).
   Seed through `fixtureScope.createMany` (4 in flight by default) or small bounded batches, and
   rely on `create` retrying a 429 or 503 with backoff; an unbounded `Promise.all` of creates
-  throttles the function and fails the walk with `Fixture creation failed: 503`. The fix is in the
+  throttles the stage and fails the walk with `Fixture creation failed: 503`. The fix is in the
   spec, never batching or backing off writes inside the app.
 - **Schedules and queues.** A schedule cannot fire faster than every 15 minutes and at most 3
   exist, and a failed run is retried up to 3 times within 1 h (maximum event age 1 h); a queue
@@ -81,8 +81,8 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 - Counting characters where the limit is bytes (Translate; non-Latin text is 2 to 4 bytes per
   character).
 - An unbounded array on one record.
-- A page that fetches the detail of every row it lists, or `Promise.all` over a list of ids: ten
-  concurrent requests is the whole hosted budget (`screen-data.md`).
+- A page that fetches the detail of every row it lists, or `Promise.all` over a list of ids: a
+  burst of them spends the stage budget and costs an invocation each (`screen-data.md`).
 - Reading a limit from memory into a constant: link or look it up.
 
 ## How a walk verifies it

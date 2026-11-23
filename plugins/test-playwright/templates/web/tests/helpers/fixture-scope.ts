@@ -3,8 +3,9 @@ import { randomUUID } from "node:crypto";
 import type { APIRequestContext } from "@playwright/test";
 import { displayName } from "./display-name.ts";
 
-// The hosted function runs at most 10 calls at once; over it the API answers 503 (a throttled call
-// never ran the function, so the POST is safe to repeat). 429 is the API's rate limit, same rule.
+// The hosted API stage takes 50 requests a second (burst 100) and compute is shared per cell; over
+// the limit the API answers 429, or 503 when throttled upstream (a throttled call never ran the
+// function, so the POST is safe to repeat).
 // Caveat, accepted: a 503 from the app's own handler after it created the record could duplicate it.
 const RETRY_STATUSES = new Set([429, 503]);
 const DEFAULT_RETRY = { retries: 3, baseDelayMs: 250, maxDelayMs: 5_000 };
@@ -99,8 +100,8 @@ export class FixtureScope {
 		return record;
 	}
 
-	// Bulk seeding: never more than `concurrency` creates in flight (default 4, well under the hosted
-	// function's 10), results in input order. After a failure no new create starts, in-flight ones
+	// Bulk seeding: never more than `concurrency` creates in flight (default 4, a modest burst for
+	// the hosted stage), results in input order. After a failure no new create starts, in-flight ones
 	// finish so everything created is owned and cleaned up, and the first error is thrown.
 	async createMany<T extends { id: string }>(
 		collection: string,
