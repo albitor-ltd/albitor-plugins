@@ -272,10 +272,10 @@ err = q.Send(ctx, "transcribe", jobRef{ID: id}, gateway.SendOptions{})
 
 ## Shape endpoints for the screen
 
-On the hosted lane, the function reserves no concurrency: the API stage takes 50 requests a second (burst 100) and
-compute is shared per cell, so a page that makes one request per row bursts, costing an
-invocation each, on a normal list. Do the work in the handler, in one
-invocation: see the web-app-architecture `screen-data` pattern.
+On the hosted lane, the function reserves no concurrency: the API stage takes 50 requests a second
+(burst 100) and compute is shared per cell, so a page that makes one request per row bursts, costing
+an invocation each, on a normal list. Do the work in the handler, in one invocation: see the
+web-app-architecture `screen-data` pattern.
 
 - **A list returns what the list renders.** Embed the summaries and counts a row shows (owner name,
   open-task count) in each `items` entry, built with one `BatchGetItem` over the distinct related

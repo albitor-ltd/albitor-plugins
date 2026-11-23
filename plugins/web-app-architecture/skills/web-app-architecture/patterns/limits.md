@@ -53,17 +53,17 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
   attributes): project only what the query needs, and every extra index is a multiple on write
   cost. The index write cost is documented in the DynamoDB guide on global secondary indexes; read
   it before adding more than one.
-- **Concurrency and rate.** The hosted function reserves no concurrency: the per-app limit is the API stage
-  (50 requests a second, burst 100) and compute is shared per cell. A page that fires 14 detail
-  reads at load is a burst, costs 14 invocations and risks a 429 or 503 on the overflow, and it passes a walk whose fixtures hold three records. Count a screen's calls at
-  the largest list the UI shows, not at fixture size: the answer is one call per screen
-  (`screen-data.md`), with a client that retries a GET on 429 or 503 and caps requests in flight
-  as the second line.
-- **Seeding fixtures.** A journey that seeds bulk data is a client of the same stage budget (50 requests a second, burst 100).
-  Seed through `fixtureScope.createMany` (4 in flight by default) or small bounded batches, and
-  rely on `create` retrying a 429 or 503 with backoff; an unbounded `Promise.all` of creates
-  throttles the stage and fails the walk with `Fixture creation failed: 503`. The fix is in the
-  spec, never batching or backing off writes inside the app.
+- **Concurrency and rate.** The hosted function reserves no concurrency: the per-app limit is the
+  API stage (50 requests a second, burst 100) and compute is shared per cell. A page that fires 14
+  detail reads at load is a burst, costs 14 invocations and risks a 429 or 503 on the overflow, and
+  it passes a walk whose fixtures hold three records. Count a screen's calls at the largest list the
+  UI shows, not at fixture size: the answer is one call per screen (`screen-data.md`), with a client
+  that retries a GET on 429 or 503 and caps requests in flight as the second line.
+- **Seeding fixtures.** A journey that seeds bulk data is a client of the same stage budget (50
+  requests a second, burst 100). Seed through `fixtureScope.createMany` (4 in flight by default) or
+  small bounded batches, and rely on `create` retrying a 429 or 503 with backoff; an unbounded
+  `Promise.all` of creates throttles the stage and fails the walk with `Fixture creation failed:
+  503`. The fix is in the spec, never batching or backing off writes inside the app.
 - **Schedules and queues.** A schedule cannot fire faster than every 15 minutes and at most 3
   exist, and a failed run is retried up to 3 times within 1 h (maximum event age 1 h); a queue
   consumer takes at most 5 batches at once and a message is dead-lettered after

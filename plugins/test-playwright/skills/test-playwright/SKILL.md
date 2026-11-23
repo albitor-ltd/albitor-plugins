@@ -60,7 +60,8 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   50 requests a second (burst 100) and the app's own traffic shares that budget; compute is shared
   per cell, and a burst still costs one invocation each. Over the stage limit the API answers 429
   (a platform throttle can answer 503), and the walk fails mid-seed. `createMany` keeps 4 in flight by default, and `create` retries a 429
-  or 503 a few times with jittered backoff (honouring `Retry-After` up to the 5 s cap) before it throws. Seed the
+  or 503 a few times with jittered backoff (honouring `Retry-After` up to the 5 s cap) before it
+  throws. Seed the
   smallest set that proves the behaviour; that the app copes with a large list is the app's job
   (`limits.md`), not a reason to write thousands of fixtures. Fix a 503 here, in the spec, never by
   batching or throttling writes inside the app. On a deployed walk the journey `context` also holds the
