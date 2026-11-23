@@ -21,7 +21,7 @@ https://www.shadcn-svelte.com/docs/components for the shadcn-svelte designs to c
 | `Card` | `title?`, `level?` (2 to 4), `tone?` (`default`, `second`), `actions?`, `children` | With a title, a `group` named by its heading (not a landmark); elevation, border and radius from the look |
 | `Pill` | `tone?` (`neutral`, `success`, `warning`, `danger`, `info`), `children` | A glyph plus the word; filled with the tone's ink and fill pair |
 | `Tabs` | `label`, `tabs: {value, label}[]`, `value?` (bindable), `panel` snippet | Bits UI `Tabs`: arrow keys and Home/End, the panel tied to its tab. For views of one thing, not page navigation |
-| `Avatar` | `name`, `src?`, `size?` (`sm`, `md`, `lg`) | Bits UI `Avatar`; initials when there is no photo or it fails; named for the person |
+| `Avatar` | `name`, `src?`, `size?` (`sm`, `md`, `lg`) | Bits UI `Avatar`; initials when there is no photo or it fails; named for the person; the photo loads lazily (`loading="lazy"`, `decoding="async"`) |
 | `Progress` | `label`, `value` (or `null`), `max?`, `variant?` (`bar`, `ring`), `showValue?` | Bits UI `Progress`: a named `progressbar`; `null` is indeterminate |
 | `Skeleton` | `width?`, `height?`, `circle?` | Decorative (`aria-hidden`); put it in an `aria-busy` region with a loading message. Shimmer follows the look's motion |
 | `FilterChip` | `pressed` (bindable), `children` | A toggle button: `aria-pressed`, plus a check when on |

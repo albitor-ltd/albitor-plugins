@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `object-s3` `0.2.0`, `web-app-architecture` `0.2.3`, `test-playwright` `0.7.4`, `kit-shadcn`
+  `0.17.3` (Refs albitor-ltd/albitor#5385; tags follow the merge). A file shown in a list no longer
+  costs one Lambda call per image. object-s3: `Files.Views(ctx, owner, record, details)` returns
+  `FileView` (the details plus a same-origin `/_objects/...` `url` and `expires_at`) by presigning
+  only, with no `Head`; the new `Store.PresignGetStable` signs at a 5-minute boundary with a 15-minute
+  expiry (`MaxExpiry`), so a URL is stable and cacheable within a window. The web example gains
+  `FileView` and `viewExpired`, and `downloadLink` (`?redirect=1`) is deprecated for `<img>`. The
+  SKILL gains "Showing files in a list or detail": URLs travel in the screen's response, images are
+  lazy with width, height and alt, the screen refetches once on error or expiry, `<img src>` never
+  points at `/api/`, URLs are never stored or logged. `Store` gains a method, so an app's own `Store`
+  fake must add `PresignGetStable`. web-app-architecture: a "File and image URLs" rule in
+  `patterns/screen-data.md` and a row in `patterns/limits.md`. test-playwright: the walk counts
+  image and media requests to `/api/` (listener only, never routed; `/api/local-objects/` excluded)
+  in the per-screen read budget and any such request raises a `request-budget` finding;
+  `ScreenBudget` gains `images`. kit-shadcn: `Avatar` photo is `loading="lazy"` and
+  `decoding="async"`.
 - `kit-shadcn` `0.17.2` (Refs albitor-ltd/albitor#5293; tag follows the merge). `elevation.test.ts`
   (example, with the components it reads) and `lookchain.test.ts` (managed, with `tokens.css`) were
   shipped in the plugin but missing from `contributes.files`, so they were not seeded into apps and

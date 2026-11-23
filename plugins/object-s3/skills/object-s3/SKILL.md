@@ -63,9 +63,9 @@ use only the standard library, so `api/go.mod` gains no dependency.
 
 | Example | What it is |
 | --- | --- |
-| `examples/api/internal/objects/` | The storage package, shared by every feature that touches files. `Store` (presign put and get, head, list, delete), `S3` (SigV4 query signing by hand), `Memory` (the local run and test fake, which refuses a PUT that differs from what was signed, as S3 does), `Policy` (size and type), `Key`/`Prefix`/`NewID`, `DeleteUnder`, `DeleteRecord`, `Open` (reads `ALBITOR_BUCKET_*`, never falls back to memory when deployed) |
-| `examples/api/internal/files/files.go`, `files_test.go` | The `files` feature package: the four routes under `/api/records/{record}/files` (start an upload, complete it, get a download URL (JSON, or a 302 with `?redirect=1`), delete one). Rename `records` to the app's own noun |
-| `examples/web/src/lib/files/upload.ts`, `upload.test.ts` | `uploadFile`, `downloadUrl`, `downloadLink`, `deleteFile`, `checkFile`. They return `{ ok: false, code, message }` rather than throw on a refusal |
+| `examples/api/internal/objects/` | The storage package, shared by every feature that touches files. `Store` (presign put and get, head, list, delete), `S3` (SigV4 query signing by hand), `Memory` (the local run and test fake, which refuses a PUT that differs from what was signed, as S3 does), `Policy` (size and type), `PresignGetStable` (a URL signed at a 5-minute boundary, for lists), `Key`/`Prefix`/`NewID`, `DeleteUnder`, `DeleteRecord`, `Open` (reads `ALBITOR_BUCKET_*`, never falls back to memory when deployed) |
+| `examples/api/internal/files/files.go`, `files_test.go` | The `files` feature package: the four routes under `/api/records/{record}/files` (start an upload, complete it, get a download URL (JSON, or a 302 with `?redirect=1` for a link), delete one) and `Files.Views`, which adds a same-origin `url` and `expires_at` to a record's files for a screen's response. Rename `records` to the app's own noun |
+| `examples/web/src/lib/files/upload.ts`, `upload.test.ts` | `uploadFile`, `downloadUrl`, `downloadLink` (links only; deprecated for `<img>`), `deleteFile`, `checkFile`, the `FileView` type and `viewExpired`. They return `{ ok: false, code, message }` rather than throw on a refusal |
 
 To wire them in: copy both Go directories (`objects` and `files`), then add one registration file and
 two lines. In `internal/files/routes.go` build the store once and register the routes (in a local
@@ -135,8 +135,39 @@ made before it is minted, on the server.
   `Content-Type`, `Content-Disposition` and `x-amz-meta-filename` headers the API returned, exactly.
 - **Short-lived.** URLs live 5 minutes by default and never more than 15 (`MaxExpiry`); the function's
   credentials are temporary and a URL stops working when they rotate, whatever its expiry says.
-  Sign a download on demand, per click; never put a signed URL in a record or a cache.
+  Sign a download on demand, per click, or for a screen's images with `Files.Views` (below); never
+  put a signed URL in a record, a cache or a log.
 - Log the key and the correlation id, never the signed URL: it carries a credential in its query.
+
+## Showing files in a list or detail
+
+A file shown in a screen travels as a URL **inside that screen's own response**, so a screen costs
+one API call however many files it shows. Never point `<img src>` (or `<video>`, `<audio>`, `<a
+href>` for many files) at `/api/...`, not even with `?redirect=1`: each one is a separate function
+call that answers a 302, and a list of thirty images fires thirty invocations at once. That throttles
+the app (the web client's in-flight cap of 4 never sees image requests) and the platform's
+concurrency limit with it.
+
+- **Server.** The handler that returns the screen's data loads the records through its owner-scoped
+  query, then calls `files.Views(ctx, owner, record.ID, record.Files)` for each record and puts the
+  returned `FileView`s (`id`, `name`, `content_type`, `size`, `url`, `expires_at`) in the response.
+  `Views` only signs (no `Head`, no call per file). It is safe because the key is built from the
+  verified owner, a record id your own query returned and file ids stored on that record, never from
+  the request. Do not call it with ids the request supplied unless the record is checked as the
+  person's first.
+- **URLs are cacheable.** They are same-origin `/_objects/...` paths (already allowed by `img-src
+  'self'`), signed at a 5-minute boundary and valid for 15 minutes (`MaxExpiry`), so the same file
+  gets the same URL for each 5-minute window and the browser reuses its copy.
+- **Images.** `<img src={file.url} alt="..." width="..." height="..." loading="lazy"
+  decoding="async">`: always an `alt`, always a width and height (or an aspect ratio) so the page
+  does not jump, and `loading="lazy"` so images below the fold are not fetched. The kit's `Avatar`
+  already lazy-loads.
+- **Expiry.** On an image error, or when `viewExpired(file)` is true, refetch the screen's data
+  **once** and render the fresh URLs. Do not retry in a loop, and do not build a URL in the browser.
+- **Never store or log a URL**: not in a record, a cache keyed beyond the screen, local storage or
+  a log line. Store the file's id; sign again on the next response.
+- Use the single-file `GET .../files/{file}` route (JSON or `?redirect=1`) only for a click that
+  downloads one file, where one function call is right.
 
 ## Size and content-type limits
 

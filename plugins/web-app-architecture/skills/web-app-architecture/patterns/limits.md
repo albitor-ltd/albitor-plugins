@@ -26,6 +26,7 @@ tighter ones. Check the deploy target's own skill before relying on a number in 
 | Hosted gateway daily credits | a per-app daily cap, owned by the platform; the number is not a design input | `gateway-services` skill | treat a refusal as "unavailable" (below) |
 | Hosted HTTP function concurrency | 10 reserved; over it the HTTP API answers 503 `Service Unavailable` | hosted deploy module | `screen-data.md`: one call per screen; retry GET on 429 or 503; test seeding: `fixtureScope.createMany` (4 in flight) and a retrying `create`, never an unbounded `Promise.all` |
 | Hosted HTTP function size | 1024 MB memory, 30 s timeout | hosted deploy module | `slow-supplier-work.md` |
+| An `<img>`, `<video>` or `<audio>` pointing at `/api/` | one Lambda invocation per element, all at once, outside the client's in-flight cap | browser behaviour on the hosted function limit above | `screen-data.md`: file and image URLs travel in the screen's response |
 | Hosted API request rate | 50 requests per second steady, burst 100; over it 429, and the request never reaches the function | hosted deploy module | `screen-data.md`: fewer, larger reads |
 | Hosted schedules | at most 3, each `rate()` no faster than every 15 minutes; a failed run is retried up to 3 times within 1 h (maximum event age 1 h) | hosted deploy module | work that needs seconds is a queue, not a schedule; handlers are idempotent |
 | Hosted queues | at most 2; `batch_size` 1 to 10; `max_receives` 1 to 5 | hosted deploy module | `slow-supplier-work.md`; idempotent handlers |

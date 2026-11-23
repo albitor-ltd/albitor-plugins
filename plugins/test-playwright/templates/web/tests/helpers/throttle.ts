@@ -93,8 +93,12 @@ export async function withBudget<T extends Answer>(
 // ledger line, in the test's annotations and as a finding (budgetProblem), and a read still
 // throttled after its retries is a failure, exactly as it would be without the retry.
 export type ScreenBudget = {
-	// API reads the screen made (each counted once, however many attempts it took).
+	// API reads the screen made (each counted once, however many attempts it took), including
+	// every image or media request answered by /api/.
 	reads: number;
+	// Of those, the image and media requests (<img>, <video>, <audio>) to /api/: each is one
+	// function call that bypasses the client's in-flight cap.
+	images: number;
 	// Retries this harness made after a 429 or 503.
 	retries: number;
 	// Reads still throttled after the retries, which the page saw.
@@ -108,13 +112,18 @@ export const MAX_READS_PER_SCREEN = 8;
 export const MAX_RETRIES_PER_SCREEN = 1;
 
 export class BudgetStats {
-	private window: ScreenBudget = { reads: 0, retries: 0, throttled: 0, peakQueued: 0 };
+	private window: ScreenBudget = { reads: 0, images: 0, retries: 0, throttled: 0, peakQueued: 0 };
 	private readonly gate: Gate | undefined;
 	constructor(gate?: Gate) {
 		this.gate = gate;
 	}
 	read(): void {
 		this.window.reads += 1;
+	}
+	// An image or media request to /api/: counted as a read and as an image.
+	image(): void {
+		this.window.reads += 1;
+		this.window.images += 1;
 	}
 	retried(): void {
 		this.window.retries += 1;
@@ -125,7 +134,7 @@ export class BudgetStats {
 	// The screen's cost since the last take, and a fresh window.
 	take(): ScreenBudget {
 		const out = { ...this.window, peakQueued: this.gate?.peakQueued ?? 0 };
-		this.window = { reads: 0, retries: 0, throttled: 0, peakQueued: 0 };
+		this.window = { reads: 0, images: 0, retries: 0, throttled: 0, peakQueued: 0 };
 		if (this.gate) this.gate.peakQueued = 0;
 		return out;
 	}
@@ -140,8 +149,11 @@ export function budgetProblem(b: ScreenBudget): { fail?: string; finding?: strin
 	const why: string[] = [];
 	if (b.retries > MAX_RETRIES_PER_SCREEN) why.push(`needed ${b.retries} throttle retries`);
 	if (b.reads > MAX_READS_PER_SCREEN) why.push(`fired ${b.reads} API reads (over ${MAX_READS_PER_SCREEN})`);
+	if (b.images > 0) {
+		why.push(`served ${b.images} image or media file(s) from /api/, one function call each: put the file URLs in the screen's data and point <img src> at them (object-s3 "Showing files in a list or detail")`);
+	}
 	if (why.length > 0) {
-		out.finding = `this screen ${why.join(" and ")}: load a page's data through one aggregating endpoint`;
+		out.finding = `this screen ${why.join(" and ")}${b.images > 0 && b.reads <= MAX_READS_PER_SCREEN && b.retries <= MAX_RETRIES_PER_SCREEN ? "" : ": load a page's data through one aggregating endpoint"}`;
 	}
 	return out;
 }
@@ -161,6 +173,15 @@ export function isBudgetedRead(method: string, accept: string | undefined, resou
 	return read && !streams && (resourceType === "fetch" || resourceType === "xhr");
 }
 
+// Image and media requests the budget counts: a GET of an <img>, <video> or <audio> whose URL is on
+// the app's own /api/. The Memory fake's /api/local-objects/ is the local object store standing in
+// for the bucket (a deployed app serves files from /_objects/), so it is not the pattern.
+export function isBudgetedMedia(method: string, url: string, resourceType: string, origin: string): boolean {
+	if (method !== "GET" || (resourceType !== "image" && resourceType !== "media")) return false;
+	if (!url.startsWith(`${origin}/api/`)) return false;
+	return !url.startsWith(`${origin}/api/local-objects/`);
+}
+
 // Budget the app's own API reads in this context. Call it on a deployed walk only (a local app has
 // no throttle). Anything that is not a same-origin /api/ GET or HEAD fetch or XHR goes as it was,
 // as does a stream, because answering a call here buffers it.
@@ -168,6 +189,11 @@ export async function budgetApiReads(context: BrowserContext, origin: string, ga
 	if (!origin) return;
 	const stats = new BudgetStats(gate);
 	statsOf.set(context, stats);
+	// Counted from a listener, never routed: answering an image here would buffer it and could
+	// break it, and the request is not slowed or changed.
+	context.on("request", (req) => {
+		if (isBudgetedMedia(req.method(), req.url(), req.resourceType(), origin)) stats.image();
+	});
 	await context.route(`${origin}/api/**`, async (route) => {
 		const req = route.request();
 		if (!isBudgetedRead(req.method(), req.headers().accept, req.resourceType())) {

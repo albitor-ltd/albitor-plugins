@@ -8,6 +8,7 @@ import {
 	RETRIES,
 	budgetApiReads,
 	budgetProblem,
+	isBudgetedMedia,
 	isBudgetedRead,
 	retryDelay,
 	withBudget,
@@ -103,32 +104,36 @@ describe("isBudgetedRead", () => {
 	});
 });
 
-describe("budgetApiReads routing", () => {
-	// A fake context that records the one handler it is given.
-	function fakeContext() {
-		let handler!: (route: unknown) => Promise<void>;
-		const context = {
-			route: async (_glob: string, h: typeof handler) => {
-				handler = h;
-			},
-		};
-		return { context, run: (route: unknown) => handler(route) };
-	}
-	function fakeRoute(method: string, resourceType: string, statuses: number[], accept = "application/json") {
-		const log = { fallback: 0, fetched: 0, fulfilled: 0 };
-		const route = {
-			request: () => ({ method: () => method, resourceType: () => resourceType, headers: () => ({ accept }) }),
-			fallback: async () => void log.fallback++,
-			fetch: async () => {
-				const status = statuses[Math.min(log.fetched++, statuses.length - 1)];
-				return { status: () => status, headers: () => ({}) , status_: status };
-			},
-			fulfill: async () => void log.fulfilled++,
-			abort: async () => {},
-		};
-		return { route, log };
-	}
+// A fake context that records the one handler it is given.
+function fakeContext() {
+	let handler!: (route: unknown) => Promise<void>;
+	let onRequest!: (req: unknown) => void;
+	const context = {
+		route: async (_glob: string, h: typeof handler) => {
+			handler = h;
+		},
+		on: (_event: string, h: typeof onRequest) => {
+			onRequest = h;
+		},
+	};
+	return { context, run: (route: unknown) => handler(route), request: (r: unknown) => onRequest(r) };
+}
+function fakeRoute(method: string, resourceType: string, statuses: number[], accept = "application/json") {
+	const log = { fallback: 0, fetched: 0, fulfilled: 0 };
+	const route = {
+		request: () => ({ method: () => method, resourceType: () => resourceType, headers: () => ({ accept }) }),
+		fallback: async () => void log.fallback++,
+		fetch: async () => {
+			const status = statuses[Math.min(log.fetched++, statuses.length - 1)];
+			return { status: () => status, headers: () => ({}) , status_: status };
+		},
+		fulfill: async () => void log.fulfilled++,
+		abort: async () => {},
+	};
+	return { route, log };
+}
 
+describe("budgetApiReads routing", () => {
 	it("falls back for a write, a stream and a page, and answers a read", async () => {
 		const { context, run } = fakeContext();
 		await budgetApiReads(context as never, "https://app.example");
@@ -144,14 +149,48 @@ describe("budgetApiReads routing", () => {
 	});
 });
 
+describe("image and media requests to /api/", () => {
+	const origin = "https://app.example";
+	it("counts a GET image or media on /api/ and nothing else", () => {
+		assert.equal(isBudgetedMedia("GET", `${origin}/api/records/r1/files/f1?redirect=1`, "image", origin), true);
+		assert.equal(isBudgetedMedia("GET", `${origin}/api/clip`, "media", origin), true);
+		// A signed bucket URL, the local fake, another origin, a fetch and a write are not the pattern.
+		assert.equal(isBudgetedMedia("GET", `${origin}/_objects/uploads/a/b/c?X-Amz-Date=1`, "image", origin), false);
+		assert.equal(isBudgetedMedia("GET", `${origin}/api/local-objects/a/b/c`, "image", origin), false);
+		assert.equal(isBudgetedMedia("GET", "https://cdn.example/api/x.png", "image", origin), false);
+		assert.equal(isBudgetedMedia("GET", `${origin}/api/things`, "fetch", origin), false);
+		assert.equal(isBudgetedMedia("POST", `${origin}/api/x`, "image", origin), false);
+	});
+	it("counts them from a listener without routing or fulfilling them", async () => {
+		const { context, run, request } = fakeContext();
+		await budgetApiReads(context as never, origin);
+		const req = (url: string, type: string) => ({ method: () => "GET", url: () => url, resourceType: () => type });
+		for (let i = 0; i < 9; i++) request(req(`${origin}/api/records/r1/files/f${i}?redirect=1`, "image"));
+		request(req(`${origin}/api/local-objects/a/b/c`, "image"));
+		// The route handler does not intercept an image: it falls back untouched.
+		const { route, log } = fakeRoute("GET", "image", [200], "image/png");
+		await run(route);
+		assert.deepEqual(log, { fallback: 1, fetched: 0, fulfilled: 0 });
+		const b = budgetStatsOf(context as never)!.take();
+		assert.equal(b.images, 9);
+		assert.equal(b.reads, 9);
+		const p = budgetProblem(b);
+		assert.equal(p.fail, undefined);
+		assert.match(p.finding ?? "", /9 image or media file\(s\) from \/api\//);
+	});
+	it("flags even one image served from /api/", () => {
+		assert.match(budgetProblem({ reads: 1, images: 1, retries: 0, throttled: 0, peakQueued: 0 }).finding ?? "", /1 image or media/);
+	});
+});
+
 describe("what the budget reports", () => {
 	it("counts reads, retries and a read that stayed throttled, and resets per screen", async () => {
 		const stats = new BudgetStats();
 		let n = 0;
 		await withBudget(new Gate(4), async () => ({ status: ++n < 3 ? 429 : 200 }), noSleep, () => 0, stats);
 		await withBudget(new Gate(4), async () => ({ status: 503 }), noSleep, () => 0, stats);
-		assert.deepEqual(stats.take(), { reads: 2, retries: 2 + RETRIES, throttled: 1, peakQueued: 0 });
-		assert.deepEqual(stats.take(), { reads: 0, retries: 0, throttled: 0, peakQueued: 0 });
+		assert.deepEqual(stats.take(), { reads: 2, images: 0, retries: 2 + RETRIES, throttled: 1, peakQueued: 0 });
+		assert.deepEqual(stats.take(), { reads: 0, images: 0, retries: 0, throttled: 0, peakQueued: 0 });
 	});
 	it("records the deepest queue", async () => {
 		const gate = new Gate(1);
@@ -161,10 +200,10 @@ describe("what the budget reports", () => {
 		assert.equal(stats.take().peakQueued, 0);
 	});
 	it("fails a screen whose read stayed throttled, and flags a hidden cost without failing it", () => {
-		assert.deepEqual(budgetProblem({ reads: 3, retries: 1, throttled: 0, peakQueued: 0 }), {});
-		assert.match(budgetProblem({ reads: 3, retries: 4, throttled: 1, peakQueued: 0 }).fail ?? "", /still throttled/);
-		assert.match(budgetProblem({ reads: 3, retries: 2, throttled: 0, peakQueued: 0 }).finding ?? "", /2 throttle retries/);
-		const many = budgetProblem({ reads: 9, retries: 0, throttled: 0, peakQueued: 5 });
+		assert.deepEqual(budgetProblem({ reads: 3, images: 0, retries: 1, throttled: 0, peakQueued: 0 }), {});
+		assert.match(budgetProblem({ reads: 3, images: 0, retries: 4, throttled: 1, peakQueued: 0 }).fail ?? "", /still throttled/);
+		assert.match(budgetProblem({ reads: 3, images: 0, retries: 2, throttled: 0, peakQueued: 0 }).finding ?? "", /2 throttle retries/);
+		const many = budgetProblem({ reads: 9, images: 0, retries: 0, throttled: 0, peakQueued: 5 });
 		assert.equal(many.fail, undefined);
 		assert.match(many.finding ?? "", /9 API reads.*one aggregating endpoint/);
 	});

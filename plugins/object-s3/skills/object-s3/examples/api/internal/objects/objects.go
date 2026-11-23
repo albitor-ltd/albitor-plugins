@@ -32,6 +32,10 @@ import (
 // function as ALBITOR_BUCKET_UPLOADS.
 const Bucket = "uploads"
 
+// ViewBucket is the granularity of the signing time of PresignGetStable: URLs issued in the same
+// bucket are identical, so they cache.
+const ViewBucket = 5 * time.Minute
+
 var (
 	// ErrNotFound is an object that is not there.
 	ErrNotFound = errors.New("objects: not found")
@@ -76,6 +80,10 @@ type Store interface {
 	// PresignGet signs a GET. The object's own Content-Type and attachment
 	// Content-Disposition, set at upload, shape the response.
 	PresignGet(ctx context.Context, key string, expires time.Duration) (Signed, error)
+	// PresignGetStable signs a GET for showing many files in one response: signed at a
+	// ViewBucket boundary, valid MaxExpiry from there, so repeated calls return the same URL
+	// and the URL has at least MaxExpiry-ViewBucket left. No existence check.
+	PresignGetStable(ctx context.Context, key string) (Signed, error)
 	// Head reports an object, or ErrNotFound.
 	Head(ctx context.Context, key string) (Info, error)
 	// List returns every key under prefix.
@@ -184,6 +192,9 @@ func (u unavailable) PresignPut(context.Context, string, PutSpec) (Signed, error
 	return Signed{}, u.err()
 }
 func (u unavailable) PresignGet(context.Context, string, time.Duration) (Signed, error) {
+	return Signed{}, u.err()
+}
+func (u unavailable) PresignGetStable(context.Context, string) (Signed, error) {
 	return Signed{}, u.err()
 }
 func (u unavailable) Head(context.Context, string) (Info, error)     { return Info{}, u.err() }

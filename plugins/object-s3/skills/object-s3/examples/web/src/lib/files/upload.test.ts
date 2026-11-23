@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { checkFile, deleteFile, downloadLink, uploadFile } from './upload';
+import { checkFile, deleteFile, downloadLink, uploadFile, viewExpired } from './upload';
 
 const json = (status: number, body: unknown) =>
 	new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -62,6 +62,15 @@ describe('uploadFile', () => {
 		const out = await uploadFile('r1', new File(['x'], 'a.png', { type: 'image/png' }));
 		expect(out.ok).toBe(false);
 		expect(fetch).toHaveBeenCalledTimes(2);
+	});
+});
+
+describe('file views', () => {
+	it('treats a missing, bad or nearly expired expiry as expired', () => {
+		const now = Date.parse('2026-11-23T10:00:00Z');
+		expect(viewExpired({ expires_at: '2026-11-23T10:10:00Z' }, now)).toBe(false);
+		expect(viewExpired({ expires_at: '2026-11-23T10:00:20Z' }, now)).toBe(true);
+		expect(viewExpired({ expires_at: '' }, now)).toBe(true);
 	});
 });
 

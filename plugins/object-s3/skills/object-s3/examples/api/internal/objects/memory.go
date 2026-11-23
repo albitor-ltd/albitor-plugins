@@ -62,6 +62,11 @@ func (m *Memory) PresignGet(_ context.Context, key string, expires time.Duration
 	return Signed{Method: http.MethodGet, URL: localURL(key), ExpiresAt: m.now().Add(clampExpiry(expires)).UTC()}, nil
 }
 
+func (m *Memory) PresignGetStable(_ context.Context, key string) (Signed, error) {
+	at := m.now().UTC().Truncate(ViewBucket)
+	return Signed{Method: http.MethodGet, URL: localURL(key), ExpiresAt: at.Add(MaxExpiry)}, nil
+}
+
 func (m *Memory) Head(_ context.Context, key string) (Info, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

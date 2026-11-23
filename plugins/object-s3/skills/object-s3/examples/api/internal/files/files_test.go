@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"webapp/internal/identity"
 	"webapp/internal/objects"
@@ -216,5 +217,76 @@ func TestCleanName(t *testing.T) {
 		if got := cleanName(in); got != want {
 			t.Errorf("cleanName(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+// countingStore records which calls a handler or helper makes.
+type countingStore struct {
+	objects.Store
+	heads, gets, stable int
+	keys                []string
+}
+
+func (c *countingStore) Head(ctx context.Context, key string) (objects.Info, error) {
+	c.heads++
+	return c.Store.Head(ctx, key)
+}
+
+func (c *countingStore) PresignGet(ctx context.Context, key string, d time.Duration) (objects.Signed, error) {
+	c.gets++
+	return c.Store.PresignGet(ctx, key, d)
+}
+
+func (c *countingStore) PresignGetStable(ctx context.Context, key string) (objects.Signed, error) {
+	c.stable++
+	c.keys = append(c.keys, key)
+	return c.Store.PresignGetStable(ctx, key)
+}
+
+func TestViewsSignsOwnerScopedKeysWithoutHead(t *testing.T) {
+	f, _, _ := newFiles(owned{"r1": "alice"})
+	cs := &countingStore{Store: f.Store}
+	f.Store = cs
+	details := []FileDetails{{ID: "f1", Name: "a.png", ContentType: "image/png", Size: 1}, {ID: "f2", Name: "b.png", ContentType: "image/png", Size: 2}}
+
+	views, err := f.Views(context.Background(), "alice", "REC#1/2", details)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cs.heads != 0 || cs.gets != 0 {
+		t.Errorf("Views made %d Head and %d PresignGet calls, want none", cs.heads, cs.gets)
+	}
+	if len(views) != 2 || views[0].ID != "f1" || views[1].Name != "b.png" {
+		t.Fatalf("views = %+v", views)
+	}
+	for i, v := range views {
+		if !strings.HasPrefix(cs.keys[i], "alice/h") || strings.Contains(cs.keys[i], "REC") {
+			t.Errorf("key %q is not under the owner and the record's safe segment", cs.keys[i])
+		}
+		if !strings.HasPrefix(v.URL, objects.LocalPath+"alice/h") {
+			t.Errorf("url = %q", v.URL)
+		}
+		if v.ExpiresAt.IsZero() || time.Until(v.ExpiresAt) > objects.MaxExpiry {
+			t.Errorf("expires_at = %v, want within MaxExpiry", v.ExpiresAt)
+		}
+	}
+	// The view is flat JSON a screen can embed: the details plus url and expires_at.
+	raw, _ := json.Marshal(views[0])
+	var flat map[string]any
+	_ = json.Unmarshal(raw, &flat)
+	for _, k := range []string{"id", "name", "content_type", "size", "url", "expires_at"} {
+		if _, ok := flat[k]; !ok {
+			t.Errorf("json lacks %q: %s", k, raw)
+		}
+	}
+}
+
+func TestViewsRefusesAKeyThatEscapesTheOwner(t *testing.T) {
+	f, _, _ := newFiles(owned{})
+	if _, err := f.Views(context.Background(), "alice", "r1", []FileDetails{{ID: "../bob"}}); err == nil {
+		t.Fatal("a file id with a dot segment was signed")
+	}
+	if _, err := f.Views(context.Background(), "a/b", "r1", []FileDetails{{ID: "f1"}}); err == nil {
+		t.Fatal("an owner with a slash was signed")
 	}
 }

@@ -1,6 +1,7 @@
 package files
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -20,7 +21,7 @@ import (
 //
 //	POST   /api/records/{record}/files               start an upload; returns the URL to PUT to
 //	POST   /api/records/{record}/files/{file}/complete  confirm the upload; returns the file's details
-//	GET    /api/records/{record}/files/{file}        a short-lived download URL (302 with ?redirect=1)
+//	GET    /api/records/{record}/files/{file}        a short-lived download URL (302 with ?redirect=1, for a link, not an <img>)
 //	DELETE /api/records/{record}/files/{file}        delete one file
 //
 // Rename "records" to what the app calls the thing the files belong to. The
@@ -50,6 +51,40 @@ type FileDetails struct {
 	Name        string `json:"name"`
 	ContentType string `json:"content_type"`
 	Size        int64  `json:"size"`
+}
+
+// FileView is a file as a list or detail screen shows it: the details kept on the record plus a
+// URL the browser can put straight in <img src> or <a href>, and when it stops working.
+type FileView struct {
+	FileDetails
+	URL       string    `json:"url"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+// Views turns the files kept on a record into what a screen shows, adding a same-origin URL to
+// each. Call it from the handler that returns the screen's data, so one request carries every
+// image URL and the browser fetches the images from the bucket, never through the function.
+//
+// It only signs: no Head and no round trip per file, so a list of thirty costs thirty local
+// computations. That is safe because the keys are built from owner (the verified identity,
+// identity.Owner) and recordID (a record id the caller's own owner-scoped query returned), plus
+// the file ids stored on that record: nothing the request supplied. Never pass a record id or
+// file id taken from the request without checking the record is the owner's first. The URLs are
+// stable within a 5-minute window and last at most objects.MaxExpiry, so do not store or log them.
+func (f *Files) Views(ctx context.Context, owner, recordID string, details []FileDetails) ([]FileView, error) {
+	out := make([]FileView, 0, len(details))
+	for _, d := range details {
+		key, err := objects.Key(owner, objects.Segment(recordID), d.ID)
+		if err != nil {
+			return nil, err
+		}
+		signed, err := f.Store.PresignGetStable(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, FileView{FileDetails: d, URL: signed.URL, ExpiresAt: signed.ExpiresAt})
+	}
+	return out, nil
 }
 
 // Routes registers the file routes.
@@ -208,7 +243,8 @@ func (f *Files) download(w http.ResponseWriter, r *http.Request) {
 		f.fail(w, r, "presign get", err)
 		return
 	}
-	// ?redirect=1 lets a plain link or <img src> work with cookie sessions.
+	// ?redirect=1 lets a plain link work with cookie sessions. Do not point <img src> at it: each
+	// image would be one function call. Show images with the URLs Views puts in the screen's data.
 	if r.URL.Query().Get("redirect") == "1" {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Referrer-Policy", "no-referrer")
