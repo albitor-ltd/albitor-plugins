@@ -306,3 +306,45 @@ func TestOpenRefusesMemoryOnADeployedFunctionAndMissingBucket(t *testing.T) {
 		t.Errorf("local store is %T", s)
 	}
 }
+
+// A list screen must get the same URL for the same file all through a 5-minute window (so the
+// browser keeps the image), a new one in the next window, and never one that outlives MaxExpiry.
+func TestPresignGetStableIsStableWithinABucketAndBoundedByMaxExpiry(t *testing.T) {
+	now := time.Date(2026, 11, 23, 10, 1, 30, 0, time.UTC)
+	s, _ := NewS3(S3Config{Bucket: "b", Region: "eu-west-2", Prefix: "_objects/uploads/",
+		Credentials: Credentials{AccessKeyID: "AK", SecretAccessKey: "SK", SessionToken: "TOK"},
+		Now:         func() time.Time { return now }})
+	first, err := s.PresignGetStable(context.Background(), "o/r/f")
+	if err != nil {
+		t.Fatal(err)
+	}
+	now = time.Date(2026, 11, 23, 10, 4, 59, 0, time.UTC)
+	same, _ := s.PresignGetStable(context.Background(), "o/r/f")
+	if first.URL != same.URL || !first.ExpiresAt.Equal(same.ExpiresAt) {
+		t.Errorf("the URL changed inside one bucket:\n%s\n%s", first.URL, same.URL)
+	}
+	now = time.Date(2026, 11, 23, 10, 5, 0, 0, time.UTC)
+	next, _ := s.PresignGetStable(context.Background(), "o/r/f")
+	if next.URL == first.URL {
+		t.Error("the URL did not change in the next bucket")
+	}
+	for _, want := range []string{"X-Amz-Date=20261123T100000Z", "X-Amz-Expires=900"} {
+		if !strings.Contains(first.URL, want) {
+			t.Errorf("URL lacks %q: %s", want, first.URL)
+		}
+	}
+	if !strings.HasPrefix(first.URL, "/_objects/uploads/o/r/f?") {
+		t.Errorf("not a same-origin path: %s", first.URL)
+	}
+	if want := time.Date(2026, 11, 23, 10, 15, 0, 0, time.UTC); !first.ExpiresAt.Equal(want) {
+		t.Errorf("expires_at = %v, want %v", first.ExpiresAt, want)
+	}
+	// Issued at 10:04:59 the URL still has well over 10 minutes; never more than MaxExpiry.
+	if left := same.ExpiresAt.Sub(now.Add(-5 * time.Second)); left > MaxExpiry {
+		t.Errorf("a URL outlives MaxExpiry by %v", left-MaxExpiry)
+	}
+	// It is a real signature: the call-time presign at the bucket start gives the identical URL.
+	if want := s.presignAt(time.Date(2026, 11, 23, 10, 0, 0, 0, time.UTC), http.MethodGet, "_objects/uploads/o/r/f", nil, nil, MaxExpiry); first.URL != want {
+		t.Errorf("not the SigV4 URL for the bucket start:\n%s\n%s", first.URL, want)
+	}
+}

@@ -141,6 +141,20 @@ func (s *S3) PresignGet(_ context.Context, key string, expires time.Duration) (S
 	}, nil
 }
 
+// PresignGetStable signs a GET for a list or detail screen. The signing time is rounded down to a
+// ViewBucket boundary and the URL lives MaxExpiry from there, so every call in the same bucket
+// returns the same URL (the browser and any cache keep the image) and a URL always has at least
+// MaxExpiry-ViewBucket left when issued. It does not check the object exists: an <img> for a
+// missing object is a 404 on the bucket, not a call to the function.
+func (s *S3) PresignGetStable(_ context.Context, key string) (Signed, error) {
+	at := s.cfg.Now().UTC().Truncate(ViewBucket)
+	return Signed{
+		Method:    http.MethodGet,
+		URL:       s.presignAt(at, http.MethodGet, s.cfg.Prefix+key, nil, nil, MaxExpiry),
+		ExpiresAt: at.Add(MaxExpiry),
+	}, nil
+}
+
 func contentDisposition(filename string) string {
 	if filename == "" {
 		return "attachment"
@@ -237,8 +251,14 @@ func (s *S3) call(ctx context.Context, method, key string, q url.Values) (*http.
 // host is always signed. The payload is UNSIGNED-PAYLOAD: a presigned URL
 // cannot know the bytes.
 func (s *S3) presign(method, key string, extra url.Values, headers map[string]string, expires time.Duration) string {
+	return s.presignAt(s.cfg.Now(), method, key, extra, headers, expires)
+}
+
+// presignAt is presign with the signing time given: X-Amz-Date is now, and the URL is valid from
+// then for expires.
+func (s *S3) presignAt(now time.Time, method, key string, extra url.Values, headers map[string]string, expires time.Duration) string {
 	c := s.cfg.Credentials
-	now := s.cfg.Now().UTC()
+	now = now.UTC()
 	amzDate := now.Format("20060102T150405Z")
 	day := now.Format("20060102")
 	scope := day + "/" + s.cfg.Region + "/s3/aws4_request"

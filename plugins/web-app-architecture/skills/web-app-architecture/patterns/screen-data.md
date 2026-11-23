@@ -23,6 +23,14 @@ it with DynamoDB `Query` and `BatchGetItem`.
 - **Page, do not widen.** A big screen pages the list (`cursor`, a limit of at most 100). Embedding
   summaries is not licence to return whole records: the response is capped at 6 MB and each
   `Query` page at 1 MB.
+- **File and image URLs travel in the screen's response.** A screen that shows files (thumbnails,
+  attachments, avatars) gets each file's URL in the list or detail it already fetched, as a
+  same-origin `/_objects/...` URL the server signed in that one call. Never point `<img src>`,
+  `<video>` or `<audio>` at `/api/...`, even a route that redirects: the browser fires one
+  invocation per image, all at once, and the client's in-flight cap never sees them. Images carry
+  `loading="lazy"`, `decoding="async"`, an `alt` and a width and height. On an image error or an
+  expired URL the screen refetches its data once. Never store or log the URLs. The object-s3
+  skill's "Showing files in a list or detail" has the handler and the web client.
 - **The client is the second line.** It retries a GET on 429 or 503 with jittered backoff and caps
   requests in flight; neither replaces a screen that asks for the right thing once.
 
@@ -53,6 +61,9 @@ The cost moves from 15 invocations to one, with a few more read units.
 If a screen shows data from more than one list, or a row needs a field the list lacks, add the
 field to the list or add a screen endpoint. A new endpoint is cheaper than a page that makes N
 calls. The plan names, per screen, how many requests it makes at the largest list it shows.
+
+A walk of the app counts image and media requests to `/api/` against the same per-screen budget as
+fetches, so the file pattern above is flagged if it slips in.
 
 See `limits.md` for the numbers and `slow-supplier-work.md` for work that cannot finish inside a
 request.

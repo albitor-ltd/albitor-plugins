@@ -23,7 +23,7 @@
 </script>
 
 <Avatar.Root class="kit-avatar kit-avatar-{size}" role="img" aria-label={name} data-kit="avatar">
-	{#if src}<Avatar.Image {src} alt="" class="kit-avatar-image" />{/if}
+	{#if src}<Avatar.Image {src} alt="" loading="lazy" decoding="async" class="kit-avatar-image" />{/if}
 	<Avatar.Fallback class="kit-avatar-fallback" aria-hidden="true">{initials}</Avatar.Fallback>
 </Avatar.Root>
 

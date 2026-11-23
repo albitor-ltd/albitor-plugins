@@ -69,7 +69,10 @@ test("browse the claims", async ({ page, fixtureScope }) => {
   harness, each of those up to 3 by the client). It must not hide a defect, so each screen's cost is
   reported (ledger line, `throttle-retries` annotation): a read still throttled after the retries
   fails the step, and a screen needing more than one retry or firing more than 8 reads gets a
-  `request-budget` annotation. Treat that as the app's to fix: load the page's data through one
+  `request-budget` annotation. An `<img>`, `<video>` or `<audio>` request answered by `/api/` is
+  counted as a read too (observed by a listener, never intercepted) and any such request raises the
+  annotation: the file URLs belong in the screen's data, not behind an `/api/` route (the Memory
+  fake's `/api/local-objects/` is not counted). Treat that as the app's to fix: load the page's data through one
   aggregating endpoint (web-app-architecture `screen-data` pattern), not the spec's. Do not sign up or
   seed an account per journey: the demo session is the suite's one account and `fixtureScope`
   cleans what a test makes. The worker count is the walk's (`--workers=1`); if

@@ -13,6 +13,22 @@ export interface FileDetails {
 	size: number;
 }
 
+/**
+ * A file as a list or detail screen receives it: `FileDetails` plus a same-origin `url` for `<img
+ * src>` or `<a href>`, and `expires_at` (ISO time). The API puts these in the screen's own response
+ * (`Files.Views`), so a list of images is one API call. Never store or log the url.
+ */
+export interface FileView extends FileDetails {
+	url: string;
+	expires_at: string;
+}
+
+/** True when the url has expired or will within `skewMs` (default 30 s): refetch the screen's data. */
+export function viewExpired(view: Pick<FileView, 'expires_at'>, now: number = Date.now(), skewMs = 30_000): boolean {
+	const at = Date.parse(view.expires_at);
+	return Number.isNaN(at) || at - skewMs <= now;
+}
+
 export type FileResult<T = object> = ({ ok: true } & T) | { ok: false; code: string; message: string };
 
 interface Signed {
@@ -87,7 +103,12 @@ export function downloadUrl(record: string, file: string): Promise<FileResult<{ 
 	});
 }
 
-/** Where a plain link or `<img src>` can point: the API answers a redirect to a fresh signed URL. */
+/**
+ * Where a plain link can point: the API answers a redirect to a fresh signed URL.
+ *
+ * @deprecated Never use it for `<img src>` or any media: each one is a function call, and a list
+ * of thirty images is thirty at once. Show files with the `url` in the screen's data (`FileView`).
+ */
 export function downloadLink(record: string, file: string): string {
 	return `/api/records/${encodeURIComponent(record)}/files/${encodeURIComponent(file)}?redirect=1`;
 }
