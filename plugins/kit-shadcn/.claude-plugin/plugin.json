@@ -2,7 +2,7 @@
   "schema": 2,
   "name": "kit-shadcn",
   "displayName": "Component kit (shadcn-svelte)",
-  "version": "0.17.1",
+  "version": "0.17.2",
   "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
   "author": {
     "name": "Albitor Ltd",
@@ -32,6 +32,7 @@
       { "path": "web/src/lib/look/look.css", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/look.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/contrast.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/lookchain.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/AppShell.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/Button.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/Dialog.svelte", "mode": "example", "when": { "web-framework": "web-svelte" } },
@@ -92,6 +93,7 @@
       { "path": "web/src/lib/kit/stattile.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/tabs.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/navshell.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
+      { "path": "web/src/lib/kit/elevation.test.ts", "mode": "example", "when": { "web-framework": "web-svelte" } },
       { "path": "web/src/lib/kit/dialog.test.ts", "mode": "managed", "when": { "web-framework": "web-svelte" } }
     ],
     "skills": ["kit-shadcn"]

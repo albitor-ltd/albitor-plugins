@@ -67,12 +67,14 @@
 === web/src/lib/kit/contract.test.ts ===
 === web/src/lib/kit/contrast.test.ts ===
 === web/src/lib/kit/dialog.test.ts ===
+=== web/src/lib/kit/elevation.test.ts ===
 === web/src/lib/kit/emptystate.test.ts ===
 === web/src/lib/kit/field.test.ts ===
 === web/src/lib/kit/filterchip.test.ts ===
 === web/src/lib/kit/index.ts ===
 === web/src/lib/kit/kit.test.ts ===
 === web/src/lib/kit/look.test.ts ===
+=== web/src/lib/kit/lookchain.test.ts ===
 === web/src/lib/kit/navshell.test.ts ===
 === web/src/lib/kit/pill.test.ts ===
 === web/src/lib/kit/progress.test.ts ===
