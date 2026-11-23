@@ -155,8 +155,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-svelte",
-        "ref": "web-svelte/v0.10.1",
-        "sha": "76f6646a3e6c1e26477fc088c6221dc880fe01da"
+        "ref": "web-svelte/v0.10.2",
+        "sha": "db41f9e50b10f2dd33c744b6c1c4c84b67af25be"
       },
       "description": "The web-framework plugin for SvelteKit: a static SPA build, file routing, the shell that hosts providers, the route guard and the nav, error, 404 and offline pages, a small API client, the online data layer (TanStack Query) as the entry point, with the offline-first outbox and sync as a worked example in the data-offline skill, and the web side of the local run contract.",
       "category": "development",
@@ -178,8 +178,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/api-go",
-        "ref": "api-go/v0.12.0",
-        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
+        "ref": "api-go/v0.12.1",
+        "sha": "db41f9e50b10f2dd33c744b6c1c4c84b67af25be"
       },
       "description": "The api-runtime plugin: a Go HTTP server skeleton with request logging and correlation ids, a middleware chain, routes and paging, a health route, an OpenAPI contract and the local test issuer, behind the api.middleware and api.routes slots.",
       "category": "development",
@@ -200,8 +200,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/test-playwright",
-        "ref": "test-playwright/v0.7.3",
-        "sha": "0028bcf9a99d5043496095ba2de2fbe583dc4b35"
+        "ref": "test-playwright/v0.7.5",
+        "sha": "db41f9e50b10f2dd33c744b6c1c4c84b67af25be"
       },
       "description": "The test-harness plugin: a Playwright journey harness with a watched browser context, one sign-in for the suite and local test identities, fixtures that clean up after themselves, an axe WCAG 2.2 A/AA audit, and a read-only CI workflow.",
       "category": "development",
@@ -284,8 +284,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/kit-shadcn",
-        "ref": "kit-shadcn/v0.17.2",
-        "sha": "0f929171a6c861425e7a76c10c79e597f00cb562"
+        "ref": "kit-shadcn/v0.17.3",
+        "sha": "db41f9e50b10f2dd33c744b6c1c4c84b67af25be"
       },
       "description": "The component-kit plugin for Svelte: the styled shell pieces (app shell, nav, forms, tables, dialogs, toasts, empty states) in the shadcn style on Bits UI, themed by one set of colour tokens that pass WCAG 2.2 AA contrast in light and dark.",
       "category": "development",
@@ -486,8 +486,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/object-s3",
-        "ref": "object-s3/v0.1.5",
-        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
+        "ref": "object-s3/v0.2.1",
+        "sha": "db41f9e50b10f2dd33c744b6c1c4c84b67af25be"
       },
       "description": "The object-store plugin for the hosted lane: private file storage on the app's S3 bucket, declared as services.objects and served on the app's own origin. A skill with worked examples: presigned direct upload and download that bypass the API function and data store, owner-scoped keys authorised before signing, size and content-type limits, deleting files with their record, and platform retention. Go handlers over api-go and a web client for web-svelte.",
       "category": "development",
@@ -507,8 +507,8 @@
         "source": "git-subdir",
         "url": "albitor-ltd/albitor-plugins",
         "path": "plugins/web-app-architecture",
-        "ref": "web-app-architecture/v0.2.2",
-        "sha": "c4cbea2727efb2acb163d4cd6fec999b51042218"
+        "ref": "web-app-architecture/v0.2.4",
+        "sha": "db41f9e50b10f2dd33c744b6c1c4c84b67af25be"
       },
       "description": "Architecture patterns for the web_app archetype, delivered to the planner and the app-foundation node only: where file bytes live, how slow supplier work advances, the platform limits a design must fit, and how deployed walks get their data. An index with when to use, when to avoid and how to decide, and one file per pattern.",
       "category": "development",
