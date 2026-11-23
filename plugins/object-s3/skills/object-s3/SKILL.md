@@ -145,8 +145,8 @@ A file shown in a screen travels as a URL **inside that screen's own response**,
 one API call however many files it shows. Never point `<img src>` (or `<video>`, `<audio>`, `<a
 href>` for many files) at `/api/...`, not even with `?redirect=1`: each one is a separate function
 call that answers a 302, and a list of thirty images fires thirty invocations at once. That throttles
-the app (the web client's in-flight cap of 4 never sees image requests) and the platform's
-concurrency limit with it.
+the app (the web client's in-flight cap of 4 never sees image requests) and the API stage's burst limit
+with it.
 
 - **Server.** The handler that returns the screen's data loads the records through its owner-scoped
   query, then calls `files.Views(ctx, owner, record.ID, record.Files)` for each record and puts the

@@ -67,8 +67,9 @@ function checkPath(path: string): void {
 	}
 }
 
-/** Most requests in flight at once per tab. The host allows an app only a few concurrent
- * executions, so a burst beyond this would be throttled; the rest wait their turn here. */
+/** Most requests in flight at once per tab. The stage allows an app 50 requests a second
+ * (burst 100) and each request costs one invocation, so a burst beyond this risks a throttle;
+ * the rest wait their turn here. */
 export const MAX_IN_FLIGHT = 4;
 
 /** Attempts in all (the first plus retries) for a GET or HEAD that is throttled or unreachable. */

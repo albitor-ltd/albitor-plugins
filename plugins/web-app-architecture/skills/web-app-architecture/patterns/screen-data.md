@@ -1,7 +1,8 @@
 # screen-data: one call per screen
 
-The hosted API runs at most 10 requests at once and takes 50 a second (`limits.md`). A screen that
-fans out one request per row spends that budget on a single page load; the overflow is answered
+The hosted API has no reserved concurrency; its per-app limit is the stage's 50 requests a second
+(burst 100), and compute is shared per cell (`limits.md`). A screen that fans out one request per
+row spends that burst, and one invocation each, on a single page load; the overflow is answered
 503 or 429, and it looks fine in a walk whose fixtures hold three records. The rule: a screen gets
 what it renders from one Lambda call, and work moves into the handler, where one invocation can do
 it with DynamoDB `Query` and `BatchGetItem`.
@@ -43,8 +44,8 @@ const rows = await get('/api/opportunities');
 const details = await Promise.all(rows.items.map((r) => get(`/api/opportunities/${r.id}`)));
 ```
 
-With 14 rows the list call has finished before the detail calls start, so 14 requests run
-concurrently against a limit of 10.
+With 14 rows the list call has finished before the detail calls start, so 14 requests burst
+at once, one invocation each, against a stage that takes 50 a second.
 
 After: the list already carries what the row renders, and the page makes one request.
 
