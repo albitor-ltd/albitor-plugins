@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `kit-shadcn` `0.17.2` (Refs albitor-ltd/albitor#5293; tag follows the merge). `elevation.test.ts`
+  (example, with the components it reads) and `lookchain.test.ts` (managed, with `tokens.css`) were
+  shipped in the plugin but missing from `contributes.files`, so they were not seeded into apps and
+  the compose gate (`TestKitShadcnShipsExactlyWhatItDeclares`) failed. Both are now declared.
 - `test-playwright` `0.7.3` (Refs albitor-ltd/albitor#5382 item 2; tag follows the merge).
   `localIssuerRunning` answers false without sending a request when `ALBITOR_JOURNEY_BASE_URL` is
   set (a walk of a deployed app, where the local issuer path always 404s); local runs are
